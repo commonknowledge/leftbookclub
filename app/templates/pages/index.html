@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% load ckgeo_tags %}
+
+{% block content %}
+
+{% map class="h-100" %}
+
+{% map_source id="mapbox-terrain" data=data %}
+{% map_layer layer=layer %}
+
+{% endmap %}
+
+{% endblock %}

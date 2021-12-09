@@ -1,0 +1,56 @@
+// Colors
+$light: #eee;
+$primary: #00e8a2;
+$dark: #130c16;
+$secondary: $dark;
+$panel: #f7f9fa;
+$lightgrey: #dbdbdb;
+$darkgrey: #505050;
+$primary-hover-light: transparentize($primary, 0.8);
+$alert: #ffb7b7;
+$lightred: #ffcccc;
+$midgrey: #a3a3a3;
+$custom-colors: (
+  "light": $light,
+  "lightgrey": $lightgrey,
+  "darkgrey": $darkgrey,
+  "midgrey": $midgrey,
+  "panel": $panel,
+  "alert": $alert,
+);
+$dark: #333333;
+
+// Card
+$card-border-width: 0;
+
+// Forms
+$form-label-font-size: 18px;
+$form-label-font-weight: bold;
+$form-label-margin-bottom: 0;
+
+// Borders
+$border-radius: 3px;
+
+// List group
+$list-group-color: inherit;
+$list-group-bg: inherit;
+$list-group-item-padding-x: 1rem;
+$list-group-item-padding-y: 1rem;
+$list-group-hover-bg: $primary-hover-light;
+
+// Layout
+
+$font-weight-bold: 500;
+
+$font-family-monospace: Monaco, SFMono-Regular, Menlo, Consolas,
+  "Liberation Mono", "Courier New", monospace;
+$font-family-sans-serif: "Open Sans", system-ui, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
+  "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+// Merge with bootstrap
+@import "bootstrap/scss/_functions";
+@import "bootstrap/scss/_variables";
+@import "bootstrap/scss/_mixins";
+
+$theme-colors: map-merge($theme-colors, $custom-colors);

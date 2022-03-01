@@ -1,0 +1,6 @@
+node_modules/
+.devcontainer/
+.pytest_cache/
+.github/
+build/
+**/__pycache__/

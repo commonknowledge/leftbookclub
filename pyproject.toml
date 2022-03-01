@@ -1,0 +1,103 @@
+# Poetry pyproject.toml: https://python-poetry.org/docs/pyproject/
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = "A django project using groundwork framework"
+authors = []
+
+[tool.poetry.dependencies]
+python = "^3.9"
+typer = {extras = ["all"], version = "^0.3.2"}
+
+boto3 = '>=1.17.77'
+botocore = '>=1.20.77'
+requests = '>=2.25.1'
+rich = "^10.7.0"
+django = '^3.2.3'
+django-anymail = '>=8.3'
+django-filter = '>=2.4.0'
+djangorestframework = '>=3.12.4'
+django-vite = "^1.2.1"
+dj-database-url = '>=0.5.0'
+django-storages = "*"
+groundwork-django = '>=0.1.0'
+gunicorn = '>=20.1.0'
+wagtail = '^2.13'
+psycopg2 = '>=2.8.6'
+
+[tool.poetry.dev-dependencies]
+bandit = "^1.7.0"
+black = {version = "^21.7b0", allow-prereleases = true}
+darglint = "^1.8.0"
+django-debug-toolbar = "*"
+django-livereload-server = "^0.3.2"
+isort = {extras = ["colors"], version = "^5.9.3"}
+pre-commit = "^2.14.0"
+pylint = "^2.10.2"
+pydocstyle = "^6.1.1"
+pytest = "^6.2.4"
+pytest-django = "^4.4.0"
+pyupgrade = "^2.24.0"
+safety = "^1.10.3"
+
+[tool.black]
+# https://github.com/psf/black
+target-version = ["py39"]
+line-length = 88
+color = true
+
+exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | node_modules
+    | build
+    | dist
+    | env
+    | venv
+)/
+'''
+
+[tool.isort]
+# https://github.com/timothycrosley/isort/
+py_version = 39
+line_length = 88
+
+known_typing = ["typing", "types", "typing_extensions", "mypy", "mypy_extensions"]
+sections = ["FUTURE", "TYPING", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+include_trailing_comma = true
+profile = "black"
+multi_line_output = 3
+indent = 4
+color_output = true
+
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/6.2.x/customize.html#pyproject-toml
+# Directories that are not visited by pytest collector:
+norecursedirs =["hooks", "*.egg", ".eggs", "dist", "build", "docs", ".tox", ".git", "__pycache__"]
+doctest_optionflags = ["NUMBER", "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
+
+# Extra options:
+addopts = [
+  "--strict-markers",
+  "--tb=short",
+  "--doctest-modules",
+  "--doctest-continue-on-failure",
+]
+
+markers = [
+    "integration_test: marks tests as integrtation tests (not run in make lint)",
+]
+
+DJANGO_SETTINGS_MODULE = "app.settings.test"
+python_files = "tests.py test_*.py *_tests.py"

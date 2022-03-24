@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "wagtail.core",
     "taggit",
     "modelcluster",
+    "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
     "django.contrib.auth",

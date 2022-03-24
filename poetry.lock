@@ -1123,6 +1123,17 @@ docs = ["pyenchant (>=3.1.1,<4)", "sphinxcontrib-spelling (>=5.4.0,<6)", "Sphinx
 testing = ["python-dateutil (>=2.7)", "pytz (>=2014.7)", "elasticsearch (>=5.0,<6.0)", "Jinja2 (>=2.11,<3.0)", "boto3 (>=1.16,<1.17)", "freezegun (>=0.3.8)", "openpyxl (>=2.6.4)", "Unidecode (>=0.04.14,<2.0)", "azure-mgmt-cdn (>=5.1,<6.0)", "azure-mgmt-frontdoor (>=0.3,<0.4)", "coverage (>=3.7.0)", "flake8 (>=3.6.0)", "isort (==5.6.4)", "flake8-blind-except (==0.1.1)", "flake8-print (==2.0.2)", "doc8 (==0.8.1)", "jinjalint (>=0.5)", "docutils (==0.15)", "polib (>=1.1,<2.0)"]
 
 [[package]]
+name = "wagtail-transfer"
+version = "0.8.2"
+description = "Content transfer for Wagtail"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+docs = ["mkdocs (>=1.0,<1.1)", "mkdocs-material (>=4.6,<4.7)"]
+
+[[package]]
 name = "watchdog"
 version = "2.1.6"
 description = "Filesystem events monitoring"
@@ -1205,7 +1216,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "8900eb0746fe62cdab33217bbb4f6c8e9fc6236d636363ee7287b75c7cfd7d35"
+content-hash = "b7ca653189700be1a7d7b9a6576a678138a07a74e5e8ca1288f4a8127ed9e18f"
 
 [metadata.files]
 anyascii = [
@@ -1734,6 +1745,9 @@ virtualenv = [
 wagtail = [
     {file = "wagtail-2.16.1-py3-none-any.whl", hash = "sha256:129bb91c422e5c2b3603ebc67e9c392541cb564e55a5b864881905ca246a2c4e"},
     {file = "wagtail-2.16.1.tar.gz", hash = "sha256:53dbd62a93da97c4ef6982652a103ab9be5bfe03f34cf5bc796c5d716b9020e8"},
+]
+wagtail-transfer = [
+    {file = "wagtail_transfer-0.8.2-py3-none-any.whl", hash = "sha256:2d57c5bb1facbceface9cef7606534534b3ea2456a1859cfddb3665b27fb1782"},
 ]
 watchdog = [
     {file = "watchdog-2.1.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:9693f35162dc6208d10b10ddf0458cc09ad70c30ba689d9206e02cd836ce28a3"},

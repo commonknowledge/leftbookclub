@@ -134,9 +134,10 @@ STATICFILES_FINDERS = [
 ]
 
 
+DJANGO_ASSETS_PATH = BASE_DIR + "/collect_static"
 DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/dist"
 
-STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH]
+STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH, DJANGO_ASSETS_PATH, ]
 
 
 # ManifestStaticFilesStorage is recommended in production, to prevent outdated

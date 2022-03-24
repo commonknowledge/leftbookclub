@@ -27,7 +27,7 @@ dj-database-url = '>=0.5.0'
 django-storages = "*"
 groundwork-django = '>=0.1.0'
 gunicorn = '>=20.1.0'
-wagtail = '^2.13'
+wagtail = '^2.16'
 psycopg2 = '>=2.8.6'
 
 [tool.poetry.dev-dependencies]

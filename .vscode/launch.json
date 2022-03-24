@@ -8,6 +8,7 @@
       "name": "Start App",
       "configurations": [
         "django-runserver",
+        "django-setup",
         "vite-dev"
       ],
       "presentation": {
@@ -18,6 +19,17 @@
     }
   ],
   "configurations": [
+    {
+      "name": "django-setup",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": [
+        "setup_pages"
+      ],
+      "justMyCode": true,
+      "django": true
+    },
     {
       "name": "django-runserver",
       "type": "python",

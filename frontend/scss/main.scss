@@ -19,3 +19,8 @@
 @import "./util.scss";
 
 // Components:
+
+html, body {
+  min-height: 100vh;
+  background: #FADE70;
+}

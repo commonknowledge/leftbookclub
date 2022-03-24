@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     "groundwork.core",
     "groundwork.geo",
     "livesync",
-    "debug_toolbar",
     "django_vite",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
@@ -45,7 +44,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "livesync.core.middleware.DjangoLiveSyncMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

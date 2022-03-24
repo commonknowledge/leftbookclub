@@ -15,6 +15,21 @@ BASE_URL = "http://localhost:8080"
 
 DATABASES["default"]["CONN_MAX_AGE"] = 0
 
+INSTALLED_APPS += [
+    "wagtail.contrib.styleguide",
+]
+
+USE_DEBUG_TOOLBAR = False
+
+if USE_DEBUG_TOOLBAR:
+    INSTALLED_APPS += [
+        'debug_toolbar',
+    ]
+
+    MIDDLEWARE += [
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ]
+
 try:
     from .local import *
 except ImportError:

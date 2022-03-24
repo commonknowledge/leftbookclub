@@ -6,7 +6,10 @@
   "compounds": [
     {
       "name": "Start App",
-      "configurations": ["django-runserver", "vite-dev"],
+      "configurations": [
+        "django-runserver",
+        "vite-dev"
+      ],
       "presentation": {
         "hidden": false,
         "group": "",
@@ -20,7 +23,9 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": ["runserver"],
+      "args": [
+        "runserver"
+      ],
       "justMyCode": true,
       "django": true
     },
@@ -29,7 +34,10 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": ["run_cron_tasks", "--once"],
+      "args": [
+        "run_cron_tasks",
+        "--once"
+      ],
       "justMyCode": true,
       "django": true,
       "presentation": {
@@ -42,15 +50,21 @@
       "name": "vite-dev",
       "type": "node",
       "request": "launch",
+      "cwd": "${workspaceFolder}",
+      // "port": 5858,
       "runtimeExecutable": "yarn",
-      "program": "vite",
-      "args": ["--mode", "dev"]
+      "runtimeArgs": [
+        "start:debug"
+      ]
     },
     {
       "type": "node",
       "name": "vscode-jest-tests",
       "request": "launch",
-      "args": ["--runInBand", "--watchAll=false"],
+      "args": [
+        "--runInBand",
+        "--watchAll=false"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -63,5 +77,5 @@
         "hidden": true
       }
     }
-  ]
+  ],
 }

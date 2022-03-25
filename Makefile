@@ -35,7 +35,7 @@ bootstrap: poetry-download install pre-commit-install migrate
 	touch app/settings/local.py
 
 .PHONY: runserver
-runserver:
+runserver: migrate
 	poetry run gunicorn --worker-tmp-dir /dev/shm app.wsgi
 
 #* Formatters

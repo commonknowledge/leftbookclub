@@ -1,3 +1,4 @@
+import 'vite/modulepreload-polyfill'
 import "./scss/main.scss";
 import "@hotwired/turbo";
 

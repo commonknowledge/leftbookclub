@@ -86,7 +86,7 @@ ci: lint
 .PHONY: build
 build:
 	yarn vite build
-	SKIP_DB=1 SECRET_KEY=dummy poetry python manage.py collectstatic --noinput --clear
+	SKIP_DB=1 SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 
 
 #* Cleaning

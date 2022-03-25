@@ -18,20 +18,21 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_S3_CUSTOM_DOMAIN")
 MEDIA_URL = os.getenv("MEDIA_URL")
 
+# if you don't already have this in settings
+DEFAULT_FROM_EMAIL = "noreply@leftbookclub.com"
+# ditto (default from-email for Django errors)
+SERVER_EMAIL = "noreply@leftbookclub.com"
+
 ANYMAIL = {
     "MAILJET_API_KEY": os.getenv("MAILJET_API_KEY"),
     "MAILJET_SECRET_KEY": os.getenv("MAILJET_SECRET_KEY"),
     "SEND_DEFAULTS": {
-        "envelope_sender": "noreply@leftbookclub.com"
+        "envelope_sender": DEFAULT_FROM_EMAIL
     },
 }
 
 # or sendgrid.EmailBackend, or...
 EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
-# if you don't already have this in settings
-DEFAULT_FROM_EMAIL = f"noreply@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
-# ditto (default from-email for Django errors)
-SERVER_EMAIL = f"admin@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
 
 WAGTAILTRANSFER_SECRET_KEY = os.getenv("WAGTAILTRANSFER_SECRET_KEY")
 

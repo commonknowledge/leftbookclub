@@ -21,7 +21,7 @@ MEDIA_URL = os.getenv("MEDIA_URL")
 # if you don't already have this in settings
 DEFAULT_FROM_EMAIL = "noreply@leftbookclub.com"
 # ditto (default from-email for Django errors)
-SERVER_EMAIL = "noreply@leftbookclub.com"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 ANYMAIL = {
     "MAILJET_API_KEY": os.getenv("MAILJET_API_KEY"),

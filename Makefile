@@ -17,7 +17,7 @@ poetry-remove:
 #* Installation
 
 .PHONY: install
-install:
+install: poetry-download
 	poetry install -n
 	yarn
 

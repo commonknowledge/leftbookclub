@@ -21,7 +21,11 @@ MEDIA_URL = os.getenv("MEDIA_URL")
 ANYMAIL = {
     "MAILJET_API_KEY": os.getenv("MAILJET_API_KEY"),
     "MAILJET_SECRET_KEY": os.getenv("MAILJET_SECRET_KEY"),
+    "SEND_DEFAULTS": {
+        "envelope_sender": "noreply@leftbookclub.com"
+    },
 }
+
 # or sendgrid.EmailBackend, or...
 EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
 # if you don't already have this in settings

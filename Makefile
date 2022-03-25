@@ -28,11 +28,15 @@ pre-commit-install:
 .PHONY: migrate
 migrate:
 	poetry run python manage.py migrate
+	poetry run python manage.py setup_pages
 
 .PHONY: bootstrap
 bootstrap: poetry-download install pre-commit-install migrate
 	touch app/settings/local.py
 
+.PHONY: runserver
+runserver:
+	poetry run gunicorn --worker-tmp-dir /dev/shm app.wsgi
 
 #* Formatters
 

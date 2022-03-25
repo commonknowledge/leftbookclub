@@ -1,4 +1,4 @@
-FROM ghcr.io/commonknowledge/do-app-baseimage-django-node:405a148156ab16f9f6cc177ea7d9141c0f4af419
+FROM ghcr.io/commonknowledge/do-app-baseimage-django-node:234cc1a78abaa803dbdf0d228c73b562a530d8d1
 
 # Install the project requirements and build.
 COPY --chown=app:app Makefile pyproject.toml poetry.lock package.json yarn.lock .

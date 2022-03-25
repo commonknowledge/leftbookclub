@@ -6,7 +6,7 @@ RUN make install
 
 # Copy the rest of the sources over
 COPY --chown=app:app . .
-ENV DJANGO_SETTINGS_MODULE=stopwatch.settings.production \
+ENV DJANGO_SETTINGS_MODULE=app.settings.production \
     NODE_ENV=production
 
 RUN make build

@@ -82,10 +82,12 @@ WSGI_APPLICATION = "app.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-if os.getenv("SKIP_DB") != "1":
+PLATFORM_DATABASE_URL = os.getenv("DATABASE_URL", None)
+print("DATABASE_URL: ", PLATFORM_DATABASE_URL)
+if os.getenv("SKIP_DB") != "1" and isinstance(PLATFORM_DATABASE_URL, str):
     DATABASES = {
         "default": dj_database_url.parse(
-            re.sub(r"^postgres(ql)?", "postgis", os.getenv("DATABASE_URL")),
+            re.sub(r"^postgres(ql)?", "postgis", PLATFORM_DATABASE_URL),
             conn_max_age=600,
             ssl_require=False,
         )

@@ -7,7 +7,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", ""))
 ALLOWED_HOSTS = [urlparse(BASE_URL).netloc]
 
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"
 
 AWS_S3_ADDRESSING_STYLE = "virtual"
 AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")

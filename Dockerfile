@@ -28,7 +28,7 @@ COPY --chown=app:app pyproject.toml poetry.lock ./
 RUN poetry install -n
 
 COPY --chown=app:app . ./
-COPY --chown=app --from=builder /app/dist ./dist
+COPY --chown=app --from=builder /app/vite ./vite
 ENV DJANGO_SETTINGS_MODULE=app.settings.production
 RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 

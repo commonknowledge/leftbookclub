@@ -135,11 +135,10 @@ STATICFILES_FINDERS = [
 ]
 
 
-DJANGO_ASSETS_PATH = BASE_DIR + "/collect_static"
 DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/vite"
 DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH + "/manifest.json"
 
-STATICFILES_DIRS = [DJANGO_ASSETS_PATH, ]
+STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH, ]
 
 
 # ManifestStaticFilesStorage is recommended in production, to prevent outdated
@@ -147,6 +146,7 @@ STATICFILES_DIRS = [DJANGO_ASSETS_PATH, ]
 # See https://docs.djangoproject.com/en/3.2/ref/contrib/staticfiles/#manifeststaticfilesstorage
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
+# The absolute path to the directory where collectstatic will collect static files for deployment.
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATIC_URL = "/static/"
 

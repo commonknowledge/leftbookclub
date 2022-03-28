@@ -35,4 +35,4 @@ RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 # For simple, single instance apps optionally run $BAKCKGROUND_WORKER in the background of this container.
 # It's a bit gross, but it works.
 ARG BAKCKGROUND_WORKER=true
-CMD ["bash", "-c", "set -m; $BAKCKGROUND_WORKER & gunicorn $GUNICORN_ARGS -b 0.0.0.0:${PORT:-80} app.wsgi & fg %1"]
+CMD ["bash", "-c", "set -m; $BAKCKGROUND_WORKER & poetry run gunicorn $GUNICORN_ARGS -b 0.0.0.0:${PORT:-80} app.wsgi & fg %1"]

@@ -11,11 +11,12 @@ export default defineConfig(() => {
       entries: Object.values(BUNDLE_ENTRYPOINTS),
     },
     build: {
-      mainifest: true,
+      manifest: true,
       emptyOutDir: true,
+      polyfillModulePreload: false,
       rollupOptions: {
         output: {
-          dir: "dist/",
+          dir: "vite_dist",
         },
         input: BUNDLE_ENTRYPOINTS,
       },

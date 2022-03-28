@@ -5,7 +5,7 @@ from .base import *
 DEBUG = False
 SECRET_KEY = os.getenv("SECRET_KEY")
 BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", ""))
-ALLOWED_HOSTS = [urlparse(BASE_URL).netloc]
+ALLOWED_HOSTS = ["*"]
 
 if os.getenv("AWS_S3_REGION_NAME"):
     DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"

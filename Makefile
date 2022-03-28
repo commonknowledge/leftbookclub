@@ -3,21 +3,10 @@ SHELL := /usr/bin/env bash
 PYTHON := python
 
 
-#* Poetry
-
-.PHONY: poetry-download
-poetry-download:
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $(PYTHON) -
-
-.PHONY: poetry-remove
-poetry-remove:
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | $(PYTHON) - --uninstall
-
-
 #* Installation
 
 .PHONY: install
-install: poetry-download
+install:
 	poetry install -n
 	yarn
 
@@ -25,18 +14,17 @@ install: poetry-download
 pre-commit-install:
 	poetry run pre-commit install
 
+.PHONY: setup-cms
+setup-cms:
+	poetry run python manage.py setup_pages
+
 .PHONY: migrate
 migrate:
 	poetry run python manage.py migrate
-	poetry run python manage.py setup_pages
 
 .PHONY: bootstrap
-bootstrap: poetry-download install pre-commit-install migrate
+bootstrap: install pre-commit-install migrate setup-cms
 	touch app/settings/local.py
-
-.PHONY: runserver
-runserver: migrate
-	poetry run gunicorn --worker-tmp-dir /dev/shm app.wsgi
 
 #* Formatters
 
@@ -86,8 +74,20 @@ ci: lint
 .PHONY: build
 build:
 	yarn vite build
-	SKIP_DB=1 SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
+	SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 
+.PHONY: release
+release: migrate setup-cms
+
+#* Server
+
+.PHONY: runserver
+runserver: release
+	poetry run gunicorn --worker-tmp-dir /dev/shm app.wsgi
+
+.PHONY: testproduction
+testproduction: release
+	DEBUG=False DJANGO_SETTINGS_MODULE=app.settings.production poetry run gunicorn --worker-tmp-dir /dev/shm app.wsgi
 
 #* Cleaning
 

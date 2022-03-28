@@ -17,18 +17,8 @@ if os.getenv("SKIP_DB") != "1":
     DATABASES["default"]["CONN_MAX_AGE"] = 0
 
 INSTALLED_APPS += [
-    "livesync",
     "wagtail.contrib.styleguide",
 ]
-
-MIDDLEWARE += [
-    "livesync.core.middleware.DjangoLiveSyncMiddleware",
-]
-
-DJANGO_LIVESYNC = {
-    'HOST': 'localhost',
-    'PORT': 9999 # this is optional and is default set to 9001.
-}
 
 USE_DEBUG_TOOLBAR = False
 

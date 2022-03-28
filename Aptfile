@@ -1,0 +1,11 @@
+curl
+git
+build-essential
+libpq-dev
+libjpeg62-turbo-dev
+zlib1g-dev
+libwebp-dev
+binutils
+libproj-dev
+gdal-bin
+g++

@@ -19,7 +19,7 @@ tests = ["pytest", "pytest-asyncio", "mypy (>=0.800)"]
 
 [[package]]
 name = "astroid"
-version = "2.11.1"
+version = "2.11.2"
 description = "An abstract syntax tree for Python with inference support."
 category = "dev"
 optional = false
@@ -114,14 +114,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.21.26"
+version = "1.21.27"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.24.26,<1.25.0"
+botocore = ">=1.24.27,<1.25.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -130,7 +130,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.24.26"
+version = "1.24.27"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -291,6 +291,20 @@ python-versions = ">=3.6"
 Django = ">=2.2"
 
 [[package]]
+name = "django-livereload-server"
+version = "0.4"
+description = "LiveReload functionality integrated with your Django development environment"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+beautifulsoup4 = ">=4.3.2"
+django = ">=1.8"
+six = "*"
+tornado = "*"
+
+[[package]]
 name = "django-modelcluster"
 version = "5.3"
 description = "Django extension to allow working with 'clusters' of models as a single unit, independently of the database"
@@ -355,19 +369,6 @@ python-versions = "*"
 
 [package.dependencies]
 Django = ">=1.11"
-
-[[package]]
-name = "django3-livesync"
-version = "1"
-description = "TODO"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-tornado = ">=6"
-watchdog = ">=2"
-websocket-client = ">=1"
 
 [[package]]
 name = "djangorestframework"
@@ -741,14 +742,14 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "pylint"
-version = "2.13.0"
+version = "2.13.2"
 description = "python code static checker"
 category = "dev"
 optional = false
 python-versions = ">=3.6.2"
 
 [package.dependencies]
-astroid = ">=2.11.0,<=2.12.0-dev0"
+astroid = ">=2.11.2,<=2.12.0-dev0"
 colorama = {version = "*", markers = "sys_platform == \"win32\""}
 dill = ">=0.2"
 isort = ">=4.2.5,<6"
@@ -1036,7 +1037,7 @@ python-versions = ">=3.6"
 name = "tornado"
 version = "6.1"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">= 3.5"
 
@@ -1090,7 +1091,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "virtualenv"
-version = "20.13.4"
+version = "20.14.0"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
@@ -1138,54 +1139,12 @@ docs = ["pyenchant (>=3.1.1,<4)", "sphinxcontrib-spelling (>=5.4.0,<6)", "Sphinx
 testing = ["python-dateutil (>=2.7)", "pytz (>=2014.7)", "elasticsearch (>=5.0,<6.0)", "Jinja2 (>=2.11,<3.0)", "boto3 (>=1.16,<1.17)", "freezegun (>=0.3.8)", "openpyxl (>=2.6.4)", "Unidecode (>=0.04.14,<2.0)", "azure-mgmt-cdn (>=5.1,<6.0)", "azure-mgmt-frontdoor (>=0.3,<0.4)", "coverage (>=3.7.0)", "flake8 (>=3.6.0)", "isort (==5.6.4)", "flake8-blind-except (==0.1.1)", "flake8-print (==2.0.2)", "doc8 (==0.8.1)", "jinjalint (>=0.5)", "docutils (==0.15)", "polib (>=1.1,<2.0)"]
 
 [[package]]
-name = "wagtail-transfer"
-version = "0.8.3"
-description = ""
-category = "main"
-optional = false
-python-versions = "*"
-develop = false
-
-[package.extras]
-docs = ["mkdocs (>=1.0,<1.1)", "mkdocs-material (>=4.6,<4.7)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/wagtail/wagtail-transfer.git"
-reference = "master"
-resolved_reference = "fb7bec17f0af174144cc70e5ea2287d6b2e64d43"
-
-[[package]]
-name = "watchdog"
-version = "2.1.6"
-description = "Filesystem events monitoring"
-category = "dev"
-optional = false
-python-versions = ">=3.6"
-
-[package.extras]
-watchmedo = ["PyYAML (>=3.10)"]
-
-[[package]]
 name = "webencodings"
 version = "0.5.1"
 description = "Character encoding aliases for legacy web content"
 category = "main"
 optional = false
 python-versions = "*"
-
-[[package]]
-name = "websocket-client"
-version = "1.3.1"
-description = "WebSocket client for Python with low level API options"
-category = "dev"
-optional = false
-python-versions = ">=3.6"
-
-[package.extras]
-docs = ["Sphinx (>=3.4)", "sphinx-rtd-theme (>=0.5)"]
-optional = ["python-socks", "wsaccel"]
-test = ["websockets"]
 
 [[package]]
 name = "willow"
@@ -1238,7 +1197,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "6c95fa9354fd2b99b1bc34123dccd98ec5908e8586c5cc3a5d1bc2017686f126"
+content-hash = "a4818007ad50acef5f0bafbbc973f07df3b89231e4c87e96d5552cb0a8556bc7"
 
 [metadata.files]
 anyascii = [
@@ -1250,8 +1209,8 @@ asgiref = [
     {file = "asgiref-3.5.0.tar.gz", hash = "sha256:2f8abc20f7248433085eda803936d98992f1343ddb022065779f37c5da0181d0"},
 ]
 astroid = [
-    {file = "astroid-2.11.1-py3-none-any.whl", hash = "sha256:e3ae0984c28b7bae2a107dffbc6e9acecf9b06506322f3465e914405dd652394"},
-    {file = "astroid-2.11.1.tar.gz", hash = "sha256:33f1c15fe9661348a50b7ec6789947089ead2a5de727bb4782d530d9d2fff2c8"},
+    {file = "astroid-2.11.2-py3-none-any.whl", hash = "sha256:cc8cc0d2d916c42d0a7c476c57550a4557a083081976bf42a73414322a6411d9"},
+    {file = "astroid-2.11.2.tar.gz", hash = "sha256:8d0a30fe6481ce919f56690076eafbb2fb649142a89dc874f1ec0e7a011492d0"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
@@ -1275,12 +1234,12 @@ black = [
     {file = "black-21.12b0.tar.gz", hash = "sha256:77b80f693a569e2e527958459634f18df9b0ba2625ba4e0c2d5da5be42e6f2b3"},
 ]
 boto3 = [
-    {file = "boto3-1.21.26-py3-none-any.whl", hash = "sha256:731947a8a316be2d4498b01f8e1df7d93b231ea3316675622b01065637662063"},
-    {file = "boto3-1.21.26.tar.gz", hash = "sha256:8c1dd724d9ff9a4794d6beeda4a64ab19688db4a546b4db8b6eba621b71a8a8d"},
+    {file = "boto3-1.21.27-py3-none-any.whl", hash = "sha256:f165790439117e3fd40f8c06826845068852a70ca5ac62adb192405c97f117e1"},
+    {file = "boto3-1.21.27.tar.gz", hash = "sha256:ef41b9c7b6311d5152bdc78f7de56912c1ed265debf7da14133e1ad00246ad50"},
 ]
 botocore = [
-    {file = "botocore-1.24.26-py3-none-any.whl", hash = "sha256:530e4006b123fd909c7222eeadc0ce644ba89e63a1d59fff08af6a06f08766fc"},
-    {file = "botocore-1.24.26.tar.gz", hash = "sha256:9f8e31ecbdc7e7bf29e4b195d67d8471f71793676bc193fde35e55cf9e3b41d1"},
+    {file = "botocore-1.24.27-py3-none-any.whl", hash = "sha256:88e19efcaead99426434d9898d211093b8a8d0cc90af3b84a4ccb9f196894e87"},
+    {file = "botocore-1.24.27.tar.gz", hash = "sha256:2c11db4b94b4b9504d2782acb758d29a7e5cbdfaa826601f222ac9ddcf004dde"},
 ]
 certifi = [
     {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
@@ -1338,6 +1297,10 @@ django-filter = [
     {file = "django-filter-21.1.tar.gz", hash = "sha256:632a251fa8f1aadb4b8cceff932bb52fe2f826dd7dfe7f3eac40e5c463d6836e"},
     {file = "django_filter-21.1-py3-none-any.whl", hash = "sha256:f4a6737a30104c98d2e2a5fb93043f36dd7978e0c7ddc92f5998e85433ea5063"},
 ]
+django-livereload-server = [
+    {file = "django-livereload-server-0.4.tar.gz", hash = "sha256:60ed030085ca53671d25704b10ec7aa3cc94a16da437b727a8dcce42471b4c65"},
+    {file = "django_livereload_server-0.4-py2.py3-none-any.whl", hash = "sha256:136c231e7ad3ba7a4db65426632dfa9b964ac04e8fa5f3808166447f016a4a91"},
+]
 django-modelcluster = [
     {file = "django-modelcluster-5.3.tar.gz", hash = "sha256:0347cdcacb19a1078ee56cc3e6d5413ba27b8a5900710c53bb92b5d8ff3819cd"},
     {file = "django_modelcluster-5.3-py2.py3-none-any.whl", hash = "sha256:f9f4250e706ee5e57503a30fbf37058b73e9fdc3190d75031338b81913cc9b4e"},
@@ -1357,10 +1320,6 @@ django-treebeard = [
 django-vite = [
     {file = "django-vite-1.4.0.tar.gz", hash = "sha256:cceb74f567c7e46213f49680000fe9bb050bdb2c8f28eb0a006358da9239eb18"},
     {file = "django_vite-1.4.0-py3-none-any.whl", hash = "sha256:94d3cdd67a5928df28a87e1d53b7bda7105fd173cf2019d24c6af74640d215d4"},
-]
-django3-livesync = [
-    {file = "django3-livesync-1.tar.gz", hash = "sha256:5ca6cff0e88459c9588f99e125d8e337c32fc796ccc49e78bb734183291cb623"},
-    {file = "django3_livesync-1-py3-none-any.whl", hash = "sha256:49d8d989d9f0ba9b9bb9af1b251550049a7e9d9d5315f1245ad0b6ebba596b20"},
 ]
 djangorestframework = [
     {file = "djangorestframework-3.13.1-py3-none-any.whl", hash = "sha256:24c4bf58ed7e85d1fe4ba250ab2da926d263cd57d64b03e8dcef0ac683f8b1aa"},
@@ -1575,8 +1534,8 @@ pygments = [
     {file = "Pygments-2.11.2.tar.gz", hash = "sha256:4e426f72023d88d03b2fa258de560726ce890ff3b630f88c21cbb8b2503b8c6a"},
 ]
 pylint = [
-    {file = "pylint-2.13.0-py3-none-any.whl", hash = "sha256:ea1692d409487a93cdcc015ddf2fd92f2367fb1193d46ece76df98b6fefc0dda"},
-    {file = "pylint-2.13.0.tar.gz", hash = "sha256:f04508086a0772f1a459b4e9facd02416943b47dda5a98ed79d4d87e709da04f"},
+    {file = "pylint-2.13.2-py3-none-any.whl", hash = "sha256:3cd8eb401c6aa6c66b614d72cf0c54a02d6bf7752aa9890fc41de71030f3c81a"},
+    {file = "pylint-2.13.2.tar.gz", hash = "sha256:0c6dd0e53e6e17f2d0d62660905f3868611e734e9d9b310dc651a4b9f3dc70da"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},
@@ -1765,46 +1724,16 @@ urllib3 = [
     {file = "urllib3-1.26.9.tar.gz", hash = "sha256:aabaf16477806a5e1dd19aa41f8c2b7950dd3c746362d7e3223dbe6de6ac448e"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.13.4-py2.py3-none-any.whl", hash = "sha256:c3e01300fb8495bc00ed70741f5271fc95fed067eb7106297be73d30879af60c"},
-    {file = "virtualenv-20.13.4.tar.gz", hash = "sha256:ce8901d3bbf3b90393498187f2d56797a8a452fb2d0d7efc6fd837554d6f679c"},
+    {file = "virtualenv-20.14.0-py2.py3-none-any.whl", hash = "sha256:1e8588f35e8b42c6ec6841a13c5e88239de1e6e4e4cedfd3916b306dc826ec66"},
+    {file = "virtualenv-20.14.0.tar.gz", hash = "sha256:8e5b402037287126e81ccde9432b95a8be5b19d36584f64957060a3488c11ca8"},
 ]
 wagtail = [
     {file = "wagtail-2.16.1-py3-none-any.whl", hash = "sha256:129bb91c422e5c2b3603ebc67e9c392541cb564e55a5b864881905ca246a2c4e"},
     {file = "wagtail-2.16.1.tar.gz", hash = "sha256:53dbd62a93da97c4ef6982652a103ab9be5bfe03f34cf5bc796c5d716b9020e8"},
 ]
-wagtail-transfer = []
-watchdog = [
-    {file = "watchdog-2.1.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:9693f35162dc6208d10b10ddf0458cc09ad70c30ba689d9206e02cd836ce28a3"},
-    {file = "watchdog-2.1.6-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:aba5c812f8ee8a3ff3be51887ca2d55fb8e268439ed44110d3846e4229eb0e8b"},
-    {file = "watchdog-2.1.6-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4ae38bf8ba6f39d5b83f78661273216e7db5b00f08be7592062cb1fc8b8ba542"},
-    {file = "watchdog-2.1.6-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:ad6f1796e37db2223d2a3f302f586f74c72c630b48a9872c1e7ae8e92e0ab669"},
-    {file = "watchdog-2.1.6-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:922a69fa533cb0c793b483becaaa0845f655151e7256ec73630a1b2e9ebcb660"},
-    {file = "watchdog-2.1.6-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:b2fcf9402fde2672545b139694284dc3b665fd1be660d73eca6805197ef776a3"},
-    {file = "watchdog-2.1.6-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:3386b367e950a11b0568062b70cc026c6f645428a698d33d39e013aaeda4cc04"},
-    {file = "watchdog-2.1.6-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:8f1c00aa35f504197561060ca4c21d3cc079ba29cf6dd2fe61024c70160c990b"},
-    {file = "watchdog-2.1.6-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:b52b88021b9541a60531142b0a451baca08d28b74a723d0c99b13c8c8d48d604"},
-    {file = "watchdog-2.1.6-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:8047da932432aa32c515ec1447ea79ce578d0559362ca3605f8e9568f844e3c6"},
-    {file = "watchdog-2.1.6-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:e92c2d33858c8f560671b448205a268096e17870dcf60a9bb3ac7bfbafb7f5f9"},
-    {file = "watchdog-2.1.6-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:b7d336912853d7b77f9b2c24eeed6a5065d0a0cc0d3b6a5a45ad6d1d05fb8cd8"},
-    {file = "watchdog-2.1.6-py3-none-manylinux2014_aarch64.whl", hash = "sha256:cca7741c0fcc765568350cb139e92b7f9f3c9a08c4f32591d18ab0a6ac9e71b6"},
-    {file = "watchdog-2.1.6-py3-none-manylinux2014_armv7l.whl", hash = "sha256:25fb5240b195d17de949588628fdf93032ebf163524ef08933db0ea1f99bd685"},
-    {file = "watchdog-2.1.6-py3-none-manylinux2014_i686.whl", hash = "sha256:be9be735f827820a06340dff2ddea1fb7234561fa5e6300a62fe7f54d40546a0"},
-    {file = "watchdog-2.1.6-py3-none-manylinux2014_ppc64.whl", hash = "sha256:d0d19fb2441947b58fbf91336638c2b9f4cc98e05e1045404d7a4cb7cddc7a65"},
-    {file = "watchdog-2.1.6-py3-none-manylinux2014_ppc64le.whl", hash = "sha256:3becdb380d8916c873ad512f1701f8a92ce79ec6978ffde92919fd18d41da7fb"},
-    {file = "watchdog-2.1.6-py3-none-manylinux2014_s390x.whl", hash = "sha256:ae67501c95606072aafa865b6ed47343ac6484472a2f95490ba151f6347acfc2"},
-    {file = "watchdog-2.1.6-py3-none-manylinux2014_x86_64.whl", hash = "sha256:e0f30db709c939cabf64a6dc5babb276e6d823fd84464ab916f9b9ba5623ca15"},
-    {file = "watchdog-2.1.6-py3-none-win32.whl", hash = "sha256:e02794ac791662a5eafc6ffeaf9bcc149035a0e48eb0a9d40a8feb4622605a3d"},
-    {file = "watchdog-2.1.6-py3-none-win_amd64.whl", hash = "sha256:bd9ba4f332cf57b2c1f698be0728c020399ef3040577cde2939f2e045b39c1e5"},
-    {file = "watchdog-2.1.6-py3-none-win_ia64.whl", hash = "sha256:a0f1c7edf116a12f7245be06120b1852275f9506a7d90227648b250755a03923"},
-    {file = "watchdog-2.1.6.tar.gz", hash = "sha256:a36e75df6c767cbf46f61a91c70b3ba71811dfa0aca4a324d9407a06a8b7a2e7"},
-]
 webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},
     {file = "webencodings-0.5.1.tar.gz", hash = "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"},
-]
-websocket-client = [
-    {file = "websocket-client-1.3.1.tar.gz", hash = "sha256:6278a75065395418283f887de7c3beafb3aa68dada5cacbe4b214e8d26da499b"},
-    {file = "websocket_client-1.3.1-py3-none-any.whl", hash = "sha256:074e2ed575e7c822fc0940d31c3ac9bb2b1142c303eafcf3e304e6ce035522e8"},
 ]
 willow = [
     {file = "Willow-1.4.1-py2.py3-none-any.whl", hash = "sha256:fc4042696d090e75aef922fa1ed26d483c764f005b36cf523cf7c34e69d5dd7a"},

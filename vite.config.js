@@ -16,7 +16,7 @@ export default defineConfig(() => {
       polyfillModulePreload: false,
       rollupOptions: {
         output: {
-          dir: "vite_dist",
+          dir: "vite/",
         },
         input: BUNDLE_ENTRYPOINTS,
       },

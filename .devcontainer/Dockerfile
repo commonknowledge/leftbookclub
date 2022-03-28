@@ -4,6 +4,9 @@ FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
 
 ENV PYTHONUNBUFFERED 1
 
+COPY Aptfile ./
+RUN apt-get update && cat Aptfile | xargs apt-get install --yes --quiet --no-install-recommends
+
 # Update args in docker-compose.yaml to set the UID/GID of the "vscode" user.
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
@@ -14,4 +17,7 @@ ARG INSTALL_NODE="true"
 ARG NODE_VERSION="lts/*"
 RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
-RUN curl https://raw.githubusercontent.com/commonknowledge/do-app-baseimage-django-node/439e8fecc8279266fcdd80942640000a1fb5a3ba/.bin/prepare.sh | /bin/bash
+ENV POETRY_HOME=/usr/local
+RUN curl -sSL https://install.python-poetry.org | python3 -
+USER vscode
+RUN poetry config virtualenvs.create false

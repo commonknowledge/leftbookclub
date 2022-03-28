@@ -11,7 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-vite_dist/
+vite/*
 downloads/
 eggs/
 .eggs/
@@ -27,7 +27,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-static/
+static/*
+media/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -140,3 +141,5 @@ local.py
 # Docs artifacts
 docs/api
 docs/components
+
+!/*/.gitkeep

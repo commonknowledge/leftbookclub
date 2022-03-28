@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     "wagtail.core",
     "taggit",
     "modelcluster",
-    "wagtail_transfer",
+    "livereload",
+    # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
+    'livereload.middleware.LiveReloadScript',
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -134,9 +136,10 @@ STATICFILES_FINDERS = [
 
 
 DJANGO_ASSETS_PATH = BASE_DIR + "/collect_static"
-DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/vite_dist"
+DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/vite"
+DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH + "/manifest.json"
 
-STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH, DJANGO_ASSETS_PATH, ]
+STATICFILES_DIRS = [DJANGO_ASSETS_PATH, ]
 
 
 # ManifestStaticFilesStorage is recommended in production, to prevent outdated

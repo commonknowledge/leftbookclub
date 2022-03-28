@@ -19,7 +19,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "groundwork.core",
     "groundwork.geo",
-    "livesync",
     "django_vite",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
@@ -45,7 +44,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "livesync.core.middleware.DjangoLiveSyncMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -136,7 +134,7 @@ STATICFILES_FINDERS = [
 
 
 DJANGO_ASSETS_PATH = BASE_DIR + "/collect_static"
-DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/dist"
+DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/vite_dist"
 
 STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH, DJANGO_ASSETS_PATH, ]
 

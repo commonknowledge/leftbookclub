@@ -214,10 +214,10 @@ glob-parent@~5.1.2:
   dependencies:
     is-glob "^4.0.1"
 
-groundwork-ui@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/groundwork-ui/-/groundwork-ui-0.1.0.tgz#80247597bf8b424c47ae35253146957259213ca0"
-  integrity sha512-7ybDOkK42V89J8GHnveS5QZFdG/hcJP7JqJx3GK0Yy3KI9YDpftwObdIt8k/WXUDcz4Sx++XRuvIGklo6VcDMQ==
+groundwork-ui@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/groundwork-ui/-/groundwork-ui-0.1.1.tgz#47170bb1762c68c69e9e5dee44b356873a3a3cc3"
+  integrity sha512-hw0i/+5CtIKwR90iYy56MrTjo3pWyZP6APO2K9XclH9WftiHhMwsGBp0D8p6wvZbs7wUEqLHP8sHzB8gQSPK8A==
 
 has@^1.0.3:
   version "1.0.3"

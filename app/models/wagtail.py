@@ -5,8 +5,8 @@ from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
-
-stripe.api_key = settings.STRIPE_API_KEY
+import urllib.parse
+from django.shortcuts import redirect
 
 
 class HomePage(RoutablePageMixin, Page):
@@ -16,52 +16,89 @@ class HomePage(RoutablePageMixin, Page):
         FieldPanel("body", classname="full"),
     ]
 
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
-        products = [
-            p
-            for p in stripe.Product.list()
-            if p.get("metadata", {}).get("pickable", 0) == 1
-        ]
-        context["products"] = products
+    @route(r'^$') # will override the default Page serving mechanism
+    def pick_product(self, request):
+        '''
+        Provide a list of products to the template, to start the membership signup flow
+        '''
 
-    @route(r"^/product/([a-zA-Z0-9]+)$")
-    def product_variant_picker(self, request, product_id):
+        products = [
+            p for p in stripe.Product.list()
+            # if p.get("metadata", {}).get("pickable", 0) == 1
+        ]
+
+        return self.render(request, context_overrides={
+            'products': products
+        })
+
+    @route(r"^product/(?P<product_id>.+)/$")
+    def pick_price_for_product(self, request, product_id):
         """
         When a product has been selected, present the regular/solidarity options.
         """
 
-        product = stripe.Product.retrieve(product_id)
-        prices = stripe.Price.list(product=product)
+        try:
+            product = stripe.Product.retrieve(product_id)
+            prices = stripe.Price.list(product=product)
 
-        return self.render(
-            request, context_overrides={"product": product, "prices": prices}
-        )
+            return self.render(
+              request,
+              context_overrides={
+                "product": product,
+                "prices": prices,
+              }
+            )
+        except:
+            return redirect(self.url + self.reverse_subpage("error"))
 
-    @route(r"^/price/([a-zA-Z0-9]+)$")
-    def redirect_to_stripe_checkout(self, request, price_id):
-
+    @route(r"^price/(?P<price_id>.+)/$")
+    def checkout(self, request, price_id):
         """
         Create a checkout session with a line item of price_id
         """
 
-        stripe.PaymentLink.create(
-            line_items=[{"price": price_id, "quantity": 1}],
-            shipping_address_collection={"allowed_countries": ["GB"]},
-            after_completion={"type": "redirect"},
+        try:
+            session = stripe.checkout.Session.create(
+                line_items=[{ "price": price_id, "quantity": 1 }],
+                shipping_address_collection={ "allowed_countries": ["GB"] },
+                success_url=urllib.parse.urljoin(self.url, 'complete?session_id={CHECKOUT_SESSION_ID}'),
+                cancel_url=urllib.parse.urljoin(self.url, 'error'),
+            )
+
+            response = redirect(session.url)
+            return response
+        except:
+            return redirect(self.url + self.reverse_subpage("error"))
+
+    @route(r"^complete/$")
+    def post_purchase_cleanup(self, request):
+        """
+        Present a thank you page and run any wrapup activites that are required.
+        """
+
+        try:
+            session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
+            customer = customer = stripe.Customer.retrieve(session.customer)
+            # TODO: Create a Django user and associate ^ this
+
+            return self.render(
+              request,
+              context_overrides={
+                "customer": customer
+              }
+            )
+        except:
+            return redirect(self.url + self.reverse_subpage("error"))
+
+    @route(r"^error/$")
+    def error(self, request):
+        """
+        Present a thank you page and run any wrapup activites that are required.
+        """
+
+        return self.render(
+          request,
+          context_overrides={
+            "error": True
+          }
         )
-
-        # TODO: Generate checkout URL
-        # - Shipping
-        # - Redirect back to website config
-        # - CHECKOUT_SESSION_ID
-        # TODO: Redirect user to URL
-
-    @route(r"^/complete/([a-zA-Z0-9]+)$")
-    def post_purchase_cleanup(self, request, price_id):
-        """
-        When a product has been selected, present the regular/solidarity options.
-        """
-
-        # TODO: Get the customer from the CHECKOUT_SESSION_ID
-        # TODO: Create a Django user and associate ^ this

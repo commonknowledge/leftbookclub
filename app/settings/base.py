@@ -15,6 +15,8 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 
 INSTALLED_APPS = [
     "app",
+    "mathfilters",
+    "djmoney",
     "anymail",
     "rest_framework",
     "groundwork.core",
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "wagtail.contrib.routable_page",
 ]
 
 MIDDLEWARE = [

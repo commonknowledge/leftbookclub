@@ -195,3 +195,7 @@ INTERNAL_IPS = [
 WAGTAIL_SITE_NAME = "Left Book Club"
 
 BASE_URL = "https://localhost:8000"
+
+# Stripe
+
+STRIPE_API_KEY = None

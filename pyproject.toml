@@ -30,6 +30,7 @@ wagtail = '^2.16'
 psycopg2 = '>=2.8.6'
 # wagtail-transfer = { git = "https://github.com/wagtail/wagtail-transfer.git", branch = "master" }
 django-livereload-server = "^0.4"
+stripe = "^2.68.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

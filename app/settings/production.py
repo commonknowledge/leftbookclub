@@ -38,6 +38,8 @@ if os.getenv("MAILJET_API_KEY"):
 
 WAGTAILTRANSFER_SECRET_KEY = os.getenv("WAGTAILTRANSFER_SECRET_KEY")
 
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
+
 try:
     from .local import *
 except ImportError:

@@ -11,7 +11,7 @@ SECRET_KEY = "django-insecure-lt!8@q40mll#wdum^+n!y67i-_3k%1p-9k$5#s!ok2-o8wr7eh
 # SECURITY WARNING: define the correct hosts in production!
 ALLOWED_HOSTS = ["*"]
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://localhost:8000"
 
 if os.getenv("SKIP_DB") != "1":
     DATABASES["default"]["CONN_MAX_AGE"] = 0

@@ -3,15 +3,19 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from wagtail.core.models import Page, Site
 from app.models import HomePage
+from django.conf import settings
+from urllib.parse import urlparse
 
 class Command(BaseCommand):
     help = 'Set up essential pages'
 
     def add_arguments(self, parser):
+        default_base_url = urlparse(settings.BASE_URL)
+
         parser.add_argument('-H', '--host', dest='host',
-                            type=str, default="localhost")
+                            type=str, default=default_base_url.netloc)
         parser.add_argument('-p', '--port', dest='port',
-                            type=int, default=8000)
+                            type=int, default=default_base_url.port or 80)
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -19,8 +23,7 @@ class Command(BaseCommand):
             site = Site.objects\
                 .get(
                     root_page__content_type=ContentType.objects.get_for_model(
-                        HomePage),
-                    root_page__locale_id=1
+                        HomePage)
                 )
             home = site.root_page
             print("Site and homepage already set up", site, home)

@@ -193,3 +193,5 @@ INTERNAL_IPS = [
 # Wagtail
 
 WAGTAIL_SITE_NAME = "Left Book Club"
+
+BASE_URL = "https://localhost:8000"

@@ -20,11 +20,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         try:
-            site = Site.objects\
-                .get(
-                    root_page__content_type=ContentType.objects.get_for_model(
-                        HomePage)
-                )
+            site = Site.objects.get(root_page__content_type=ContentType.objects.get_for_model(HomePage))
             home = site.root_page
             print("Site and homepage already set up", site, home)
         except:
@@ -42,5 +38,8 @@ class Command(BaseCommand):
                 site_name="Left Book Club",
                 root_page=home,
             )
+          
+        # Delete placeholders
+        Page.objects.filter(title="Welcome to your new Wagtail site!").all().delete()
 
         # Set up website sections

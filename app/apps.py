@@ -8,4 +8,6 @@ class LeftBookClub(AppConfig):
     verbose_name = "Left Book Club"
 
     def ready(self):
+        import app.wagtail.settings
+
         stripe.api_key = settings.STRIPE_API_KEY

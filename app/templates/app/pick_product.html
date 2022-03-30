@@ -2,11 +2,10 @@
 {% load static wagtailroutablepage_tags mathfilters djmoney %}
 
 {% block content %}
-  <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
-    <h1 class="display-4 fw-normal">Choose your plan</h1>
+  <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h2 class="display-4 fw-normal">Choose your plan</h2>
     <p class="fs-5 text-muted">Your subscription will begin with the most recently published book in your chosen collection.</p>
-  </div>
-  <main>
+  </header>
     <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
       {% for product in products|slice:":3" %}
       <div class="col">

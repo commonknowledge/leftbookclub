@@ -4,7 +4,7 @@ from djstripe.models import Product
 class LBCProduct(Product):
     @classmethod
     def get_active_plans(self):
-        return self.objects.filter(metadata__pickable="1")
+        return self.objects.filter(metadata__pickable="1", active=True, type="service")
 
     @property
     def has_tiered_pricing(self):
@@ -12,17 +12,26 @@ class LBCProduct(Product):
 
     @property
     def regular_price(self):
-        price = self.prices.filter(nickname="regular").first()
-        if price is not None:
+        try:
+            price = self.prices.get(nickname="regular")
+            print(price)
             return price
-        return self.prices.order_by("unit_amount").first()
+        except:
+            return self.prices.order_by("unit_amount").first()
 
     @property
     def solidarity_price(self):
-        price = self.prices.filter(nickname="solidarity").first()
-        if price is not None:
+        try:
+            price = self.prices.get(nickname="solidarity")
+            print(price)
             return price
-        return self.prices.order_by("-unit_amount").first()
+        except:
+            return self.prices.order_by("-unit_amount").first()
+
+    autocomplete_search_field = "name"
+
+    def autocomplete_label(self):
+        return getattr(self, self.autocomplete_search_field)
 
     class Meta:
         proxy = True

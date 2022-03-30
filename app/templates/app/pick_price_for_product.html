@@ -3,30 +3,52 @@
 
 {% block content %}
   <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
-    <h1 class="display-4 fw-normal">Can you be a solidarity subscriber?</h1>
+    <h2 class="display-4 fw-normal">Can you be a solidarity subscriber?</h2>
     <p class="fs-5 text-muted">If you can afford a solidarity subscription please help us by choosing this option.</p>
   </div>
-  <div>
-    Selected plan: {{ product.name }}
+  <div class='bg-light rounded-2 p-2 mb-4'>
+    <span>Selected plan: {{ product.name }}</span>
+    <a href="{% routablepageurl page 'pick_product' %}">Change</a>
   </div>
   <main>
-    <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
-      {% for price in product.prices.all|dictsort:"unit_amount" %}
-      <div class="col">
-        <div class="card mb-4 rounded-3 shadow-sm border-primary">
-          <div class="card-header py-3 text-white bg-primary border-primary">
-            <h4 class="my-0 fw-normal">{{ price.name }}</h4>
-          </div>
-          <div class="card-body">
-            <h1 class="card-title pricing-card-title">{% money_localize price.unit_amount|div:100 price.currency %}<small class="text-muted fw-light">/mo</small></h1>
-            {{ price.description }}
-            <a class="w-100 btn btn-lg btn-primary" href="{% routablepageurl page "checkout" price_id=price.id %}">
-              Select
-            </a>
+    <div class="row justify-content-md-center">
+      {% if product.has_tiered_pricing %}
+        {% with product.regular_price as price %}
+        <div class="col col-sm-6 col-lg-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Regular price</h5>
+              <h1 class="card-title pricing-card-title">{% money_localize price.unit_amount|div:100 price.currency %}<small class="text-muted fw-light">/mo</small></h1>
+              <p class="card-text">Support LBC by contributing towards the cost of your membership.</p>
+              <a href="{% routablepageurl page "checkout" price_id=price.id %}" class="btn btn-outline-secondary">Continue</a>
+            </div>
           </div>
         </div>
-      </div>
-      {% endfor %}
+        {% endwith %}
+        {% with product.solidarity_price as price %}
+        <div class="col col-sm-6 col-lg-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Solidarity price</h5>
+              <h1 class="card-title pricing-card-title">{% money_localize price.unit_amount|div:100 price.currency %}<small class="text-muted fw-light">/mo</small></h1>
+              <p class="card-text">Cover the cost of your membership and help support those who can't afford to.</p>
+              <a href="{% routablepageurl page "checkout" price_id=price.id %}" class="btn btn-primary">Continue</a>
+            </div>
+          </div>
+        </div>
+        {% endwith %}
+      {% else %}
+        {% for price in product.prices.all|dictsort:"unit_amount" %}
+        <div class="col col-sm-6 col-lg-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title text-capitalize">{{ price.nickname }}</h5>
+              <a href="{% routablepageurl page "checkout" price_id=price.id %}" class="btn btn-primary">Continue</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
     </div>
   </main>
 {% endblock %}

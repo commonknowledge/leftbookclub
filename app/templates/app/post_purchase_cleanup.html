@@ -1,5 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Welcome to the Left Book Club, {{ customer.name }}!</h1>
+    <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
+      <h1 class="h2 fw-normal">Welcome to the Left Book Club, {{ customer.name }}</h1>
+      <p class="fs-5 text-muted">Your first book is on its way!</p>
+    </header>
+    {% with settings.app.FeaturedContent.current_book as book %}
+    {% if book is not None %}
+    <div class="card mb-3 mx-auto" style="max-width: 540px;">
+      <div class="row g-0">
+        <div class="col-md-4" style="background-size: cover; background-position: 50%; background-image: url('{{ book.images.0 }}');"></div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <span class="badge rounded-pill bg-primary mb-3 text-dark">Preparing for delivery</span>
+            <h5 class="card-title">{{ book.name }}</h5>
+            <p class="card-text">{{ book.description }}</p>
+            <p class="card-text"><small class="text-muted">{{ book.metadata.Published }}</small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% endwith %}
 {% endblock %}

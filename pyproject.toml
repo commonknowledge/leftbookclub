@@ -35,6 +35,7 @@ django-mathfilters = "^1.0.0"
 django-money = "^2.1.1"
 dj-stripe = "^2.6.1"
 pre-commit = "^2.17.0"
+wagtail-autocomplete = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

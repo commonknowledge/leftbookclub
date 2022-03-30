@@ -38,11 +38,16 @@ INSTALLED_APPS = [
     "modelcluster",
     "livereload",
     "djstripe",
+    "django_bootstrap5",
     "wagtailautocomplete",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
     "django.contrib.auth",
+    # 'allauth.socialaccount.providers.auth0',
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -120,6 +125,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "app.User"
 
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+    # `allauth` specific authentication methods, such as login by e-mail
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+ACCOUNT_EMAIL_REQUIRED = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

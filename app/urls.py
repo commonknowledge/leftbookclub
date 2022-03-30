@@ -22,6 +22,12 @@ urlpatterns = [
         "favicon.ico",
         RedirectView.as_view(url="/static/images/logo.png", permanent=True),
     ),
+    path(
+        "accounts/profile/",
+        TemplateView.as_view(template_name="app/profile.html"),
+        name="profile",
+    ),
+    path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism

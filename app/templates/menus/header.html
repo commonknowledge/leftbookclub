@@ -14,10 +14,10 @@
 
   <div class="col-md-3 text-end">
     {% if user.is_authenticated %}
-      <a href="#" class="btn btn-outline-primary me-2">Profile</a>
-      <a href="#" class="btn btn-outline-primary me-2">Sign out</a>
+      <a href="{% url 'profile' %}" class="btn btn-outline-primary me-2">Profile</a>
+      <a href="{% url 'account_logout' %}" class="btn btn-outline-primary me-2">Sign out</a>
     {% else %}
-      <a href="#" class="btn btn-outline-primary me-2">Login</a>
+      <a href="{% url 'account_login' %}" class="btn btn-outline-primary me-2">Login</a>
     {% endif %}
   </div>
 </header>

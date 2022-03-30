@@ -2,7 +2,6 @@ import urllib.parse
 
 import stripe
 from django.conf import settings
-from django.shortcuts import redirect
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
@@ -69,8 +68,14 @@ class HomePage(RoutablePageMixin, Page):
             cancel_url=urllib.parse.urljoin(self.get_full_url(request), "error"),
         )
 
-        response = redirect(session.url)
-        return response
+        return self.render(
+            request,
+            context_overrides={
+                "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+                "CHECKOUT_SESSION_ID": session.id,
+            },
+            template="app/stripe_checkout.html",
+        )
         # except:
         #     if settings.DEBUG is False:
         #         return redirect(self.get_full_url(request) + self.reverse_subpage("subscription_error"))

@@ -6,6 +6,7 @@
         <meta charset="utf-8" />
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{% block title %}{{request.site.site_name}}{% endblock %}</title>
 
         {% vite_hmr_client %}
         <script>
@@ -17,6 +18,8 @@
         
         {% vite_asset 'frontend/main.ts' %}
 
+        {% block extra_js %}
+        {% endblock %}
         {% block extra_css %}
         {% endblock %}
     </head>

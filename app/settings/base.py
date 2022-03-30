@@ -209,6 +209,7 @@ BASE_URL = "https://localhost:8000"
 
 STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", None)
 STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", None)
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", None)
 STRIPE_API_KEY = STRIPE_TEST_SECRET_KEY
 STRIPE_LIVE_MODE = False  # Change to True in production
 DJSTRIPE_WEBHOOK_SECRET = os.environ.get(

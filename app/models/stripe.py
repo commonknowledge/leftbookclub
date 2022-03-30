@@ -14,7 +14,6 @@ class LBCProduct(djstripe.models.Product):
     def regular_price(self):
         try:
             price = self.prices.get(nickname="regular")
-            print(price)
             return price
         except:
             return self.prices.order_by("unit_amount").first()
@@ -23,7 +22,6 @@ class LBCProduct(djstripe.models.Product):
     def solidarity_price(self):
         try:
             price = self.prices.get(nickname="solidarity")
-            print(price)
             return price
         except:
             return self.prices.order_by("-unit_amount").first()

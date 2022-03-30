@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "taggit",
     "modelcluster",
     "livereload",
+    "djstripe",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
@@ -56,7 +57,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
-    'livereload.middleware.LiveReloadScript',
+    "livereload.middleware.LiveReloadScript",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -143,7 +144,9 @@ STATICFILES_FINDERS = [
 DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/vite"
 DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH + "/manifest.json"
 
-STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH, ]
+STATICFILES_DIRS = [
+    DJANGO_VITE_ASSETS_PATH,
+]
 
 
 # ManifestStaticFilesStorage is recommended in production, to prevent outdated
@@ -199,6 +202,16 @@ WAGTAIL_SITE_NAME = "Left Book Club"
 
 BASE_URL = "https://localhost:8000"
 
-# Stripe
+# dj-stripe
 
-STRIPE_API_KEY = None
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", None)
+STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", None)
+STRIPE_API_KEY = STRIPE_TEST_SECRET_KEY
+STRIPE_LIVE_MODE = False  # Change to True in production
+DJSTRIPE_WEBHOOK_SECRET = os.environ.get(
+    "STRIPE_WEBHOOK_SECRET", None
+)  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
+DJSTRIPE_USE_NATIVE_JSONFIELD = (
+    True  # We recommend setting to True for new installations
+)
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"

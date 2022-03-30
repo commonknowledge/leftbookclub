@@ -21,9 +21,11 @@
         {% endblock %}
     </head>
 
-    <body class="min-vh-100 d-flex flex-column {% block body_class %}{% endblock %}">
+    <body class="{% block body_class %}{% endblock %}">
+        <div class="container py-3">
         {% include "menus/header.html" %}
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
+        {% include "menus/footer.html" %}
+        </div>
     </body>
 </html>

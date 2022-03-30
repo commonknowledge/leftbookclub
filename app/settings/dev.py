@@ -24,11 +24,11 @@ USE_DEBUG_TOOLBAR = False
 
 if USE_DEBUG_TOOLBAR:
     INSTALLED_APPS += [
-        'debug_toolbar',
+        "debug_toolbar",
     ]
 
     MIDDLEWARE += [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
     ]
 
 try:

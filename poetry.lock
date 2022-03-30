@@ -125,14 +125,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.21.27"
+version = "1.21.29"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.24.27,<1.25.0"
+botocore = ">=1.24.29,<1.25.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -141,7 +141,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.24.27"
+version = "1.24.29"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -167,7 +167,7 @@ python-versions = "*"
 name = "cfgv"
 version = "3.3.1"
 description = "Validate configuration and produce human readable error messages."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.1"
 
@@ -232,7 +232,7 @@ graph = ["objgraph (>=1.7.2)"]
 name = "distlib"
 version = "0.3.4"
 description = "Distribution utilities"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -243,6 +243,22 @@ description = "Use Database URLs in your Django Application."
 category = "main"
 optional = false
 python-versions = "*"
+
+[[package]]
+name = "dj-stripe"
+version = "2.6.1"
+description = "Django + Stripe made easy"
+category = "main"
+optional = false
+python-versions = ">=3.7.12,<4.0.0"
+
+[package.dependencies]
+django = ">=3.2.5"
+jsonfield = ">=3.0"
+stripe = ">=2.48.0"
+
+[package.extras]
+docs = ["mkdocs (>=1.1.2,<2.0.0)", "mkdocstrings (>=0.16.0,<0.17.0)", "mkdocs-material (>=7.2.8,<8.0.0)", "mkdocs-autorefs (>=0.3.0,<0.4.0)", "mike (>=1.1.2,<2.0.0)"]
 
 [[package]]
 name = "django"
@@ -478,7 +494,7 @@ python-versions = ">=3.6"
 name = "filelock"
 version = "3.6.0"
 description = "A platform independent file lock."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -559,7 +575,7 @@ lxml = ["lxml"]
 name = "identify"
 version = "2.4.12"
 description = "File identification library for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -608,6 +624,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "jsonfield"
+version = "3.1.0"
+description = "A reusable Django field that allows you to store validated JSON in your model."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+Django = ">=2.2"
+
+[[package]]
 name = "l18n"
 version = "2021.3"
 description = "Internationalization for pytz timezones and territories"
@@ -647,7 +674,7 @@ python-versions = "*"
 name = "nodeenv"
 version = "1.6.0"
 description = "Node.js virtual environment builder"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -701,7 +728,7 @@ python-versions = ">=3.7"
 name = "platformdirs"
 version = "2.5.1"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -725,7 +752,7 @@ testing = ["pytest", "pytest-benchmark"]
 name = "pre-commit"
 version = "2.17.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.1"
 
@@ -791,7 +818,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "pylint"
-version = "2.13.2"
+version = "2.13.3"
 description = "python code static checker"
 category = "dev"
 optional = false
@@ -891,7 +918,7 @@ tokenize-rt = ">=3.2.0"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -1026,7 +1053,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "stripe"
-version = "2.68.0"
+version = "2.69.0"
 description = "Python bindings for the Stripe API"
 category = "main"
 optional = false
@@ -1081,7 +1108,7 @@ python-versions = ">=3.6.1"
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -1153,7 +1180,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 name = "virtualenv"
 version = "20.14.0"
 description = "Virtual Python Environment builder"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
@@ -1257,7 +1284,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7bdfd28e1c305f81a605189d76a8797ce84bfdc380700e8db3be3ad62543df18"
+content-hash = "b27d36f7a6ade62ca37fa311c08ae2a1ba2c03d535035c03872aa8c4a2e9f451"
 
 [metadata.files]
 anyascii = [
@@ -1298,12 +1325,12 @@ black = [
     {file = "black-21.12b0.tar.gz", hash = "sha256:77b80f693a569e2e527958459634f18df9b0ba2625ba4e0c2d5da5be42e6f2b3"},
 ]
 boto3 = [
-    {file = "boto3-1.21.27-py3-none-any.whl", hash = "sha256:f165790439117e3fd40f8c06826845068852a70ca5ac62adb192405c97f117e1"},
-    {file = "boto3-1.21.27.tar.gz", hash = "sha256:ef41b9c7b6311d5152bdc78f7de56912c1ed265debf7da14133e1ad00246ad50"},
+    {file = "boto3-1.21.29-py3-none-any.whl", hash = "sha256:b7ce3bf013f0f60e40c2676d5a7b620ed927cfad0aa348a606b10e9a0387f249"},
+    {file = "boto3-1.21.29.tar.gz", hash = "sha256:127ebdf58c8825b53f1eff111e08c49ffffeb1f6d7a5665c9907ce8128fe14b1"},
 ]
 botocore = [
-    {file = "botocore-1.24.27-py3-none-any.whl", hash = "sha256:88e19efcaead99426434d9898d211093b8a8d0cc90af3b84a4ccb9f196894e87"},
-    {file = "botocore-1.24.27.tar.gz", hash = "sha256:2c11db4b94b4b9504d2782acb758d29a7e5cbdfaa826601f222ac9ddcf004dde"},
+    {file = "botocore-1.24.29-py3-none-any.whl", hash = "sha256:de87907d42682179946ddfa113b9334e3c4258404aef19edd8c92381ff54775c"},
+    {file = "botocore-1.24.29.tar.gz", hash = "sha256:b467d64cd773dc4d49ef31b18a8dded554f284f799720bd12e989fe2138fd5b8"},
 ]
 certifi = [
     {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
@@ -1344,6 +1371,10 @@ distlib = [
 dj-database-url = [
     {file = "dj-database-url-0.5.0.tar.gz", hash = "sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163"},
     {file = "dj_database_url-0.5.0-py2.py3-none-any.whl", hash = "sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9"},
+]
+dj-stripe = [
+    {file = "dj-stripe-2.6.1.tar.gz", hash = "sha256:3ff676edca3852bf019f798c8ef78415dfda7e1e0669e4d506bda5234fed9420"},
+    {file = "dj_stripe-2.6.1-py3-none-any.whl", hash = "sha256:976e0f7944e3ba2bd703118829c00d2026926a420c2339fb4191897a80965388"},
 ]
 django = [
     {file = "Django-4.0.3-py3-none-any.whl", hash = "sha256:1239218849e922033a35d2a2f777cb8bee18bd725416744074f455f34ff50d0c"},
@@ -1459,6 +1490,10 @@ isort = [
 jmespath = [
     {file = "jmespath-1.0.0-py3-none-any.whl", hash = "sha256:e8dcd576ed616f14ec02eed0005c85973b5890083313860136657e24784e4c04"},
     {file = "jmespath-1.0.0.tar.gz", hash = "sha256:a490e280edd1f57d6de88636992d05b71e97d69a26a19f058ecf7d304474bf5e"},
+]
+jsonfield = [
+    {file = "jsonfield-3.1.0-py3-none-any.whl", hash = "sha256:df857811587f252b97bafba42e02805e70a398a7a47870bc6358a0308dd689ed"},
+    {file = "jsonfield-3.1.0.tar.gz", hash = "sha256:7e4e84597de21eeaeeaaa7cc5da08c61c48a9b64d0c446b2d71255d01812887a"},
 ]
 l18n = [
     {file = "l18n-2021.3-py3-none-any.whl", hash = "sha256:78495d1df95b6f7dcc694d1ba8994df709c463a1cbac1bf016e1b9a5ce7280b9"},
@@ -1610,8 +1645,8 @@ pygments = [
     {file = "Pygments-2.11.2.tar.gz", hash = "sha256:4e426f72023d88d03b2fa258de560726ce890ff3b630f88c21cbb8b2503b8c6a"},
 ]
 pylint = [
-    {file = "pylint-2.13.2-py3-none-any.whl", hash = "sha256:3cd8eb401c6aa6c66b614d72cf0c54a02d6bf7752aa9890fc41de71030f3c81a"},
-    {file = "pylint-2.13.2.tar.gz", hash = "sha256:0c6dd0e53e6e17f2d0d62660905f3868611e734e9d9b310dc651a4b9f3dc70da"},
+    {file = "pylint-2.13.3-py3-none-any.whl", hash = "sha256:c8837b6ec6440e3490ab8f066054b0645a516a29ca51ce442f16f7004f711a70"},
+    {file = "pylint-2.13.3.tar.gz", hash = "sha256:12ed2520510c40db647e4ec7f747b07e0d669b33ab41479c2a07bb89b92877db"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},
@@ -1721,8 +1756,8 @@ stevedore = [
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
 stripe = [
-    {file = "stripe-2.68.0-py2.py3-none-any.whl", hash = "sha256:33e936fa62f7a02b7b7bc2f7b6af76d21b5211e3abddcfd819eae0f2680f9e25"},
-    {file = "stripe-2.68.0.tar.gz", hash = "sha256:5f795803133f2a50b8363049aeaff81b37b7ef0a5c54a4c0d7555a411a40b7af"},
+    {file = "stripe-2.69.0-py2.py3-none-any.whl", hash = "sha256:f5eb83b81f7ac19be21d77c99a070b983ea8adc26851e88affbe90731fa7d3eb"},
+    {file = "stripe-2.69.0.tar.gz", hash = "sha256:883078fc5bd3737e1d0580c3008323c586da36b7ae8479a57b8d161340d3cb9f"},
 ]
 tablib = [
     {file = "tablib-3.2.0-py3-none-any.whl", hash = "sha256:1ba12da7b0b17e33f5997fb1bc8ed560aae3535f5892ae5e5c01a056c47d4d78"},

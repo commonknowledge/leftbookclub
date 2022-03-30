@@ -3,7 +3,7 @@
 
 {% block content %}
   <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
-    <h2 class="display-4 fw-normal">Choose your plan</h2>
+    <h1 class="h4 fw-normal">Choose your plan</h1>
     <p class="fs-5 text-muted">Your subscription will begin with the most recently published book in your chosen collection.</p>
   </header>
     <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
@@ -14,8 +14,8 @@
             <h4 class="my-0 fw-normal">{{ product.name }}</h4>
           </div>
           <div class="card-body">
-            <h1 class="card-title pricing-card-title">{% money_localize product.regular_price.unit_amount|div:100 product.regular_price.currency %}<small class="text-muted fw-light">/mo</small></h1>
-            {{ product.description }}
+            <div class="h1 card-title pricing-card-title">{% money_localize product.regular_price.unit_amount|div:100 product.regular_price.currency %}<small class="text-muted fw-light">/mo</small></div>
+            <p>{{ product.description }}</p>
             <a class="w-100 btn btn-lg btn-primary" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
               Select
             </a>

@@ -17,7 +17,7 @@ pre-commit-install:
 .PHONY: setup-cms
 setup-cms:
 	poetry run python manage.py setup_pages
-	poetry run python manage.py djstripe_sync_models Price Product
+	poetry run python manage.py djstripe_sync_models Price Product Customer Subscription Plan
 
 .PHONY: migrate
 migrate:

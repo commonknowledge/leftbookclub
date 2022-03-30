@@ -1,11 +1,14 @@
 import urllib.parse
 
 import stripe
-from django.conf import settings
+from django.contrib.auth.views import redirect_to_login
+from django.urls import reverse
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
+
+from app.views import CheckoutSessionCompleteView, CreateCheckoutSessionView
 
 from .stripe import LBCProduct
 
@@ -39,7 +42,6 @@ class HomePage(RoutablePageMixin, Page):
         When a product has been selected, present the regular/solidarity options.
         """
 
-        # try:
         product = LBCProduct.objects.get(id=product_id)
 
         return self.render(
@@ -47,9 +49,6 @@ class HomePage(RoutablePageMixin, Page):
             context_overrides={"product": product},
             template="app/pick_price_for_product.html",
         )
-        # except:
-        #     if settings.DEBUG is False:
-        #         return redirect(self.get_full_url(request) + self.reverse_subpage("subscription_error"))
 
     @route(r"^checkout/(?P<price_id>.+)/$")
     def checkout(self, request, price_id):
@@ -57,28 +56,18 @@ class HomePage(RoutablePageMixin, Page):
         Create a checkout session with a line item of price_id
         """
 
-        # try:
-        session = stripe.checkout.Session.create(
-            mode="subscription",
-            line_items=[{"price": price_id, "quantity": 1}],
-            shipping_address_collection={"allowed_countries": ["GB"]},
-            success_url=urllib.parse.urljoin(
-                self.get_full_url(request), "complete?session_id={CHECKOUT_SESSION_ID}"
-            ),
-            cancel_url=urllib.parse.urljoin(self.get_full_url(request), "error"),
-        )
-
-        return self.render(
-            request,
-            context_overrides={
-                "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
-                "CHECKOUT_SESSION_ID": session.id,
-            },
-            template="app/stripe_checkout.html",
-        )
-        # except:
-        #     if settings.DEBUG is False:
-        #         return redirect(self.get_full_url(request) + self.reverse_subpage("subscription_error"))
+        return CreateCheckoutSessionView.as_view(
+            context={
+                "success_url": urllib.parse.urljoin(
+                    self.get_full_url(request),
+                    "complete?session_id={CHECKOUT_SESSION_ID}",
+                ),
+                "cancel_url": urllib.parse.urljoin(
+                    self.get_full_url(request), self.reverse_subpage("pick_product")
+                ),
+                "price_id": price_id,
+            }
+        )(request)
 
     @route(r"^complete/$")
     def post_purchase_cleanup(self, request):
@@ -86,19 +75,7 @@ class HomePage(RoutablePageMixin, Page):
         Present a thank you page and run any wrapup activites that are required.
         """
 
-        # try:
-        session = stripe.checkout.Session.retrieve(request.GET.get("session_id"))
-        customer = customer = stripe.Customer.retrieve(session.customer)
-        # TODO: Create a Django user and associate ^ this
-
-        return self.render(
-            request,
-            context_overrides={"customer": customer},
-            template="app/post_purchase_cleanup.html",
-        )
-        # except:
-        #     if settings.DEBUG is False:
-        #         return redirect(self.get_full_url(request) + self.reverse_subpage("subscription_error"))
+        return CheckoutSessionCompleteView.as_view()(request)
 
     @route(r"^error/$")
     def subscription_error(self, request):

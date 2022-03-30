@@ -1,7 +1,7 @@
-from djstripe.models import Product
+import djstripe.models
 
 
-class LBCProduct(Product):
+class LBCProduct(djstripe.models.Product):
     @classmethod
     def get_active_plans(self):
         return self.objects.filter(metadata__pickable="1", active=True, type="service")

@@ -1,7 +1,11 @@
 {% extends "base.html" %}
+{% load account %}
 
 {% block content %}
-<h1>Hi, {{ user.username }}</h1>
+<h1>Hi, {% user_display request.user %}</h1>
 
-<p>Your profile</p>
+<div>Stripe customer: {{ user.stripe_customer.id }}</div>
+<div>Stripe customer count: {{ user.djstripe_customers|length }}</div>
+<div>Stripe subscription: {{ user.active_subscription.id }}</div>
+<div>Stripe product: {{ user.subscribed_product.id }}</div>
 {% endblock %}

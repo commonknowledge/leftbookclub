@@ -4,12 +4,12 @@
 {% load django_bootstrap5 %}
 {% load account socialaccount %}
 
-{% block head_title %}{% trans "Signup" %}BS{% endblock %}
+{% block head_title %}{% trans "Create an account" %}BS{% endblock %}
 
 {% block content %}
 {% get_providers as socialaccount_providers %}
 
-<h1>{% trans "Sign Up" %}</h1>
+<h1>{% trans "Create an account" %}</h1>
     
 <div class="row">
   {% if socialaccount_providers  %}

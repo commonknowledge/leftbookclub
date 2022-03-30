@@ -16,6 +16,7 @@ A starter repository for [Groundwork](https://groundwork.commonknowledge.coop) p
 ### Developer set up
 
 - Run `python manage.py createsuperuser` to set up an admin user
+- To get stripe webhooks forwarded to the local app, [follow these instructions](https://stripe.com/docs/stripe-vscode#webhooks)
 
 ## Application stack:
 

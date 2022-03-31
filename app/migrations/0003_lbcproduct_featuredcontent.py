@@ -13,17 +13,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # migrations.CreateModel(
-        #     name='LBCProduct',
-        #     fields=[
-        #     ],
-        #     options={
-        #         'proxy': True,
-        #         'indexes': [],
-        #         'constraints': [],
-        #     },
-        #     bases=('djstripe.product',),
-        # ),
+        migrations.CreateModel(
+            name="LBCProduct",
+            fields=[],
+            options={
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
+            },
+            bases=("djstripe.product",),
+        ),
         migrations.CreateModel(
             name="FeaturedContent",
             fields=[

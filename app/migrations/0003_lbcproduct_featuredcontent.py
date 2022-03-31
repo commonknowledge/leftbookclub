@@ -7,7 +7,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("djstripe", "0011_alter_invoice_charge_alter_invoice_customer_and_more"),
         ("wagtailcore", "0066_collection_management_permissions"),
         ("app", "0002_homepage"),
     ]

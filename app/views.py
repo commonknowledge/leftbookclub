@@ -49,9 +49,7 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
 
             # ! Note that Stripe will always create a new Customer Object if customer id not provided
             # ! even if customer_email is provided!
-            print(session_args)
             session = stripe.checkout.Session.create(**session_args, **additional_args)
-            print(session)
 
         except djstripe.models.Customer.DoesNotExist:
             session = stripe.checkout.Session.create(**session_args)

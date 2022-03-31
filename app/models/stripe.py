@@ -18,7 +18,10 @@ from app.utils import flatten_list
 class LBCProduct(djstripe.models.Product):
     @classmethod
     def get_active_plans(self):
-        return self.objects.filter(metadata__pickable="1", active=True, type="service")
+        plans = self.objects.filter(metadata__pickable="1", active=True, type="service")
+        return list(
+            sorted(plans, key=lambda p: p.basic_price.unit_amount, reverse=True)
+        )
 
     @property
     def has_tiered_pricing(self):
@@ -30,23 +33,11 @@ class LBCProduct(djstripe.models.Product):
             price = self.prices.get(nickname="basic")
             return price
         except:
-            return self.prices.order_by("unit_amount").first()
-
-    @property
-    def regular_price(self):
-        try:
-            price = self.prices.get(nickname="regular")
-            return price
-        except:
-            return self.prices.order_by("unit_amount").first()
-
-    @property
-    def solidarity_price(self):
-        try:
-            price = self.prices.get(nickname="solidarity")
-            return price
-        except:
-            return self.prices.order_by("-unit_amount").first()
+            return (
+                self.prices.exclude(nickname__icontains="archived")
+                .order_by("unit_amount")
+                .first()
+            )
 
     autocomplete_search_field = "name"
 

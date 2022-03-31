@@ -12,11 +12,20 @@ A starter repository for [Groundwork](https://groundwork.commonknowledge.coop) p
 4. Hit `F5` (or navigate to _Run & Debug_ and launch the _Start App_ configuration)
   - If you are receiving errors like `No module named 'django'`, Open the command palette, select `> Python: Select Interpreter` and select the `Poetry`-installed python binary.
 5. Navigate to http://localhost:8000
+
+### Troubleshooting
+
+- If you get git errors about `pre_commit`, [install `pre-commit`](https://formulae.brew.sh/formula/pre-commit) outside the devcontainer and run `pre-commit install` to re-configure the git environment.
   
 ### Developer set up
 
 - Run `python manage.py createsuperuser` to set up an admin user
 - To get stripe webhooks forwarded to the local app, [follow these instructions](https://stripe.com/docs/stripe-vscode#webhooks)
+- When you first set up, you should sync Stripe to the local database:
+
+    ```
+    poetry run python manage.py djstripe_sync_models Price Product Customer Subscription Plan
+    ```
 
 ## Application stack:
 

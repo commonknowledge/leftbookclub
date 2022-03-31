@@ -12,7 +12,7 @@
 {% if user.emailaddress_set.all %}
 <p>{% trans 'The following e-mail addresses are associated to your account:' %}</p>
     
-<form action="{% url 'account_email' %}" class="email_list uniForm" method="post">
+<form data-turbo="false" action="{% url 'account_email' %}" class="email_list uniForm" method="post">
 {% csrf_token %}
 
 <table class="table">
@@ -65,7 +65,7 @@
 
     <h2>{% trans "Add E-mail Address" %}</h2>
     
-    <form method="post" action="">
+    <form data-turbo="false" method="post" action="">
         {% csrf_token %}
         {% bootstrap_form add_email_form %}
         <div class="form-actions">

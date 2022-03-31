@@ -15,7 +15,7 @@
             <h4 class="my-0 fw-normal text-dark">{{ product.name }}</h4>
           </div>
           <div class="card-body">
-            <div class="h1 card-title pricing-card-title">{% include "stripe/price.html" with price=product.basic_price %}<small class="text-muted fw-light">/mo</small></div>
+            <div class="h1 card-title pricing-card-title">{{product.basic_price.human_readable_price}}</div>
             <p>{{ product.description }}</p>
             <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn-light text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
               Select
@@ -35,7 +35,7 @@
             <h5 class="my-0 fw-normal text-dark">{{ product.name }}</h5>
           </div>
           <div class="card-body">
-            <div class="h2 card-title pricing-card-title">{% include "stripe/price.html" with price=product.basic_price %}<small class="text-muted fw-light">/mo</small></div>
+            <div class="h2 card-title pricing-card-title">{{product.basic_price.human_readable_price}}</div>
             <p class='fs-7'>{{ product.description }}</p>
             <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn btn-outline-primary text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
               Select

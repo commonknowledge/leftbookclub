@@ -1,3 +1,5 @@
+import djstripe
+import djstripe.models
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -7,8 +9,6 @@ from wagtail.contrib.settings.models import BaseSetting, register_setting
 from wagtail.core import hooks
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 
-from app.models import LBCProduct
-
 
 @register_setting(icon="pick")
 class FeaturedContent(BaseSetting):
@@ -16,7 +16,7 @@ class FeaturedContent(BaseSetting):
         verbose_name = "Featured Content"
 
     current_book = models.ForeignKey(
-        LBCProduct, blank=True, null=True, on_delete=models.DO_NOTHING
+        djstripe.models.Product, blank=True, null=True, on_delete=models.DO_NOTHING
     )
 
     panels = [AutocompletePanel("current_book")]

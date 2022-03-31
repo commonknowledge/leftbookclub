@@ -46,13 +46,11 @@ services:
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
   stripe:
-    image: stripe/stripe-cli:v1.7.4
-    command: listen --forward-to http://app:8000/djstripe/webhook/
+    image: stripe/stripe-cli
+    command: listen --forward-to app:8000/djstripe/webhook/
     depends_on:
       - app
-    environment:
-      - STRIPE_API_KEY=${STRIPE_API_KEY}
-      - STRIPE_DEVICE_NAME=djstripe_docker
+    env_file: devcontainer.env
 
 volumes:
   db: {}

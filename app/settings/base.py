@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django_bootstrap5",
     "wagtailautocomplete",
     "django_countries",
+    "django_gravatar",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",

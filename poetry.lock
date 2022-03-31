@@ -411,6 +411,14 @@ python-versions = ">=3.6"
 Django = ">=2.2"
 
 [[package]]
+name = "django-gravatar2"
+version = "1.4.4"
+description = "Essential Gravatar support for Django. Features helper methods, templatetags and a full test suite!"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "django-livereload-server"
 version = "0.4"
 description = "LiveReload functionality integrated with your Django development environment"
@@ -1460,7 +1468,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7aa5e844564234921c754761133c92bf843c359f22b1cab4690b750c7b6205a1"
+content-hash = "abe632bae8f019bf29364103c22b60151d0725be9d009b09e6b275090cc70422"
 
 [metadata.files]
 anyascii = [
@@ -1660,6 +1668,10 @@ django-extensions = [
 django-filter = [
     {file = "django-filter-21.1.tar.gz", hash = "sha256:632a251fa8f1aadb4b8cceff932bb52fe2f826dd7dfe7f3eac40e5c463d6836e"},
     {file = "django_filter-21.1-py3-none-any.whl", hash = "sha256:f4a6737a30104c98d2e2a5fb93043f36dd7978e0c7ddc92f5998e85433ea5063"},
+]
+django-gravatar2 = [
+    {file = "django-gravatar2-1.4.4.tar.gz", hash = "sha256:c813280967511ced93eea0359f60e5369c35b3311efe565c3e5d4ab35c10c9ee"},
+    {file = "django_gravatar2-1.4.4-py2.py3-none-any.whl", hash = "sha256:545a6c2c5c624c7635dec29c7bc0be1a2cb89c9b8821af8616ae9838827cc35b"},
 ]
 django-livereload-server = [
     {file = "django-livereload-server-0.4.tar.gz", hash = "sha256:60ed030085ca53671d25704b10ec7aa3cc94a16da437b727a8dcce42471b4c65"},

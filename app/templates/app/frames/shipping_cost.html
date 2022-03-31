@@ -1,18 +1,16 @@
-{% load static mathfilters djmoney %}
-  
 <turbo-frame id="shipping-costs">
   <div class='p-3 bg-light rounded-3 my-2'>
-    <div class="text-muted mb-1">
+    <div class="text-muted mb-1 fw-bolder">
       {{ product.name }}
     </div>
     <div class="text-muted mb-1">
-      {% money_localize basic_price.unit_amount|div:100 final_price.currency %}<small class="text-muted fw-light">/mo membership</small>
+      {% include "stripe/price.html" with price=product.basic_price %}<small class="text-muted fw-light">/mo membership</small>
     </div>
     <div class="text-muted mb-1">
-      {% money_localize shipping_fee|div:100 final_price.currency %}<small class="text-muted fw-light">/mo shipping</small>
+      {% include "stripe/price.html" with amount=shipping_fee currency=final_price.currency %}<small class="text-muted fw-light">/mo shipping to {{ zone.nickname }}</small>
     </div>
     <div class="h5 mb-0">
-      {% money_localize final_price.unit_amount|div:100 final_price.currency %}<small class="text-muted fw-light">/mo total</small>
+      {% include "stripe/price.html" with price=final_price %}<small class="text-muted fw-light">/mo total</small>
     </div>
   </div>
 </turbo-frame>

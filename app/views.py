@@ -106,7 +106,6 @@ class ShippingCostView(TemplateView):
             "product": product,
             "shipping_fee": shipping_price.unit_amount - basic_price.unit_amount,
             "final_price": shipping_price,
-            "basic_price": basic_price,
             "url_pattern": self.url_pattern,
         }
 

@@ -1,16 +1,31 @@
 {% extends "base.html" %}
-{% load account django_bootstrap5 %}
+{% load account django_bootstrap5 gravatar %}
 
 {% block content %}
-<h1>Hi, {% user_display request.user %}</h1>
+<div class='row'>
+  <div class='col col-md-8 col-lg-5 mx-auto text-center '>
+    <header class='text-center mb-3'>
+    <img src="{% gravatar_url user.email 150 %}" style="width: 150px; height: 150px;" class='rounded-full bg-light mb-3 overflow-hidden' />
+    <h1>{% user_display request.user %}</h1>
+    </header>
 
-<div>Stripe customer: {{ user.stripe_customer.id }}</div>
-<div>Stripe customer count: {{ user.djstripe_customers|length }}</div>
-<div>Stripe subscription: {{ user.active_subscription.id }}</div>
-<div>Stripe product: {{ user.subscribed_product.id }}</div>
+    {% if request.user.subscribed_product %}
+    <h3 class='fw-light'>
+      Your plan is <b>{{ user.subscribed_product.name }}</b> and you're paying {{ user.subscribed_price.human_readable_price }}
+    </h3>
 
-{% if user.stripe_customer.id is not None %}
-{% url "customerportal" as portal_url %}
-{% bootstrap_button href=portal_url content="Manage shipping address, billing and subscriptions" button_class="w-100 btn-primary text-dark" %}
-{% endif %}
+    {% if user.stripe_customer.id is not None %}
+    {% url "customerportal" as portal_url %}
+    <div class='my-4'>
+      {% bootstrap_button href=portal_url content="Shipping address" %}
+      {% bootstrap_button href=portal_url content="Billing &amp; subscription" %}
+    </div>
+    {% endif %}
+    {% else %}
+    <h3 class='fw-light'>
+      You're not a member at the moment
+    </h3>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

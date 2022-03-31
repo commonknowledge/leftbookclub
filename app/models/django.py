@@ -48,6 +48,14 @@ class User(AbstractUser):
         except:
             return None
 
+    @property
+    def subscribed_price(self):
+        try:
+            product = self.active_subscription.plan.subscription_items.first().price
+            return product
+        except:
+            return None
+
     def get_or_create_customer(self):
         if self.stripe_customer is not None:
             return self.stripe_customer, False

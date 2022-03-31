@@ -16,7 +16,7 @@ class Command(BaseCommand):
         default_base_url = urlparse(settings.BASE_URL)
 
         parser.add_argument(
-            "-H", "--host", dest="host", type=str, default=default_base_url.netloc
+            "-H", "--host", dest="host", type=str, default=default_base_url.hostname
         )
         parser.add_argument(
             "-p", "--port", dest="port", type=int, default=default_base_url.port or 80

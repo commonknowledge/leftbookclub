@@ -16,9 +16,7 @@ BASE_URL = "http://localhost:8000"
 if os.getenv("SKIP_DB") != "1":
     DATABASES["default"]["CONN_MAX_AGE"] = 0
 
-INSTALLED_APPS += [
-    "wagtail.contrib.styleguide",
-]
+INSTALLED_APPS += ["wagtail.contrib.styleguide", "django_extensions"]
 
 USE_DEBUG_TOOLBAR = False
 

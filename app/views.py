@@ -5,7 +5,8 @@ import djstripe
 import stripe
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
+from django.shortcuts import redirect
+from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from djstripe import settings as djstripe_settings
 
@@ -110,3 +111,13 @@ class ShippingCostView(TemplateView):
         }
 
         return context
+
+
+class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
+    def get_redirect_url(self, **kwargs):
+        return_url = self.request.build_absolute_uri(reverse("profile"))
+        session = stripe.billing_portal.Session.create(
+            customer=self.request.user.stripe_customer.id,
+            return_url=return_url,
+        )
+        return session.url

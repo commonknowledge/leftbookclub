@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load account %}
+{% load account django_bootstrap5 %}
 
 {% block content %}
 <h1>Hi, {% user_display request.user %}</h1>
@@ -8,4 +8,9 @@
 <div>Stripe customer count: {{ user.djstripe_customers|length }}</div>
 <div>Stripe subscription: {{ user.active_subscription.id }}</div>
 <div>Stripe product: {{ user.subscribed_product.id }}</div>
+
+{% if user.stripe_customer.id is not None %}
+{% url "customerportal" as portal_url %}
+{% bootstrap_button href=portal_url content="Manage shipping address, billing and subscriptions" button_class="w-100 btn-primary text-dark" %}
+{% endif %}
 {% endblock %}

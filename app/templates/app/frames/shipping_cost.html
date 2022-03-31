@@ -1,0 +1,15 @@
+{% load static mathfilters djmoney %}
+  
+<turbo-frame id="shipping-costs">
+  <div class='p-3 bg-light rounded-3 my-2'>
+    <div class="card-title pricing-card-title text-muted mb-1">
+      {% money_localize basic_price.unit_amount|div:100 final_price.currency %}<small class="text-muted fw-light">/mo membership ({{ product.name }})</small>
+    </div>
+    <div class="card-title pricing-card-title text-muted mb-1">
+      {% money_localize shipping_fee|div:100 final_price.currency %}<small class="text-muted fw-light">/mo shipping</small>
+    </div>
+    <div class="h5 mb-0 card-title pricing-card-title">
+      {% money_localize final_price.unit_amount|div:100 final_price.currency %}<small class="text-muted fw-light">/mo total</small>
+    </div>
+  </div>
+</turbo-frame>

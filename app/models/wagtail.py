@@ -8,7 +8,11 @@ from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
 
 from app.forms import CountrySelectorForm
-from app.views import CheckoutSessionCompleteView, CreateCheckoutSessionView
+from app.views import (
+    CheckoutSessionCompleteView,
+    CreateCheckoutSessionView,
+    ShippingCostView,
+)
 
 from .stripe import LBCProduct, ShippingZone
 
@@ -43,12 +47,17 @@ class HomePage(RoutablePageMixin, Page):
         """
 
         product = LBCProduct.objects.get(id=product_id)
+        default_country_code = "GB"
 
         return self.render(
             request,
             context_overrides={
                 "product": product,
-                "country_selector_form": CountrySelectorForm(initial={"country": "GB"}),
+                "default_country_code": default_country_code,
+                "country_selector_form": CountrySelectorForm(
+                    initial={"country": default_country_code}
+                ),
+                "url_pattern": ShippingCostView.url_pattern,
             },
             template="app/pick_price_for_product.html",
         )
@@ -72,10 +81,10 @@ class HomePage(RoutablePageMixin, Page):
             )
 
         product = LBCProduct.objects.get(id=product_id)
-        zone = ShippingZone.get_for_country(country)
         price = product.get_prices_for_country(
             iso_a2=country, recurring__interval="month"
         ).first()
+        zone = ShippingZone.get_for_country(country)
 
         if price is None:
             print(

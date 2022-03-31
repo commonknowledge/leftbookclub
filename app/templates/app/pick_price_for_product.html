@@ -3,22 +3,24 @@
 
 {% block content %}
   <main>
-    {% comment %} <div class="row justify-content-md-center mb-4">
-      <div class='col col-md-4'>
-        <div class='my-1 fs-6'>Plan: {{ product.name }}</div>
-        {% routablepageurl page 'pick_product' as back_link %}
-        {% bootstrap_button href=back_link content="Change plan" button_class="btn-light text-dark" %}
-      </div>
-    </div> {% endcomment %}
     <div class="row justify-content-md-center">
       <div class='col col-md-4'>
         <header class="pricing-header my-4">
-          <h2 class="h3 fw-normal text">Deliver my books to...</h2>
+          <h2 class="h3 fw-normal text-center">Confirm your details</h2>
         </header>
-        <form action="{% routablepageurl page "checkout" product_id=product.id %}" method="get">
+        <form
+          data-controller="shipping"
+          data-shipping-url-value="{{ url_pattern }}"
+          data-shipping-product-value="{{ product.id }}"
+          data-shipping-target="form"
+          action="{% routablepageurl page "checkout" product_id=product.id %}"
+          method="get"
+        >
           {% csrf_token %}
           {% bootstrap_form country_selector_form %}
-          {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary' %}
+          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}"></turbo-frame>
+          {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary mb-2' %}
+          {% bootstrap_button href=back_link content="Change plan" button_class="w-100 btn-light text-dark" %}
         </form>
       </div>
     </div>

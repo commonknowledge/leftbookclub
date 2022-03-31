@@ -10,7 +10,7 @@ from wagtail.core.models import Page
 from app.forms import CountrySelectorForm
 from app.views import CheckoutSessionCompleteView, CreateCheckoutSessionView
 
-from .stripe import LBCProduct
+from .stripe import LBCProduct, ShippingZone
 
 
 class HomePage(RoutablePageMixin, Page):
@@ -71,13 +71,26 @@ class HomePage(RoutablePageMixin, Page):
                 )
             )
 
-        product = LBCProduct._get_or_retrieve(product_id)
-        price = product.get_price_for_country(iso_a2=country)
+        product = LBCProduct.objects.get(id=product_id)
+        zone = ShippingZone.get_for_country(country)
+        price = product.get_prices_for_country(
+            iso_a2=country, recurring__interval="month"
+        ).first()
+
+        if price is None:
+            print(
+                "!!!!! No shipping option is defined for",
+                country,
+                "which resolves to zone",
+                zone,
+                ". Using basic price instead.",
+            )
+            price = product.basic_price
 
         return CreateCheckoutSessionView.as_view(
             context=dict(
                 mode="subscription",
-                shipping_address_collection={"allowed_countries": [country]},
+                shipping_address_collection={"allowed_countries": zone.country_codes},
                 line_items=[{"price": price.id, "quantity": 1}],
                 success_url=urllib.parse.urljoin(
                     self.get_full_url(request),

@@ -2,24 +2,23 @@
 {% load static wagtailroutablepage_tags mathfilters djmoney django_bootstrap5 %}
 
 {% block content %}
-  <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
-    <h2 class="h3 fw-normal">Confirm your shipping country</h2>
-    <p class="fs-5 text-muted">UK shipping is free</p>
-  </div>
   <main>
-    <div class="row justify-content-md-center mb-4">
+    {% comment %} <div class="row justify-content-md-center mb-4">
       <div class='col col-md-4'>
         <div class='my-1 fs-6'>Plan: {{ product.name }}</div>
         {% routablepageurl page 'pick_product' as back_link %}
         {% bootstrap_button href=back_link content="Change plan" button_class="btn-light text-dark" %}
       </div>
-    </div>
+    </div> {% endcomment %}
     <div class="row justify-content-md-center">
       <div class='col col-md-4'>
+        <header class="pricing-header my-4">
+          <h2 class="h3 fw-normal text">Deliver my books to...</h2>
+        </header>
         <form action="{% routablepageurl page "checkout" product_id=product.id %}" method="get">
           {% csrf_token %}
           {% bootstrap_form country_selector_form %}
-          {% bootstrap_button button_type="submit" content="Continue to payment" %}
+          {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary' %}
         </form>
       </div>
     </div>

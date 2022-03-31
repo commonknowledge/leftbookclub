@@ -14,7 +14,7 @@
             <h4 class="my-0 fw-normal">{{ product.name }}</h4>
           </div>
           <div class="card-body">
-            <div class="h1 card-title pricing-card-title">{% money_localize product.regular_price.unit_amount|div:100 product.regular_price.currency %}<small class="text-muted fw-light">/mo</small></div>
+            <div class="h1 card-title pricing-card-title">{% money_localize product.basic_price.unit_amount|div:100 product.basic_price.currency %}<small class="text-muted fw-light">/mo</small></div>
             <p>{{ product.description }}</p>
             <a class="w-100 btn btn-lg btn-primary" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
               Select

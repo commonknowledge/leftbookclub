@@ -3,15 +3,21 @@ import { Controller } from "@hotwired/stimulus"
 class ClipboardController extends Controller {
   static targets = ["form", "frame"]
 
+  readonly formTarget!: HTMLFormElement
+  readonly frameTarget!: HTMLFormElement
+  readonly productValue!: string
+  readonly urlValue!: string
+
   static values = {
     url: String,
     product: String,
-    // country_id: String
   }
 
   formTargetConnected() {
     const dropdown = this.formTarget.querySelector("select")
-    dropdown.addEventListener("change", e => this.updateFrame(e.target.value))
+    if (!dropdown) return
+    // e: HTMLElementEvent<HTMLSelectElement>
+    dropdown.addEventListener("change", (e: any) => this.updateFrame(e.target.value))
   }
 
   updateFrame(country_code: string) {
@@ -24,3 +30,8 @@ class ClipboardController extends Controller {
 }
 
 export default ClipboardController
+
+interface HTMLElementEvent<T extends HTMLElement> extends Event {
+  target: T;
+  currentTarget: T;
+}

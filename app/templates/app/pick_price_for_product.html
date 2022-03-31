@@ -1,57 +1,27 @@
 {% extends "base.html" %}
-{% load static wagtailroutablepage_tags mathfilters djmoney %}
+{% load static wagtailroutablepage_tags mathfilters djmoney django_bootstrap5 %}
 
 {% block content %}
   <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
-    <h2 class="display-4 fw-normal">Can you be a solidarity subscriber?</h2>
-    <p class="fs-5 text-muted">If you can afford a solidarity subscription please help us by choosing this option.</p>
-  </div>
-  <div class='text-center'>
-    <div class='bg-light rounded-4 p-2 px-4 mb-4 d-inline-block'>
-      <div class='text-muted fs-6'>Selected plan</div>
-      <div class='h5 my-1'>{{ product.name }}</div>
-      <a class='text-dark fs-6' href="{% routablepageurl page 'pick_product' %}">Change</a>
-    </div>
+    <h2 class="h3 fw-normal">Confirm your shipping country</h2>
+    <p class="fs-5 text-muted">UK shipping is free</p>
   </div>
   <main>
+    <div class="row justify-content-md-center mb-4">
+      <div class='col col-md-4'>
+        <div class='my-1 fs-6'>Plan: {{ product.name }}</div>
+        {% routablepageurl page 'pick_product' as back_link %}
+        {% bootstrap_button href=back_link content="Change plan" button_class="btn-light text-dark" %}
+      </div>
+    </div>
     <div class="row justify-content-md-center">
-      {% if product.has_tiered_pricing %}
-        {% with product.regular_price as price %}
-        <div class="col col-sm-6 col-lg-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Regular price</h5>
-              <h1 class="card-title pricing-card-title">{% money_localize price.unit_amount|div:100 price.currency %}<small class="text-muted fw-light">/mo</small></h1>
-              <p class="card-text">Support LBC by contributing towards the cost of your membership.</p>
-              <a href="{% routablepageurl page "checkout" price_id=price.id %}" class="btn btn-outline-secondary">Continue</a>
-            </div>
-          </div>
-        </div>
-        {% endwith %}
-        {% with product.solidarity_price as price %}
-        <div class="col col-sm-6 col-lg-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Solidarity price</h5>
-              <h1 class="card-title pricing-card-title">{% money_localize price.unit_amount|div:100 price.currency %}<small class="text-muted fw-light">/mo</small></h1>
-              <p class="card-text">Cover the cost of your membership and help support those who can't afford to.</p>
-              <a href="{% routablepageurl page "checkout" price_id=price.id %}" class="btn btn-primary">Continue</a>
-            </div>
-          </div>
-        </div>
-        {% endwith %}
-      {% else %}
-        {% for price in product.prices.all|dictsort:"unit_amount" %}
-        <div class="col col-sm-6 col-lg-4">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title text-capitalize">{{ price.nickname }}</h5>
-              <a href="{% routablepageurl page "checkout" price_id=price.id %}" class="btn btn-primary">Continue</a>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      {% endif %}
+      <div class='col col-md-4'>
+        <form action="{% routablepageurl page "checkout" product_id=product.id %}" method="get">
+          {% csrf_token %}
+          {% bootstrap_form country_selector_form %}
+          {% bootstrap_button button_type="submit" content="Continue to payment" %}
+        </form>
+      </div>
     </div>
   </main>
 {% endblock %}

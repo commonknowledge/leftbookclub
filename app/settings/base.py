@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "djstripe",
     "django_bootstrap5",
     "wagtailautocomplete",
+    "django_countries",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",

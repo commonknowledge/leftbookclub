@@ -31,5 +31,12 @@ class LBCProduct(djstripe.models.Product):
     def autocomplete_label(self):
         return getattr(self, self.autocomplete_search_field)
 
+    def get_price_for_country(self, iso_a2: str) -> djstripe.models.Price:
+        # Check for a zone that has this code
+        # If no zone, default to ROW pricing
+        # settings.DEFAULT_SHIPPING_PRICE
+        print("get_price_for_country", iso_a2)
+        return self.prices.first()
+
     class Meta:
         proxy = True

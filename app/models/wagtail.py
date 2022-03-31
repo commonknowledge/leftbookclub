@@ -1,13 +1,13 @@
 import urllib.parse
 
-import stripe
-from django.contrib.auth.views import redirect_to_login
-from django.urls import reverse
+from django.shortcuts import redirect
+from django_countries import countries
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
 
+from app.forms import CountrySelectorForm
 from app.views import CheckoutSessionCompleteView, CreateCheckoutSessionView
 
 from .stripe import LBCProduct
@@ -39,34 +39,54 @@ class HomePage(RoutablePageMixin, Page):
     @route(r"^product/(?P<product_id>.+)/$")
     def pick_price_for_product(self, request, product_id):
         """
-        When a product has been selected, present the regular/solidarity options.
+        When a product has been selected, select shipping country.
         """
 
         product = LBCProduct.objects.get(id=product_id)
 
         return self.render(
             request,
-            context_overrides={"product": product},
+            context_overrides={
+                "product": product,
+                "country_selector_form": CountrySelectorForm(initial={"country": "GB"}),
+            },
             template="app/pick_price_for_product.html",
         )
 
-    @route(r"^checkout/(?P<price_id>.+)/$")
-    def checkout(self, request, price_id):
+    @route(r"^checkout/(?P<product_id>.+)/$")
+    def checkout(self, request, product_id):
         """
         Create a checkout session with a line item of price_id
         """
 
+        country = request.GET.get("country", None)
+
+        if country is None:
+            return redirect(
+                urllib.parse.urljoin(
+                    self.get_full_url(request),
+                    self.reverse_subpage(
+                        "pick_price_for_product", kwargs={"product_id": product_id}
+                    ),
+                )
+            )
+
+        product = LBCProduct._get_or_retrieve(product_id)
+        price = product.get_price_for_country(iso_a2=country)
+
         return CreateCheckoutSessionView.as_view(
-            context={
-                "success_url": urllib.parse.urljoin(
+            context=dict(
+                mode="subscription",
+                shipping_address_collection={"allowed_countries": [country]},
+                line_items=[{"price": price.id, "quantity": 1}],
+                success_url=urllib.parse.urljoin(
                     self.get_full_url(request),
                     "complete?session_id={CHECKOUT_SESSION_ID}",
                 ),
-                "cancel_url": urllib.parse.urljoin(
+                cancel_url=urllib.parse.urljoin(
                     self.get_full_url(request), self.reverse_subpage("pick_product")
                 ),
-                "price_id": price_id,
-            }
+            )
         )(request)
 
     @route(r"^complete/$")

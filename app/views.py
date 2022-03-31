@@ -30,11 +30,7 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, RedirectView)
         }
 
         session_args = dict(
-            mode="subscription",
-            line_items=[{"price": self.context.get("price_id"), "quantity": 1}],
-            shipping_address_collection={"allowed_countries": ["GB"]},
-            success_url=self.context.get("success_url"),
-            cancel_url=self.context.get("cancel_url"),
+            **self.context,
             metadata=metadata,
         )
 

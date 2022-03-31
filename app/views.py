@@ -1,5 +1,8 @@
+from re import template
+
 import djstripe
 import stripe
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
@@ -10,10 +13,11 @@ class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
     login_url = reverse_lazy("account_signup")
 
 
-class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, RedirectView):
+class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView):
+    template_name = "stripe/checkout.html"
     context = {}
 
-    def get_redirect_url(self, *args, **kwargs):
+    def get_context_data(self, **kwargs):
         """
         Creates and returns a Stripe Checkout Session
         """
@@ -45,12 +49,18 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, RedirectView)
 
             # ! Note that Stripe will always create a new Customer Object if customer id not provided
             # ! even if customer_email is provided!
+            print(session_args)
             session = stripe.checkout.Session.create(**session_args, **additional_args)
+            print(session)
 
         except djstripe.models.Customer.DoesNotExist:
             session = stripe.checkout.Session.create(**session_args)
 
-        return session.url
+        return {
+            **super().get_context_data(**kwargs),
+            "CHECKOUT_SESSION_ID": session.id,
+            "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+        }
 
 
 class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateView):

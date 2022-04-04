@@ -11,7 +11,7 @@
 <p>{% blocktrans %}You can sign in to your account using any of the following third party accounts:{% endblocktrans %}</p>
 
 
-<form method="post">
+<form data-turbo="false" method="post">
 {% csrf_token %}
 
 {% if form.non_field_errors %}

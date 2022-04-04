@@ -1,4 +1,4 @@
-{% load static mathfilters djmoney %}
+{% load static mathfilters djmoney stripe_price wagtailroutablepage_tags mathfilters djmoney django_bootstrap5 %}
   
 <turbo-frame id="shipping-costs">
   <div class='p-3 bg-light rounded-3 my-2'>
@@ -6,13 +6,13 @@
       {{ product.name }}
     </div>
     <div class="text-muted mb-1">
-      {% money_localize basic_price.unit_amount|div:100 final_price.currency %}<small class="text-muted fw-light">/mo membership</small>
+          {{ basic_price|stripe_price }} subscription fee
     </div>
     <div class="text-muted mb-1">
-      {% money_localize shipping_fee|div:100 final_price.currency %}<small class="text-muted fw-light">/mo shipping</small>
+          {% money_localize shipping_fee|div:100 final_price.currency %} shipping fee
     </div>
     <div class="h5 mb-0">
-      {% money_localize final_price.unit_amount|div:100 final_price.currency %}<small class="text-muted fw-light">/mo total</small>
+          {{ final_price|stripe_price }} <span class="text-muted fw-light">total</small>
     </div>
   </div>
 </turbo-frame>

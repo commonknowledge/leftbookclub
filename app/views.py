@@ -94,7 +94,9 @@ class ShippingCostView(TemplateView):
         product = LBCProduct.objects.get(id=product_id)
         basic_price = product.basic_price
         shipping_price = product.get_prices_for_country(
-            iso_a2=country_id, recurring__interval="month"
+            iso_a2=country_id,
+            recurring__interval=basic_price.recurring["interval"],
+            recurring__interval_count=basic_price.recurring["interval_count"],
         ).first()
         if basic_price is None or shipping_price is None:
             return context

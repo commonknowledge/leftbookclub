@@ -1,12 +1,12 @@
 import urllib.parse
-
 from django.shortcuts import redirect
 from django_countries import countries
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
-
+from django.db import models
+from wagtail.images.edit_handlers import ImageChooserPanel
 from app.forms import CountrySelectorForm
 from app.views import (
     CheckoutSessionCompleteView,
@@ -130,3 +130,23 @@ class HomePage(RoutablePageMixin, Page):
             context_overrides={"error": True},
             template="app/subscription_error.html",
         )
+
+    class InformationPage(Page):
+            parent_page_types = [
+                'app.HomePage',
+                'app.InformationPage'
+            ]
+
+            cover_image = models.ForeignKey(
+                'wagtailimages.Image',
+                null=True,
+                blank=True,
+                on_delete=models.SET_NULL,
+                related_name='+',
+            )
+            text = RichTextField(blank=True)
+
+            content_panels = Page.content_panels + [
+                ImageChooserPanel('cover_image'),
+                FieldPanel('text')
+            ]

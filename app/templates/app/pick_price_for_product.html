@@ -19,7 +19,6 @@
           {% csrf_token %}
           {% bootstrap_form country_selector_form %}
           <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}"></turbo-frame>
-          {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary mb-2' %}
         </form>
         {% routablepageurl page 'pick_product' as back_link %}
         {% bootstrap_button href=back_link content="Change plan" button_class="w-100 btn-light text-dark" %}

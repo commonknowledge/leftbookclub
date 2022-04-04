@@ -15,6 +15,6 @@
     "django-html": "html"
   },
   "files.associations": {
-    "*.html": "django-html",
+    "*.html": "django-html"
   }
 }

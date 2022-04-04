@@ -5,15 +5,9 @@
   "name": "Python 3 & PostgreSQL",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
-  "runServices": [
-    "app",
-    "db",
-    "stripe"
-  ],
+  "runServices": ["app", "db", "stripe"],
   "workspaceFolder": "/workspace",
-  "forwardPorts": [
-    8000
-  ],
+  "forwardPorts": [8000],
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "sqltools.connections": [

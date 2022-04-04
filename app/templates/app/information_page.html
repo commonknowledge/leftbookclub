@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load wagtailimages_tags wagtailcore_tags %}
+{% block content %}
+
+    {% if page.cover_image %}
+         {% image page.cover_image height-500 class="" %}
+    {% endif %}
+  
+    {{ page.title }}
+    
+    {{ page.text|richtext }}
+  
+{% endblock %}

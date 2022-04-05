@@ -7,7 +7,7 @@ kill_timeout = 5
 PORT = 8080
 
 [deploy]
-release_command = "poetry run gunicorn -b 0.0.0.0:80 app.wsgi"
+release_command = "poetry run gunicorn app.wsgi"
 
 [[statics]]
   guest_path = "/app/static"

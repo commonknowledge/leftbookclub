@@ -29,7 +29,6 @@ RUN poetry install -n
 
 COPY --chown=app:app . ./
 COPY --chown=app --from=builder /app/vite ./vite
-ENV DJANGO_SETTINGS_MODULE=app.settings.production
 ENV PATH=$PATH:/home/app/.local/bin
 RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 

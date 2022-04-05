@@ -131,7 +131,13 @@ class HomePage(RoutablePageMixin, Page):
             template="app/subscription_error.html",
         )
 
+
+
     class InformationPage(Page):
+            """
+            Adding fields required for an information type page
+            
+            """
             parent_page_types = [
                 'app.HomePage',
                 'app.InformationPage'

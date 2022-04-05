@@ -9,6 +9,8 @@ from wagtail.contrib.settings.models import BaseSetting, register_setting
 from wagtail.core import hooks
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 
+from .stripe import LBCProduct
+
 
 @register_setting(icon="pick")
 class FeaturedContent(BaseSetting):
@@ -16,7 +18,7 @@ class FeaturedContent(BaseSetting):
         verbose_name = "Featured Content"
 
     current_book = models.ForeignKey(
-        djstripe.models.Product, blank=True, null=True, on_delete=models.DO_NOTHING
+        LBCProduct, blank=True, null=True, on_delete=models.DO_NOTHING
     )
 
     panels = [AutocompletePanel("current_book")]

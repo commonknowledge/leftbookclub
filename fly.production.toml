@@ -5,6 +5,7 @@ kill_timeout = 5
 
 [env]
 PORT = 8080
+DJANGO_SETTINGS_MODULE = app.settings.production
 
 [deploy]
 release_command = "poetry run gunicorn app.wsgi"

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start:debug": "yarn; vite --mode='dev'",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.0.1",

@@ -1,10 +1,11 @@
 import { defineConfig } from "vite";
+import purgecss from "@fullhuman/postcss-purgecss";
 
 const BUNDLE_ENTRYPOINTS = {
   main: "./frontend/main.ts",
 };
 
-export default defineConfig(() => {
+export default defineConfig(({ command }) => {
   return {
     base: "/static/",
     optimizeDeps: {
@@ -21,5 +22,21 @@ export default defineConfig(() => {
         input: BUNDLE_ENTRYPOINTS,
       },
     },
+    css:
+      command === "build"
+        ? {
+            postcss: {
+              plugins: [
+                purgecss({
+                  content: [
+                    "app/**/*.html",
+                    "frontend/**/*.ts",
+                    "static/**/*.js",
+                  ],
+                }),
+              ],
+            },
+          }
+        : undefined,
   };
 });

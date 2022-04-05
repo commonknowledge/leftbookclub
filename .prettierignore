@@ -6,3 +6,6 @@ node_modules
 *.html
 docs/api
 docs/components
+vite/
+media/
+static/

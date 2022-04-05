@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static wagtailroutablepage_tags mathfilters djmoney stripe_price %}
+
+{% block content %}
+  <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h1 class="h1 fw-normal">Join the Left Book Club</h1>
+    <p class="fs-5 text-muted">Your subscription will begin with the most recently published book in your chosen collection.</p>
+  </header>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 mb-3 text-center justify-content-center">
+      {% for product in products %}
+      {% if product.metadata.primary %}
+      <div class="col">
+        <div class="card mb-4 rounded-3 shadow-sm {% if product.metadata.primary %}border-primary{% else %}border-light{% endif %}">
+          <div class="card-header py-3 text-white {% if product.metadata.primary %}bg-primary border-primary{% else %}bg-light text-dark border-light{% endif %}">
+            <h4 class="my-0 fw-normal text-dark">{{ product.name }}</h4>
+          </div>
+          <div class="card-body">
+            <div class="h1 card-title pricing-card-title">{{product.basic_price|stripe_price}}</div>
+            <p>{{ product.description }}</p>
+            <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn-light text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
+              Select
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 mb-3 text-center  justify-content-center">
+      {% for product in products %}
+      {% if not product.metadata.primary %}
+      <div class="col">
+        <div class="card mb-4 rounded-3 shadow-sm {% if product.metadata.primary %}border-primary{% else %}border-medium{% endif %}">
+          <div class="card-header py-3 text-white {% if product.metadata.primary %}bg-primary border-primary{% else %}bg-medium text-dark border-medium{% endif %}">
+            <h5 class="my-0 fw-normal text-dark">{{ product.name }}</h5>
+          </div>
+          <div class="card-body">
+            <div class="h2 card-title pricing-card-title">{{product.basic_price|stripe_price}}</div>
+            <p class='fs-7'>{{ product.description }}</p>
+            <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn btn-outline-primary text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
+              Select
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </main>
+{% endblock %}

@@ -25,9 +25,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "setup_pages"
-      ],
+      "args": ["setup_pages"],
       "justMyCode": true,
       "django": true
     },
@@ -36,9 +34,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "runserver"
-      ],
+      "args": ["runserver"],
       "justMyCode": true,
       "django": true
     },
@@ -47,10 +43,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "run_cron_tasks",
-        "--once"
-      ],
+      "args": ["run_cron_tasks", "--once"],
       "justMyCode": true,
       "django": true,
       "presentation": {
@@ -64,9 +57,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": [
-        "livereload"
-      ],
+      "args": ["livereload"],
       "justMyCode": true,
       "django": true
     },
@@ -77,18 +68,13 @@
       "cwd": "${workspaceFolder}",
       // "port": 5858,
       "runtimeExecutable": "yarn",
-      "runtimeArgs": [
-        "start:debug"
-      ]
+      "runtimeArgs": ["start:debug"]
     },
     {
       "type": "node",
       "name": "vscode-jest-tests",
       "request": "launch",
-      "args": [
-        "--runInBand",
-        "--watchAll=false"
-      ],
+      "args": ["--runInBand", "--watchAll=false"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -101,5 +87,5 @@
         "hidden": true
       }
     }
-  ],
+  ]
 }

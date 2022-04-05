@@ -1,4 +1,4 @@
-{% load static django_vite %}
+{% load django_vite %}
 
 <!DOCTYPE html>
 <html class="no-js" lang="en">
@@ -6,6 +6,7 @@
         <meta charset="utf-8" />
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{% block title %}{{request.site.site_name}}{% endblock %}</title>
 
         {% vite_hmr_client %}
         <script>
@@ -17,12 +18,17 @@
         
         {% vite_asset 'frontend/main.ts' %}
 
+        {% block extra_js %}
+        {% endblock %}
         {% block extra_css %}
         {% endblock %}
     </head>
 
-    <body class="min-vh-100 d-flex flex-column {% block body_class %}{% endblock %}">
-        {% block content %}
-        {% endblock %}
+    <body class="{% block body_class %}{% endblock %}">
+        <div class="container py-3">
+        {% include "menus/header.html" %}
+        {% block content %}{% endblock %}
+        {% include "menus/footer.html" %}
+        </div>
     </body>
 </html>

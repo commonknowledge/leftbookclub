@@ -5,10 +5,9 @@
   "name": "Python 3 & PostgreSQL",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
+  "runServices": ["app", "db", "stripe"],
   "workspaceFolder": "/workspace",
-  "forwardPorts": [
-    8000
-  ],
+  "forwardPorts": [8000],
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "sqltools.connections": [
@@ -43,7 +42,9 @@
     "mtxr.sqltools",
     "mtxr.sqltools-driver-pg",
     "esbenp.prettier-vscode",
-    "orta.vscode-jest"
+    "orta.vscode-jest",
+    "batisteo.vscode-django",
+    "Zignd.html-css-class-completion"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [5000, 5432],

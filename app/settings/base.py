@@ -15,6 +15,8 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 
 INSTALLED_APPS = [
     "app",
+    "mathfilters",
+    "djmoney",
     "anymail",
     "rest_framework",
     "groundwork.core",
@@ -31,17 +33,27 @@ INSTALLED_APPS = [
     "wagtail.search",
     "wagtail.admin",
     "wagtail.core",
+    "wagtail.contrib.settings",
     "taggit",
     "modelcluster",
     "livereload",
+    "djstripe",
+    "django_bootstrap5",
+    "wagtailautocomplete",
+    "django_countries",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
     "django.contrib.auth",
+    # 'allauth.socialaccount.providers.auth0',
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "wagtail.contrib.routable_page",
 ]
 
 MIDDLEWARE = [
@@ -53,7 +65,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
-    'livereload.middleware.LiveReloadScript',
+    "livereload.middleware.LiveReloadScript",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -71,6 +83,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "wagtail.contrib.settings.context_processors.settings",
             ],
         },
     },
@@ -113,6 +126,29 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "app.User"
 
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+    # `allauth` specific authentication methods, such as login by e-mail
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USER_DISPLAY = "app.models.django.custom_user_casual_name"
+
+ACCOUNT_FORMS = {
+    # 'login': 'allauth.account.forms.LoginForm',
+    "signup": "app.forms.MemberSignupForm",
+    # 'add_email': 'allauth.account.forms.AddEmailForm',
+    # 'change_password': 'allauth.account.forms.ChangePasswordForm',
+    # 'set_password': 'allauth.account.forms.SetPasswordForm',
+    # 'reset_password': 'allauth.account.forms.ResetPasswordForm',
+    # 'reset_password_from_key': 'allauth.account.forms.ResetPasswordKeyForm',
+    # 'disconnect': 'allauth.socialaccount.forms.DisconnectForm',
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
@@ -140,7 +176,9 @@ STATICFILES_FINDERS = [
 DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/vite"
 DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH + "/manifest.json"
 
-STATICFILES_DIRS = [DJANGO_VITE_ASSETS_PATH, ]
+STATICFILES_DIRS = [
+    DJANGO_VITE_ASSETS_PATH,
+]
 
 
 # ManifestStaticFilesStorage is recommended in production, to prevent outdated
@@ -193,3 +231,23 @@ INTERNAL_IPS = [
 # Wagtail
 
 WAGTAIL_SITE_NAME = "Left Book Club"
+
+BASE_URL = "https://localhost:8000"
+
+# dj-stripe
+
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", None)
+STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", None)
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", None)
+STRIPE_API_KEY = STRIPE_TEST_SECRET_KEY
+STRIPE_LIVE_MODE = False  # Change to True in production
+DJSTRIPE_WEBHOOK_SECRET = os.environ.get(
+    "STRIPE_WEBHOOK_SECRET", None
+)  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
+DJSTRIPE_USE_NATIVE_JSONFIELD = (
+    True  # We recommend setting to True for new installations
+)
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+
+# CSP
+X_FRAME_OPTIONS = "SAMEORIGIN"

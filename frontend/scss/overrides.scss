@@ -1,0 +1,13 @@
+[data-controller="shipping"] [class="mb-3"] {
+  margin-bottom: 0 !important;
+  position: relative;
+  display: block;
+  margin: 0;
+}
+
+[data-controller="shipping"] #flag_id_country {
+  position: absolute;
+  pointer-events: none;
+  bottom: 14px;
+  right: 36px;
+}

@@ -10,5 +10,11 @@
   "[django-html]": {
     "editor.formatOnSave": false
   },
-  "python.formatting.provider": "black"
+  "python.formatting.provider": "black",
+  "emmet.includeLanguages": {
+    "django-html": "html"
+  },
+  "files.associations": {
+    "*.html": "django-html"
+  }
 }

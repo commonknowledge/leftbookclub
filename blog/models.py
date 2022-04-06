@@ -1,30 +1,48 @@
 from django.db import models
-from wagtail.core.models import Page
+from modelcluster.fields import ParentalKey
+from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.core.fields import RichTextField
-from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.core.models import Orderable, Page
+from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
 
 
-class BlogIndexPage(Page):
-    intro = RichTextField(blank=True)
+class BlogListingPage(Page):
+    """Listing page lists all the Blog Detail Pages."""
 
-    content_panels = Page.content_panels + [
-        FieldPanel('intro', classname="full")
-    ]
+    template = "blog/blog_listing_page.html"
+
+    def get_context(self, request, *args, **kwargs):
+        """Adding custom stuff to context."""
+        context = super().get_context(request, *args, **kwargs)
+        context["posts"] = BlogPage.objects.live().public()
+        return context
 
 
 class BlogPage(Page):
-    date = models.DateField("Post date")
-    intro = models.CharField(max_length=250)
-    body = RichTextField(blank=True)
 
-    search_fields = Page.search_fields + [
-        index.SearchField('intro'),
-        index.SearchField('body'),
-    ]
+    # Database fields
+
+    body = RichTextField()
+    date = models.DateField("Post date")
+
+    header_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    # Editor panels configuration
 
     content_panels = Page.content_panels + [
-        FieldPanel('date'),
-        FieldPanel('intro'),
-        FieldPanel('body', classname="full"),
+        FieldPanel("date"),
+        FieldPanel("body", classname="full"),
+        ImageChooserPanel("header_image"),
     ]
+
+    # Parent page / subpage type rules
+
+    parent_page_types = ["blog.BlogListingPage"]
+    subpage_types = []

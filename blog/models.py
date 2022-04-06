@@ -13,7 +13,7 @@ class BlogListingPage(Page):
     template = "blog/blog_listing_page.html"
 
     def get_context(self, request, *args, **kwargs):
-        """Adding custom stuff to context."""
+
         context = super().get_context(request, *args, **kwargs)
         context["posts"] = BlogPage.objects.live().public()
         return context
@@ -24,6 +24,7 @@ class BlogPage(Page):
     # Database fields
 
     body = RichTextField()
+    intro = models.CharField(max_length=250)
     date = models.DateField("Post date")
 
     header_image = models.ForeignKey(
@@ -38,6 +39,7 @@ class BlogPage(Page):
 
     content_panels = Page.content_panels + [
         FieldPanel("date"),
+        FieldPanel("intro"),
         FieldPanel("body", classname="full"),
         ImageChooserPanel("header_image"),
     ]

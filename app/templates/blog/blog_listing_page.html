@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}template-bloglistingpage{% endblock %}
+
+{% block content %}
+
+<h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
+    {% for post in posts %}
+    <div class="mb-3">
+   <h2 class="h4 fw-normal mb-3">{{ post.title }}</div>
+    <p> {{ post.intro }} </p>
+    <div class='mb-3'>{% image post.header_image width-200 %}</div>
+    <a class="btn btn-outline-primary mb-3" href="{% pageurl post %}">Read more</a>
+    {% endfor %}
+   </div>
+{% endblock %}

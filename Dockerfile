@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn --frozen-lockfile
 COPY frontend ./frontend/
+COPY app/templates ./app/templates
 COPY vite.config.js tsconfig.json env.d.ts ./
 RUN NODE_ENV=production yarn vite build
 

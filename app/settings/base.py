@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "wagtailautocomplete",
     "django_countries",
     "django_gravatar",
+    "active_link",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",

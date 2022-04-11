@@ -117,7 +117,7 @@ class ShippingCostView(TemplateView):
 
 class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
     def get_redirect_url(self, **kwargs):
-        return_url = self.request.build_absolute_uri(reverse("profile"))
+        return_url = self.request.build_absolute_uri(reverse("account_membership"))
         session = stripe.billing_portal.Session.create(
             customer=self.request.user.stripe_customer.id,
             return_url=return_url,

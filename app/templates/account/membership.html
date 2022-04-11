@@ -1,0 +1,23 @@
+{% extends "account/base.html" %}
+{% load account django_bootstrap5 gravatar %}
+
+{% block account_content %}
+{% if request.user.subscribed_product %}
+<div class='text-center'>
+  <h3 class='fw-light'>
+    Your plan is <b>{{ user.subscribed_product.name }}</b> and you're paying {{ user.subscribed_price.human_readable_price }}
+  </h3>
+
+  {% if user.stripe_customer.id is not None %}
+  {% url "customerportal" as portal_url %}
+  <div class='my-4'>
+    {% bootstrap_button href=portal_url content="Manage shipping and billing" %}
+  </div>
+  {% endif %}
+  {% else %}
+  <h3 class='fw-light'>
+    You're not a member at the moment
+  </h3>
+</div>
+{% endif %}
+{% endblock %}

@@ -4,7 +4,6 @@ from .base import *
 
 DEBUG = False
 SECRET_KEY = os.getenv("SECRET_KEY")
-BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", ""))
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [os.getenv("BASE_URL", "")]
 

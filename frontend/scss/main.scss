@@ -16,6 +16,9 @@
 @import "theme.scss";
 
 // Layout & components
+
+/* purgecss start ignore */
+// Whitelist these because django bootstrap packages can't be scanned via purgecss currently
 @import "bootstrap/scss/variables";
 @import "bootstrap/scss/mixins";
 @import "bootstrap/scss/root";
@@ -27,9 +30,11 @@
 @import "bootstrap/scss/tables";
 @import "bootstrap/scss/forms";
 @import "bootstrap/scss/buttons";
-@import "bootstrap/scss/transitions";
 @import "bootstrap/scss/dropdown";
 @import "bootstrap/scss/button-group";
+/* purgecss end ignore */
+
+@import "bootstrap/scss/transitions";
 @import "bootstrap/scss/nav";
 @import "bootstrap/scss/navbar";
 @import "bootstrap/scss/card";

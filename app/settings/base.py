@@ -232,16 +232,19 @@ INTERNAL_IPS = [
 # Wagtail
 
 WAGTAIL_SITE_NAME = "Left Book Club"
-
-BASE_URL = "https://localhost:8000"
+BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "https://localhost:8000"))
 
 # dj-stripe
 
-STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", None)
-STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", None)
-STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", None)
-STRIPE_API_KEY = STRIPE_TEST_SECRET_KEY
-STRIPE_LIVE_MODE = False  # Change to True in production
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "sk_live_")
+STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", "sk_test_")
+STRIPE_LIVE_PUBLIC_KEY = os.environ.get("STRIPE_LIVE_PUBLIC_KEY", "pk_live_")
+STRIPE_TEST_PUBLIC_KEY = os.environ.get("STRIPE_TEST_PUBLIC_KEY", "pk_test_")
+STRIPE_LIVE_MODE = os.environ.get("STRIPE_LIVE_MODE", "False").lower() in (
+    "true",
+    "1",
+    "t",
+)
 DJSTRIPE_WEBHOOK_SECRET = os.environ.get(
     "STRIPE_WEBHOOK_SECRET", None
 )  # Get it from the section in the Stripe dashboard where you added the webhook endpoint

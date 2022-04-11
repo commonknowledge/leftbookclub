@@ -1,11 +1,11 @@
-app = "leftbookclub-fly-test-staging"
+app = "leftbookclub-prod"
 
 kill_signal = "SIGINT"
 kill_timeout = 5
 
 [env]
 PORT = 8080
-STRIPE_LIVE_MODE = "False"
+STRIPE_LIVE_MODE = "True"
 
 [deploy]
 release_command = "make release"

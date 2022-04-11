@@ -1,16 +1,25 @@
+{% load static mathfilters djmoney stripe_price wagtailroutablepage_tags mathfilters djmoney django_bootstrap5 %}
+  
 <turbo-frame id="shipping-costs">
-  <div class='p-3 bg-light rounded-3 my-2'>
-    <div class="text-muted mb-1 fw-bolder">
-      {{ product.name }}
-    </div>
-    <div class="text-muted mb-1">
-      {% include "stripe/price.html" with price=product.basic_price %}<small class="text-muted fw-light">/mo membership</small>
-    </div>
-    <div class="text-muted mb-1">
-      {% include "stripe/price.html" with amount=shipping_fee currency=final_price.currency %}<small class="text-muted fw-light">/mo shipping to {{ zone.nickname }}</small>
-    </div>
-    <div class="h5 mb-0">
-      {% include "stripe/price.html" with price=final_price %}<small class="text-muted fw-light">/mo total</small>
-    </div>
-  </div>
-</turbo-frame>
+    {% if final_price is None %}
+      {% bootstrap_button disabled=True button_type="submit" content="We can't ship to this country" button_class='w-100 btn-primary my-2' %}
+    {% else %}
+      <div class='p-3 bg-light rounded-3 my-2'>
+        <div class="text-muted mb-1">
+          {{ product.name }}
+        </div>
+        <div class="text-muted mb-1">
+          {{ basic_price|stripe_price }} subscription fee
+        </div>
+        {% if shipping_fee is not None %}
+        <div class="text-muted mb-1">
+          {% money_localize shipping_fee|div:100 final_price.currency %} shipping fee
+        </div>
+        {% endif %}
+        <div class="h5 mb-0">
+          {{ final_price|stripe_price }} <span class="text-muted fw-light">total</small>
+        </div>
+      </div>
+      {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary my-2' %}
+    {% endif %}
+  </turbo-frame>

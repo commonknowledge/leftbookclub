@@ -41,21 +41,21 @@ class HomePage(RoutablePageMixin, Page):
         )
 
     @route(r"^product/(?P<product_id>.+)/$")
-    def pick_price_for_product(self, request, product_id):
+    @route(r"^product/(?P<product_id>.+)/(?P<country_id>.+)/$")
+    def pick_price_for_product(self, request, product_id, country_id="GB"):
         """
         When a product has been selected, select shipping country.
         """
 
         product = LBCProduct.objects.get(id=product_id)
-        default_country_code = "GB"
 
         return self.render(
             request,
             context_overrides={
                 "product": product,
-                "default_country_code": default_country_code,
+                "default_country_code": country_id,
                 "country_selector_form": CountrySelectorForm(
-                    initial={"country": default_country_code}
+                    initial={"country": country_id}
                 ),
                 "url_pattern": ShippingCostView.url_pattern,
             },
@@ -87,14 +87,15 @@ class HomePage(RoutablePageMixin, Page):
         zone = ShippingZone.get_for_country(country)
 
         if price is None:
-            print(
-                "!!!!! No shipping option is defined for",
-                country,
-                "which resolves to zone",
-                zone,
-                ". Using basic price instead.",
+            return redirect(
+                urllib.parse.urljoin(
+                    self.get_full_url(request),
+                    self.reverse_subpage(
+                        "pick_price_for_product",
+                        kwargs={"product_id": product_id, "country_id": country},
+                    ),
+                )
             )
-            price = product.basic_price
 
         return CreateCheckoutSessionView.as_view(
             context=dict(

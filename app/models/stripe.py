@@ -25,16 +25,17 @@ class LBCProduct(djstripe.models.Product):
 
     @property
     def has_tiered_pricing(self):
-        return self.prices.filter(nickname__isnull=False).exists()
+        return self.prices.filter(nickname__isnull=False, active=True).exists()
 
     @property
     def basic_price(self):
         try:
-            price = self.prices.get(nickname="basic")
+            price = self.prices.get(nickname="basic", active=True)
             return price
         except:
             return (
-                self.prices.exclude(nickname__icontains="archived")
+                self.prices.filter(active=True)
+                .exclude(nickname__icontains="archived")
                 .order_by("unit_amount")
                 .first()
             )
@@ -48,7 +49,7 @@ class LBCProduct(djstripe.models.Product):
         zone = ShippingZone.get_for_country(iso_a2)
 
         return djstripe.models.Price.objects.filter(
-            product=self.id, metadata__shipping=zone.code, **kwargs
+            product=self.id, active=True, metadata__shipping=zone.code, **kwargs
         ).order_by("unit_amount")
 
     class Meta:

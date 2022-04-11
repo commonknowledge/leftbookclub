@@ -56,16 +56,16 @@
 @import "bootstrap/scss/placeholders";
 
 /* purgecss start ignore */
+
 // Helpers
 @import "bootstrap/scss/helpers";
 
 // Utilities
 @import "bootstrap/scss/utilities";
 @import "bootstrap/scss/utilities/api";
-/* purgecss end ignore */
 
-// scss-docs-end import-stack
-
+// Project-specific
 @import "util.scss";
-
 @import "overrides.scss";
+
+/* purgecss end ignore */

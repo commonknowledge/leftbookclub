@@ -2,6 +2,12 @@
 {% load account django_bootstrap5 gravatar %}
 
 {% block content %}
+<script>
+  {
+    "userId": "{{request.user.id}}",
+    "customerId": "{{request.user.stripe_customer.id}}"
+  }
+</script>
 <div class='row'>
   <div class='col col-md-8 col-lg-5 mx-auto text-center '>
     <header class='text-center mb-3'>

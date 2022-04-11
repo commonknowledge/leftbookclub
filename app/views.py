@@ -77,9 +77,10 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
         )
         customer.subscriber = self.request.user
         customer.save()
+        self.request.user.refresh_stripe_data()
 
         # Get Parent Context
-        context = {**super().get_context_data(**kwargs), "customer": customer}
+        context = super().get_context_data(**kwargs)
 
         return context
 

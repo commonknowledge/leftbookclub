@@ -67,6 +67,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "livereload.middleware.LiveReloadScript",
+    "app.middleware.update_stripe_customer_subscription",
 ]
 
 ROOT_URLCONF = "app.urls"

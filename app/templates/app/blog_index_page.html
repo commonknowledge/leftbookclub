@@ -1,0 +1,20 @@
+
+{% extends "base.html" %}
+
+{% load wagtailcore_tags %}
+{% load wagtailimages_tags %}
+
+{% block body_class %}template-blogindexpage{% endblock %}
+
+{% block content %}
+<h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
+
+    {% for post in page.get_children %}
+    <div class="mb-3">
+        <h2 class="h4 fw-normal mb-3">{{ post.title }}</div>
+            <p> {{ post.specific.intro }} </p>
+           <div class="mb-2"> {% image post.specific.feed_image width-400 %}</div>
+            <a class="btn btn-outline-primary mb-3" href="{% pageurl post %}">Read more</a>
+    {% endfor %}
+
+{% endblock %}

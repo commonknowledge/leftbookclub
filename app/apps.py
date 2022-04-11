@@ -1,6 +1,6 @@
+import djstripe.settings
 import stripe
 from django.apps import AppConfig
-from django.conf import settings
 
 
 class LeftBookClub(AppConfig):
@@ -8,4 +8,4 @@ class LeftBookClub(AppConfig):
     verbose_name = "Left Book Club"
 
     def ready(self):
-        stripe.api_key = settings.STRIPE_API_KEY
+        stripe.api_key = djstripe.settings.djstripe_settings.STRIPE_SECRET_KEY

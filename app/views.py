@@ -61,7 +61,7 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
         return {
             **super().get_context_data(**kwargs),
             "CHECKOUT_SESSION_ID": session.id,
-            "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+            "STRIPE_PUBLIC_KEY": djstripe.settings.djstripe_settings.STRIPE_PUBLIC_KEY,
         }
 
 

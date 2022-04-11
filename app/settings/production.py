@@ -36,10 +36,6 @@ if os.getenv("MAILJET_API_KEY"):
 
 WAGTAILTRANSFER_SECRET_KEY = os.getenv("WAGTAILTRANSFER_SECRET_KEY")
 
-STRIPE_LIVE_MODE = True
-STRIPE_API_KEY = STRIPE_LIVE_SECRET_KEY
-PRODUCTION = True
-
 try:
     from .local import *
 except ImportError:

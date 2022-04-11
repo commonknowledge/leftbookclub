@@ -242,7 +242,11 @@ STRIPE_LIVE_PUBLIC_KEY = os.environ.get("STRIPE_LIVE_PUBLIC_KEY", "pk_live_")
 STRIPE_TEST_PUBLIC_KEY = os.environ.get("STRIPE_TEST_PUBLIC_KEY", "pk_test_")
 STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "...")
 STRIPE_API_KEY = STRIPE_TEST_SECRET_KEY
-STRIPE_LIVE_MODE = False  # Change to True in production
+STRIPE_LIVE_MODE = os.environ.get("STRIPE_LIVE_MODE", "False").lower() in (
+    "true",
+    "1",
+    "t",
+)
 DJSTRIPE_WEBHOOK_SECRET = os.environ.get(
     "STRIPE_WEBHOOK_SECRET", None
 )  # Get it from the section in the Stripe dashboard where you added the webhook endpoint

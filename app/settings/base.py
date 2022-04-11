@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "wagtail.contrib.routable_page",
-    "blog"
 ]
 
 MIDDLEWARE = [
@@ -234,6 +233,8 @@ INTERNAL_IPS = [
 WAGTAIL_SITE_NAME = "Left Book Club"
 
 BASE_URL = "https://localhost:8000"
+
+WAGTAILIMAGES_IMAGE_MODEL = "app.CustomImage"
 
 # dj-stripe
 

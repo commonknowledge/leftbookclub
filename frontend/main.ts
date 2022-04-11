@@ -1,5 +1,6 @@
 import "./scss/main.scss";
 import "@hotwired/turbo";
+import "bootstrap";
 
 import { startApp } from "groundwork-ui";
 

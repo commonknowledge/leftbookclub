@@ -5,8 +5,6 @@
 
 {% block head_title %}{% trans "Account" %}{% endblock %}
 
-{% block account_nav_email %}active{% endblock %}
-
 {% block account_content %}
 
 {% if user.emailaddress_set.all %}
@@ -62,8 +60,8 @@
 
 {% endif %}
 
-
-    <h2>{% trans "Add E-mail Address" %}</h2>
+    <br />
+    <h5>{% trans "Add E-mail Address" %}</h5>
     
     <form data-turbo="false" method="post" action="">
         {% csrf_token %}

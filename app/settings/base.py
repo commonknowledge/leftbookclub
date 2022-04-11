@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     "django_bootstrap5",
     "wagtailautocomplete",
     "django_countries",
+    "django_gravatar",
+    "active_link",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
@@ -66,6 +68,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "livereload.middleware.LiveReloadScript",
+    "app.middleware.update_stripe_customer_subscription",
 ]
 
 ROOT_URLCONF = "app.urls"

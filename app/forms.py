@@ -10,4 +10,6 @@ class MemberSignupForm(SignupForm):
 
 
 class CountrySelectorForm(forms.Form):
-    country = CountryField().formfield(widget=CountrySelectWidget)
+    country = CountryField().formfield(
+        label="Shipping country", widget=CountrySelectWidget
+    )

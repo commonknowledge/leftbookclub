@@ -29,9 +29,9 @@ export default defineConfig(({ command }) => {
               plugins: [
                 purgecss({
                   content: [
-                    "app/**/*.html",
-                    "frontend/**/*.ts",
-                    "static/**/*.js",
+                    "./app/**/*.html",
+                    "./frontend/**/*.ts",
+                    "./static/**/*.js",
                   ],
                 }),
               ],

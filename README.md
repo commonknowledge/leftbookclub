@@ -17,6 +17,11 @@ A starter repository for [Groundwork](https://groundwork.commonknowledge.coop) p
 
 ### Troubleshooting
 
+#### `ModuleNotFoundError: No module named 'django'`
+
+- Manually run `poetry install`
+- From the VSCode command pallete, "select Python interpreter" and select the virtualenv binary of Python
+
 #### Precommit not installed
 
 - If you get git errors about `pre_commit`, [install `pre-commit`](https://formulae.brew.sh/formula/pre-commit) outside the devcontainer and run `pre-commit install` to re-configure the git environment.

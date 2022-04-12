@@ -164,57 +164,60 @@ class ImageRendition(AbstractRendition):
     class Meta:
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
-    class BlogIndexPage(Page):
-        """
-        Define blog index page.
-        """
 
-        intro = RichTextField(blank=True)
+class BlogIndexPage(Page):
+    """
+    Define blog index page.
+    """
 
-        content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
+    intro = RichTextField(blank=True)
 
-    class BlogPage(Page):
-        """
-        Define blog detail page.
-        """
+    content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
 
-        date = models.DateField("Post date")
-        intro = models.CharField(max_length=250)
 
-        feed_image = models.ForeignKey(
-            CustomImage,
-            null=True,
-            blank=True,
-            on_delete=models.SET_NULL,
-            related_name="+",
-        )
-        body = ArticleContentStream()
+class BlogPage(Page):
+    """
+    Define blog detail page.
+    """
 
-        search_fields = Page.search_fields + [
-            index.SearchField("intro"),
-            index.SearchField("body"),
-        ]
+    date = models.DateField("Post date")
+    intro = models.CharField(max_length=250)
 
-        content_panels = Page.content_panels + [
-            FieldPanel("date"),
-            FieldPanel("intro"),
-            StreamFieldPanel("body", classname="full"),
-            ImageChooserPanel("feed_image"),
-        ]
+    feed_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    body = ArticleContentStream()
 
-    class InformationPage(Page):
+    search_fields = Page.search_fields + [
+        index.SearchField("intro"),
+        index.SearchField("body"),
+    ]
 
-        cover_image = models.ForeignKey(
-            CustomImage,
-            null=True,
-            blank=True,
-            on_delete=models.SET_NULL,
-            related_name="+",
-        )
+    content_panels = Page.content_panels + [
+        FieldPanel("date"),
+        FieldPanel("intro"),
+        StreamFieldPanel("body", classname="full"),
+        ImageChooserPanel("feed_image"),
+    ]
 
-        body = ArticleContentStream()
 
-        content_panels = Page.content_panels + [
-            ImageChooserPanel("cover_image"),
-            StreamFieldPanel("body", classname="full"),
-        ]
+class InformationPage(Page):
+
+    cover_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    body = ArticleContentStream()
+
+    content_panels = Page.content_panels + [
+        ImageChooserPanel("cover_image"),
+        StreamFieldPanel("body", classname="full"),
+    ]

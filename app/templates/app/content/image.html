@@ -1,3 +1,2 @@
 {% load wagtailimages_tags %}
-{% image value.image width-400 class='img-fluid' %}
-<p class='figure-caption'>{{ value.caption }}</p>
+{% image value width-400 class='img-fluid' alt=value.alt_text %}

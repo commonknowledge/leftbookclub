@@ -46,6 +46,10 @@ class User(AbstractUser):
             return None
 
     @property
+    def is_member(self):
+        return self.active_subscription is not None
+
+    @property
     def subscribed_product(self) -> LBCProduct:
         try:
             product = self.active_subscription.plan.product

@@ -3,7 +3,7 @@
 
 {% block account_content %}
 <div class='text-center'>
-  {% if request.user.subscribed_product %}
+  {% if request.user.is_member %}
     <h3 class='fw-light'>
       Your plan is <b>{{ user.subscribed_product.name }}</b> and you're paying {{ user.subscribed_price.human_readable_price }}
     </h3>
@@ -12,7 +12,6 @@
     <div class='my-4'>
       {% bootstrap_button href=portal_url content="Manage shipping and billing" %}
     </div>
-    {% endif %}
   {% else %}
     <h3 class='fw-light'>
       You're not a member at the moment

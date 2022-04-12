@@ -11,3 +11,16 @@
   bottom: 14px;
   right: 36px;
 }
+
+@include media-breakpoint-up(sm) {
+  .content-mx-width {
+    max-width: 755px;
+  }
+}
+
+.blog-post-embed {
+  div {
+    @extend .ratio;
+    @extend .ratio-16x9;
+  }
+}

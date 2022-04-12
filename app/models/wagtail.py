@@ -137,44 +137,6 @@ class HomePage(RoutablePageMixin, Page):
             template="app/subscription_error.html",
         )
 
-    class BlogIndexPage(Page):
-        """
-        Define blog index page.
-        """
-
-        intro = RichTextField(blank=True)
-
-        content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
-
-    class BlogPage(Page):
-        """
-        Define blog detail page.
-        """
-
-        date = models.DateField("Post date")
-        intro = models.CharField(max_length=250)
-
-        feed_image = models.ForeignKey(
-            "wagtailimages.Image",
-            null=True,
-            blank=True,
-            on_delete=models.SET_NULL,
-            related_name="+",
-        )
-        body = ArticleContentStream()
-
-        search_fields = Page.search_fields + [
-            index.SearchField("intro"),
-            index.SearchField("body"),
-        ]
-
-        content_panels = Page.content_panels + [
-            FieldPanel("date"),
-            FieldPanel("intro"),
-            StreamFieldPanel("body", classname="full"),
-            ImageChooserPanel("feed_image"),
-        ]
-
 
 class CustomImage(AbstractImage):
 
@@ -201,6 +163,44 @@ class ImageRendition(AbstractRendition):
 
     class Meta:
         unique_together = (("image", "filter_spec", "focal_point_key"),)
+
+    class BlogIndexPage(Page):
+        """
+        Define blog index page.
+        """
+
+        intro = RichTextField(blank=True)
+
+        content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
+
+    class BlogPage(Page):
+        """
+        Define blog detail page.
+        """
+
+        date = models.DateField("Post date")
+        intro = models.CharField(max_length=250)
+
+        feed_image = models.ForeignKey(
+            CustomImage,
+            null=True,
+            blank=True,
+            on_delete=models.SET_NULL,
+            related_name="+",
+        )
+        body = ArticleContentStream()
+
+        search_fields = Page.search_fields + [
+            index.SearchField("intro"),
+            index.SearchField("body"),
+        ]
+
+        content_panels = Page.content_panels + [
+            FieldPanel("date"),
+            FieldPanel("intro"),
+            StreamFieldPanel("body", classname="full"),
+            ImageChooserPanel("feed_image"),
+        ]
 
     class InformationPage(Page):
 

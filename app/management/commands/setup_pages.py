@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from wagtail.core.models import Page, Site
 
-from app.models import HomePage
+from app.models import BlogIndexPage, HomePage
 
 
 class Command(BaseCommand):
@@ -47,6 +47,14 @@ class Command(BaseCommand):
             )
 
         # Delete placeholders
-        Page.objects.filter(title="Welcome to your new Wagtail site!").all().delete()
+        Page.objects.filter(title="Welcome to your new Wagtail site!").all().unpublish()
 
         # Set up website sections
+
+        slug = "blog"
+        if (
+            BlogIndexPage.objects.filter(slug=slug).descendant_of(home).exists()
+            is False
+        ):
+            blog = BlogIndexPage(title="Blog", slug=slug)
+            home.add_child(instance=blog)

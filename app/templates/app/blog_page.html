@@ -6,11 +6,11 @@
 
 {% block content %}
 
-<article>
+<article class="content-mx-width">
     <h1 class="h1 fw-normal mb-2">{{ page.title }} </h1>
     <p class="text-muted">{{ page.date }} </p>
-
-    {% include_block page.body %}
+    <div class="mb-2"> {% image page.feed_image width-400 %}</div>
+{% include_block page.body %}
 </article>
 
 {% endblock %}

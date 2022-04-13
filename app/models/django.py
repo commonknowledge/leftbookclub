@@ -24,7 +24,7 @@ class User(AbstractUser):
                 # Refetch customer data
                 customer = stripe.Customer.retrieve(self.stripe_customer.id)
                 djstripe.models.Customer.sync_from_stripe_data(customer)
-                # Get subscriptions
+                # Update subscriptions
                 self.stripe_customer._sync_subscriptions()
         except:
             pass

@@ -71,15 +71,19 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
 
     def get_context_data(self, *args, **kwargs):
         session = stripe.checkout.Session.retrieve(self.request.GET.get("session_id"))
-        stripe_customer = stripe.Customer.retrieve(session.customer)
+        customer_from_stripe = stripe.Customer.retrieve(session.customer)
         customer, is_new = djstripe.models.Customer._get_or_create_from_stripe_object(
-            stripe_customer
+            customer_from_stripe
         )
+
+        # Relate the django user to this customer
         customer.subscriber = self.request.user
         customer.save()
+
+        # Sync Stripe data to Django
         self.request.user.refresh_stripe_data()
 
-        # Get Parent Context
+        # Get parent Context
         context = super().get_context_data(**kwargs)
 
         return context

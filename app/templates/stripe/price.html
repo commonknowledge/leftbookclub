@@ -1,0 +1,4 @@
+{% load static mathfilters djmoney %}
+{% firstof amount price.unit_amount "0" as amnt %}
+{% firstof currency price.currency "GBP" as currncy %}
+{% money_localize amnt|div:100 currncy %}

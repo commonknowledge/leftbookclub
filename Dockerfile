@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn --frozen-lockfile
 COPY frontend ./frontend/
+COPY app/templates ./app/templates
 COPY vite.config.js tsconfig.json env.d.ts ./
 RUN NODE_ENV=production yarn vite build
 
@@ -29,5 +30,8 @@ RUN poetry install -n
 
 COPY --chown=app:app . ./
 COPY --chown=app --from=builder /app/vite ./vite
+ENV DJANGO_SETTINGS_MODULE=app.settings.production
 ENV PATH=$PATH:/home/app/.local/bin
 RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
+
+CMD ["bash", "-c", "gunicorn $GUNICORN_ARGS -b 0.0.0.0:${PORT:-80} app.wsgi"]

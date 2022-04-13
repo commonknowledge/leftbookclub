@@ -10,7 +10,7 @@ from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 
-from app.views import ShippingCostView
+from app.views import ShippingCostView, StripeCustomerPortalView
 
 # from wagtail_transfer import urls as wagtailtransfer_urls
 
@@ -25,12 +25,13 @@ urlpatterns = [
         RedirectView.as_view(url="/static/images/logo.png", permanent=True),
     ),
     path(
-        "accounts/profile/",
-        TemplateView.as_view(template_name="app/profile.html"),
-        name="profile",
+        "accounts/membership/",
+        TemplateView.as_view(template_name="account/membership.html"),
+        name="account_membership",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
+    path("customer_portal/", StripeCustomerPortalView.as_view(), name="customerportal"),
     path(
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),

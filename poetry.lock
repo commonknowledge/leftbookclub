@@ -359,6 +359,19 @@ beautifulsoup4 = ">=4.8.0"
 Django = ">=2.2"
 
 [[package]]
+name = "django-cogwheels"
+version = "0.3"
+description = "A consistent, user-friendly solution for adding app-specific settings your Django package, reusable app or framework."
+category = "main"
+optional = false
+python-versions = ">=3.4"
+
+[package.extras]
+development = ["Django (>=2.0,<2.1)", "ipdb", "werkzeug", "django-extensions"]
+docs = ["pyenchant (>=2.0)", "Sphinx (>=1.7.4)", "sphinxcontrib-spelling (>=1.4)", "sphinx-rtd-theme (>=0.3)"]
+testing = ["coverage"]
+
+[[package]]
 name = "django-countries"
 version = "7.3.2"
 description = "Provides a country field for Django models."
@@ -1218,7 +1231,7 @@ requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
 
 [[package]]
 name = "tablib"
-version = "3.2.0"
+version = "3.2.1"
 description = "Format agnostic tabular data library (XLS, JSON, YAML, CSV)"
 category = "main"
 optional = false
@@ -1376,6 +1389,23 @@ docs = ["Sphinx (>=1.7)", "sphinx-rtd-theme (>=0.4.0)"]
 test = ["tox", "pytest (>=3.5)", "pytest-django (>=3.2)", "beautifulsoup4 (>=4.8)", "html5lib (>=0.999999999)", "pytest-pythonpath (>=0.7.2)"]
 
 [[package]]
+name = "wagtailmenus"
+version = "3.0.2"
+description = "An app to help you manage menus in your Wagtail projects more consistently."
+category = "main"
+optional = false
+python-versions = ">=3.4"
+
+[package.dependencies]
+django-cogwheels = "0.3"
+
+[package.extras]
+deployment = ["transifex-client"]
+development = ["wagtail (>=2.4,<=2.9)", "django-debug-toolbar", "django-extensions", "ipdb", "werkzeug", "beautifulsoup4 (>=4.5.1,<4.6.1)", "coverage (>=4.5)", "django-webtest (>=1.9,<1.10)"]
+docs = ["pyenchant (>=2.0)", "Sphinx (>=1.7.4)", "sphinxcontrib-spelling (>=1.4)", "sphinx-rtd-theme (>=0.3)"]
+testing = ["beautifulsoup4 (>=4.5.1,<4.6.1)", "coverage (>=4.5)", "django-webtest (>=1.9,<1.10)"]
+
+[[package]]
 name = "webencodings"
 version = "0.5.1"
 description = "Character encoding aliases for legacy web content"
@@ -1434,7 +1464,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "5fb630104441160925238f3deebf544e995aac17b208a253c0e419f142bcc79b"
+content-hash = "67d1ed18daf3c9fa0fae868e3f942c347d9e70058e8e40c631d7faa94f6afb4a"
 
 [metadata.files]
 anyascii = [
@@ -1639,6 +1669,10 @@ django-anymail = [
 django-bootstrap5 = [
     {file = "django-bootstrap5-21.3.tar.gz", hash = "sha256:35086341881780a44b2e27255894f6029fc5ef75e5a0ec8ebd82f47a5184fa73"},
     {file = "django_bootstrap5-21.3-py3-none-any.whl", hash = "sha256:c7a686420aa98692f15bd16e61a90dc6a3607e441a4dea37af840b83d4820cac"},
+]
+django-cogwheels = [
+    {file = "django-cogwheels-0.3.tar.gz", hash = "sha256:848a4d9f2c96c582a4a4f2e7c276dfd95ab3905748cae13bb7c4b365a6717e94"},
+    {file = "django_cogwheels-0.3-py3-none-any.whl", hash = "sha256:197bd05e7114403d7301214b3f8a371c4fb6039cf21c811f099438b167b5ed21"},
 ]
 django-countries = [
     {file = "django-countries-7.3.2.tar.gz", hash = "sha256:0df6d34193667c2343da8935cbfb8a2bd4fb0c97baf01ac10db4628ba1557a82"},
@@ -2043,8 +2077,8 @@ stripe = [
     {file = "stripe-2.70.0.tar.gz", hash = "sha256:ed8897f68e6bac3398cc998eb5634551840630d6504c0026fcfd0ad91c9a74a4"},
 ]
 tablib = [
-    {file = "tablib-3.2.0-py3-none-any.whl", hash = "sha256:1ba12da7b0b17e33f5997fb1bc8ed560aae3535f5892ae5e5c01a056c47d4d78"},
-    {file = "tablib-3.2.0.tar.gz", hash = "sha256:12d8686454c721de88d8ca5adf07e1f419ef6dbcecedf65e8950d4a329daf3a0"},
+    {file = "tablib-3.2.1-py3-none-any.whl", hash = "sha256:870d7e688f738531a14937a055e8bba404fbc388e77d4d500b2c904075d1019c"},
+    {file = "tablib-3.2.1.tar.gz", hash = "sha256:a57f2770b8c225febec1cb1e65012a69cf30dd28be810e0ff98d024768c7d0f1"},
 ]
 telepath = [
     {file = "telepath-0.2-py35-none-any.whl", hash = "sha256:801615094d3d964e178183099bf04020f4ff9c84ec43945d40b096df0a5767ee"},
@@ -2128,6 +2162,10 @@ wagtail = [
 wagtail-autocomplete = [
     {file = "wagtail-autocomplete-0.7.0.tar.gz", hash = "sha256:69d4b72407532781014c9766a57977eb56f16bb1ad97a0e9133d2c67383e4596"},
     {file = "wagtail_autocomplete-0.7.0-py3-none-any.whl", hash = "sha256:f8f8b2e2e4d0229946a20fa439af17f252e3865a6cb9b27903c284a0c065edd8"},
+]
+wagtailmenus = [
+    {file = "wagtailmenus-3.0.2-py3-none-any.whl", hash = "sha256:518b8e74fddcae91115313085673b72fdfc17aa4f711f0ea00dbdffa20abce33"},
+    {file = "wagtailmenus-3.0.2.tar.gz", hash = "sha256:77c2e098decc8882f8fbf4fbab6c04911a0daf744aabbfb7e4952f03e3533386"},
 ]
 webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},

@@ -184,7 +184,7 @@ class BlogPage(Page):
     intro = models.CharField(max_length=250)
 
     feed_image = models.ForeignKey(
-        "wagtailimages.Image",
+        CustomImage,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

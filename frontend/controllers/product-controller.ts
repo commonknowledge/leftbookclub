@@ -22,7 +22,7 @@ class ProductController extends Controller {
   private shopifyProductIdValue: string | undefined;
   private shopifyDomainValue: string | undefined;
   private shopifyStorefrontAccessTokenValue: string | undefined;
-  private emailValue: string | undefined;
+  private userEmailValue: string | undefined;
   private stripeShippingValue:
     | StripeShippingAddressElementChangeEvent["value"]
     | undefined;
@@ -34,23 +34,23 @@ class ProductController extends Controller {
 
   async connect() {
     this.ensureCheckout(undefined);
-    this.renderProductData();
   }
 
-  renderProductData() {
-    if (!this.shopifyProductIdValue) return;
-    this.client?.product.fetch(this.shopifyProductIdValue).then((product) => {
-      this.product = product;
-      if (this.titleTarget) {
-        this.titleTarget.innerHTML = product.title;
-      }
-      if (this.imageTarget) {
-        this.imageTarget.innerHTML = product.images[0].src;
-      }
-      if (this.priceTarget) {
-        this.priceTarget.innerHTML = product.variants[0].price;
-      }
-    });
+  get shippingAddress() {
+    return this.stripeShippingValue
+      ? {
+          address1: this.stripeShippingValue.address.line1,
+          address2: this.stripeShippingValue.address.line1,
+          city: this.stripeShippingValue.address.city,
+          province: this.stripeShippingValue.address.state,
+          zip: this.stripeShippingValue.address.postal_code,
+          country: this.stripeShippingValue.address.country,
+          company: "",
+          firstName: this.stripeShippingValue.name,
+          lastName: this.stripeShippingValue.name,
+          phone: "",
+        }
+      : undefined;
   }
 
   ensureCheckout(checkoutId: number | undefined): checkoutId is number {
@@ -68,24 +68,12 @@ class ProductController extends Controller {
     });
 
     this.client.checkout
-      .create(
-        this.emailValue,
-        [],
-        this.stripeShippingValue
-          ? {
-              address1: this.stripeShippingValue.address.line1,
-              address2: this.stripeShippingValue.address.line2,
-              city: this.stripeShippingValue.address.city,
-              province: this.stripeShippingValue.address.state,
-              zip: this.stripeShippingValue.address.postal_code,
-              country: this.stripeShippingValue.address.country,
-              company: "",
-              firstName: this.stripeShippingValue.name,
-              lastName: "",
-              phone: "",
-            }
-          : undefined
-      )
+      // @ts-ignore
+      .create({
+        email: this.userEmailValue,
+        lineItems: [],
+        shippingAddress: this.shippingAddress,
+      })
       .then((checkout) => {
         this.checkoutId = checkout.id;
       });
@@ -94,7 +82,8 @@ class ProductController extends Controller {
   }
 
   async add(event: EventInit) {
-    if (!this.ensureCheckout(this.checkoutId) || !this.product) return;
+    if (!this.ensureCheckout(this.checkoutId)) return;
+    // @ts-ignore
     const variantId = event.target.dataset.variantId;
     await this.client?.checkout.addLineItems(this.checkoutId, [
       {
@@ -109,9 +98,16 @@ class ProductController extends Controller {
   }
 
   async redirectToCheckout() {
+    // @ts-ignore
     const cart = await this.client?.checkout.fetch(String(this.checkoutId));
     if (!cart?.webUrl) return;
-    window.location.href = cart?.webUrl;
+    const checkoutURL = new URL(cart?.webUrl);
+    checkoutURL.searchParams.append(
+      "return_to",
+      new URL("/", window.location.href).toString()
+    );
+    console.log(checkoutURL);
+    window.location.href = checkoutURL.toString();
   }
 }
 

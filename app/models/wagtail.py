@@ -290,20 +290,24 @@ from dateutil.parser import parse
 
 
 def parse_metafield(f):
-    if f.value_type in [
+    if f.type in [
         "date",
         "date_time",
     ]:
         return parse(f.value)
-    elif f.value_type in [
-        "json_string",
-        "json",
-        "dimension",
-        "rating",
-        "rating",
-        "volume",
-        "weight",
-    ]:
+    elif (
+        f.type
+        in [
+            "json_string",
+            "json",
+            "dimension",
+            "rating",
+            "rating",
+            "volume",
+            "weight",
+        ]
+        or f.value_type == "json_string"
+    ):
         return json.loads(f.value)
     else:
         return f.value

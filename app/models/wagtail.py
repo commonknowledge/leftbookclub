@@ -263,9 +263,8 @@ class BookIndexPage(Page):
     #           raise Http404
 
 
-def get_cache_key(page):
+def page_id_key(page):
     key = page.id
-    print(page, key)
     return key
 
 
@@ -321,7 +320,7 @@ class BaseShopifyProductPage(Page):
         return page
 
     @property
-    @django_cached("book_shopify_product", get_key=get_cache_key)
+    @django_cached("book_shopify_product", get_key=page_id_key)
     def shopify_product(self):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
@@ -329,7 +328,7 @@ class BaseShopifyProductPage(Page):
             return shopify.Product.find(self.shopify_product_id)
 
     @property
-    @django_cached("book_shopify_product_metafields", get_key=get_cache_key)
+    @django_cached("book_shopify_product_metafields", get_key=page_id_key)
     def shopify_product_metafields(self):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD

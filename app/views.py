@@ -5,7 +5,8 @@ import djstripe
 import stripe
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
+from django.shortcuts import redirect
+from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from djstripe import settings as djstripe_settings
 
@@ -61,7 +62,7 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
         return {
             **super().get_context_data(**kwargs),
             "CHECKOUT_SESSION_ID": session.id,
-            "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
+            "STRIPE_PUBLIC_KEY": djstripe.settings.djstripe_settings.STRIPE_PUBLIC_KEY,
         }
 
 
@@ -70,15 +71,20 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
 
     def get_context_data(self, *args, **kwargs):
         session = stripe.checkout.Session.retrieve(self.request.GET.get("session_id"))
-        stripe_customer = stripe.Customer.retrieve(session.customer)
+        customer_from_stripe = stripe.Customer.retrieve(session.customer)
         customer, is_new = djstripe.models.Customer._get_or_create_from_stripe_object(
-            stripe_customer
+            customer_from_stripe
         )
+
+        # Relate the django user to this customer
         customer.subscriber = self.request.user
         customer.save()
 
-        # Get Parent Context
-        context = {**super().get_context_data(**kwargs), "customer": customer}
+        # Sync Stripe data to Django
+        self.request.user.refresh_stripe_data()
+
+        # Get parent Context
+        context = super().get_context_data(**kwargs)
 
         return context
 
@@ -107,8 +113,17 @@ class ShippingCostView(TemplateView):
             "product": product,
             "shipping_fee": shipping_price.unit_amount - basic_price.unit_amount,
             "final_price": shipping_price,
-            "basic_price": basic_price,
             "url_pattern": self.url_pattern,
         }
 
         return context
+
+
+class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
+    def get_redirect_url(self, **kwargs):
+        return_url = self.request.build_absolute_uri(reverse("account_membership"))
+        session = stripe.billing_portal.Session.create(
+            customer=self.request.user.stripe_customer.id,
+            return_url=return_url,
+        )
+        return session.url

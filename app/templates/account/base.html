@@ -1,31 +1,51 @@
 {% extends "base.html" %}
 
-{% load i18n %}
+{% load i18n active_link_tags account django_bootstrap5 gravatar %}
 
 {% block content %}
 
 <div class=container>
-<h1>{% trans 'My Account' %}</h1>
 
-<ul class="nav nav-tabs">
-  <li class="{% block account_nav_email %}{% endblock %}">
-    <a href="{% url 'account_email' %}">{% trans 'E-mail Addresses' %}</a>
-  </li>
-  <li class="{% block account_nav_change_password %}{% endblock %}">
-    <a href="{% url 'account_change_password' %}">{% trans 'Change Password' %}</a>
-  </li>
-  {% url 'socialaccount_connections' as connections_url %}
-  {% if connections_url %}
-  <li class="{% block account_nav_socialaccount_connections %}{% endblock %}">
-    <a href="{{ connections_url}}">{% trans 'Connected Accounts' %}</a>
-  </li>
-  {% else %}
-  <li>No connections url</li>
-  {% endif %}
-</ul>
-{% block account_content %}
-{% endblock %}
+  <script>
+    {
+      "userId": "{{request.user.id}}",
+      "customerId": "{{request.user.stripe_customer.id}}"
+    }
+  </script>
+  <div class='row'>
+    <div class='col col-md-9 col-lg-6 mx-auto'>
+          
+    <header class='text-center mb-3'>
+      <img src="{% gravatar_url user.email 150 %}" style="width: 150px; height: 150px;" class='rounded-full bg-light mb-3 overflow-hidden' />
+      <h1>{% user_display request.user %}</h1>
+    </header>
 
+    <br />
+    <ul class="nav nav-tabs justify-content-center">
+      <li class="{% block account_nav_profile %}{% endblock %}">
+        <a class='nav-link {% active_link "account_membership" %}' href="{% url 'account_membership' %}">{% trans 'Membership' %}</a>
+      </li>
+      <li class="{% block account_nav_email %}{% endblock %}">
+        <a class='nav-link {% active_link "account_email" %}' href="{% url 'account_email' %}">{% trans 'Email Addresses' %}</a>
+      </li>
+      <li class="{% block account_nav_change_password %}{% endblock %}">
+        <a class='nav-link {% active_link "account_change_password" %}' href="{% url 'account_change_password' %}">{% trans 'Change Password' %}</a>
+      </li>
+      {% comment %} {% url 'socialaccount_connections' as connections_url %}
+      {% if connections_url %}
+      <li class="{% block account_nav_socialaccount_connections %}{% endblock %}">
+        <a class='nav-link' href="{{ connections_url}}">{% trans 'Connected Accounts' %}</a>
+      </li>
+      {% else %}
+      <li>No connections url</li>
+      {% endif %} {% endcomment %}
+    </ul>
+    <br />
+    {% block account_content %}
+    {% endblock %}
+
+    </div>
+  </div>
 </div>
 
 {% endblock %}

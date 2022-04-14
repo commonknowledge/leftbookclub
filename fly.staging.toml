@@ -5,10 +5,10 @@ kill_timeout = 5
 
 [env]
 PORT = 8080
-DJANGO_SETTINGS_MODULE = "app.settings.staging"
+STRIPE_LIVE_MODE = "False"
 
 [deploy]
-release_command = "poetry run gunicorn app.wsgi"
+release_command = "make release"
 
 [[statics]]
   guest_path = "/app/static"

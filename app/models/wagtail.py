@@ -10,6 +10,7 @@ from wagtail.core.models import Page
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.images.models import AbstractImage, AbstractRendition
 from wagtail.search import index
+from wagtailseo.models import SeoMixin
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
@@ -22,12 +23,14 @@ from app.views import (
 from .stripe import LBCProduct, ShippingZone
 
 
-class HomePage(RoutablePageMixin, Page):
+class HomePage(SeoMixin, RoutablePageMixin, Page):
     body = RichTextField(blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("body", classname="full"),
     ]
+
+    promote_panels = SeoMixin.seo_panels
 
     @route(r"^$")  # will override the default Page serving mechanism
     def pick_product(self, request):

@@ -4,6 +4,7 @@ import urllib.parse
 import shopify
 from django.conf import settings
 from django.db import models
+from django.http.response import Http404
 from django.shortcuts import redirect
 from django_countries import countries
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
@@ -252,17 +253,65 @@ class BookIndexPage(Page):
         context["products"] = products
         return context
 
+    # @route(r"^(?P<shopify_handle>.+)/$")
+    # def serve_book(self, request, shopify_handle):
+    #       page = BookPage.get_for_product(handle=shopify_handle)
+    #       if page is not None:
+    #           page.serve(request)
+    #       else:
+    #           raise Http404
 
-class BookPage(Page):
-    body = ArticleContentStream(blank=True, null=True)
+
+class BaseShopifyProductPage(Page):
+    class Meta:
+        abstract = True
 
     # TODO: Autocomplete this in future?
     shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
 
-    content_panels = Page.content_panels + [
-        FieldPanel("shopify_product_id"),
-        StreamFieldPanel("body", classname="full"),
-    ]
+    content_panels = Page.content_panels + [FieldPanel("shopify_product_id")]
+
+    @classmethod
+    def get_for_product(cls, id=None, product=None, handle=None):
+        if product is not None:
+            id = product.id
+
+        if id is not None:
+            # Check if it exists by ID
+            page = BookPage.objects.filter(shopify_product_id=id).first()
+            if page is not None:
+                return page
+
+            if product is None:
+                # Query by ID
+                with shopify.Session.temp(
+                    settings.SHOPIFY_DOMAIN,
+                    "2021-10",
+                    settings.SHOPIFY_PRIVATE_APP_PASSWORD,
+                ):
+                    product = shopify.Product.find(id)
+
+        if product is None and handle is not None:
+            # Query by handle
+            with shopify.Session.temp(
+                settings.SHOPIFY_DOMAIN,
+                "2021-10",
+                settings.SHOPIFY_PRIVATE_APP_PASSWORD,
+            ):
+                product = shopify.Product.find(handle=handle)
+
+        if product is None:
+            return None
+
+        # Create new page
+        page = BookPage(
+            slug=product.attributes.get("handle"),
+            title=product.title,
+            shopify_product_id=product.id,
+        )
+        BookIndexPage.objects.first().add_child(instance=page)
+
+        return page
 
     @property
     def shopify_product(self):
@@ -284,6 +333,14 @@ class BookPage(Page):
         context["product"] = self.shopify_product
         context["metafields"] = self.shopify_product_metafields
         return context
+
+
+class MerchandisePage(BaseShopifyProductPage):
+    pass
+
+
+class BookPage(BaseShopifyProductPage):
+    pass
 
 
 from dateutil.parser import parse

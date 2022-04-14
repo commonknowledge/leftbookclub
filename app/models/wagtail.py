@@ -17,6 +17,7 @@ from wagtail.search import index
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
+from app.utils.cache import django_cached
 from app.views import (
     CheckoutSessionCompleteView,
     CreateCheckoutSessionView,
@@ -262,6 +263,12 @@ class BookIndexPage(Page):
     #           raise Http404
 
 
+def get_cache_key(page):
+    key = page.id
+    print(page, key)
+    return key
+
+
 class BaseShopifyProductPage(Page):
     class Meta:
         abstract = True
@@ -314,6 +321,7 @@ class BaseShopifyProductPage(Page):
         return page
 
     @property
+    @django_cached("book_shopify_product", get_key=get_cache_key)
     def shopify_product(self):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
@@ -321,6 +329,7 @@ class BaseShopifyProductPage(Page):
             return shopify.Product.find(self.shopify_product_id)
 
     @property
+    @django_cached("book_shopify_product_metafields", get_key=get_cache_key)
     def shopify_product_metafields(self):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD

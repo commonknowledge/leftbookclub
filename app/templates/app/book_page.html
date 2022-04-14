@@ -39,7 +39,9 @@
         {% if metafields.subtitle %}
           <h2 class='m-0 fs-2 text-secondary'>{{metafields.subtitle}}</h2>
         {% endif %}
-        <div class='h5 fs-2'>By {{ metafields.author|join:", "}}</div>   
+        {% if metafields.author %}
+          <div class='h5 fs-2'>By {{ metafields.author|join:", "}}</div>   
+        {% endif %}
         {% for forward in metafields.forward_by %}
           <div>{{ forward }}</div>
         {% endfor %}

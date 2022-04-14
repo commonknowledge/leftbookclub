@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries import countries as django_countries
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
-from djmoney.models.fields import MoneyField
+from djmoney.models.fields import Money, MoneyField
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.snippets.models import register_snippet
 
@@ -74,18 +74,24 @@ class ShippingZone(models.Model):
         unique=True,
         help_text="The code is used to identify the right price in Stripe. Stripe product prices with metadata UK: 4.00 will be selected, for example.",
     )
-    # rate = MoneyField(max_digits=14, decimal_places=2, default_currency='GBP', null=False, blank=False)
-    # countries_mode = models.CharField(
-    #   max_length=10,
-    #   choices=CountriesMode.choices,
-    #   default=CountriesMode.INCLUDE,
-    #   help_text="Should the countries here be excluded from the full list (e.g. rest of world) or included? (e.g. EU)"
-    # )
+
+    rate = MoneyField(
+        verbose_name="Shipping fee",
+        default=Money(0, "GBP"),
+        max_digits=14,
+        decimal_places=2,
+        default_currency="GBP",
+        null=False,
+        blank=False,
+        help_text="Per-delivery shipping fee",
+    )
+
     countries = CountryField(multiple=True)
 
     panels = [
         FieldPanel("nickname"),
         FieldPanel("code"),
+        FieldPanel("rate"),
         FieldPanel("countries", widget=forms.CheckboxSelectMultiple),
     ]
 

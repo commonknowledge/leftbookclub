@@ -13,6 +13,7 @@ from wagtail.search import index
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
+from app.utils import include_keys
 from app.views import (
     CheckoutSessionCompleteView,
     CreateCheckoutSessionView,
@@ -86,9 +87,7 @@ class HomePage(RoutablePageMixin, Page):
             )
 
         product = LBCProduct.objects.get(id=product_id)
-        price = product.get_prices_for_country(
-            iso_a2=country, recurring__interval="month"
-        ).first()
+        price = product.prices.first()
         zone = ShippingZone.get_for_country(country)
 
         if price is None:
@@ -106,7 +105,29 @@ class HomePage(RoutablePageMixin, Page):
             context=dict(
                 mode="subscription",
                 shipping_address_collection={"allowed_countries": zone.country_codes},
-                line_items=[{"price": price.id, "quantity": 1}],
+                line_items=[
+                    {
+                        # Membership
+                        "price": price.id,
+                        "quantity": 1,
+                    },
+                    {
+                        # Shipping
+                        "price_data": {
+                            "currency": zone.rate_currency,
+                            "product_data": {"name": f"Shipping to {zone.nickname}"},
+                            "unit_amount_decimal": zone.rate.amount * 100,
+                            "recurring": include_keys(
+                                price.recurring,
+                                (
+                                    "interval",
+                                    "interval_count",
+                                ),
+                            ),
+                        },
+                        "quantity": 1,
+                    },
+                ],
                 success_url=urllib.parse.urljoin(
                     self.get_full_url(request),
                     "complete?session_id={CHECKOUT_SESSION_ID}",

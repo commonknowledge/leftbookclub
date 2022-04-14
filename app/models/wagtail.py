@@ -1,3 +1,4 @@
+import json
 import urllib.parse
 
 import shopify
@@ -238,6 +239,19 @@ class BookIndexPage(Page):
         StreamFieldPanel("body", classname="full"),
     ]
 
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        products = [
+            {
+                "page": p,
+                "product": p.shopify_product,
+                "metafields": p.shopify_product_metafields,
+            }
+            for p in BookPage.objects.live().descendant_of(self).all()
+        ]
+        context["products"] = products
+        return context
+
 
 class BookPage(Page):
     body = ArticleContentStream(blank=True, null=True)
@@ -250,11 +264,46 @@ class BookPage(Page):
         StreamFieldPanel("body", classname="full"),
     ]
 
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
+    @property
+    def shopify_product(self):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
-            product = shopify.Product.find(self.shopify_product_id)
-            context["product"] = product
+            return shopify.Product.find(self.shopify_product_id)
+
+    @property
+    def shopify_product_metafields(self):
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            metafields = self.shopify_product.metafields()
+            return {f.key: parse_metafield(f) for f in metafields}
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["product"] = self.shopify_product
+        context["metafields"] = self.shopify_product_metafields
         return context
+
+
+from dateutil.parser import parse
+
+
+def parse_metafield(f):
+    if f.value_type in [
+        "date",
+        "date_time",
+    ]:
+        return parse(f.value)
+    elif f.value_type in [
+        "json_string",
+        "json",
+        "dimension",
+        "rating",
+        "rating",
+        "volume",
+        "weight",
+    ]:
+        return json.loads(f.value)
+    else:
+        return f.value

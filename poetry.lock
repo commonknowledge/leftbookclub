@@ -1487,7 +1487,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "28c61a9d14a34e794025ac5f47dafe51b9aaa9a8279a61af09d837145a734bfd"
+content-hash = "43da6e8646042029c85134026cba02397bb3bfb49c61fe5e9a38a1ab6617628c"
 
 [metadata.files]
 anyascii = [

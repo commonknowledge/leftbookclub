@@ -1,26 +1,26 @@
 
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags setting valid_json %}
+{% load wagtailcore_tags wagtailimages_tags setting valid_json to_date %}
 {% block body_class %}template-bookindexpage{% endblock %}
 
 {% block content %}
-
-<article class="content-mx-width">
-<h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
 
 <section>
   {{ body }}
 </section>
 
-<div>
-    {% comment %} TODO: Order by date published {% endcomment %}
-    {% for book in page.get_children %}
-        {% comment %} TODO: Highlight book of the month {% endcomment %}
-        <article>
-            <h2 class="h4 fw-normal mb-3">{{ book.title }}</h2>
-            <a class="btn btn-outline-primary mb-5" href="{% pageurl book %}">Read more</a>
-        </article>
-    {% endfor %}
+<div class='row'>
+  <h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
+</div>
+<div class='row'>
+  {% comment %} TODO: Order by date published {% endcomment %}
+  {% for book in products %}
+      {% comment %} TODO: Highlight book of the month {% endcomment %}
+      <a href="{% pageurl book.page %}" class='col-6 col-md-4 col-lg-3 text-decoration-none'>
+          <img src="{{ book.product.images.0.src }}" style="width: 100%" />
+          <div class="text-center text-dark my-2 text-uppercase font-monospace">{{ metafields.published_date|to_date|date:"F Y" }}</div>
+      </a>
+  {% endfor %}
 </div>
 
 {% endblock %}

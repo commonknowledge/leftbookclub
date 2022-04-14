@@ -109,6 +109,12 @@ class HomePage(RoutablePageMixin, Page):
                 cancel_url=urllib.parse.urljoin(
                     self.get_full_url(request), self.reverse_subpage("pick_product")
                 ),
+                # By default, customer details aren't updated, but we want them to be.
+                customer_update={
+                    "shipping": "auto",
+                    "address": "auto",
+                    "name": "auto",
+                },
             )
         )(request)
 

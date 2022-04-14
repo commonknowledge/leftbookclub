@@ -175,7 +175,7 @@ class ImageRendition(AbstractRendition):
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 
-class BlogIndexPage(Page):
+class BlogIndexPage(SeoMixin, Page):
     """
     Define blog index page.
     """
@@ -186,8 +186,10 @@ class BlogIndexPage(Page):
 
     content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
 
+    promote_panels = SeoMixin.seo_panels
 
-class BlogPage(Page):
+
+class BlogPage(SeoMixin, Page):
     """
     Define blog detail page.
     """
@@ -216,8 +218,10 @@ class BlogPage(Page):
         ImageChooserPanel("feed_image"),
     ]
 
+    promote_panels = SeoMixin.seo_panels
 
-class InformationPage(Page):
+ 
+class InformationPage(SeoMixin, Page):
     show_in_menus_default = True
 
     cover_image = models.ForeignKey(
@@ -234,3 +238,5 @@ class InformationPage(Page):
         ImageChooserPanel("cover_image"),
         StreamFieldPanel("body", classname="full"),
     ]
+
+    promote_panels = SeoMixin.seo_panels

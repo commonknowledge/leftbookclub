@@ -35,21 +35,29 @@
 
     <div class="col">
       <header class='mb-3 lh-1'>
-        <h1 class='m-0 fs-2'>{{product.title}} <span class='text-secondary fw-light'>{{metafields.subtitle}}</span></h1>    
-        <div class='h5 fs-2 fw-light'>By {{ metafields.author|join:", "}}</div>   
+        <h1 class='m-0 fs-2'>{{product.title}}</h1>    
+        {% if metafields.subtitle %}
+          <h2 class='m-0 fs-2 text-secondary'>{{metafields.subtitle}}</h2>
+        {% endif %}
+        <div class='h5 fs-2'>By {{ metafields.author|join:", "}}</div>   
         {% for forward in metafields.forward_by %}
-          <div>{{ forwrd }}</div>
+          <div>{{ forward }}</div>
         {% endfor %}
+        {% if metafields.original_publisher %}
+          <div class='text-secondary fs-6'>Originally published by {{  metafields.original_publisher }}</div>
+        {% endif %}
       </header>
+      {% if metafields.published_date %}
       <div class='badge rounded-pill bg-primary text-dark fw-light fs-6 mb-2'>LBC book of the month: <span class='fw-normal'>{{ metafields.published_date|date:"F Y" }}</span></div>
+      {% endif %}
     
       <hr/>
 
       <div class='row'>
         {% for variant in product.variants %}
-          <div class='col-6 col-md-4 text-center'>
+          <div class='col'>
             <button class="btn btn-sm btn-outline-secondary" data-action="click->product#add" data-variant-id="{{variant.id}}">
-              Buy {{variant.title}}
+              Buy {% if variant.title != "Default Title" %}{{variant.title}}{% endif %}
             </button>
             <div>{% money_localize variant.price "GBP" %}</div>
           </div>
@@ -60,6 +68,9 @@
 
       <section>
           <div class="product-description">{{ product.body_html | safe }}</div>
+          {% if metafields.isbn %}
+            <span class="badge rounded-pill bg-light text-dark mt-2">ISBN {{ metafields.isbn }}</span>
+          {% endif %}
       </section>
     </div>
 

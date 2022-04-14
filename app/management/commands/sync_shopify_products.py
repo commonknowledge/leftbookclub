@@ -1,5 +1,6 @@
 import shopify
 from django.conf import settings
+from django.core.cache import cache
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -14,6 +15,7 @@ class Command(BaseCommand):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
+            cache.clear()
             book_ids = shopify.CollectionListing.find(
                 settings.SHOPIFY_COLLECTION_ID
             ).product_ids()

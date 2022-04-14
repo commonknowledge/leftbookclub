@@ -42,6 +42,7 @@ django-extensions = "^3.1.5"
 wagtailmenus = "^3.0.2"
 django-gravatar2 = "^1.4.4"
 django-active-link = "^0.1.8"
+wagtail-seo = "^1.0.0"
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
 black = {version = "^22", allow-prereleases = true}

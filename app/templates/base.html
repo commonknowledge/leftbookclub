@@ -1,4 +1,4 @@
-{% load django_vite %}
+{% load django_vite menu_tags %}
 
 <!DOCTYPE html>
 <html class="no-js" lang="en">
@@ -26,9 +26,9 @@
 
     <body class="{% block body_class %}{% endblock %}">
         <div class="container py-3">
-        {% include "menus/header.html" %}
+        {% main_menu max_levels=1 template="menus/header.html" %}
         {% block content %}{% endblock %}
-        {% include "menus/footer.html" %}
+        {% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}
         </div>
     </body>
 </html>

@@ -1,4 +1,3 @@
-import json
 import urllib.parse
 
 import shopify
@@ -18,6 +17,7 @@ from wagtail.search import index
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
 from app.utils.cache import django_cached
+from app.utils.shopify import metafields_to_dict
 from app.views import (
     CheckoutSessionCompleteView,
     CreateCheckoutSessionView,
@@ -254,14 +254,6 @@ class BookIndexPage(Page):
         context["products"] = products
         return context
 
-    # @route(r"^(?P<shopify_handle>.+)/$")
-    # def serve_book(self, request, shopify_handle):
-    #       page = BookPage.get_for_product(handle=shopify_handle)
-    #       if page is not None:
-    #           page.serve(request)
-    #       else:
-    #           raise Http404
-
 
 def page_id_key(page):
     key = page.id
@@ -322,6 +314,10 @@ class BaseShopifyProductPage(Page):
     @property
     @django_cached("book_shopify_product", get_key=page_id_key)
     def shopify_product(self):
+        return self.latest_shopify_product
+
+    @property
+    def latest_shopify_product(self):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
@@ -334,7 +330,7 @@ class BaseShopifyProductPage(Page):
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
             metafields = self.shopify_product.metafields()
-            return {f.key: parse_metafield(f) for f in metafields}
+            return metafields_to_dict(metafields)
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -349,30 +345,3 @@ class MerchandisePage(BaseShopifyProductPage):
 
 class BookPage(BaseShopifyProductPage):
     pass
-
-
-from dateutil.parser import parse
-
-
-def parse_metafield(f):
-    if f.type in [
-        "date",
-        "date_time",
-    ]:
-        return parse(f.value)
-    elif (
-        f.type
-        in [
-            "json_string",
-            "json",
-            "dimension",
-            "rating",
-            "rating",
-            "volume",
-            "weight",
-        ]
-        or f.value_type == "json_string"
-    ):
-        return json.loads(f.value)
-    else:
-        return f.value

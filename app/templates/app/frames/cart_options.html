@@ -1,0 +1,23 @@
+{% load djmoney %}
+<turbo-frame id='cartoptions'>
+  <div class='row'>
+    {% for variant in product.variants %}
+      {% if variant.inventory_quantity > 0 or variant.inventory_policy != 'deny' %}
+      <div class='col'>
+        <button class="btn btn-sm btn-outline-secondary" data-action="click->product#add" data-variant-id="{{variant.id}}">
+          Buy {% if variant.title != "Default Title" %}{{variant.title}}{% endif %}
+        </button>
+        <div>
+          {% if variant.compare_at_price is not None and variant.price < variant.compare_at_price %}
+            <b>{% money_localize variant.price "GBP" %}</b> <s>{% money_localize variant.compare_at_price "GBP" %}</s>
+          {% else %}
+            {% money_localize variant.price "GBP" %}
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+        <div>Out of stock</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</turbo-frame>

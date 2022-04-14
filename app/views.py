@@ -10,8 +10,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from djstripe import settings as djstripe_settings
 
-from app.models import LBCProduct
-from app.models.stripe import ShippingZone
+from .models import LBCProduct, ShippingZone
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -127,3 +126,20 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
             return_url=return_url,
         )
         return session.url
+
+
+class CartOptionsView(TemplateView):
+    template_name = "app/frames/cart_options.html"
+    url_pattern = "cartoptions/<str:product_id>/"
+
+    def get_context_data(self, product_id=None, **kwargs):
+        from .models import BookPage
+
+        context = super().get_context_data(**kwargs)
+        product = BookPage.objects.get(shopify_product_id=product_id)
+        context = {
+            **context,
+            "product": product.latest_shopify_product,
+        }
+
+        return context

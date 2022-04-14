@@ -52,21 +52,12 @@
       {% if metafields.published_date %}
       <div class='badge rounded-pill bg-primary text-dark fw-light fs-6 mb-2'>LBC book of the month: <span class='fw-normal'>{{ metafields.published_date|date:"F Y" }}</span></div>
       {% endif %}
-    
-      <hr/>
-
-      <div class='row'>
-        {% for variant in product.variants %}
-          <div class='col'>
-            <button class="btn btn-sm btn-outline-secondary" data-action="click->product#add" data-variant-id="{{variant.id}}">
-              Buy {% if variant.title != "Default Title" %}{{variant.title}}{% endif %}
-            </button>
-            <div>{% money_localize variant.price "GBP" %}</div>
-          </div>
-        {% endfor %}
-        </div>
-
-      <hr/>
+  
+      <hr />
+      <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=product.id %}">
+        Loading purchase options...
+      </turbo-frame>
+      <hr />
 
       <section>
           <div class="product-description">{{ product.body_html | safe }}</div>

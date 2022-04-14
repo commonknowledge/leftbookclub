@@ -39,8 +39,10 @@ django-allauth = "^0.50.0"
 django-bootstrap5 = "^21.3"
 django-countries = "^7.3.2"
 django-extensions = "^3.1.5"
+wagtailfontawesome = "^1.2.1"
 django-gravatar2 = "^1.4.4"
 django-active-link = "^0.1.8"
+ShopifyAPI = "^11.0.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

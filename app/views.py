@@ -49,8 +49,8 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
             customer, is_new = user.get_or_create_customer()
             if customer is not None:
                 additional_args["customer"] = customer.id
-            elif user.email is not None:
-                additional_args["customer_email"] = user.email
+            elif user.primary_email is not None:
+                additional_args["customer_email"] = user.primary_email
 
             # ! Note that Stripe will always create a new Customer Object if customer id not provided
             # ! even if customer_email is provided!

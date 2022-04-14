@@ -7,6 +7,7 @@ from django.db import transaction
 from wagtail.core.models import Page, Site
 
 from app.models import BlogIndexPage, HomePage
+from app.models.wagtail import BookIndexPage
 
 
 class Command(BaseCommand):
@@ -50,11 +51,16 @@ class Command(BaseCommand):
         Page.objects.filter(title="Welcome to your new Wagtail site!").all().unpublish()
 
         # Set up website sections
+        def ensure_child_page(page_instance: Page, parent_page=home):
+            if (
+                page_instance.specific_class.objects.filter(slug=page_instance.slug)
+                .descendant_of(parent_page)
+                .exists()
+                is False
+            ):
+                parent_page.add_child(instance=page_instance)
+            else:
+                print("Already exists:", page_instance.specific_class, page_instance)
 
-        slug = "blog"
-        if (
-            BlogIndexPage.objects.filter(slug=slug).descendant_of(home).exists()
-            is False
-        ):
-            blog = BlogIndexPage(title="Blog", slug=slug)
-            home.add_child(instance=blog)
+        ensure_child_page(BlogIndexPage(slug="blog", title="Blog"))
+        ensure_child_page(BookIndexPage(slug="books", title="Books"))

@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
-class ClipboardController extends Controller {
+class ShippingController extends Controller {
   static targets = ["form", "frame"];
 
   readonly formTarget!: HTMLFormElement;
@@ -34,7 +34,7 @@ class ClipboardController extends Controller {
   }
 }
 
-export default ClipboardController;
+export default ShippingController;
 
 interface HTMLElementEvent<T extends HTMLElement> extends Event {
   target: T;

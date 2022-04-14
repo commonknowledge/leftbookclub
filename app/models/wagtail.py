@@ -1,5 +1,7 @@
 import urllib.parse
 
+import shopify
+from django.conf import settings
 from django.db import models
 from django.shortcuts import redirect
 from django_countries import countries
@@ -227,3 +229,32 @@ class InformationPage(Page):
         ImageChooserPanel("cover_image"),
         StreamFieldPanel("body", classname="full"),
     ]
+
+
+class BookIndexPage(Page):
+    body = ArticleContentStream()
+
+    content_panels = Page.content_panels + [
+        StreamFieldPanel("body", classname="full"),
+    ]
+
+
+class BookPage(Page):
+    body = ArticleContentStream(blank=True, null=True)
+
+    # TODO: Autocomplete this in future?
+    shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("shopify_product_id"),
+        StreamFieldPanel("body", classname="full"),
+    ]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            product = shopify.Product.find(self.shopify_product_id)
+            context["product"] = product
+        return context

@@ -1,0 +1,26 @@
+
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags setting valid_json %}
+{% block body_class %}template-bookindexpage{% endblock %}
+
+{% block content %}
+
+<article class="content-mx-width">
+<h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
+
+<section>
+  {{ body }}
+</section>
+
+<div>
+    {% comment %} TODO: Order by date published {% endcomment %}
+    {% for book in page.get_children %}
+        {% comment %} TODO: Highlight book of the month {% endcomment %}
+        <article>
+            <h2 class="h4 fw-normal mb-3">{{ book.title }}</h2>
+            <a class="btn btn-outline-primary mb-5" href="{% pageurl book %}">Read more</a>
+        </article>
+    {% endfor %}
+</div>
+
+{% endblock %}

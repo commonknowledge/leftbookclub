@@ -1,26 +1,51 @@
 
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags setting valid_json to_date %}
+{% load wagtailsettings_tags wagtailcore_tags wagtailimages_tags setting valid_json to_date django_bootstrap5 %}
+{% get_settings %}
 {% block body_class %}template-bookindexpage{% endblock %}
-
 {% block content %}
 
-<section>
-  {{ body }}
+<section class='container content-mx-width my-5'>
+  <div class='row text-center'>
+    <h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
+  </div>
+  <div class='row justify-content-center'>
+    <div class='col'>
+      {% include_block page.body %}
+    </div>
+  </div>
 </section>
 
-<div class='row'>
-  <h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
-</div>
-<div class='row'>
-  {% comment %} TODO: Order by date published {% endcomment %}
-  {% for book in products %}
-      {% comment %} TODO: Highlight book of the month {% endcomment %}
-      <a href="{% pageurl book.page %}" class='col-6 col-md-4 col-lg-3 text-decoration-none'>
-          <img src="{{ book.product.images.0.src }}" style="width: 100%" />
-          <div class="text-center text-dark my-2 text-uppercase font-monospace">{{ book.metafields.published_date|date:"F Y" }}</div>
-      </a>
-  {% endfor %}
+
+<section class='container my-5'>
+  <h2 class='mb-4 text-center'>Book of the month</h2>
+
+  {% include "app/includes/book_card.html" with page=settings.app.FeaturedContent.current_book label="Book of the Month" %}
+  
+  <h2 class='mt-5 mb-4 text-center'>Previously Published</h2>
+
+  {% if not user.is_member %}
+  <div class='rounded-3 border-1 border-primary p-3 my-3'>
+    <h5>Become a member to buy our previously published books</h5>
+    <p>Our books are exclusively re-published for Left Book Club members. Sign up today and stock up on what thousands of fellow readers have been discussing together.</p>
+    {% bootstrap_button href="/" content="Become a member" button_class='btn-primary my-2' %}
+    or
+    <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary me-2">Login</a>
+  </div>   
+  {% endif %}
+
+  <div class='row'>
+    {% comment %} TODO: Order by date published {% endcomment %}
+    {% for book in products %}
+        {% if book.page.id != settings.app.FeaturedContent.current_book.id %}
+            {% comment %} TODO: Highlight book of the month {% endcomment %}
+            <a href="{% pageurl book.page %}" class='col-6 col-md-4 col-lg-3 text-decoration-none'>
+                <img src="{{ book.product.images.0.src }}" style="width: 100%" />
+                <div class="text-center text-dark my-2">{{ book.metafields.published_date|date:"F Y" }}</div>
+            </a>
+        {% endif %}
+    {% endfor %}
+  </div>
 </div>
 
 {% endblock %}

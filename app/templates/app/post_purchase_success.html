@@ -8,15 +8,29 @@
     </header>
     {% with settings.app.FeaturedContent.current_book as book %}
     {% if book is not None %}
-    <div class="card mb-3 mx-auto" style="max-width: 540px;">
+    <div class="card mb-3 mx-auto">
       <div class="row g-0">
-        <div class="col-md-4" style="background-size: cover; background-position: 50%; background-image: url('{{ book.images.0 }}');"></div>
-        <div class="col-md-8">
+        {% if book.shopify_product.images.0 %}
+        <div class="col-md-6">
+          <div class='sticky sticky-top'>
+            <img src="{{ book.shopify_product.images.0.src }}" class="d-block w-100" />
+          </div>
+        </div>
+        {% endif %}
+        <div class="col-md-6">
           <div class="card-body">
             <span class="badge rounded-pill bg-primary mb-3 text-dark">Preparing for delivery</span>
-            <h5 class="card-title">{{ book.name }}</h5>
-            <p class="card-text">{{ book.description }}</p>
-            <p class="card-text"><small class="text-muted">{{ book.metadata.Published }}</small></p>
+            <h1 class='m-0 fs-2'>{{book.title}}</h1>    
+            {% if book.shopify_product_metafields.subtitle %}
+              <h2 class='m-0 fs-2 text-secondary'>{{book.shopify_product_metafields.subtitle}}</h2>
+            {% endif %}
+            {% if book.shopify_product_metafields.author %}
+              <div class='h5 fs-2'>By {{ book.shopify_product_metafields.author|join:", "}}</div>   
+            {% endif %}
+            {% for forward in book.shopify_product_metafields.forward_by %}
+              <div>{{ forward }}</div>
+            {% endfor %}
+            <p class="card-text">{{ book.shopify_product.body_html | safe }}</p>
           </div>
         </div>
       </div>

@@ -6,29 +6,11 @@
       <small class="d-block mb-3 text-muted">© 2015-{% now "Y" %}</small>
     </div>
     <div class="col-6 col-md">
-      <ul class="list-unstyled text-small">
+      <div class="text-small d-flex flex-row gap-5 justify-content-end">
         {% for item in menu_items %}
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="{{item.href}}">{{item.text}}</a></li>
+            <a class="link-secondary text-decoration-none" href="{{item.href}}">{{item.text}}</a>
         {% endfor %}
-      </ul>
-    </div>
-    <div class="col-6 col-md">
-      <h5>Resources</h5>
-      <ul class="list-unstyled text-small">
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Resource</a></li>
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Resource name</a></li>
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Another resource</a></li>
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Final resource</a></li>
-      </ul>
-    </div>
-    <div class="col-6 col-md">
-      <h5>About</h5>
-      <ul class="list-unstyled text-small">
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Team</a></li>
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Locations</a></li>
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Privacy</a></li>
-        <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Terms</a></li>
-      </ul>
+      </div>
     </div>
   </div>
 </footer>

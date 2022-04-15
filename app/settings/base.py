@@ -252,6 +252,7 @@ STRIPE_LIVE_MODE = os.environ.get("STRIPE_LIVE_MODE", "False").lower() in (
     "1",
     "t",
 )
+DJSTRIPE_WEBHOOK_VALIDATION = "retrieve_event"
 DJSTRIPE_WEBHOOK_SECRET = os.environ.get(
     "STRIPE_WEBHOOK_SECRET", None
 )  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
@@ -262,3 +263,8 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 # CSP
 X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# menus
+
+
+WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)

@@ -191,7 +191,6 @@ class BlogPage(Page):
 
     show_in_menus_default = True
 
-    date = models.DateField("Post date")
     intro = models.CharField(max_length=250)
 
     feed_image = models.ForeignKey(
@@ -209,7 +208,6 @@ class BlogPage(Page):
     ]
 
     content_panels = Page.content_panels + [
-        FieldPanel("date"),
         FieldPanel("intro"),
         StreamFieldPanel("body", classname="full"),
         ImageChooserPanel("feed_image"),

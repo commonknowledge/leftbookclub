@@ -10,7 +10,12 @@ from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 
-from app.views import CartOptionsView, ShippingCostView, StripeCustomerPortalView
+from app.views import (
+    CartOptionsView,
+    LoginRequiredTemplateView,
+    ShippingCostView,
+    StripeCustomerPortalView,
+)
 
 # from wagtail_transfer import urls as wagtailtransfer_urls
 
@@ -25,8 +30,8 @@ urlpatterns = [
         RedirectView.as_view(url="/static/images/logo.png", permanent=True),
     ),
     path(
-        "accounts/membership/",
-        TemplateView.as_view(template_name="account/membership.html"),
+        "accounts/profile/",
+        LoginRequiredTemplateView.as_view(template_name="account/membership.html"),
         name="account_membership",
     ),
     path("accounts/", include("allauth.urls")),

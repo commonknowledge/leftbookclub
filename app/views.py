@@ -118,6 +118,10 @@ class ShippingCostView(TemplateView):
         return context
 
 
+class LoginRequiredTemplateView(LoginRequiredMixin, TemplateView):
+    pass
+
+
 class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
     def get_redirect_url(self, **kwargs):
         return_url = self.request.build_absolute_uri(reverse("account_membership"))
@@ -140,6 +144,7 @@ class CartOptionsView(TemplateView):
         context = {
             **context,
             "product": product.latest_shopify_product,
+            "disabled": self.request.GET.get("disabled") == "True",
         }
 
         return context

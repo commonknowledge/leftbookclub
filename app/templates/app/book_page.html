@@ -1,16 +1,19 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags setting valid_json djmoney to_date %}
+{% load wagtailcore_tags wagtailimages_tags setting valid_json djmoney to_date django_bootstrap5 negate %}
 
 {% block content%}
 
 <article
-  data-controller="product"
-  data-product-shopify-domain-value="{% setting 'SHOPIFY_DOMAIN' %}"
-  data-product-shopify-storefront-access-token-value="{% setting 'SHOPIFY_STOREFRONT_ACCESS_TOKEN' %}"
-  data-product-shopify-collection-id-value="{% setting 'SHOPIFY_COLLECTION_ID' %}"
-  data-product-shopify-product-id-value="gid://shopify/Product/{{ page.shopify_product_id }}"
-  data-product-user-email-value="{{ user.primary_email }}"
-  data-product-stripe-shipping-value='{{ user.stripe_customer.shipping|valid_json }}'
+  {% if user.is_member %}
+      {% comment %} Entirely disable Shopify Checkout functionality to be safe {% endcomment %}
+      data-controller="product"
+      data-product-shopify-domain-value="{% setting 'SHOPIFY_DOMAIN' %}"
+      data-product-shopify-storefront-access-token-value="{% setting 'SHOPIFY_STOREFRONT_ACCESS_TOKEN' %}"
+      data-product-shopify-collection-id-value="{% setting 'SHOPIFY_COLLECTION_ID' %}"
+      data-product-shopify-product-id-value="gid://shopify/Product/{{ page.shopify_product_id }}"
+      data-product-user-email-value="{{ user.primary_email }}"
+      data-product-stripe-shipping-value='{{ user.stripe_customer.shipping|valid_json }}'
+  {% endif %}
 >
   <div class="row">
     <div class="col-12 col-md-6">
@@ -54,10 +57,19 @@
       {% endif %}
   
       <hr />
-          <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=product.id %}">
-            {% comment %} Start with cached information, then load in newer info {% endcomment %}
-            {% include "app/includes/cart_options.html" with product=product loading=True %}
-          </turbo-frame>
+      {% if not user.is_member %}
+      <div class='rounded-3 border-1 border-primary p-3 my-3'>
+          <h5>Become a member to buy this book</h5>
+          <p>Our books are exclusively re-published for Left Book Club members. Sign up today and stock up on what thousands of fellow readers have been discussing together.</p>
+          {% bootstrap_button href="/" content="Become a member" button_class='btn-primary my-2' %}
+          or
+          <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary me-2">Login</a>
+      </div>   
+      {% endif %}   
+      <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=product.id %}?disabled={{user.is_member|negate}}">
+        {% comment %} Start with cached information, then load in newer info {% endcomment %}
+        {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
+      </turbo-frame> 
       <hr />
 
       <section>

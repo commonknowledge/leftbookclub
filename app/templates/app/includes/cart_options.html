@@ -3,10 +3,10 @@
   {% for variant in product.variants %}
     <div class='col-6 col-md-4'>
       <button
-        class="btn btn-sm btn-outline-secondary"
+        class="btn btn-outline-secondary btn-disable-strikethrough"
         {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %}
           disabled="true"
-        {% elif loading %}
+        {% elif loading or disabled %}
           disabled="true"
         {% else %}
           data-action="click->product#add" data-variant-id="{{variant.id}}"

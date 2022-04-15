@@ -1,3 +1,7 @@
 .rounded-full {
   border-radius: 100%;
 }
+
+.btn-disable-strikethrough:disabled {
+  text-decoration: line-through;
+}

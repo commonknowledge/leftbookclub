@@ -16,11 +16,10 @@
   {% endif %}
 >
   <div class="row">
+    {% if product.images.0 %}
     <div class="col-12 col-md-6">
       <div class='sticky sticky-top'>
-          {% if product.images.0 %}
-              <img src="{{ product.images.0.src }}" class="d-block w-100" />
-          {% endif %}
+        <img src="{{ product.images.0.src }}" class="d-block w-100" />
       </div>
 
       {% comment %} <div class="social text-center my-3">
@@ -35,6 +34,7 @@
         </a>
       </div> {% endcomment %}
     </div>
+    {% endif %}
 
     <div class="col">
       <header class='mb-3 lh-1'>

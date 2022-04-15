@@ -1,0 +1,33 @@
+{% load djmoney %}
+<div class='row'>
+  {% for variant in product.variants %}
+    <div class='col-6 col-md-4'>
+      <button
+        class="btn btn-sm btn-outline-secondary"
+        {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %}
+          disabled="true"
+        {% elif loading %}
+          disabled="true"
+        {% else %}
+          data-action="click->product#add" data-variant-id="{{variant.id}}"
+        {% endif %}
+      >
+        {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %}
+            Out of Stock
+        {% elif loading %}
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span>Loading...</span>
+        {% else %}
+            Buy {% if variant.title != "Default Title" %}{{variant.title}}{% endif %}
+        {% endif %}
+      </button>
+      <div>
+        {% if variant.compare_at_price is not None and variant.price < variant.compare_at_price %}
+          <b>{% money_localize variant.price "GBP" %}</b> <s>{% money_localize variant.compare_at_price "GBP" %}</s>
+        {% else %}
+          {% money_localize variant.price "GBP" %}
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>

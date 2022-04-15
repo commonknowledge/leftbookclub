@@ -6,9 +6,9 @@
 {% block content %}
 
 <section class='container content-mx-width my-5'>
-  <div class='row text-center'>
+  <header class='row text-center'>
     <h1 class="h1 fw-normal mb-3">{{ page.title }}</h1>
-  </div>
+  </header>
   <div class='row justify-content-center'>
     <div class='col'>
       {% include_block page.body %}
@@ -16,13 +16,14 @@
   </div>
 </section>
 
-
 <section class='container my-5'>
   <h2 class='mb-4 text-center'>Book of the month</h2>
 
   {% include "app/includes/book_card.html" with page=settings.app.FeaturedContent.current_book label="Book of the Month" %}
+</section>
   
-  <h2 class='mt-5 mb-4 text-center'>Previously Published</h2>
+<section class='container my-5'>
+  <h2 class='mb-4 text-center'>Previously Published</h2>
 
   {% if not user.is_member %}
   <div class='rounded-3 border-1 border-primary p-3 my-3'>
@@ -46,6 +47,6 @@
         {% endif %}
     {% endfor %}
   </div>
-</div>
+</section>
 
 {% endblock %}

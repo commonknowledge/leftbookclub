@@ -9,3 +9,4 @@ docs/components
 vite/
 media/
 static/
+.venv/

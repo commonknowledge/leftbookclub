@@ -249,15 +249,17 @@ class BookIndexPage(Page):
                 "product": p.shopify_product,
                 "metafields": p.shopify_product_metafields,
             }
-            for p in BookPage.objects.live().descendant_of(self).all()
+            for p in BookPage.objects.live()
+            .descendant_of(self)
+            .filter(published_date__isnull=False)
+            .order_by("-published_date")
         ]
         context["products"] = products
         return context
 
 
-def page_id_key(page):
-    key = page.id
-    return key
+def shopify_product_id_key(page):
+    return page.shopify_product_id
 
 
 class BaseShopifyProductPage(Page):
@@ -276,7 +278,7 @@ class BaseShopifyProductPage(Page):
 
         if id is not None:
             # Check if it exists by ID
-            page = BookPage.objects.filter(shopify_product_id=id).first()
+            page = cls.objects.filter(shopify_product_id=id).first()
             if page is not None:
                 return page
 
@@ -301,18 +303,28 @@ class BaseShopifyProductPage(Page):
         if product is None:
             return None
 
-        # Create new page
-        page = BookPage(
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            metafields = product.metafields()
+            metafields = metafields_to_dict(metafields)
+
+            # Create new page
+            page = cls.create_instance_for_product(product, metafields)
+            cls.get_common_ancestor().add_child(instance=page)
+
+            return page
+
+    @classmethod
+    def create_instance_for_product(cls, product, metafields):
+        return cls(
             slug=product.attributes.get("handle"),
             title=product.title,
             shopify_product_id=product.id,
         )
-        BookIndexPage.objects.first().add_child(instance=page)
-
-        return page
 
     @property
-    @django_cached("book_shopify_product", get_key=page_id_key)
+    @django_cached("shopify_product", get_key=shopify_product_id_key)
     def shopify_product(self):
         return self.latest_shopify_product
 
@@ -324,7 +336,7 @@ class BaseShopifyProductPage(Page):
             return shopify.Product.find(self.shopify_product_id)
 
     @property
-    @django_cached("book_shopify_product_metafields", get_key=page_id_key)
+    @django_cached("shopify_product_metafields", get_key=shopify_product_id_key)
     def shopify_product_metafields(self):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
@@ -344,4 +356,24 @@ class MerchandisePage(BaseShopifyProductPage):
 
 
 class BookPage(BaseShopifyProductPage):
-    pass
+    published_date = models.DateField(null=True, blank=True)
+
+    content_panels = BaseShopifyProductPage.content_panels + [
+        FieldPanel("published_date")
+    ]
+
+    @classmethod
+    def get_common_ancestor(cls):
+        return BookIndexPage.objects.first()
+
+    @classmethod
+    def create_instance_for_product(cls, product, metafields):
+        return cls(
+            slug=product.attributes.get("handle"),
+            title=product.title,
+            shopify_product_id=product.id,
+            published_date=metafields.get("published_date", None),
+        )
+
+    class Meta:
+        ordering = ["published_date"]

@@ -1,16 +1,9 @@
-from pipes import Template
-from re import template
-
 import djstripe
 import stripe
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from djstripe import settings as djstripe_settings
-
-from .models import LBCProduct, ShippingZone
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -93,6 +86,8 @@ class ShippingCostView(TemplateView):
     url_pattern = "shippingcosts/<str:product_id>/<str:country_id>/"
 
     def get_context_data(self, product_id=None, country_id=None, **kwargs):
+        from .models import LBCProduct, ShippingZone
+
         context = super().get_context_data(**kwargs)
         if product_id is None or country_id is None:
             return context

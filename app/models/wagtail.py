@@ -2,7 +2,9 @@ import urllib.parse
 
 import shopify
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
+from django.dispatch import receiver
 from django.http.response import Http404
 from django.shortcuts import redirect
 from django_countries import countries
@@ -16,6 +18,7 @@ from wagtail.search import index
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
+from app.shopify_webhook.signals import products_create
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.views import (
@@ -350,6 +353,24 @@ class BaseShopifyProductPage(Page):
         context["metafields"] = self.shopify_product_metafields
         return context
 
+    @classmethod
+    def sync_shopify_products_to_pages(cls):
+        print("sync_shopify_products_to_pages")
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            cache.clear()
+            book_ids = shopify.CollectionListing.find(
+                settings.SHOPIFY_COLLECTION_ID
+            ).product_ids()
+            for book in book_ids:
+                BookPage.get_for_product(book)
+
+            # TODO: also list merch
+            # products = shopify.Product.find(collection=settings.SHOPIFY_COLLECTION_ID)
+            # for product in products:
+            #     ShopifyProductPage.get_for_product(id=product.id)
+
 
 class MerchandisePage(BaseShopifyProductPage):
     pass
@@ -377,3 +398,9 @@ class BookPage(BaseShopifyProductPage):
 
     class Meta:
         ordering = ["published_date"]
+
+
+@receiver(products_create)
+def sync(*args, **kwargs):
+    print(args, kwargs)
+    BaseShopifyProductPage.sync_shopify_products_to_pages()

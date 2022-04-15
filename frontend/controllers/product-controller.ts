@@ -17,9 +17,7 @@ class ProductController extends Controller {
     shopifyCollectionId: String,
     userEmail: String,
     stripeShipping: Object,
-    shopifyProductId: String,
   };
-  private shopifyProductIdValue: string | undefined;
   private shopifyDomainValue: string | undefined;
   private shopifyStorefrontAccessTokenValue: string | undefined;
   private userEmailValue: string | undefined;
@@ -30,7 +28,6 @@ class ProductController extends Controller {
   // Internal
   private client: Client.Client | undefined;
   private checkoutId: any | undefined;
-  private product: Product | undefined;
 
   async connect() {
     this.ensureCheckout(undefined);

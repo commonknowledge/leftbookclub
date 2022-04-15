@@ -611,10 +611,10 @@
   resolved "https://registry.yarnpkg.com/@types/prettier/-/prettier-2.4.4.tgz#5d9b63132df54d8909fce1c3f8ca260fdd693e17"
   integrity sha512-ReVR2rLTV1kvtlWFyuot+d1pkpG2Fw/XKE3PDAdj57rbM97ttSp9JZ2UsP+2EHTylra9cUf6JA7tGwW1INzUrA==
 
-"@types/shopify-buy@^2.10.10":
-  version "2.10.10"
-  resolved "https://registry.yarnpkg.com/@types/shopify-buy/-/shopify-buy-2.10.10.tgz#69d6d4a64bdeef469d81ba7a761ebf67ec7510a5"
-  integrity sha512-KNX9ToXmH67+w2K+snlPbanM/dnmVxBKll7H1+UgPMJTDWxFzWttoNaiueSsiUEmNwu3NoFuGXdwew1bTLY4TQ==
+"@types/shopify-buy@npm:@brandboostinggmbh/shopify-buy-types":
+  version "2.14.6"
+  resolved "https://registry.yarnpkg.com/@brandboostinggmbh/shopify-buy-types/-/shopify-buy-types-2.14.6.tgz#4de69271886c3415b14f77756410942620cc7536"
+  integrity sha512-0u8o+ROzD/inz3ijpChgGvZJmDYJ3wiv6lgyX1xmZQk5MSyQ8djqc3JqMzbPBqaaqSV2b6nICSV98j3w0K/Pgg==
 
 "@types/stack-utils@^2.0.0":
   version "2.0.1"

@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import type { StripeShippingAddressElementChangeEvent } from "@stripe/stripe-js";
-import Client, { Cart, Collection, Product } from "shopify-buy";
+import Client, { Address, Cart, Collection, Product } from "shopify-buy";
 
 /**
  * Take customers to checkout from a product
@@ -33,7 +33,7 @@ class ProductController extends Controller {
     this.ensureCheckout(undefined);
   }
 
-  get shippingAddress() {
+  get shippingAddress(): Address | undefined {
     return this.stripeShippingValue
       ? {
           address1: this.stripeShippingValue.address.line1,

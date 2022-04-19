@@ -1,13 +1,18 @@
 import urllib.parse
 
+from django.db import models
 from django.shortcuts import redirect
 from django_countries import countries
-from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
+from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.images.models import AbstractImage, AbstractRendition
+from wagtail.search import index
 
 from app.forms import CountrySelectorForm
+from app.models.blocks import ArticleContentStream
 from app.views import (
     CheckoutSessionCompleteView,
     CreateCheckoutSessionView,
@@ -19,6 +24,7 @@ from .stripe import LBCProduct, ShippingZone
 
 class HomePage(RoutablePageMixin, Page):
     body = RichTextField(blank=True)
+    show_in_menus_default = True
 
     content_panels = Page.content_panels + [
         FieldPanel("body", classname="full"),
@@ -137,3 +143,91 @@ class HomePage(RoutablePageMixin, Page):
             context_overrides={"error": True},
             template="app/subscription_error.html",
         )
+
+
+class CustomImage(AbstractImage):
+
+    # Making blank / null explicit because you *really* need alt text
+    alt_text = models.CharField(
+        max_length=1024,
+        blank=False,
+        null=False,
+        default="",
+        help_text="Describe this image as literally as possible. If you can close your eyes, have someone read the alt text to you, and imagine a reasonably accurate version of the image, you're on the right track.",
+    )
+
+    admin_form_fields = (
+        "file",
+        "alt_text",
+        "title",
+    )
+
+
+class ImageRendition(AbstractRendition):
+    image = models.ForeignKey(
+        CustomImage, on_delete=models.CASCADE, related_name="renditions"
+    )
+
+    class Meta:
+        unique_together = (("image", "filter_spec", "focal_point_key"),)
+
+
+class BlogIndexPage(Page):
+    """
+    Define blog index page.
+    """
+
+    show_in_menus_default = True
+
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
+
+
+class BlogPage(Page):
+    """
+    Define blog detail page.
+    """
+
+    show_in_menus_default = True
+
+    intro = models.CharField(max_length=250)
+
+    feed_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    body = ArticleContentStream()
+
+    search_fields = Page.search_fields + [
+        index.SearchField("intro"),
+        index.SearchField("body"),
+    ]
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        StreamFieldPanel("body", classname="full"),
+        ImageChooserPanel("feed_image"),
+    ]
+
+
+class InformationPage(Page):
+    show_in_menus_default = True
+
+    cover_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    body = ArticleContentStream()
+
+    content_panels = Page.content_panels + [
+        ImageChooserPanel("cover_image"),
+        StreamFieldPanel("body", classname="full"),
+    ]

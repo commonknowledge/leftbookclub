@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "wagtail.contrib.routable_page",
+    "wagtail.contrib.modeladmin",
+    "wagtailmenus",
 ]
 
 MIDDLEWARE = [
@@ -87,6 +89,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "wagtail.contrib.settings.context_processors.settings",
+                "wagtailmenus.context_processors.wagtailmenus",
             ],
         },
     },
@@ -236,6 +239,8 @@ INTERNAL_IPS = [
 WAGTAIL_SITE_NAME = "Left Book Club"
 BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "https://localhost:8000"))
 
+WAGTAILIMAGES_IMAGE_MODEL = "app.CustomImage"
+
 # dj-stripe
 
 STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "sk_live_")
@@ -247,6 +252,7 @@ STRIPE_LIVE_MODE = os.environ.get("STRIPE_LIVE_MODE", "False").lower() in (
     "1",
     "t",
 )
+DJSTRIPE_WEBHOOK_VALIDATION = "retrieve_event"
 DJSTRIPE_WEBHOOK_SECRET = os.environ.get(
     "STRIPE_WEBHOOK_SECRET", None
 )  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
@@ -257,3 +263,8 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 
 # CSP
 X_FRAME_OPTIONS = "SAMEORIGIN"
+
+# menus
+
+
+WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)

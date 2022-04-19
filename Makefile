@@ -14,6 +14,10 @@ install:
 pre-commit-install:
 	poetry run pre-commit install
 
+.PHONY: setup_git
+setup_git:
+	pre-commit install
+
 .PHONY: setup-cms
 setup-cms:
 	poetry run python manage.py setup_pages

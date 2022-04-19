@@ -121,14 +121,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.21.38"
+version = "1.21.41"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.24.38,<1.25.0"
+botocore = ">=1.24.41,<1.25.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -137,7 +137,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.24.38"
+version = "1.24.41"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -365,6 +365,19 @@ python-versions = ">=3.7"
 [package.dependencies]
 beautifulsoup4 = ">=4.8.0"
 Django = ">=2.2"
+
+[[package]]
+name = "django-cogwheels"
+version = "0.3"
+description = "A consistent, user-friendly solution for adding app-specific settings your Django package, reusable app or framework."
+category = "main"
+optional = false
+python-versions = ">=3.4"
+
+[package.extras]
+development = ["Django (>=2.0,<2.1)", "ipdb", "werkzeug", "django-extensions"]
+docs = ["pyenchant (>=2.0)", "Sphinx (>=1.7.4)", "sphinxcontrib-spelling (>=1.4)", "sphinx-rtd-theme (>=0.3)"]
+testing = ["coverage"]
 
 [[package]]
 name = "django-countries"
@@ -1196,7 +1209,7 @@ python-versions = "*"
 
 [[package]]
 name = "soupsieve"
-version = "2.3.2"
+version = "2.3.2.post1"
 description = "A modern CSS selector implementation for Beautiful Soup."
 category = "main"
 optional = false
@@ -1223,7 +1236,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "stripe"
-version = "2.71.0"
+version = "2.72.0"
 description = "Python bindings for the Stripe API"
 category = "main"
 optional = false
@@ -1392,6 +1405,29 @@ docs = ["Sphinx (>=1.7)", "sphinx-rtd-theme (>=0.4.0)"]
 test = ["tox", "pytest (>=3.5)", "pytest-django (>=3.2)", "beautifulsoup4 (>=4.8)", "html5lib (>=0.999999999)", "pytest-pythonpath (>=0.7.2)"]
 
 [[package]]
+name = "wagtailmenus"
+version = "3.1"
+description = "An app to help you manage menus in your Wagtail projects more consistently."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+develop = false
+
+[package.dependencies]
+django-cogwheels = "0.3"
+
+[package.extras]
+development = ["wagtail (>=2.15)", "django-debug-toolbar", "django-extensions", "ipdb", "werkzeug", "beautifulsoup4 (>=4.8,<4.10)", "coverage (>=4.5)", "django-webtest (>=1.9,<1.10)"]
+docs = ["pyenchant (>=2.0)", "Sphinx (>=1.7.4)", "sphinxcontrib-spelling (>=1.4)", "sphinx-rtd-theme (>=0.3)"]
+testing = ["beautifulsoup4 (>=4.8,<4.10)", "coverage (>=4.5)", "django-webtest (>=1.9,<1.10)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/jazzband/wagtailmenus.git"
+reference = "44ba8f1c1986b474737bf9f5aacbb0045b692a85"
+resolved_reference = "44ba8f1c1986b474737bf9f5aacbb0045b692a85"
+
+[[package]]
 name = "webencodings"
 version = "0.5.1"
 description = "Character encoding aliases for legacy web content"
@@ -1450,7 +1486,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "c2d1b0b2b39f2e5fbd45e18e62345891960e0231b0492fdeefe5f10102321f16"
+content-hash = "7c64e5b847a456638f162c56319fc8db59fbb2646410a04be7a874876a25a2ce"
 
 [metadata.files]
 anyascii = [
@@ -1512,12 +1548,12 @@ black = [
     {file = "black-22.3.0.tar.gz", hash = "sha256:35020b8886c022ced9282b51b5a875b6d1ab0c387b31a065b84db7c33085ca79"},
 ]
 boto3 = [
-    {file = "boto3-1.21.38-py3-none-any.whl", hash = "sha256:4bc11350b4d8ebd81bacfb5b2a9613a419dfe05468a61ccafdcaf3fcd2a6d319"},
-    {file = "boto3-1.21.38.tar.gz", hash = "sha256:62dde36a57697b40b4693e0ad0d39013f1e187e5a3c52fdb50dbe710633061bb"},
+    {file = "boto3-1.21.41-py3-none-any.whl", hash = "sha256:3b5a3c701bb9b48e145723c1a72d2752fa3613f6e5aaf0660ef605bf13f82bb4"},
+    {file = "boto3-1.21.41.tar.gz", hash = "sha256:986aa67e577b44b65a6cc42bfd74593e6d95e2dbc0b0c37e358f2253b00542db"},
 ]
 botocore = [
-    {file = "botocore-1.24.38-py3-none-any.whl", hash = "sha256:91d3be3f961b35e80e6eb314c54b0c2563f6c3efbf0615e5822d4f291c551851"},
-    {file = "botocore-1.24.38.tar.gz", hash = "sha256:e39af0eea4dea96c643fb899207d945b04a0d1bc6ba4535ce03488fdb165a497"},
+    {file = "botocore-1.24.41-py3-none-any.whl", hash = "sha256:65be3e46bb10056c7e6407303928c649e7ea8a01e0e3f449d5cbb6b73f8146e0"},
+    {file = "botocore-1.24.41.tar.gz", hash = "sha256:57ed9843e5b6a74f82530b31dc622c8042b1c62a5ca9d46e92d2b4366450039b"},
 ]
 certifi = [
     {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
@@ -1659,6 +1695,10 @@ django-anymail = [
 django-bootstrap5 = [
     {file = "django-bootstrap5-21.3.tar.gz", hash = "sha256:35086341881780a44b2e27255894f6029fc5ef75e5a0ec8ebd82f47a5184fa73"},
     {file = "django_bootstrap5-21.3-py3-none-any.whl", hash = "sha256:c7a686420aa98692f15bd16e61a90dc6a3607e441a4dea37af840b83d4820cac"},
+]
+django-cogwheels = [
+    {file = "django-cogwheels-0.3.tar.gz", hash = "sha256:848a4d9f2c96c582a4a4f2e7c276dfd95ab3905748cae13bb7c4b365a6717e94"},
+    {file = "django_cogwheels-0.3-py3-none-any.whl", hash = "sha256:197bd05e7114403d7301214b3f8a371c4fb6039cf21c811f099438b167b5ed21"},
 ]
 django-countries = [
     {file = "django-countries-7.3.2.tar.gz", hash = "sha256:0df6d34193667c2343da8935cbfb8a2bd4fb0c97baf01ac10db4628ba1557a82"},
@@ -2051,8 +2091,8 @@ snowballstemmer = [
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
 ]
 soupsieve = [
-    {file = "soupsieve-2.3.2-py3-none-any.whl", hash = "sha256:a714129d3021ec17ce5be346b1007300558b378332c289a1a20e7d4de6ff18a5"},
-    {file = "soupsieve-2.3.2.tar.gz", hash = "sha256:0bcc6d7432153063e3df09c3ac9442af3eba488715bfcad6a4c38ccb2a523124"},
+    {file = "soupsieve-2.3.2.post1-py3-none-any.whl", hash = "sha256:3b2503d3c7084a42b1ebd08116e5f81aadfaea95863628c80a3b774a11b7c759"},
+    {file = "soupsieve-2.3.2.post1.tar.gz", hash = "sha256:fc53893b3da2c33de295667a0e19f078c14bf86544af307354de5fcf12a3f30d"},
 ]
 sqlparse = [
     {file = "sqlparse-0.4.2-py3-none-any.whl", hash = "sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d"},
@@ -2063,8 +2103,8 @@ stevedore = [
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
 stripe = [
-    {file = "stripe-2.71.0-py2.py3-none-any.whl", hash = "sha256:4b5ad1f0daff75e525bd93cadf176d7f4e73063c9fdc277a33f3cbbfec7cec3c"},
-    {file = "stripe-2.71.0.tar.gz", hash = "sha256:dfc004fc439fca5998b155414f2ab8e8ebb7589e4b7492653f4bac81008361c3"},
+    {file = "stripe-2.72.0-py2.py3-none-any.whl", hash = "sha256:e6c7243cb6312d6f239b077f43dc2f3a12021bc12c68232cbe0a8b0a6505e306"},
+    {file = "stripe-2.72.0.tar.gz", hash = "sha256:9ca8e87a337357d2008d274ff56362f219e73671030be2a636748deeb13777fb"},
 ]
 tablib = [
     {file = "tablib-3.2.1-py3-none-any.whl", hash = "sha256:870d7e688f738531a14937a055e8bba404fbc388e77d4d500b2c904075d1019c"},
@@ -2153,6 +2193,7 @@ wagtail-autocomplete = [
     {file = "wagtail-autocomplete-0.7.0.tar.gz", hash = "sha256:69d4b72407532781014c9766a57977eb56f16bb1ad97a0e9133d2c67383e4596"},
     {file = "wagtail_autocomplete-0.7.0-py3-none-any.whl", hash = "sha256:f8f8b2e2e4d0229946a20fa439af17f252e3865a6cb9b27903c284a0c065edd8"},
 ]
+wagtailmenus = []
 webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},
     {file = "webencodings-0.5.1.tar.gz", hash = "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"},

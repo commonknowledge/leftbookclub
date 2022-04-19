@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}template-blogpage{% endblock %}
+
+{% block content %}
+
+<div class='container'>
+  <div class='row justify-content-center'>
+    <article class="content-mx-width">
+        <header class='my-4'>
+          <h1 class="h1 fw-normal mb-2">{{ page.title }} </h1>
+          <h2 class="h3 fw-normal mb-5 text-secondary">{{ page.intro }} </h2>
+          <p class='fs-6 text-muted'>{{ page.first_published_at|date:"l j F Y" }} </p>
+        </header>
+        <hr />
+        <section class='my-4'>
+          {% if page.feed_image %}
+            <div class="mb-2"> {% image page.feed_image fill-900x450 class='w-100 h-auto' %}</div>
+          {% endif %}
+          {% include_block page.body %}
+        </section>
+    </article>
+  </div>
+</div>
+
+{% endblock %}

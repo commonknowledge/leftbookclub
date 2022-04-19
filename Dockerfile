@@ -22,7 +22,7 @@ RUN mkdir -p /app && chown -R app /app
 ENV POETRY_HOME=/usr/local
 RUN curl -sSL https://install.python-poetry.org | python3 -
 USER app
-RUN poetry config virtualenvs.create false
+RUN poetry config virtualenvs.create true
 
 # Install
 COPY --chown=app:app pyproject.toml poetry.lock ./

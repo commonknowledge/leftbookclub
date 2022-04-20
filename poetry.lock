@@ -1497,7 +1497,11 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
+<<<<<<< HEAD
 content-hash = "b9ddd4e618f7c75fa873db8b59f738d00be6df95b0bb51c272be58496fc3cafa"
+=======
+content-hash = "ded04b932acc9424134eb7fe81ef7e9604c25978df7ca6ed1dc3eec0d3788748"
+>>>>>>> 90aaca337cbbca57ff4adb19a5ce9c6984065583
 
 [metadata.files]
 anyascii = [

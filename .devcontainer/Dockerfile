@@ -21,5 +21,3 @@ ENV POETRY_HOME=/usr/local
 RUN curl -sSL https://install.python-poetry.org | python3 -
 USER vscode
 RUN poetry config virtualenvs.create true
-RUN poetry config virtualenvs.in-project true
-RUN source $(poetry env info --path)/bin/activate

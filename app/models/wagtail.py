@@ -32,6 +32,7 @@ from .stripe import LBCProduct, ShippingZone
 
 class HomePage(RoutablePageMixin, Page):
     body = RichTextField(blank=True)
+    show_in_menus_default = True
 
     content_panels = Page.content_panels + [
         FieldPanel("body", classname="full"),
@@ -184,6 +185,8 @@ class BlogIndexPage(Page):
     Define blog index page.
     """
 
+    show_in_menus_default = True
+
     intro = RichTextField(blank=True)
 
     content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
@@ -194,11 +197,12 @@ class BlogPage(Page):
     Define blog detail page.
     """
 
-    date = models.DateField("Post date")
+    show_in_menus_default = True
+
     intro = models.CharField(max_length=250)
 
     feed_image = models.ForeignKey(
-        "wagtailimages.Image",
+        CustomImage,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -212,7 +216,6 @@ class BlogPage(Page):
     ]
 
     content_panels = Page.content_panels + [
-        FieldPanel("date"),
         FieldPanel("intro"),
         StreamFieldPanel("body", classname="full"),
         ImageChooserPanel("feed_image"),
@@ -220,6 +223,7 @@ class BlogPage(Page):
 
 
 class InformationPage(Page):
+    show_in_menus_default = True
 
     cover_image = models.ForeignKey(
         CustomImage,

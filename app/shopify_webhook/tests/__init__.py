@@ -20,7 +20,7 @@ class WebhookTestCase(TestCase):
         Set up the test case, primarily by getting a reference to the webhook endpoint to be used for testing.
         """
         super().setUp()
-        self.webhook_url = reverse("webhook")
+        self.webhook_url = reverse("shopify_webhook")
 
     def post_shopify_webhook(
         self, topic=None, domain=None, data=None, headers=None, send_hmac=True

@@ -12,7 +12,7 @@ class HttpResponseMethodNotAllowed(HttpResponse):
 
 
 class HttpResponseUnauthorized(HttpResponse):
-    status_code = 401
+    status_code = 403
 
 
 def webhook(f):

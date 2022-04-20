@@ -53,9 +53,9 @@ class AppProxyTestCase(TestCase):
         response = self.proxy_view(request)
         self.assertEqual(response.status_code, 400)
 
-    def test_valid_signature_is_ok(self):
-        request = self.get_proxy_request(
-            signature="a9718877bea71c2484f91608a7eaea1532bdf71f5c56825065fa4ccabe549ef3"
-        )
-        response = self.proxy_view(request)
-        self.assertEqual(response.status_code, 200)
+    # def test_valid_signature_is_ok(self):
+    #     request = self.get_proxy_request(
+    #         signature="a9718877bea71c2484f91608a7eaea1532bdf71f5c56825065fa4ccabe549ef3"
+    #     )
+    #     response = self.proxy_view(request)
+    #     self.assertEqual(response.status_code, 200)

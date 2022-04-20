@@ -6,6 +6,8 @@
         <meta charset="utf-8" />
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {% include "wagtailseo/meta.html" %}
+
         <title>{% block title %}{{request.site.site_name}}{% endblock %}</title>
 
         {% vite_hmr_client %}
@@ -30,5 +32,6 @@
         {% block content %}{% endblock %}
         {% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}
         </div>
+        {% include "wagtailseo/struct_data.html" %}
     </body>
 </html>

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+ <!--Email subscription Form -->
+ <form method="post" action="{% url 'newslettersubscription' %}">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label>Subscribe to our newsletter!</label> <br>
+      <input type="email" name="email" placeholder="Enter Email to Subscribe">
+      <button class="btn btn-info" type="submit">Submit</button>
+    </div>
+
+  </form>
+  {% endblock %}

@@ -4,7 +4,7 @@ def update_stripe_customer_subscription(get_response):
     def middleware(request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
-        if request.user.is_authenticated and request.user.stripe_customer is not None:
+        if request.user.is_authenticated:
             request.user.refresh_stripe_data()
 
         response = get_response(request)

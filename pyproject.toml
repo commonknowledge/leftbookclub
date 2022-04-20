@@ -15,7 +15,6 @@ boto3 = '>=1.17.77'
 botocore = '>=1.20.77'
 requests = '>=2.25.1'
 rich = "^10.7.0"
-django = '^4'
 django-anymail = '>=8.3'
 django-filter = '>=2.4.0'
 djangorestframework = '>=3.12.4'
@@ -48,6 +47,7 @@ wagtail-seo = "^1.0.0"
 ShopifyAPI = "^11.0.0"
 python-dateutil = "^2.8.2"
 wagtail-admin-list-controls = "^0.1.7"
+Django = {extras = ["bcrypt"], version = "^4.0.4"}
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

@@ -1,5 +1,6 @@
 import djstripe
 import stripe
+from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.contrib.auth.models import AbstractUser
 
@@ -82,3 +83,15 @@ class User(AbstractUser):
         except:
             pass
         return customer, True
+
+    @property
+    def primary_email(self):
+        primary = EmailAddress.objects.get_primary(self)
+        if primary is not None:
+            return primary.email
+        allauth_emails = EmailAddress.objects.filter(user=self).order_by(
+            "primary", "verified"
+        )
+        if len(allauth_emails) > 0:
+            return allauth_emails[0].email
+        return self.email

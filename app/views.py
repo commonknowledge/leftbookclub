@@ -1,17 +1,9 @@
-from pipes import Template
-from re import template
-
 import djstripe
 import stripe
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from djstripe import settings as djstripe_settings
-
-from app.models import LBCProduct
-from app.models.stripe import ShippingZone
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -49,8 +41,8 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
             customer, is_new = user.get_or_create_customer()
             if customer is not None:
                 additional_args["customer"] = customer.id
-            elif user.email is not None:
-                additional_args["customer_email"] = user.email
+            elif user.primary_email is not None:
+                additional_args["customer_email"] = user.primary_email
 
             # ! Note that Stripe will always create a new Customer Object if customer id not provided
             # ! even if customer_email is provided!
@@ -94,6 +86,8 @@ class ShippingCostView(TemplateView):
     url_pattern = "shippingcosts/<str:product_id>/<str:country_id>/"
 
     def get_context_data(self, product_id=None, country_id=None, **kwargs):
+        from .models import LBCProduct, ShippingZone
+
         context = super().get_context_data(**kwargs)
         if product_id is None or country_id is None:
             return context
@@ -119,6 +113,10 @@ class ShippingCostView(TemplateView):
         return context
 
 
+class LoginRequiredTemplateView(LoginRequiredMixin, TemplateView):
+    pass
+
+
 class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
     def get_redirect_url(self, **kwargs):
         return_url = self.request.build_absolute_uri(reverse("account_membership"))
@@ -127,3 +125,21 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
             return_url=return_url,
         )
         return session.url
+
+
+class CartOptionsView(TemplateView):
+    template_name = "app/frames/cart_options.html"
+    url_pattern = "cartoptions/<str:product_id>/"
+
+    def get_context_data(self, product_id=None, **kwargs):
+        from .models import BookPage
+
+        context = super().get_context_data(**kwargs)
+        product = BookPage.objects.get(shopify_product_id=product_id)
+        context = {
+            **context,
+            "product": product.latest_shopify_product,
+            "disabled": self.request.GET.get("disabled") == "True",
+        }
+
+        return context

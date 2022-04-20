@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django_countries",
     "django_gravatar",
     "active_link",
+    "wagtailfontawesome",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
@@ -156,6 +157,8 @@ ACCOUNT_FORMS = {
     # 'disconnect': 'allauth.socialaccount.forms.DisconnectForm',
 }
 
+LOGIN_REDIRECT_URL = "/"
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -260,6 +263,16 @@ DJSTRIPE_USE_NATIVE_JSONFIELD = (
     True  # We recommend setting to True for new installations
 )
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+
+
+# Shopify
+SHOPIFY_DOMAIN = os.environ.get("SHOPIFY_DOMAIN", "left-book-club-shop.myshopify.com")
+SHOPIFY_STOREFRONT_ACCESS_TOKEN = os.environ.get(
+    "SHOPIFY_STOREFRONT_ACCESS_TOKEN", "a65d1227c3865ae25999a6d24d2106e0"
+)
+SHOPIFY_COLLECTION_ID = os.environ.get("SHOPIFY_COLLECTION_ID", "402936398057")
+SHOPIFY_PRIVATE_APP_PASSWORD = os.environ.get("SHOPIFY_PRIVATE_APP_PASSWORD", None)
+SHOPIFY_APP_API_SECRET = os.environ.get("SHOPIFY_APP_API_SECRET", "")
 
 # CSP
 X_FRAME_OPTIONS = "SAMEORIGIN"

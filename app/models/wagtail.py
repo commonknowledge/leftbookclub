@@ -1,6 +1,11 @@
 import urllib.parse
 
+import shopify
+from django.conf import settings
+from django.core.cache import cache
 from django.db import models
+from django.dispatch import receiver
+from django.http.response import Http404
 from django.shortcuts import redirect
 from django_countries import countries
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
@@ -13,6 +18,9 @@ from wagtail.search import index
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
+from app.shopify_webhook.signals import products_create
+from app.utils.cache import django_cached
+from app.utils.shopify import metafields_to_dict
 from app.views import (
     CheckoutSessionCompleteView,
     CreateCheckoutSessionView,
@@ -231,3 +239,172 @@ class InformationPage(Page):
         ImageChooserPanel("cover_image"),
         StreamFieldPanel("body", classname="full"),
     ]
+
+
+class BookIndexPage(Page):
+    body = ArticleContentStream()
+
+    content_panels = Page.content_panels + [
+        StreamFieldPanel("body", classname="full"),
+    ]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        products = [
+            {
+                "page": p,
+                "product": p.shopify_product,
+                "metafields": p.shopify_product_metafields,
+            }
+            for p in BookPage.objects.live()
+            .descendant_of(self)
+            .filter(published_date__isnull=False)
+            .order_by("-published_date")
+        ]
+        context["products"] = products
+        return context
+
+
+def shopify_product_id_key(page):
+    return page.shopify_product_id
+
+
+class BaseShopifyProductPage(Page):
+    class Meta:
+        abstract = True
+
+    # TODO: Autocomplete this in future?
+    shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
+
+    content_panels = Page.content_panels + [FieldPanel("shopify_product_id")]
+
+    @classmethod
+    def get_for_product(cls, id=None, product=None, handle=None):
+        if product is not None:
+            id = product.id
+
+        if id is not None:
+            # Check if it exists by ID
+            page = cls.objects.filter(shopify_product_id=id).first()
+            if page is not None:
+                return page
+
+            if product is None:
+                # Query by ID
+                with shopify.Session.temp(
+                    settings.SHOPIFY_DOMAIN,
+                    "2021-10",
+                    settings.SHOPIFY_PRIVATE_APP_PASSWORD,
+                ):
+                    product = shopify.Product.find(id)
+
+        if product is None and handle is not None:
+            # Query by handle
+            with shopify.Session.temp(
+                settings.SHOPIFY_DOMAIN,
+                "2021-10",
+                settings.SHOPIFY_PRIVATE_APP_PASSWORD,
+            ):
+                product = shopify.Product.find(handle=handle)
+
+        if product is None:
+            return None
+
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            metafields = product.metafields()
+            metafields = metafields_to_dict(metafields)
+
+            # Create new page
+            page = cls.create_instance_for_product(product, metafields)
+            cls.get_common_ancestor().add_child(instance=page)
+
+            return page
+
+    @classmethod
+    def create_instance_for_product(cls, product, metafields):
+        return cls(
+            slug=product.attributes.get("handle"),
+            title=product.title,
+            shopify_product_id=product.id,
+        )
+
+    @property
+    @django_cached("shopify_product", get_key=shopify_product_id_key)
+    def shopify_product(self):
+        return self.latest_shopify_product
+
+    @property
+    def latest_shopify_product(self):
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            return shopify.Product.find(self.shopify_product_id)
+
+    @property
+    @django_cached("shopify_product_metafields", get_key=shopify_product_id_key)
+    def shopify_product_metafields(self):
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            metafields = self.shopify_product.metafields()
+            return metafields_to_dict(metafields)
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["product"] = self.shopify_product
+        context["metafields"] = self.shopify_product_metafields
+        return context
+
+    @classmethod
+    def sync_shopify_products_to_pages(cls):
+        print("sync_shopify_products_to_pages")
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            cache.clear()
+            book_ids = shopify.CollectionListing.find(
+                settings.SHOPIFY_COLLECTION_ID
+            ).product_ids()
+            for book in book_ids:
+                BookPage.get_for_product(book)
+
+            # TODO: also list merch
+            # products = shopify.Product.find(collection=settings.SHOPIFY_COLLECTION_ID)
+            # for product in products:
+            #     ShopifyProductPage.get_for_product(id=product.id)
+
+
+class MerchandisePage(BaseShopifyProductPage):
+    pass
+
+
+class BookPage(BaseShopifyProductPage):
+    published_date = models.DateField(null=True, blank=True)
+
+    content_panels = BaseShopifyProductPage.content_panels + [
+        FieldPanel("published_date")
+    ]
+
+    @classmethod
+    def get_common_ancestor(cls):
+        return BookIndexPage.objects.first()
+
+    @classmethod
+    def create_instance_for_product(cls, product, metafields):
+        return cls(
+            slug=product.attributes.get("handle"),
+            title=product.title,
+            shopify_product_id=product.id,
+            published_date=metafields.get("published_date", None),
+        )
+
+    class Meta:
+        ordering = ["published_date"]
+
+
+@receiver(products_create)
+def sync(*args, **kwargs):
+    print(args, kwargs)
+    BaseShopifyProductPage.sync_shopify_products_to_pages()

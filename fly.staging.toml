@@ -8,7 +8,8 @@ PORT = 8080
 STRIPE_LIVE_MODE = "False"
 
 [deploy]
-release_command = "make release"
+  release_command = "make release"
+  strategy = "rolling"
 
 [[statics]]
   guest_path = "/app/static"

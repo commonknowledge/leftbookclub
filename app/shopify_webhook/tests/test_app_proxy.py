@@ -17,12 +17,11 @@ class AppProxyTestCase(TestCase):
 
     def get_proxy_request(self, signature=None):
         # Add common parameters to the request.
-        data = {
-            "extra": ["1", "2"],
-            "shop": "shop-name.myshopify.com",
-            "path_prefix": "/apps/awesome_reviews",
-            "timestamp": "1317327555",
-        }
+        data = dict(
+            QueryDict(
+                "extra=1&extra=2&shop=shop-name.myshopify.com&path_prefix=%2Fapps%2Fawesome_reviews&timestamp=1317327555"
+            )
+        )
 
         if signature is not None:
             data["signature"] = signature

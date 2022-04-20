@@ -20,7 +20,7 @@ django-anymail = '>=8.3'
 django-filter = '>=2.4.0'
 djangorestframework = '>=3.12.4'
 django-taggit = "*"
-django-vite = "^1.2.1"
+django-vite = "^2.0.2"
 dj-database-url = '>=0.5.0'
 django-storages = "*"
 groundwork-django = '^0.1.3'

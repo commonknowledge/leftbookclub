@@ -533,7 +533,7 @@ Django = ">=2.2"
 
 [[package]]
 name = "django-vite"
-version = "1.4.0"
+version = "2.0.2"
 description = "Integration of ViteJS in a Django project."
 category = "main"
 optional = false
@@ -541,6 +541,9 @@ python-versions = "*"
 
 [package.dependencies]
 Django = ">=1.11"
+
+[package.extras]
+dev = ["black", "flake8"]
 
 [[package]]
 name = "djangorestframework"
@@ -1523,7 +1526,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "0594152bae40b74ec030b026fbaa547f500d1f74ed9f9edf28085cc80ab0876d"
+content-hash = "d1c898838f4f8dba6040fef2d821956814685de40fe242bf4b95fa8593f6661a"
 
 [metadata.files]
 anyascii = [
@@ -1786,8 +1789,8 @@ django-treebeard = [
     {file = "django_treebeard-4.5.1-py3-none-any.whl", hash = "sha256:7c2b1cdb1e9b46d595825186064a1228bc4d00dbbc186db5b0b9412357fba91c"},
 ]
 django-vite = [
-    {file = "django-vite-1.4.0.tar.gz", hash = "sha256:cceb74f567c7e46213f49680000fe9bb050bdb2c8f28eb0a006358da9239eb18"},
-    {file = "django_vite-1.4.0-py3-none-any.whl", hash = "sha256:94d3cdd67a5928df28a87e1d53b7bda7105fd173cf2019d24c6af74640d215d4"},
+    {file = "django-vite-2.0.2.tar.gz", hash = "sha256:5a2e11a9f08a2a0a69c9a7c637a3254ad0c8dd01e07cb40de09a3a180ed99791"},
+    {file = "django_vite-2.0.2-py3-none-any.whl", hash = "sha256:f11f4747183b884ee4e6c2ea12f0aa96a846574ee7344c05ac96b4fa89309535"},
 ]
 djangorestframework = [
     {file = "djangorestframework-3.13.1-py3-none-any.whl", hash = "sha256:24c4bf58ed7e85d1fe4ba250ab2da926d263cd57d64b03e8dcef0ac683f8b1aa"},

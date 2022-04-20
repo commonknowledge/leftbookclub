@@ -19,7 +19,9 @@
 <section class='container my-5'>
   <h2 class='mb-4 text-center'>Book of the month</h2>
 
-  {% include "app/includes/book_card.html" with page=settings.app.FeaturedContent.current_book label="Book of the Month" %}
+  {% if settings.app.FeaturedContent.current_book is not None %}
+    {% include "app/includes/book_card.html" with page=settings.app.FeaturedContent.current_book label="Book of the Month" %}
+  {% endif %}
 </section>
   
 <section class='container my-5'>

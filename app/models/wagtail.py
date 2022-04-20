@@ -318,7 +318,7 @@ class BaseShopifyProductPage(Page):
 
             # Create new page
             page = cls.create_instance_for_product(product, metafields)
-            cls.get_common_ancestor().add_child(instance=page)
+            BookIndexPage.objects.first().add_child(instance=page)
 
             return page
 
@@ -387,9 +387,10 @@ class BookPage(BaseShopifyProductPage):
         FieldPanel("published_date")
     ]
 
-    @classmethod
-    def get_common_ancestor(cls):
-        return BookIndexPage.objects.first()
+    @property
+    def common_ancestor(cls):
+        book = BookIndexPage.objects.first()
+        return book
 
     @classmethod
     def create_instance_for_product(cls, product, metafields):

@@ -8,7 +8,7 @@
     </header>
     {% with settings.app.FeaturedContent.current_book as book %}
     {% if book is not None %}
-        {% include "app/include/book_card.html" with page=book label="Preparing for delivery" %}
+        {% include "app/includes/book_card.html" with page=book label="Preparing for delivery" %}
     {% endif %}
     {% endwith %}
 {% endblock %}

@@ -7,10 +7,11 @@ from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
+from wagtail.core.rich_text import get_text_for_indexing
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.images.models import AbstractImage, AbstractRendition
 from wagtail.search import index
-from wagtailseo.models import SeoMixin
+from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
@@ -23,7 +24,41 @@ from app.views import (
 from .stripe import LBCProduct, ShippingZone
 
 
-class HomePage(SeoMixin, RoutablePageMixin, Page):
+class SeoMetadataMixin(SeoMixin, Page):
+    class Meta:
+        abstract = True
+
+    promote_panels = SeoMixin.seo_panels
+
+    seo_image_sources = ["og_image"]  # Explicit sharing image
+
+    seo_description_sources = [
+        "search_description",  # Explicit sharing description
+    ]
+
+    @property
+    def seo_description(self) -> str:
+        """
+        Middleware for seo_description_sources
+        """
+        for attr in self.seo_description_sources:
+            if hasattr(self, attr):
+                text = getattr(self, attr)
+                if text:
+                    # Strip HTML if there is any
+                    return get_text_for_indexing(text)
+        return ""
+
+
+class ArticleSeoMixin(SeoMetadataMixin):
+    class Meta:
+        abstract = True
+
+    seo_content_type = SeoType.ARTICLE
+    seo_twitter_card = TwitterCard.LARGE
+
+
+class HomePage(SeoMetadataMixin, RoutablePageMixin, Page):
     body = RichTextField(blank=True)
     show_in_menus_default = True
 
@@ -32,6 +67,8 @@ class HomePage(SeoMixin, RoutablePageMixin, Page):
     ]
 
     promote_panels = SeoMixin.seo_panels
+
+    seo_twitter_card = TwitterCard.SUMMARY
 
     @route(r"^$")  # will override the default Page serving mechanism
     def pick_product(self, request):
@@ -175,7 +212,7 @@ class ImageRendition(AbstractRendition):
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 
-class BlogIndexPage(SeoMixin, Page):
+class BlogIndexPage(SeoMetadataMixin, Page):
     """
     Define blog index page.
     """
@@ -188,8 +225,10 @@ class BlogIndexPage(SeoMixin, Page):
 
     promote_panels = SeoMixin.seo_panels
 
+    seo_twitter_card = TwitterCard.SUMMARY
 
-class BlogPage(SeoMixin, Page):
+
+class BlogPage(ArticleSeoMixin, Page):
     """
     Define blog detail page.
     """
@@ -220,8 +259,8 @@ class BlogPage(SeoMixin, Page):
 
     promote_panels = SeoMixin.seo_panels
 
- 
-class InformationPage(SeoMixin, Page):
+
+class InformationPage(ArticleSeoMixin, Page):
     show_in_menus_default = True
 
     cover_image = models.ForeignKey(

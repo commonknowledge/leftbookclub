@@ -12,6 +12,8 @@ from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_url
 
 from app.views import ShippingCostView, StripeCustomerPortalView
 
+from . import views
+
 # from wagtail_transfer import urls as wagtailtransfer_urls
 
 
@@ -35,6 +37,7 @@ urlpatterns = [
     path(
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),
+    path("newsletter/", views.NewsletterSubscription, name="newslettersubscription"),
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism
     re_path(r"", include(wagtail_urls)),

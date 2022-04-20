@@ -4,8 +4,9 @@ from re import template
 import djstripe
 import stripe
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from djstripe import settings as djstripe_settings
@@ -127,3 +128,12 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
             return_url=return_url,
         )
         return session.url
+
+
+def NewsletterSubscription(request):
+    if request.method == "POST":
+        email = request.POST["email"]
+        print(email)
+        messages.success(request, "Email received. thank You! ")
+
+    return render(request, "app/content/newsletter.html")

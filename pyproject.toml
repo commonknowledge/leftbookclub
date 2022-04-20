@@ -14,7 +14,7 @@ python = "^3.9"
 boto3 = '>=1.17.77'
 botocore = '>=1.20.77'
 requests = '>=2.25.1'
-rich = "^10.7.0"
+rich = "^12.2.0"
 django = '^4'
 django-anymail = '>=8.3'
 django-filter = '>=2.4.0'

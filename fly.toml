@@ -37,5 +37,5 @@ kill_timeout = 5
     port = "443"
 
 [[statics]]
-  guest_path = "/app/public"
-  url_prefix = "/static/"
+  guest_path = "/app/static"
+  url_prefix = "/static"

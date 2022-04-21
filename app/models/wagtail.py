@@ -58,25 +58,31 @@ class SeoMetadataMixin(SeoMixin, Page):
         return ""
 
 
+class IndexPageSeoMixin(SeoMetadataMixin):
+    class Meta:
+        abstract = True
+
+    seo_content_type = SeoType.WEBSITE
+    seo_twitter_card = TwitterCard.SUMMARY
+    promote_panels = SeoMixin.seo_panels
+
+
 class ArticleSeoMixin(SeoMetadataMixin):
     class Meta:
         abstract = True
 
     seo_content_type = SeoType.ARTICLE
     seo_twitter_card = TwitterCard.LARGE
+    promote_panels = SeoMixin.seo_panels
 
 
-class HomePage(SeoMetadataMixin, RoutablePageMixin, Page):
+class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
     body = RichTextField(blank=True)
     show_in_menus_default = True
 
     content_panels = Page.content_panels + [
         FieldPanel("body", classname="full"),
     ]
-
-    promote_panels = SeoMixin.seo_panels
-
-    seo_twitter_card = TwitterCard.SUMMARY
 
     @route(r"^$")  # will override the default Page serving mechanism
     def pick_product(self, request):
@@ -220,7 +226,7 @@ class ImageRendition(AbstractRendition):
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 
-class BlogIndexPage(SeoMetadataMixin, Page):
+class BlogIndexPage(IndexPageSeoMixin, Page):
     """
     Define blog index page.
     """
@@ -230,10 +236,6 @@ class BlogIndexPage(SeoMetadataMixin, Page):
     intro = RichTextField(blank=True)
 
     content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
-
-    promote_panels = SeoMixin.seo_panels
-
-    seo_twitter_card = TwitterCard.SUMMARY
 
 
 class BlogPage(ArticleSeoMixin, Page):
@@ -265,8 +267,6 @@ class BlogPage(ArticleSeoMixin, Page):
         ImageChooserPanel("feed_image"),
     ]
 
-    promote_panels = SeoMixin.seo_panels
-
 
 class InformationPage(ArticleSeoMixin, Page):
     show_in_menus_default = True
@@ -286,10 +286,8 @@ class InformationPage(ArticleSeoMixin, Page):
         StreamFieldPanel("body", classname="full"),
     ]
 
-    promote_panels = SeoMixin.seo_panels
 
-
-class BookIndexPage(SeoMetadataMixin, Page):
+class BookIndexPage(IndexPageSeoMixin, Page):
     body = ArticleContentStream()
 
     content_panels = Page.content_panels + [

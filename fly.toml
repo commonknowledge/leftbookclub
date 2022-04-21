@@ -5,7 +5,6 @@ kill_timeout = 5
 
 [env]
 PORT = 8080
-STRIPE_LIVE_MODE = "False"
 
 [deploy]
   release_command = "make release"

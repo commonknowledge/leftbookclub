@@ -7,14 +7,17 @@ from django.db import models
 from django.dispatch import receiver
 from django.http.response import Http404
 from django.shortcuts import redirect
+from django.utils.html import strip_tags
 from django_countries import countries
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
+from wagtail.core.rich_text import get_text_for_indexing
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.images.models import AbstractImage, AbstractRendition
 from wagtail.search import index
+from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
@@ -30,13 +33,59 @@ from app.views import (
 from .stripe import LBCProduct, ShippingZone
 
 
-class HomePage(RoutablePageMixin, Page):
+class SeoMetadataMixin(SeoMixin, Page):
+    class Meta:
+        abstract = True
+
+    promote_panels = SeoMixin.seo_panels
+
+    seo_image_sources = ["og_image"]  # Explicit sharing image
+
+    seo_description_sources = [
+        "search_description",  # Explicit sharing description
+    ]
+
+    @property
+    def seo_description(self) -> str:
+        """
+        Middleware for seo_description_sources
+        """
+        for attr in self.seo_description_sources:
+            if hasattr(self, attr):
+                text = getattr(self, attr)
+                if text:
+                    # Strip HTML if there is any
+                    return get_text_for_indexing(text)
+        return ""
+
+
+class IndexPageSeoMixin(SeoMetadataMixin):
+    class Meta:
+        abstract = True
+
+    seo_content_type = SeoType.WEBSITE
+    seo_twitter_card = TwitterCard.SUMMARY
+    promote_panels = SeoMixin.seo_panels
+
+
+class ArticleSeoMixin(SeoMetadataMixin):
+    class Meta:
+        abstract = True
+
+    seo_content_type = SeoType.ARTICLE
+    seo_twitter_card = TwitterCard.LARGE
+    promote_panels = SeoMixin.seo_panels
+
+
+class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
     body = RichTextField(blank=True)
     show_in_menus_default = True
 
     content_panels = Page.content_panels + [
         FieldPanel("body", classname="full"),
     ]
+
+    seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["body"]
 
     @route(r"^$")  # will override the default Page serving mechanism
     def pick_product(self, request):
@@ -180,7 +229,7 @@ class ImageRendition(AbstractRendition):
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 
-class BlogIndexPage(Page):
+class BlogIndexPage(IndexPageSeoMixin, Page):
     """
     Define blog index page.
     """
@@ -191,15 +240,17 @@ class BlogIndexPage(Page):
 
     content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
 
+    seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["intro"]
 
-class BlogPage(Page):
+
+class BlogPage(ArticleSeoMixin, Page):
     """
     Define blog detail page.
     """
 
     show_in_menus_default = True
 
-    intro = models.CharField(max_length=250)
+    intro = RichTextField(max_length=250)
 
     feed_image = models.ForeignKey(
         CustomImage,
@@ -221,8 +272,15 @@ class BlogPage(Page):
         ImageChooserPanel("feed_image"),
     ]
 
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + [
+        "intro",
+        "body",
+    ]
 
-class InformationPage(Page):
+    seo_image_sources = ArticleSeoMixin.seo_image_sources + ["feed_image"]
+
+
+class InformationPage(ArticleSeoMixin, Page):
     show_in_menus_default = True
 
     cover_image = models.ForeignKey(
@@ -240,8 +298,12 @@ class InformationPage(Page):
         StreamFieldPanel("body", classname="full"),
     ]
 
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
 
-class BookIndexPage(Page):
+    seo_image_sources = ArticleSeoMixin.seo_image_sources + ["cover_image"]
+
+
+class BookIndexPage(IndexPageSeoMixin, Page):
     body = ArticleContentStream()
 
     content_panels = Page.content_panels + [
@@ -264,12 +326,14 @@ class BookIndexPage(Page):
         context["products"] = products
         return context
 
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
+
 
 def shopify_product_id_key(page):
     return page.shopify_product_id
 
 
-class BaseShopifyProductPage(Page):
+class BaseShopifyProductPage(ArticleSeoMixin, Page):
     class Meta:
         abstract = True
 
@@ -336,7 +400,7 @@ class BaseShopifyProductPage(Page):
         return self.latest_shopify_product
 
     @property
-    def latest_shopify_product(self):
+    def latest_shopify_product(self) -> shopify.ShopifyResource:
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
@@ -374,6 +438,23 @@ class BaseShopifyProductPage(Page):
             # products = shopify.Product.find(collection=settings.SHOPIFY_COLLECTION_ID)
             # for product in products:
             #     ShopifyProductPage.get_for_product(id=product.id)
+
+    @property
+    def seo_description(self) -> str:
+        try:
+            return strip_tags(self.shopify_product.body_html).replace("\n", "")
+        except:
+            return ""
+
+    @property
+    def seo_image_url(self) -> str:
+        """
+        Middleware for seo_image_sources
+        """
+        try:
+            return self.shopify_product.images[0].src
+        except:
+            return ""
 
 
 class MerchandisePage(BaseShopifyProductPage):

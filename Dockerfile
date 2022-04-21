@@ -35,4 +35,4 @@ ENV DJANGO_SETTINGS_MODULE=app.settings.production
 ENV PATH=$PATH:/home/app/.local/bin
 RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 
-CMD ["bash", "-c", "gunicorn $GUNICORN_ARGS -b 0.0.0.0:${PORT:-80} app.wsgi"]
+CMD ["bash", "-c", "poetry run gunicorn $GUNICORN_ARGS -b 0.0.0.0:${PORT:-80} app.wsgi"]

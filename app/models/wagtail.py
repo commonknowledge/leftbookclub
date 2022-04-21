@@ -289,7 +289,7 @@ class InformationPage(ArticleSeoMixin, Page):
     promote_panels = SeoMixin.seo_panels
 
 
-class BookIndexPage(Page):
+class BookIndexPage(SeoMetadataMixin, Page):
     body = ArticleContentStream()
 
     content_panels = Page.content_panels + [
@@ -424,11 +424,11 @@ class BaseShopifyProductPage(Page):
             #     ShopifyProductPage.get_for_product(id=product.id)
 
 
-class MerchandisePage(BaseShopifyProductPage):
+class MerchandisePage(ArticleSeoMixin, BaseShopifyProductPage):
     pass
 
 
-class BookPage(BaseShopifyProductPage):
+class BookPage(ArticleSeoMixin, BaseShopifyProductPage):
     published_date = models.DateField(null=True, blank=True)
 
     content_panels = BaseShopifyProductPage.content_panels + [

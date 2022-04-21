@@ -76,3 +76,44 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 - VSCode Development Containers
 - Github Actions
 - Docker
+
+## Configuring Fly
+
+- `fly launch` to set up the app, ignoring Django detection
+- If a database hasn't been automatically created through the above, `flyctl postgres create`
+- `flyctl postgres attach --app <app-name> --postgres-app <postgres-app-name>` to link the two
+- Set environment secrets with `flyctl secrets set KEY="VALUE" KEY2="VALUE2" ...`
+
+### Secrets
+
+```js
+DJANGO_SETTINGS_MODULE: "app.settings.production",
+// From https://cloud.digitalocean.com/account/api/tokens?i=e4951b
+// # like `leftbookclub`
+AWS_STORAGE_BUCKET_NAME: "leftbookclub",
+AWS_S3_REGION_NAME: "fra1",
+// # like `https://fra1.digitaloceanspaces.com`
+AWS_S3_ENDPOINT_URL: "https://fra1.digitaloceanspaces.com",
+AWS_ACCESS_KEY_ID: "...",
+AWS_SECRET_ACCESS_KEY: "...",
+MEDIA_URL: "https://fra1.digitaloceanspaces.com/leftbookclub/",
+//From Mailjet
+MAILJET_API_KEY: "...",
+MAILJET_SECRET_KEY: "...",
+//From https://mjml.io
+MJML_APPLICATION_ID: "...",
+MJML_SECRET_KEY: "...",
+//From https://left-book-club-shop.myshopify.com/admin/apps/private/349095133417
+SHOPIFY_APP_API_SECRET: "...",
+SHOPIFY_PRIVATE_APP_PASSWORD: "...",
+//Manually specified
+STRIPE_LIVE_MODE: "False" // or True
+SECRET_KEY: "..."
+// From https://fly.io
+BASE_URL: "https://...fly.dev"
+//From Stripe
+STRIPE_TEST_PUBLIC_KEY: "..."
+STRIPE_TEST_SECRET_KEY: "..."
+STRIPE_WEBHOOK_SECRET: "..."
+DJSTRIPE_WEBHOOK_SECRET: "..."
+```

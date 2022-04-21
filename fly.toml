@@ -1,18 +1,16 @@
-app = "leftbookclub-fly-test-staging"
+# fly.toml file generated for lbc-staging on 2022-04-21T14:55:24+01:00
+
+app = "lbc-staging"
 
 kill_signal = "SIGINT"
 kill_timeout = 5
-
-[env]
-PORT = 8080
 
 [deploy]
   release_command = "make release"
   strategy = "rolling"
 
-[[statics]]
-  guest_path = "/app/static"
-  url_prefix = "/static"
+[env]
+  PORT = "8080"
 
 [[services]]
   internal_port = 8080
@@ -22,6 +20,14 @@ PORT = 8080
     hard_limit = 25
     soft_limit = 20
 
+  [[services.http_checks]]
+    grace_period = "5s"
+    interval = 10000
+    method = "get"
+    path = "/"
+    protocol = "http"
+    timeout = 2000
+
   [[services.ports]]
     handlers = ["http"]
     port = "80"
@@ -30,10 +36,6 @@ PORT = 8080
     handlers = ["tls", "http"]
     port = "443"
 
-  [[services.http_checks]]
-    interval = 10000
-    timeout = 2000
-    grace_period = "5s"
-    method = "get"
-    path = "/"
-    protocol = "http"
+[[statics]]
+  guest_path = "/app/public"
+  url_prefix = "/static/"

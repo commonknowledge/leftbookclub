@@ -1,28 +1,46 @@
 {% extends "base.html" %}
 {% load static wagtailroutablepage_tags django_bootstrap5 %}
 {% block content %}
+{% with request.GET.gift_mode as gift_mode %}
   <main>
     <div class="row justify-content-md-center">
       <div class='col col-md-6 col-lg-4'>
         <header class="pricing-header my-4">
-          <h2 class="h3 fw-normal text-center">Confirm your details</h2>
+          <h2 class="h3 fw-normal text-center">Confirm{% if gift_mode %} gift{% endif %} details</h2>
         </header>
+        <div class="mb-3">
+          <label class="form-label" for="id_country">You're buying</label>
+          <div class='p-3 bg-light rounded-3 my-2'>
+            <div class="h5 mb-0">
+              {{ product.name }} {% if request.GET.gift_mode %}<span>- as a gift</span>{% endif %}
+            </div>
+          </div>
+        </div>
         <form
           data-turbo="false"
           data-controller="shipping"
-          data-shipping-url-value="{{ url_pattern }}"
+          data-shipping-url-value="{{ url_pattern }}{% if gift_mode %}?gift_mode=true{% endif %}"
           data-shipping-product-value="{{ product.id }}"
           data-shipping-target="form"
           action="{% routablepageurl page "checkout" product_id=product.id %}"
           method="get"
         >
+          {% if gift_mode %}
+            <input type='hidden' name='gift_mode' value='true' />
+          {% endif %}
           {% csrf_token %}
           {% bootstrap_form country_selector_form %}
-          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}"></turbo-frame>
+          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}{% if gift_mode %}?gift_mode=true{% endif %}"></turbo-frame>
         </form>
         {% routablepageurl page 'pick_product' as back_link %}
-        {% bootstrap_button href=back_link content="Change plan" button_class="w-100 btn-light text-dark" %}
+        {% comment %} TODO: how to concat gift_mode {% endcomment %}
+        {% if gift_mode %}
+          {% bootstrap_button href=back_link|add:"?gift_mode=true" content="Change plan" button_class="w-100 btn-light text-dark" %}
+        {% else %}
+          {% bootstrap_button href=back_link content="Change plan" button_class="w-100 btn-light text-dark" %}
+        {% endif %}
       </div>
     </div>
   </main>
+{% endwith %}
 {% endblock %}

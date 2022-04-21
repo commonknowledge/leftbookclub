@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "wagtail.contrib.modeladmin",
     "wagtailmenus",
     "wagtailseo",
+    "mjml",
 ]
 
 MIDDLEWARE = [
@@ -280,5 +281,21 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # menus
 
-
 WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)
+
+# email formatting
+
+MJML_BACKEND_MODE = "httpserver"
+MJML_HTTPSERVERS = [
+    {
+        "URL": "https://api.mjml.io/v1/render",  # official MJML API
+        "HTTP_AUTH": (
+            os.environ.get("MJML_APPLICATION_ID", None),
+            os.environ.get("MJML_SECRET_KEY", None),
+        ),
+    }
+]
+
+# Gift period
+
+GIFT_MONTHS = 12

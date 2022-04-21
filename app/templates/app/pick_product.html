@@ -1,10 +1,18 @@
 {% extends "base.html" %}
-{% load static wagtailroutablepage_tags %}
+{% load static wagtailroutablepage_tags django_bootstrap5 setting %}
 
 {% block content %}
+{% with request.GET.gift_mode as gift_mode %}
   <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
-    <h1 class="h1 fw-normal">Join the Left Book Club</h1>
-    <p class="fs-5 text-muted">Your subscription will begin with the most recently published book in your chosen collection.</p>
+    {% if not gift_mode %}
+      <h1 class="h1 fw-normal">Join the Left Book Club</h1>
+      <p class="fs-5 text-muted">Your subscription will begin with the most recently published book in your chosen collection.</p>
+      {% bootstrap_button href="?gift_mode=true" content="Gift someone a membership" %}
+    {% else %}
+      <h1 class="h1 fw-normal">Gift someone {% setting "GIFT_MONTHS" %} months of membership</h1>
+      <p class="fs-5 text-muted">We'll send you a code. Send it to yours truly to redeem and they'll start receving books!</p>
+      {% bootstrap_button href="/" content="Get yourself a membership instead" %}
+    {% endif %}
   </header>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 mb-3 text-center justify-content-center">
       {% for product in products %}
@@ -17,7 +25,7 @@
           <div class="card-body">
             <div class="h1 card-title pricing-card-title">{{product.basic_price.human_readable_price}}</div>
             <p>{{ product.description }}</p>
-            <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn-light text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
+            <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn-light text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}{% if gift_mode %}?gift_mode=true{% endif %}">
               Select
             </a>
           </div>
@@ -37,7 +45,7 @@
           <div class="card-body">
             <div class="h2 card-title pricing-card-title">{{product.basic_price.human_readable_price}}</div>
             <p class='fs-7'>{{ product.description }}</p>
-            <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn btn-outline-primary text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}">
+            <a class="w-100 btn btn-lg {% if product.metadata.primary %}btn-primary{% else %}btn btn-outline-primary text-dark{% endif %}" href="{% routablepageurl page "pick_price_for_product" product_id=product.id %}{% if gift_mode %}?gift_mode=true{% endif %}">
               Select
             </a>
           </div>
@@ -47,4 +55,5 @@
       {% endfor %}
     </div>
   </main>
+{% endwith %}
 {% endblock %}

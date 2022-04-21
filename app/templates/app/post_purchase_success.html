@@ -1,14 +1,36 @@
 {% extends "base.html" %}
-{% load account %}
+{% load account setting %}
 
 {% block content %}
-    <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
-      <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
-      <p class="fs-5 text-muted">Your first book is on its way!</p>
-    </header>
-    {% with settings.app.FeaturedContent.current_book as book %}
-    {% if book is not None %}
-        {% include "app/includes/book_card.html" with page=book label="Preparing for delivery" %}
+    {% if gift_mode %}
+      <main>
+        <div class="row justify-content-md-center">
+          <div class='col col-md-6 col-lg-4'>
+            <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
+              <h1 class="h2 fw-normal">You've bought a gift membership!</h1>
+              <p class="fs-5 text-muted">Thank you for supporting the Left Book Club</p>
+            </header>
+            <p color="#637381" font-size="16px">
+              Your unique gift code is <b>{{ promo_code }}</b>. Give this to your intended recipient or ask them to visit <a href='https://leftbookclub.com/redeem?code={{ promo_code }}'>this link</a> to activate their membership and start receiving books to their door.
+            </p>
+            <div class='text-center p-4 bg-light rounded-3 my-2'>
+              <div class='font-monospace h3 mb-0' style='letter-spacing: 3px;'>{{ promo_code }}</div>
+              <div class='fs-7 text-muted'>gift code</div>
+            </div>
+            <p>Their membership is valid for {% setting "GIFT_MONTHS" %} months after they activate their code.
+            <p>We've also sent you an email with these details.</p>
+          </div>
+        </div>
+      </main>
+    {% else %}
+      <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
+        <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
+        <p class="fs-5 text-muted">Your first book is on its way!</p>
+      </header>
+      {% with settings.app.FeaturedContent.current_book as book %}
+        {% if book is not None %}
+            {% include "app/includes/book_card.html" with page=book label="Preparing for delivery" %}
+        {% endif %}
+      {% endwith%}
     {% endif %}
-    {% endwith %}
 {% endblock %}

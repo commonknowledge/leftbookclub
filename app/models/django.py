@@ -41,7 +41,9 @@ class User(AbstractUser):
     @property
     def active_subscription(self) -> djstripe.models.Subscription:
         try:
-            sub = self.stripe_customer.active_subscriptions.first()
+            sub = self.stripe_customer.active_subscriptions.filter(
+                metadata__gift_mode__isnull=True
+            ).first()
             return sub
         except:
             return None

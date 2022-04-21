@@ -1,9 +1,18 @@
-import djstripe
+from datetime import datetime
+
+import djstripe.models
 import stripe
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from djstripe import settings as djstripe_settings
+
+from app.models import LBCProduct
+from app.models.stripe import ShippingZone
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -26,14 +35,11 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
 
         # example of how to insert the SUBSCRIBER_CUSTOMER_KEY: id in the metadata
         # to add customer.subscriber to the newly created/updated customer.
-        metadata = {
-            f"{djstripe_settings.djstripe_settings.SUBSCRIBER_CUSTOMER_KEY}": user.id
-        }
-
-        session_args = dict(
-            **self.context,
-            metadata=metadata,
-        )
+        session_args = self.context
+        session_args["metadata"] = self.context.get("metadata", {})
+        session_args["metadata"][
+            djstripe_settings.djstripe_settings.SUBSCRIBER_CUSTOMER_KEY
+        ] = user.id
 
         try:
             additional_args = {}
@@ -62,23 +68,80 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
     template_name = "app/post_purchase_success.html"
 
     def get_context_data(self, *args, **kwargs):
+        # Get parent Context
+        page_context = super().get_context_data(**kwargs)
+
+        # Get checkout data
         session = stripe.checkout.Session.retrieve(self.request.GET.get("session_id"))
         customer_from_stripe = stripe.Customer.retrieve(session.customer)
         customer, is_new = djstripe.models.Customer._get_or_create_from_stripe_object(
             customer_from_stripe
         )
+        gift_mode = session.metadata.get("gift_mode")
 
-        # Relate the django user to this customer
-        customer.subscriber = self.request.user
-        customer.save()
+        if gift_mode is not None:
+            # 1. Set cancel_at on subscription + apply metadata
+            subscription = stripe.Subscription.retrieve(session.subscription)
+
+            promo_code_id = subscription.metadata.get("promo_code_id", None)
+            if promo_code_id is not None:
+                # Refreshed the page -- don't let them generate a new coupon each time they do that!
+                promo_code = stripe.PromotionCode.retrieve(promo_code_id)
+            else:
+                # First time
+                subscription = stripe.Subscription.modify(
+                    session.subscription,
+                    metadata={"gift_mode": True},
+                    cancel_at=datetime.now()
+                    + relativedelta(months=settings.GIFT_MONTHS),
+                )
+                # 2. Generate coupon
+                product_id = subscription.get("items").data[0].price.product
+                coupon = stripe.Coupon.create(
+                    applies_to={"products": [product_id]},
+                    percent_off=100,
+                    duration="repeating",
+                    duration_in_months=settings.GIFT_MONTHS,
+                )
+                promo_code = stripe.PromotionCode.create(
+                    coupon=coupon.id,
+                    max_redemptions=1,
+                    metadata={
+                        "related_gift_subscription": session.subscription,
+                        "related_django_user": self.request.user.id,
+                    },
+                )
+
+                subscription = stripe.Subscription.modify(
+                    session.subscription,
+                    metadata={"promo_code_id": promo_code.id},
+                )
+
+                # Send them this promo code via email
+                send_mail(
+                    "Your Left Book Club Gift Code",
+                    f"Your gift code is {promo_code.code}. It can be redeemed at https://leftbookclub.com/redeem?code={promo_code.code}",
+                    "noreply@leftbookclub.com",
+                    [self.request.user.email],
+                    html_message=render_to_string(
+                        template_name="app/emails/send_gift_code.html",
+                        context={
+                            "user": self.request.user,
+                            "promo_code": promo_code.code,
+                        },
+                    ),
+                )
+            page_context["gift_mode"] = True
+            page_context["promo_code"] = promo_code.code
+        else:
+            # Relate the django user to this customer
+            customer.subscriber = self.request.user
+            customer.save()
 
         # Sync Stripe data to Django
         self.request.user.refresh_stripe_data()
 
-        # Get parent Context
-        context = super().get_context_data(**kwargs)
-
-        return context
+        return page_context
 
 
 class ShippingCostView(TemplateView):

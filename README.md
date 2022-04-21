@@ -45,7 +45,13 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 - When you first set up, you should sync Stripe to the local database:
 
   ```
-  poetry run python manage.py djstripe_sync_models Price Product Customer Subscription Plan
+  poetry run python manage.py djstripe_sync_models Price Product Customer Subscription Plan Coupon
+  ```
+  
+- And sync Shopify products:
+
+  ```
+  poetry run python manage.py sync_shopify_products
   ```
 
 ## Application stack:

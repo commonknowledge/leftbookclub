@@ -10,7 +10,13 @@ from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 
-from app.views import ShippingCostView, StripeCustomerPortalView
+from app.shopify_webhook.views import WebhookView
+from app.views import (
+    CartOptionsView,
+    LoginRequiredTemplateView,
+    ShippingCostView,
+    StripeCustomerPortalView,
+)
 
 # from wagtail_transfer import urls as wagtailtransfer_urls
 
@@ -25,16 +31,18 @@ urlpatterns = [
         RedirectView.as_view(url="/static/images/logo.png", permanent=True),
     ),
     path(
-        "accounts/membership/",
-        TemplateView.as_view(template_name="account/membership.html"),
+        "accounts/profile/",
+        LoginRequiredTemplateView.as_view(template_name="account/membership.html"),
         name="account_membership",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
     path("customer_portal/", StripeCustomerPortalView.as_view(), name="customerportal"),
+    path("webhooks/shopify/", WebhookView.as_view(), name="shopify_webhook"),
     path(
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),
+    path(CartOptionsView.url_pattern, CartOptionsView.as_view(), name="cartoptions"),
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism
     re_path(r"", include(wagtail_urls)),

@@ -11,7 +11,7 @@
     <article class="content-mx-width">
         <header class='my-4'>
           <h1 class="h1 fw-normal mb-2">{{ page.title }} </h1>
-          <h2 class="h3 fw-normal mb-5 text-secondary">{{ page.intro }} </h2>
+          <h2 class="h3 fw-normal mb-5 text-secondary">{{ page.intro|richtext }} </h2>
           <p class='fs-6 text-muted'>{{ page.first_published_at|date:"l j F Y" }} </p>
         </header>
         <hr />

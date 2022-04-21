@@ -7,6 +7,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.http.response import Http404
 from django.shortcuts import redirect
+from django.utils.html import strip_tags
 from django_countries import countries
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
@@ -83,6 +84,8 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
     content_panels = Page.content_panels + [
         FieldPanel("body", classname="full"),
     ]
+
+    seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["body"]
 
     @route(r"^$")  # will override the default Page serving mechanism
     def pick_product(self, request):
@@ -237,6 +240,8 @@ class BlogIndexPage(IndexPageSeoMixin, Page):
 
     content_panels = Page.content_panels + [FieldPanel("intro", classname="full")]
 
+    seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["intro"]
+
 
 class BlogPage(ArticleSeoMixin, Page):
     """
@@ -245,7 +250,7 @@ class BlogPage(ArticleSeoMixin, Page):
 
     show_in_menus_default = True
 
-    intro = models.CharField(max_length=250)
+    intro = RichTextField(max_length=250)
 
     feed_image = models.ForeignKey(
         CustomImage,
@@ -267,6 +272,13 @@ class BlogPage(ArticleSeoMixin, Page):
         ImageChooserPanel("feed_image"),
     ]
 
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + [
+        "intro",
+        "body",
+    ]
+
+    seo_image_sources = ArticleSeoMixin.seo_image_sources + ["feed_image"]
+
 
 class InformationPage(ArticleSeoMixin, Page):
     show_in_menus_default = True
@@ -285,6 +297,10 @@ class InformationPage(ArticleSeoMixin, Page):
         ImageChooserPanel("cover_image"),
         StreamFieldPanel("body", classname="full"),
     ]
+
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
+
+    seo_image_sources = ArticleSeoMixin.seo_image_sources + ["cover_image"]
 
 
 class BookIndexPage(IndexPageSeoMixin, Page):
@@ -310,12 +326,14 @@ class BookIndexPage(IndexPageSeoMixin, Page):
         context["products"] = products
         return context
 
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
+
 
 def shopify_product_id_key(page):
     return page.shopify_product_id
 
 
-class BaseShopifyProductPage(Page):
+class BaseShopifyProductPage(ArticleSeoMixin, Page):
     class Meta:
         abstract = True
 
@@ -382,7 +400,7 @@ class BaseShopifyProductPage(Page):
         return self.latest_shopify_product
 
     @property
-    def latest_shopify_product(self):
+    def latest_shopify_product(self) -> shopify.ShopifyResource:
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
@@ -421,12 +439,29 @@ class BaseShopifyProductPage(Page):
             # for product in products:
             #     ShopifyProductPage.get_for_product(id=product.id)
 
+    @property
+    def seo_description(self) -> str:
+        try:
+            return strip_tags(self.shopify_product.body_html).replace("\n", "")
+        except:
+            return ""
 
-class MerchandisePage(ArticleSeoMixin, BaseShopifyProductPage):
+    @property
+    def seo_image_url(self) -> str:
+        """
+        Middleware for seo_image_sources
+        """
+        try:
+            return self.shopify_product.images[0].src
+        except:
+            return ""
+
+
+class MerchandisePage(BaseShopifyProductPage):
     pass
 
 
-class BookPage(ArticleSeoMixin, BaseShopifyProductPage):
+class BookPage(BaseShopifyProductPage):
     published_date = models.DateField(null=True, blank=True)
 
     content_panels = BaseShopifyProductPage.content_panels + [

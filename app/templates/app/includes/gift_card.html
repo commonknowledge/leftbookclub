@@ -1,7 +1,7 @@
 {% load gift_card date djmoney %}
 {% with subscription|with_gift_code as sub %}
   <article class='
-    rounded-3 shadow-sm text-center border border-2 max-width-card w-100
+    bg-white rounded-3 shadow-sm text-center border border-2 max-width-card w-100
     {% if subscription.promo_code and not subscription.promo_code.active and subscription.promo_code.times_redeemed > 0 %}
       border-success
     {% elif subscription.promo_code and not subscription.promo_code.active %}

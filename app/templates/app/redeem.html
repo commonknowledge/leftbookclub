@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% load django_bootstrap5 gift_card %}
+{% load django_bootstrap5 gift_card static %}
 {% block title %}Redeem a gift code | Left Book Club{% endblock %}
 {% block content%}
 {% url "redeem" as redeem_url %}
-<main>
+<main class='bg-primary p-5'>
   <header class='text-center my-4'>
-    <h1>Redeem a gift code</h1>
+    <img src='{% static "images/gift.png" %}' class='my-4' />
+    <h1>Someone bought you a gift!</h1>
   </header>
   {% if code %}
     <div class='row'>
@@ -24,7 +25,7 @@
           <div class='d-none'>
             {% bootstrap_form form %}
           </div>
-        {% elif not code|is_redeemable_gift_card and code|is_real_gift_card %}
+        {% elif code and not code|is_redeemable_gift_card and code|is_real_gift_card %}
           {% bootstrap_alert "This code has already been redeemed" %}
         {% else %}
           {% bootstrap_form form %}
@@ -46,11 +47,11 @@
     <div class='row justify-content-center'>
       <div class="max-width-card w-100 text-center" role="group" aria-label="Button group">
         {% if code|is_redeemable_gift_card or code is None %}
-          {% bootstrap_button  content="Redeem" %}
+          {% bootstrap_button size='lg' button_class='btn-dark' content="Redeem" %}
         {% endif %}
         <br />
         {% if code %}
-          {% bootstrap_button button_class='btn-outline-light text-muted' href=redeem_url content="Try a different code" %}
+          {% bootstrap_button button_class='btn-light text-muted' href=redeem_url content="Try a different code" %}
         {% endif %}
       </div>
     </div>

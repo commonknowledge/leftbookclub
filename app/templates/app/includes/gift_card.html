@@ -1,0 +1,12 @@
+<article class='rounded-3 shadow-sm text-center border border-1'>
+  <div class='p-4'>
+    <div class='text-muted'>{{ subscription.promo_code.coupon.duration_in_months }} months of</div>
+    <div class='fw-bold'>{{ subscription.plan.product.name }}</div>
+    <div class='p-4 font-monospace h4 pb-0 mb-0' style='letter-spacing: 3px;'>{{ subscription.promo_code.code }}</div>
+    <div class='text-muted fs-7'>GIFT CODE</div>
+  </div>
+  <div class='p-3 bg-light text-left'>
+    <div class='fs-7 text-muted'>Bought at {{ subscription.created }}</div>
+    <div class='fs-7 text-muted'>{% if subscription.promo_code.times_redeemed > 0 %}Redeemed ✅{% else %}Not yet redeemed ⏳{% endif %}</div>
+  </div>
+</article>

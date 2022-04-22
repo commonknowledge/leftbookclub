@@ -4,7 +4,7 @@ from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.contrib.auth.models import AbstractUser
 
-from .stripe import LBCProduct
+from .stripe import LBCProduct, subscription_with_promocode
 
 
 def custom_user_casual_name(user: AbstractUser) -> str:
@@ -65,6 +65,22 @@ class User(AbstractUser):
         try:
             product = self.active_subscription.plan.subscription_items.first().price
             return product
+        except:
+            return None
+
+    @property
+    def gifts_bought(self):
+        try:
+            subs = (
+                self.stripe_customer.subscriptions.filter(
+                    metadata__gift_mode__isnull=False
+                )
+                .all()
+                .order_by("-start_date")
+            )
+            for sub in subs:
+                sub = subscription_with_promocode(sub)
+            return subs
         except:
             return None
 

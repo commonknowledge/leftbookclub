@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from datetime import datetime
 
 import djstripe.models
@@ -77,12 +79,10 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
         customer, is_new = djstripe.models.Customer._get_or_create_from_stripe_object(
             customer_from_stripe
         )
+        subscription = stripe.Subscription.retrieve(session.subscription)
         gift_mode = session.metadata.get("gift_mode")
 
         if gift_mode is not None:
-            # 1. Set cancel_at on subscription + apply metadata
-            subscription = stripe.Subscription.retrieve(session.subscription)
-
             promo_code_id = subscription.metadata.get("promo_code_id", None)
             if promo_code_id is not None:
                 # Refreshed the page -- don't let them generate a new coupon each time they do that!
@@ -118,9 +118,10 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
                 )
 
                 # Send them this promo code via email
+                redeem_url = self.request.build_absolute_uri(reverse("redeem"))
                 send_mail(
                     "Your Left Book Club Gift Code",
-                    f"Your gift code is {promo_code.code}. It can be redeemed at https://leftbookclub.com/redeem?code={promo_code.code}",
+                    f"Your gift code is {promo_code.code}. It can be redeemed at {redeem_url}?code={promo_code.code}",
                     "noreply@leftbookclub.com",
                     [self.request.user.email],
                     html_message=render_to_string(
@@ -137,6 +138,8 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
             # Relate the django user to this customer
             customer.subscriber = self.request.user
             customer.save()
+
+        page_context["subscription"] = subscription
 
         # Sync Stripe data to Django
         self.request.user.refresh_stripe_data()
@@ -206,3 +209,11 @@ class CartOptionsView(TemplateView):
         }
 
         return context
+
+
+class GiftCodeRedeemView(TemplateView):
+    template_name = "app/redeem.html"
+
+    # def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+    #     context = super().get_context_data(**kwargs)
+    #     return context

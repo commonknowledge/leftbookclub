@@ -15,6 +15,12 @@ from wagtail.snippets.models import register_snippet
 from app.utils import flatten_list
 
 
+def subscription_with_promocode(sub):
+    promocode = stripe.PromotionCode.retrieve(sub.metadata.get("promo_code_id", None))
+    setattr(sub, "promo_code", promocode)
+    return sub
+
+
 class LBCProduct(djstripe.models.Product):
     @classmethod
     def get_active_plans(self):

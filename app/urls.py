@@ -13,6 +13,7 @@ from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_url
 from app.shopify_webhook.views import WebhookView
 from app.views import (
     CartOptionsView,
+    GiftCodeRedeemView,
     LoginRequiredTemplateView,
     ShippingCostView,
     StripeCustomerPortalView,
@@ -34,6 +35,11 @@ urlpatterns = [
         "accounts/profile/",
         LoginRequiredTemplateView.as_view(template_name="account/membership.html"),
         name="account_membership",
+    ),
+    path(
+        "redeem/",
+        GiftCodeRedeemView.as_view(),
+        name="redeem",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),

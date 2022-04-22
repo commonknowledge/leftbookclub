@@ -1,24 +1,22 @@
 {% extends "base.html" %}
-{% load account setting %}
+{% load account setting with_gift_code %}
 
 {% block content %}
     {% if gift_mode %}
       <main>
-        <div class="row justify-content-md-center">
+        <div class="row justify-content-md-center text-center">
           <div class='col col-md-6 col-lg-4'>
             <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
               <h1 class="h2 fw-normal">You've bought a gift membership!</h1>
               <p class="fs-5 text-muted">Thank you for supporting the Left Book Club</p>
             </header>
             <p color="#637381" font-size="16px">
-              Your unique gift code is <b>{{ promo_code }}</b>. Give this to your intended recipient or ask them to visit <a href='https://leftbookclub.com/redeem?code={{ promo_code }}'>this link</a> to activate their membership and start receiving books to their door.
+              Give the gift code below to your intended recipient and ask them to visit <a href='{% setting "BASE_URL" %}{% url "redeem" %}?code={{ promo_code }}'>this link</a> to activate their membership.
             </p>
-            <div class='text-center p-4 bg-light rounded-3 my-2'>
-              <div class='font-monospace h3 mb-0' style='letter-spacing: 3px;'>{{ promo_code }}</div>
-              <div class='fs-7 text-muted'>gift code</div>
+            <div class='my-4'>
+              {% include "app/includes/gift_card.html" with subscription=subscription|with_gift_code %}
             </div>
-            <p>Their membership is valid for {% setting "GIFT_MONTHS" %} months after they activate their code.
-            <p>We've also sent you an email with these details.</p>
+            <p>We've sent you an email with these details.</p>
           </div>
         </div>
       </main>

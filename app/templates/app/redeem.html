@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags setting valid_json djmoney to_date django_bootstrap5 negate %}
+
+{% block content%}
+
+<main>
+  <div class='row'>
+    <div class='col col-md-9 col-lg-6 mx-auto text-center'>
+      <h1>Redeem</h1>
+      <form method='POST'>
+        <input type='text' placeholder='Gift code' />
+        <br />
+        {% bootstrap_button content="Redeem" %}
+      </form>
+    </div>
+  </div>
+</main>
+
+{% endblock %}

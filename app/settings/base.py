@@ -242,7 +242,7 @@ INTERNAL_IPS = [
 # Wagtail
 
 WAGTAIL_SITE_NAME = "Left Book Club"
-BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "https://localhost:8000"))
+BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "http://localhost:8000"))
 
 WAGTAILIMAGES_IMAGE_MODEL = "app.CustomImage"
 

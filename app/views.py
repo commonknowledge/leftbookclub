@@ -150,6 +150,17 @@ class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateVie
             customer.subscriber = self.request.user
             customer.save()
 
+            # Delete old subscriptions
+            for sub in self.request.user.stripe_customer.subscriptions.all():
+                if (
+                    sub.metadata.get("gift_mode", None) is None
+                    and sub.id != subscription.id
+                ):
+                    try:
+                        stripe.Subscription.delete(sub.id)
+                    except:
+                        pass
+
         subscription = djstripe.models.Subscription.sync_from_stripe_data(subscription)
         page_context["subscription"] = subscription
 

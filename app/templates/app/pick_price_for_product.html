@@ -31,6 +31,16 @@
           {% csrf_token %}
           {% bootstrap_form country_selector_form %}
           <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}{% if gift_mode %}?gift_mode=true{% endif %}"></turbo-frame>
+          {% if user.is_member %}
+          <div class='row justify-content-center'>
+            <div class="form-check max-width-card w-100">
+              <input required class="form-check-input" type="checkbox" value="" id='confirm_cancel_current_subscriptions' name='confirm_cancel_current_subscriptions'>
+              <label class="form-check-label" for="confirm_cancel_current_subscriptions">
+                <p>I confirm that my existing subscription(s) will be <u>immediately cancelled</u> and replaced with this new subscription: <i>{{ user.subscribed_product.name }}</i></p>
+              </label>
+            </div>
+          </div>
+          {% endif %}
         </form>
         {% routablepageurl page 'pick_product' as back_link %}
         {% comment %} TODO: how to concat gift_mode {% endcomment %}

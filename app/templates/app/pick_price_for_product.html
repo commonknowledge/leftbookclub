@@ -38,7 +38,7 @@
               </div>
             </div>
           </turbo-frame>
-          {% if user.is_member %}
+          {% if user.is_member and gift_mode is None %}
           <div class='row justify-content-center'>
             <div class="form-check max-width-card w-100">
               <input required class="form-check-input" type="checkbox" value="" id='confirm_cancel_current_subscriptions' name='confirm_cancel_current_subscriptions'>

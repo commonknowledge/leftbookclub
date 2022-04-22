@@ -49,9 +49,9 @@
         {% if code|is_redeemable_gift_card or code is None %}
           {% bootstrap_button size='lg' button_class='btn-dark' content="Redeem" %}
         {% endif %}
-        <br />
+        <br /><br />
         {% if code %}
-          {% bootstrap_button button_class='btn-light text-muted' href=redeem_url content="Try a different code" %}
+          {% bootstrap_button button_class='btn-light text-muted' href=redeem_url content="Enter a code manually" %}
         {% endif %}
       </div>
     </div>

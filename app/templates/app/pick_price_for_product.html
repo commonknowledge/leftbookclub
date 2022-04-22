@@ -9,7 +9,7 @@
           <h2 class="h3 fw-normal text-center">Confirm{% if gift_mode %} gift{% endif %} details</h2>
         </header>
         <div class="mb-3">
-          <label class="form-label" for="id_country">You're buying</label>
+          <label class="form-label" for="id_country">You're purchasing</label>
           <div class='p-3 bg-light rounded-3 my-2'>
             <div class="h5 mb-0">
               {{ product.name }} {% if request.GET.gift_mode %}<span>- as a gift</span>{% endif %}
@@ -30,7 +30,14 @@
           {% endif %}
           {% csrf_token %}
           {% bootstrap_form country_selector_form %}
-          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}{% if gift_mode %}?gift_mode=true{% endif %}"></turbo-frame>
+          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}{% if gift_mode %}?gift_mode=true{% endif %}">
+            <div class='p-3 bg-light rounded-3 my-2'>
+              <div class="text-muted mb-1 text-center">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span>Loading shipping options...</span>
+              </div>
+            </div>
+          </turbo-frame>
           {% if user.is_member %}
           <div class='row justify-content-center'>
             <div class="form-check max-width-card w-100">

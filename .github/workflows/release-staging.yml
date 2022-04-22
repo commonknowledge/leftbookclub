@@ -12,4 +12,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config fly.toml --remote-only --build-arg ${{ secrets.MJML_APPLICATION_ID }} --build-arg ${{ secrets.MJML_SECRET_KEY }}
+      - run: flyctl deploy --config fly.toml --remote-only --build-arg MJML_APPLICATION_ID="${{ secrets.MJML_APPLICATION_ID }}" --build-arg MJML_SECRET_KEY="${{ secrets.MJML_SECRET_KEY }}"

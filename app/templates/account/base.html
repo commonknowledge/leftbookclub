@@ -4,13 +4,12 @@
 
 {% block content %}
 
-<div class=container>
-
+<div class="container">
   <script>
-    {
+    console.log({
       "userId": "{{request.user.id}}",
       "customerId": "{{request.user.stripe_customer.id}}"
-    }
+    })
   </script>
   <div class='row'>
     <div class='col col-md-9 col-lg-6 mx-auto'>
@@ -25,11 +24,17 @@
       <li class="{% block account_nav_profile %}{% endblock %}">
         <a class='nav-link {% active_link "account_membership" %}' href="{% url 'account_membership' %}">{% trans 'Membership' %}</a>
       </li>
+      <li class="{% block account_nav_billing_shipping %}{% endblock %}">
+        <a class='nav-link {% active_link "billing_shipping" %}' href="{% url 'billing_shipping' %}">{% trans 'Billing/Shipping' %}</a>
+      </li>
+      <li class="{% block account_nav_gift_cards %}{% endblock %}">
+        <a class='nav-link {% active_link "gift_cards" %}' href="{% url 'gift_cards' %}">{% trans 'Gift Cards' %}</a>
+      </li>
       <li class="{% block account_nav_email %}{% endblock %}">
-        <a class='nav-link {% active_link "account_email" %}' href="{% url 'account_email' %}">{% trans 'Email Addresses' %}</a>
+        <a class='nav-link {% active_link "account_email" %}' href="{% url 'account_email' %}">{% trans 'Emails' %}</a>
       </li>
       <li class="{% block account_nav_change_password %}{% endblock %}">
-        <a class='nav-link {% active_link "account_change_password" %}' href="{% url 'account_change_password' %}">{% trans 'Change Password' %}</a>
+        <a class='nav-link {% active_link "account_change_password" %}' href="{% url 'account_change_password' %}">{% trans 'Password' %}</a>
       </li>
       {% comment %} {% url 'socialaccount_connections' as connections_url %}
       {% if connections_url %}
@@ -49,10 +54,3 @@
 </div>
 
 {% endblock %}
-{#
-{% block appjs %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-  {% block appjs_jquery %}
-  {% endblock %}
-{% endblock %}
-#}

@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "wagtail.contrib.modeladmin",
     "wagtailmenus",
     "wagtailseo",
+    "mjml",
 ]
 
 MIDDLEWARE = [
@@ -241,7 +242,7 @@ INTERNAL_IPS = [
 # Wagtail
 
 WAGTAIL_SITE_NAME = "Left Book Club"
-BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "https://localhost:8000"))
+BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "http://localhost:8000"))
 
 WAGTAILIMAGES_IMAGE_MODEL = "app.CustomImage"
 
@@ -280,5 +281,21 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # menus
 
-
 WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)
+
+# email formatting
+
+MJML_BACKEND_MODE = "httpserver"
+MJML_HTTPSERVERS = [
+    {
+        "URL": "https://api.mjml.io/v1/render",  # official MJML API
+        "HTTP_AUTH": (
+            os.environ.get("MJML_APPLICATION_ID", None),
+            os.environ.get("MJML_SECRET_KEY", None),
+        ),
+    }
+]
+
+# Gift period
+
+GIFT_MONTHS = 12

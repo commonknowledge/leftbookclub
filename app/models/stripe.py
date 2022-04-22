@@ -52,6 +52,14 @@ class LBCProduct(djstripe.models.Product):
             product=self.id, active=True, metadata__shipping=zone.code, **kwargs
         ).order_by("unit_amount")
 
+    def gift_giver_subscription(self):
+        """
+        If this subscription was created as a result of a neighbouring gift subscription
+        """
+        related_subscription_id = self.metadata.get("gift_giver_subscription", None)
+        if related_subscription_id:
+            return djstripe.models.Subscription.get(id=related_subscription_id)
+
     class Meta:
         proxy = True
 

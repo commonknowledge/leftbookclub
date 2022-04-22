@@ -1,0 +1,41 @@
+{% extends "account/base.html" %}
+{% load account django_bootstrap5 gravatar setting gift_card %}
+
+{% block account_content %}
+<div>
+  {% if request.user.is_member or request.user.gifts_bought|length > 0 %}
+    <div class='d-flex flex-column justify-content-center align-items-center'>
+      <div class='my-4 text-center'>
+        {% url "customerportal" as portal_url %}
+        {% bootstrap_button href=portal_url content="Update shipping and billing" %}
+      </div>
+      {% if request.user.is_member %}
+        <h3 class='fw-light text-center'>
+          Your {{user.subscribed_product.name}} fee is {{ user.subscribed_price.human_readable_price }}.
+        </h3>
+        {% if user.active_subscription.discount.coupon %}
+          <h5 class='text-center mt-4'>You have applied gift cards</h5>
+          {% include "app/includes/gift_card.html" with subscription=user.active_subscription display_code=False product_display=False %}
+        {% endif %}
+      {% endif %}
+      {% for subscription in request.user.gifts_bought %}
+        {% if subscription.status == 'active' %}
+          <div class='my-4 w-100 d-flex flex-column align-items-center justify-content-center'>
+            <div class='h5 fw-light text-center'>{{ subscription.plan.human_readable_price }} until {{ subscription.cancel_at|date:"d M Y" }}</div>
+            {% include "app/includes/gift_card.html" with subscription=subscription display_code=False %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <h3 class='fw-light text-center'>
+      You're not paying for any subscriptions at the moment.
+    </h3>
+    <div class='my-4 text-center'>
+      {% bootstrap_button href="/" content="Become a member" %}
+      <br /><br />
+      {% bootstrap_button href="/?gift_mode=true" content="Buy a gift card" %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

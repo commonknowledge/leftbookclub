@@ -1,0 +1,44 @@
+{% extends "account/base.html" %}
+{% load wagtailcore_tags account django_bootstrap5 gravatar setting gift_card books date %}
+{% url "customerportal" as portal_url %}
+
+{% block account_content %}
+<div>
+  {% if request.user.is_member %}
+    <h3 class='my-4 text-center'>Thinking of cancelling?</h3>
+    <div class='d-flex flex-column justify-content-center align-items-center my-4'>
+      {% include "app/includes/membership_card.html" %}
+    </div>
+    {% get_books since=user.active_subscription.created as books %}
+    {% if books|length > 0 %}
+      <section class='container my-5'>
+        <div class='row text-center my-4'>
+          <h3>Books we've read together</h3>
+        </div>
+        <div class='row justify-content-center align-items-center text-center'>
+        {% for book in books %}
+          {% date_is_later_than book.page.published_date user.active_subscription.created as published_since_subscription_started %}
+          {% if published_since_subscription_started %}
+            <a href="{% pageurl book.page %}" class='col col-md-6 text-decoration-none text-center'>
+                <img src="{{ book.product.images.0.src }}" style="width: 100%" />
+                <div class="text-center text-dark my-2">{{ book.metafields.published_date|date:"F Y" }}</div>
+            </a>
+          {% endif %}
+        {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+    <form method='POST' class='text-center' data-turbo='false'>
+      {% csrf_token %}
+      {% bootstrap_button button_class='btn-outline-danger' content="I really want to cancel" %}
+    </form>
+  {% else %}
+    <h3 class='fw-light text-center'>
+      You're not a member at the moment.
+    </h3>
+    <div class='my-4 text-center'>
+      {% bootstrap_button href="/" content="Become a member" %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

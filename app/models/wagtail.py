@@ -1,6 +1,10 @@
 import urllib.parse
+from importlib.metadata import metadata
+from urllib.parse import urlencode
 
+import djstripe.models
 import shopify
+import stripe
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
@@ -132,6 +136,7 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
         """
 
         country = request.GET.get("country", None)
+        gift_mode = request.GET.get("gift_mode", None)
 
         if country is None:
             return redirect(
@@ -160,33 +165,45 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
                 )
             )
 
-        return CreateCheckoutSessionView.as_view(
-            context=dict(
-                mode="subscription",
-                shipping_address_collection={"allowed_countries": zone.country_codes},
-                line_items=[{"price": price.id, "quantity": 1}],
-                success_url=urllib.parse.urljoin(
-                    self.get_full_url(request),
-                    "complete?session_id={CHECKOUT_SESSION_ID}",
-                ),
-                cancel_url=urllib.parse.urljoin(
-                    self.get_full_url(request), self.reverse_subpage("pick_product")
-                ),
-                # By default, customer details aren't updated, but we want them to be.
-                customer_update={
-                    "shipping": "auto",
-                    "address": "auto",
-                    "name": "auto",
-                },
-            )
-        )(request)
+        checkout_args = dict(
+            mode="subscription",
+            line_items=[{"price": price.id, "quantity": 1}],
+            # By default, customer details aren't updated, but we want them to be.
+            customer_update={
+                "shipping": "auto",
+                "address": "auto",
+                "name": "auto",
+            },
+            metadata={},
+        )
+        callback_url_args = {}
+
+        if gift_mode is not None:
+            callback_url_args["gift_mode"] = True
+            checkout_args["metadata"]["gift_mode"] = True
+        else:
+            checkout_args["shipping_address_collection"] = {
+                "allowed_countries": zone.country_codes
+            }
+
+        checkout_args["success_url"] = urllib.parse.urljoin(
+            self.get_full_url(request),
+            self.reverse_subpage("post_purchase_cleanup")
+            + "?session_id={CHECKOUT_SESSION_ID}&"
+            + urlencode(callback_url_args),
+        )
+        checkout_args["cancel_url"] = urllib.parse.urljoin(
+            self.get_full_url(request),
+            self.reverse_subpage("pick_product") + "?" + urlencode(callback_url_args),
+        )
+
+        return CreateCheckoutSessionView.as_view(context=checkout_args)(request)
 
     @route(r"^complete/$")
     def post_purchase_cleanup(self, request):
         """
         Present a thank you page and run any wrapup activites that are required.
         """
-
         return CheckoutSessionCompleteView.as_view()(request)
 
     @route(r"^error/$")

@@ -40,7 +40,8 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 
 ### Developer set up
 
-- Run `python manage.py createsuperuser` to set up an admin user
+- `cd app` to enter the right area
+- Run `poetry run python manage.py createsuperuser` to set up an admin user
 - To get stripe webhooks forwarded to the local app, [follow these instructions](https://stripe.com/docs/stripe-vscode#webhooks)
 - When you first set up, you should sync Stripe to the local database:
 
@@ -77,12 +78,14 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 - Github Actions
 - Docker
 
-## Configuring Fly
+## Fly.io, our web host
 
 - `fly launch` to set up the app, ignoring Django detection
 - If a database hasn't been automatically created through the above, `flyctl postgres create`
 - `flyctl postgres attach --app <app-name> --postgres-app <postgres-app-name>` to link the two
 - Set environment secrets with `flyctl secrets set KEY="VALUE" KEY2="VALUE2" ...`
+- Deploy the app via `flyctl deploy` or the github workflows configured in this repo
+- Then use `flyctl ssh console` to enter the app and run set up commands, etc.
 
 ### Secrets
 

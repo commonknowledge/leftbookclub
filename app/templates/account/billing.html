@@ -7,7 +7,7 @@
     <div class='d-flex flex-column justify-content-center align-items-center'>
       <div class='my-4 text-center'>
         {% url "customerportal" as portal_url %}
-        {% bootstrap_button button_class='btn-outline-primary' href=portal_url content="Manage shipping and billing" %}
+        {% bootstrap_button href=portal_url content="Update shipping and billing" %}
       </div>
       {% if request.user.is_member %}
         <h3 class='fw-light text-center'>

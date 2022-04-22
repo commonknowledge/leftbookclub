@@ -286,6 +286,7 @@ WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)
 # email formatting
 
 MJML_BACKEND_MODE = "httpserver"
+print("MJML_APPLICATION_ID", os.environ.get("MJML_APPLICATION_ID", None))
 MJML_HTTPSERVERS = [
     {
         "URL": "https://api.mjml.io/v1/render",  # official MJML API

@@ -1,12 +1,66 @@
-<article class='rounded-3 shadow-sm text-center border border-1'>
-  <div class='p-4'>
-    <div class='text-muted'>{{ subscription.promo_code.coupon.duration_in_months }} months of</div>
-    <div class='fw-bold'>{{ subscription.plan.product.name }}</div>
-    <div class='p-4 font-monospace h4 pb-0 mb-0' style='letter-spacing: 3px;'>{{ subscription.promo_code.code }}</div>
-    <div class='text-muted fs-7'>GIFT CODE</div>
-  </div>
-  <div class='p-3 bg-light text-left'>
-    <div class='fs-7 text-muted'>Bought at {{ subscription.created }}</div>
-    <div class='fs-7 text-muted'>{% if subscription.promo_code.times_redeemed > 0 %}Redeemed ✅{% else %}Not yet redeemed ⏳{% endif %}</div>
-  </div>
-</article>
+{% load gift_card date djmoney %}
+{% with subscription|with_gift_code as sub %}
+  <article class='
+    rounded-3 shadow-sm text-center border border-2 max-width-card w-100
+    {% if subscription.promo_code and not subscription.promo_code.active and subscription.promo_code.times_redeemed > 0 %}
+      border-success
+    {% elif subscription.promo_code and not subscription.promo_code.active %}
+      border-warning
+    {% elif subscription.promo_code is None %}
+      border-danger
+    {% endif %}
+  '>
+    <div class='p-4'>
+      <div class='text-muted'>Gift Card</div>
+      <div class='fs-7 text-muted'>
+        {% if subscription.promo_code and not subscription.promo_code.active and subscription.promo_code.times_redeemed > 0 %}
+          <span class='text-success fw-bold'>Redeemed ✅</span>
+        {% elif subscription.promo_code and not subscription.promo_code.active %}
+          <span class='text-warning fw-bold'>Cancelled</span>
+        {% elif subscription.promo_code and subscription.promo_code.times_redeemed > 0 %}
+          Used {{ subscription.promo_code.times_redeemed }} of {{ subscription.promo_code.max_redemptions }} times
+        {% elif subscription.promo_code %}
+          Not yet redeemed ⏳
+        {% else %}
+          <span class='text-danger fw-bold'>Invalid ❌</span>
+        {% endif %}
+      </div>
+      {% if display_code is not False and subscription.promo_code.code is not None %}
+        <div class='p-4 font-monospace h3 pb-0 mb-4' style='
+          letter-spacing: 3px;
+          {% if not subscription.promo_code.active %}
+            text-decoration: line-through;
+          {% endif %}
+        '>
+          {{ subscription.promo_code.code }}
+        </div>
+      {% endif %}
+      {% if subscription.promo_code %}
+      <div class='text-muted'>
+        {% if subscription.promo_code.coupon.percent_off %}
+          {{ subscription.promo_code.coupon.percent_off|floatformat:"0" }}% off
+        {% elif subscription.promo_code.coupon.amount_off %}
+          {% money_localize subscription.promo_code.coupon.amount_off subscription.promo_code.coupon.currency %}
+        {% endif %}
+        {% if subscription.promo_code.coupon.duration_in_months %}
+          for {{ subscription.promo_code.coupon.duration_in_months }} months
+        {% endif %}
+      </div>
+      {% endif %}
+      {% if product_display is not False and subscription.plan.product.name is not None %}
+        <div class='fw-bold'>{{ subscription.plan.product.name }}</div>
+      {% endif %}
+      {% if subscription.metadata.gift_giver_subscription is not None %}
+        {% with subscription.promo_code.coupon.duration_in_months as discount_months %}
+          {% adjust_date subscription.created "months" discount_months as expiry_date %}
+          <div>Valid until {{expiry_date|date:"d M Y" }}</div>
+        {% endwith %}
+      {% endif %}
+    </div>
+    {% if subscription is not None %}
+    <div class='p-3 bg-light text-left'>
+      <div class='fs-7 text-muted'>Created at {{ subscription.created }}</div>
+    </div>
+    {% endif %}
+  </article>
+{% endwith %}

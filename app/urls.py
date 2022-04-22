@@ -12,7 +12,9 @@ from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_url
 
 from app.shopify_webhook.views import WebhookView
 from app.views import (
+    CancellationView,
     CartOptionsView,
+    GiftCodeRedeemSuccessView,
     GiftCodeRedeemView,
     LoginRequiredTemplateView,
     ShippingCostView,
@@ -37,7 +39,32 @@ urlpatterns = [
         name="account_membership",
     ),
     path(
+        "accounts/billing-and-shipping/",
+        LoginRequiredTemplateView.as_view(template_name="account/billing.html"),
+        name="billing_shipping",
+    ),
+    path(
+        "accounts/gift-cards/",
+        LoginRequiredTemplateView.as_view(template_name="account/gifts.html"),
+        name="gift_cards",
+    ),
+    path(
+        "accounts/cancel/",
+        CancellationView.as_view(),
+        name="cancel_membership",
+    ),
+    path(
         "redeem/",
+        GiftCodeRedeemView.as_view(),
+        name="redeem",
+    ),
+    path(
+        "redeem/success/",
+        LoginRequiredTemplateView.as_view(template_name="app/welcome.html"),
+        name="redeem_success",
+    ),
+    path(
+        "redeem/<str:code>/",
         GiftCodeRedeemView.as_view(),
         name="redeem",
     ),

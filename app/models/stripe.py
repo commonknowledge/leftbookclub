@@ -15,12 +15,6 @@ from wagtail.snippets.models import register_snippet
 from app.utils import flatten_list
 
 
-def subscription_with_promocode(sub):
-    promocode = stripe.PromotionCode.retrieve(sub.metadata.get("promo_code_id", None))
-    setattr(sub, "promo_code", promocode)
-    return sub
-
-
 class LBCProduct(djstripe.models.Product):
     @classmethod
     def get_active_plans(self):
@@ -57,6 +51,14 @@ class LBCProduct(djstripe.models.Product):
         return djstripe.models.Price.objects.filter(
             product=self.id, active=True, metadata__shipping=zone.code, **kwargs
         ).order_by("unit_amount")
+
+    def gift_giver_subscription(self):
+        """
+        If this subscription was created as a result of a neighbouring gift subscription
+        """
+        related_subscription_id = self.metadata.get("gift_giver_subscription", None)
+        if related_subscription_id:
+            return djstripe.models.Subscription.get(id=related_subscription_id)
 
     class Meta:
         proxy = True

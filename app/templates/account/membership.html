@@ -1,36 +1,22 @@
 {% extends "account/base.html" %}
-{% load account django_bootstrap5 gravatar setting %}
+{% load account django_bootstrap5 gravatar setting gift_card %}
 
 {% block account_content %}
-<div class='text-center'>
+<div>
   {% if request.user.is_member %}
-    <h3 class='fw-light'>
-      Your plan is <b>{{ user.subscribed_product.name }}</b> and you're paying {{ user.subscribed_price.human_readable_price }}.
-    </h3>
-
-    {% url "customerportal" as portal_url %}
-    <div class='my-4'>
-      {% bootstrap_button href=portal_url content="Manage shipping and billing" %}
+    <div class='d-flex flex-column justify-content-center align-items-center'>
+      {% include "app/includes/membership_card.html" %}
+      <br /><br />
+      {% url "cancel_membership" as cancellation_url %}
+      {% bootstrap_button size='sm' button_class='btn-outline-light text-muted' href=cancellation_url content="Cancel membership" %}
     </div>
   {% else %}
-    <h3 class='fw-light'>
+    <h3 class='fw-light text-center'>
       You're not a member at the moment.
     </h3>
-    <div class='my-4'>
+    <div class='my-4 text-center'>
       {% bootstrap_button href="/" content="Become a member" %}
     </div>
-  {% endif %}
-  {% if request.user.gifts_bought|length > 0 %}
-  <hr />
-  <h5>Gift cards you've bought</h5>
-  <p>Redeem gift codes <a href='{% setting "BASE_URL" %}{% url "redeem" %}'>here</a>.</p>
-  <div class='row'>
-  {% for subscription in request.user.gifts_bought %}
-    <div class='col col-sm-6'>
-      {% include "app/includes/gift_card.html" with subscription=subscription %}
-    </div>
-  {% endfor %}
-  </div>
   {% endif %}
 </div>
 {% endblock %}

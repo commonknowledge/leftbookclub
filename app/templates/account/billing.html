@@ -18,6 +18,14 @@
           {% include "app/includes/gift_card.html" with subscription=user.active_subscription display_code=False product_display=False %}
         {% endif %}
       {% endif %}
+      {% for subscription in request.user.gifts_bought %}
+        {% if subscription.status == 'active' %}
+          <div class='my-4 w-100 d-flex flex-column align-items-center justify-content-center'>
+            <div class='h5 fw-light text-center'>{{ subscription.plan.human_readable_price }} until {{ subscription.cancel_at|date:"d M Y" }}</div>
+            {% include "app/includes/gift_card.html" with subscription=subscription display_code=False %}
+          </div>
+        {% endif %}
+      {% endfor %}
     </div>
   {% else %}
     <h3 class='fw-light text-center'>

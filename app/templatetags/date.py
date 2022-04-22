@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 import pytz
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
@@ -11,6 +13,8 @@ register = template.Library()
 
 @register.filter
 def to_date(self):
+    if isinstance(self, date) or isinstance(self, datetime):
+        return self
     return parse(self)
 
 

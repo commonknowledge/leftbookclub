@@ -59,7 +59,7 @@
     </div>
     {% if subscription is not None %}
     <div class='p-3 bg-light text-left'>
-      <div class='fs-7 text-muted'>Created at {{ subscription.created }}</div>
+      <div class='fs-7 text-muted'>Created on {{ subscription.created|to_date|date:"d M Y" }}</div>
     </div>
     {% endif %}
   </article>

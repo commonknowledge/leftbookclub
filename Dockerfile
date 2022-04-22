@@ -9,7 +9,10 @@ COPY vite.config.js tsconfig.json env.d.ts ./
 RUN NODE_ENV=production yarn vite build
 
 FROM python:3.10-slim-bullseye
-
+ARG MJML_APPLICATION_ID
+ENV MJML_APPLICATION_ID=${MJML_APPLICATION_ID}
+ARG MJML_SECRET_KEY
+ENV MJML_SECRET_KEY=${MJML_SECRET_KEY}
 # Configure system
 WORKDIR /app
 

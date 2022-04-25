@@ -20,8 +20,7 @@
               <p>We've sent you an email with these details.</p>
             {% else %}
               <p class='text-danger'>
-                  Something went wrong creating your gift code.
-                  Please email office@leftbookclub.com and we'll get you on your way.
+                You can find your purchased gift card <a href="{% url 'gift_cards' %}">here</a>.
               </p>
             {% endif %}
           </div>

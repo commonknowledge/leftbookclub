@@ -62,8 +62,9 @@ INSTALLED_APPS = [
     "wagtailseo",
 ]
 
-if os.environ.get("MJML_APPLICATION_ID", None) is not None and os.environ.get(
-    "MJML_SECRET_KEY", None
+if (
+    os.environ.get("MJML_APPLICATION_ID", None) is not None
+    and os.environ.get("MJML_SECRET_KEY", None) is not None
 ):
     INSTALLED_APPS += ["mjml"]
 else:

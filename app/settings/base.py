@@ -60,8 +60,14 @@ INSTALLED_APPS = [
     "wagtail.contrib.modeladmin",
     "wagtailmenus",
     "wagtailseo",
-    "mjml",
 ]
+
+if os.environ.get("MJML_APPLICATION_ID", None) is not None and os.environ.get(
+    "MJML_SECRET_KEY", None
+):
+    INSTALLED_APPS += ["mjml"]
+else:
+    print("Warning: MJML is not installed")
 
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -286,7 +292,6 @@ WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)
 # email formatting
 
 MJML_BACKEND_MODE = "httpserver"
-print("MJML_APPLICATION_ID", os.environ.get("MJML_APPLICATION_ID", None))
 MJML_HTTPSERVERS = [
     {
         "URL": "https://api.mjml.io/v1/render",  # official MJML API

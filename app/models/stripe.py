@@ -15,7 +15,15 @@ from wagtail.snippets.models import register_snippet
 from app.utils import flatten_list
 
 
+class LBCCustomer(djstripe.models.Customer):
+    class Meta:
+        proxy = True
+
+
 class LBCProduct(djstripe.models.Product):
+    class Meta:
+        proxy = True
+
     @classmethod
     def get_active_plans(self):
         plans = self.objects.filter(metadata__pickable="1", active=True, type="service")
@@ -59,9 +67,6 @@ class LBCProduct(djstripe.models.Product):
         related_subscription_id = self.metadata.get("gift_giver_subscription", None)
         if related_subscription_id:
             return djstripe.models.Subscription.get(id=related_subscription_id)
-
-    class Meta:
-        proxy = True
 
 
 alphanumeric = RegexValidator(

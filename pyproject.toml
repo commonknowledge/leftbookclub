@@ -29,7 +29,7 @@ wagtail = '^2.16'
 psycopg2 = '>=2.8.6'
 # wagtail-transfer = { git = "https://github.com/wagtail/wagtail-transfer.git#master", branch = "master" }
 django-livereload-server = "^0.4"
-stripe = "^2.68.0"
+stripe = "^2.74.0"
 django-mathfilters = "^1.0.0"
 django-money = "^2.1.1"
 dj-stripe = "^2.6.1"

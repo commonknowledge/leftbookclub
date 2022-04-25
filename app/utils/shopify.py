@@ -1,6 +1,16 @@
 import json
 
+import shopify
 from dateutil.parser import parse
+from django.conf import settings
+
+
+def create_session(
+    domain=settings.SHOPIFY_DOMAIN,
+    api_version="2021-10",
+    access_token=settings.SHOPIFY_PRIVATE_APP_PASSWORD,
+):
+    return shopify.Session(domain, api_version, access_token)
 
 
 def metafields_to_dict(metafields):

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.templatetags.static import static as get_static_path
 from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
@@ -31,7 +32,7 @@ urlpatterns = [
     path("documents/", include(wagtaildocs_urls)),
     path(
         "favicon.ico",
-        RedirectView.as_view(url="/static/images/logo.png", permanent=True),
+        RedirectView.as_view(url=get_static_path("images/logo.png"), permanent=True),
     ),
     path(
         "accounts/profile/",

@@ -13,6 +13,10 @@ from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list
+from app.utils.stripe import (
+    get_primary_product_for_djstripe_subscription,
+    get_shipping_product_for_djstripe_subscription,
+)
 
 
 class LBCCustomer(djstripe.models.Customer):
@@ -24,10 +28,13 @@ class LBCSubscription(djstripe.models.Subscription):
     class Meta:
         proxy = True
 
-    def product(self):
-        if self.plan:
-            return self.plan.product.name
-        return None
+    def primary_product_name(self):
+        primary_product = get_primary_product_for_djstripe_subscription(self)
+        shipping_product = get_shipping_product_for_djstripe_subscription(self)
+        if primary_product:
+            if shipping_product:
+                return f"{primary_product.name} + {shipping_product.name}"
+            return primary_product.name
 
     def customer_id(self):
         return self.customer.id

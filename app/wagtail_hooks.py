@@ -4,7 +4,7 @@ from admin_list_controls.actions import SubmitForm
 from admin_list_controls.components import Button, Columns, Panel
 from admin_list_controls.filters import BooleanFilter, ChoiceFilter, TextFilter
 from admin_list_controls.views import ListControlsIndexView
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.templatetags.static import static
 from django.utils.html import format_html
 from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
@@ -38,9 +38,9 @@ modeladmin_register(ShippingAdmin)
 class IndexView(ListControlsIndexView):
     def build_list_controls(self):
         products = list(
-            LBCSubscription.objects.order_by()
-            .values_list("plan__product__id", "plan__product__name")
-            .annotate(frequency=Count("plan__product__id"))
+            djstripe.models.Plan.objects.order_by()
+            .values_list("product__id", "product__name")
+            .annotate(frequency=Count("product__id"))
             .order_by("-frequency")
         )
         statuses = list(
@@ -65,7 +65,11 @@ class IndexView(ListControlsIndexView):
                         multiple=True,
                         choices=tuple((p[0], p[1]) for p in products),
                         apply_to_queryset=lambda queryset, values: queryset.filter(
-                            plan__product__in=values
+                            # Single-plan subscriptions
+                            # Q(plan__product__in=values) |
+                            # Multi-plan subscriptions
+                            Q(plan__subscription_items__plan__product__in=values)
+                            | Q(items__plan__product__in=values)
                         ),
                     ),
                 ),
@@ -89,11 +93,11 @@ class CustomerAdmin(ModelAdmin):
     )
     list_display = (
         "id",
-        "product",
+        "primary_product_name",
         "status",
-        "metadata",
         "recipient_name",
         "customer_id",
+        "metadata",
     )
     list_export = (
         "recipient_name",
@@ -108,8 +112,13 @@ class CustomerAdmin(ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.filter(
-            customer__shipping__address__isnull=False, metadata__gift_mode__isnull=True
+        return (
+            qs.filter(
+                customer__shipping__address__isnull=False,
+                metadata__gift_mode__isnull=True,
+            )
+            .select_related("plan__product")
+            .distinct()
         )
 
 

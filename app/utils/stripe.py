@@ -84,3 +84,32 @@ def create_gift(
 
     djstripe.models.Subscription.sync_from_stripe_data(subscription)
     user.refresh_stripe_data()
+
+
+def get_primary_product_for_djstripe_subscription(sub):
+    if sub.plan is not None and sub.plan.product is not None:
+        return sub.plan.product
+    sis = []
+    if sub.plan is not None and sub.plan.subscription_items.count() > 0:
+        sis = sub.plan.subscription_items.all()
+    elif sub.items.count() > 0:
+        sis = sub.items.all()
+    if sis is not None and len(sis) > 0:
+        for si in sis:
+            if "shipping" not in si.plan.product.name.lower():
+                return si.plan.product
+
+
+def get_shipping_product_for_djstripe_subscription(sub):
+    sis = []
+    if sub.plan is not None and sub.plan.subscription_items.count() > 0:
+        sis = sub.plan.subscription_items.all()
+    elif sub.items.count() > 0:
+        sis = sub.items.all()
+    if sis is not None and len(sis) > 0:
+        for si in sis:
+            if si.plan.product is not None and (
+                "shipping" in si.plan.product.name.lower()
+                or si.plan.product.metadata.get("shipping", None) is not None
+            ):
+                return si.plan.product

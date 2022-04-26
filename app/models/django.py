@@ -4,7 +4,10 @@ from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.contrib.auth.models import AbstractUser
 
-from app.utils.stripe import subscription_with_promocode
+from app.utils.stripe import (
+    get_primary_product_for_djstripe_subscription,
+    subscription_with_promocode,
+)
 
 from .stripe import LBCProduct
 
@@ -65,16 +68,16 @@ class User(AbstractUser):
             return self.active_subscription.status
         return None
 
-    def _subscribed_product(self) -> LBCProduct:
+    @property
+    def subscribed_product(self) -> LBCProduct:
         try:
-            product = self.active_subscription.plan.product
-            return product
+            if self.active_subscription is not None:
+                product = get_primary_product_for_djstripe_subscription(
+                    self.active_subscription
+                )
+                return product
         except:
             return None
-
-    @property
-    def subscribed_product(self):
-        return self._subscribed_product()
 
     @property
     def subscribed_price(self):

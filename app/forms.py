@@ -36,47 +36,73 @@ class GiftCodeForm(forms.Form):
 class StripeShippingForm(forms.Form):
     name = forms.CharField(label="Recipient name", max_length=250)
     line1 = forms.CharField(
-        label="Address line 1 (e.g., street, PO Box, or company name)",
+        label="Address line 1",
+        help_text="Address line 1 (e.g., street, PO Box, or company name)",
         max_length=250,
         required=False,
         empty_value=None,
     )
     line2 = forms.CharField(
-        label="Address line 2 (e.g., apartment, suite, unit, or building)",
+        label="Address line 2",
+        help_text="Address line 2 (e.g., apartment, suite, unit, or building)",
         max_length=250,
         required=False,
         empty_value=None,
     )
     postal_code = forms.CharField(
-        label="ZIP or postal code", max_length=250, required=False, empty_value=None
+        label="Post code",
+        help_text="ZIP or postal code",
+        max_length=250,
+        required=False,
+        empty_value=None,
     )
     city = forms.CharField(
-        label="City, district, suburb, town, or village",
+        label="City",
+        help_text="City, district, suburb, town, or village",
         max_length=250,
         required=False,
         empty_value=None,
     )
     state = forms.CharField(
-        label="State, county, province, or region",
+        label="Region",
+        help_text="Region, state, county, province",
         max_length=250,
         required=False,
         empty_value=None,
     )
     country = CountryField().formfield(
-        label="Country", widget=CountrySelectWidget, required=False, empty_value=None
+        label="Country",
+        help_text="Country",
+        widget=CountrySelectWidget,
+        required=False,
+        empty_value=None,
     )
 
-    def clean(self):
-        self.cleaned_data = super().clean()
-        self.cleaned_data["shipping"] = {
-            "name": self.cleaned_data["name"],
+    @classmethod
+    def stripe_data_to_initial(cls, stripe_data) -> dict:
+        return {
+            "name": stripe_data.get("name", None),
+            "line1": stripe_data.get("address", {}).get("line1", None),
+            "line2": stripe_data.get("address", {}).get("line2", None),
+            "postal_code": stripe_data.get("address", {}).get("postal_code", None),
+            "city": stripe_data.get("address", {}).get("city", None),
+            "state": stripe_data.get("address", {}).get("state", None),
+            "country": stripe_data.get("address", {}).get("country", None),
+        }
+
+    @classmethod
+    def form_data_to_stripe(cls, cleaned_data) -> dict:
+        return {
+            "name": cleaned_data["name"],
             "address": {
-                "line1": self.cleaned_data("line1", None),
-                "line2": self.cleaned_data("line2", None),
-                "postal_code": self.cleaned_data("postal_code", None),
-                "city": self.cleaned_data("city", None),
-                "state": self.cleaned_data("state", None),
-                "country": self.cleaned_data("country", None),
+                "line1": cleaned_data.get("line1", None),
+                "line2": cleaned_data.get("line2", None),
+                "postal_code": cleaned_data.get("postal_code", None),
+                "city": cleaned_data.get("city", None),
+                "state": cleaned_data.get("state", None),
+                "country": cleaned_data.get("country", None),
             },
         }
-        return self.cleaned_data
+
+    def to_stripe(self) -> dict:
+        return StripeShippingForm.form_data_to_stripe(self.cleaned_data)

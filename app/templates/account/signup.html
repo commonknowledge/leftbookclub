@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "account/modal_base.html" %}
 
 {% load i18n %}
 {% load django_bootstrap5 %}
@@ -6,10 +6,10 @@
 
 {% block head_title %}{% trans "Create an account" %}BS{% endblock %}
 
-{% block content %}
+{% block modal_content %}
 {% get_providers as socialaccount_providers %}
 
-<h1>{% trans "Create an account" %}</h1>
+<h1 class='text-center'>{% trans "Create an account" %}</h1>
     
 <div class="row">
   {% if socialaccount_providers  %}
@@ -18,9 +18,8 @@
   </div>
   {% endif %}
 
-  <div class="{% if socialaccount_providers %}col-md-7 col-lg-7 {% else %} col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3 {% endif %}">
-
-    <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
+  <div>
+    <p class='text-center'>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
         
     <form data-turbo="false" id="signup_form" method="post" action="{% url 'account_signup' %}">
       {% csrf_token %}
@@ -28,8 +27,8 @@
       {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
       {% endif %}
-      <div class="form-actions">
-        <button class="btn btn-primary" type="submit">{% trans "Sign Up" %}</button>
+      <div class="form-actions text-center">
+        {% bootstrap_button size='lg' content="Sign up" %}
       </div>
     </form>
   </div>

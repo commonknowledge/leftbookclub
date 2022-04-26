@@ -1,0 +1,19 @@
+{% extends "account/modal_base.html" %}
+{% load account setting django_bootstrap5 %}
+{% block title %}Set up shipping{% endblock %}
+{% block modal_content %}
+  <main class='container'>
+    <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
+      <h1 class="h2 fw-normal">Set up shipping</h1>
+      <p class="fs-5 text-muted">Then we can start sending you books</p>
+    </header>
+    <form method='POST' data-turbo="false">
+      {% csrf_token %}
+      {% bootstrap_form form show_label=False exclude="country" %}
+      <div class='position-relative'>
+        {% bootstrap_field form.country show_label=False %}
+      </div>
+      {% bootstrap_button size='lg' content="Save shipping details" %}
+    </form>
+  </main>
+{% endblock %}

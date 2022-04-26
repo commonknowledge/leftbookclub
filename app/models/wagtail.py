@@ -11,6 +11,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.http.response import Http404
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.utils.html import strip_tags
 from django_countries import countries
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
@@ -28,11 +29,7 @@ from app.models.blocks import ArticleContentStream
 from app.shopify_webhook.signals import products_create
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
-from app.views import (
-    CheckoutSessionCompleteView,
-    CreateCheckoutSessionView,
-    ShippingCostView,
-)
+from app.views import CreateCheckoutSessionView, ShippingCostView
 
 from .stripe import LBCProduct, ShippingZone
 
@@ -188,7 +185,7 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
 
         checkout_args["success_url"] = urllib.parse.urljoin(
             self.get_full_url(request),
-            self.reverse_subpage("post_purchase_cleanup")
+            reverse_lazy("member_signup_complete")
             + "?session_id={CHECKOUT_SESSION_ID}&"
             + urlencode(callback_url_args),
         )
@@ -198,13 +195,6 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
         )
 
         return CreateCheckoutSessionView.as_view(context=checkout_args)(request)
-
-    @route(r"^complete/$")
-    def post_purchase_cleanup(self, request):
-        """
-        Present a thank you page and run any wrapup activites that are required.
-        """
-        return CheckoutSessionCompleteView.as_view()(request)
 
     @route(r"^error/$")
     def subscription_error(self, request):

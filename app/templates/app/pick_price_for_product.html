@@ -9,7 +9,7 @@
           <h2 class="h3 fw-normal text-center">Confirm{% if gift_mode %} gift{% endif %} details</h2>
         </header>
         <div class="mb-3">
-          <label class="form-label" for="id_country">You're purchasing</label>
+          <label class="form-label">You're purchasing</label>
           <div class='p-3 bg-light rounded-3 my-2'>
             <div class="h5 mb-0">
               {{ product.name }} {% if request.GET.gift_mode %}<span>- as a gift</span>{% endif %}
@@ -29,7 +29,9 @@
             <input type='hidden' name='gift_mode' value='true' />
           {% endif %}
           {% csrf_token %}
-          {% bootstrap_form country_selector_form %}
+          <div class='position-relative'>
+            {% bootstrap_field country_selector_form.country %}
+          </div>
           <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}{% if gift_mode %}?gift_mode=true{% endif %}">
             <div class='p-3 bg-light rounded-3 my-2'>
               <div class="text-muted mb-1 text-center">

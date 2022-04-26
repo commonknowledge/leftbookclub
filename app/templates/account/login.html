@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "account/modal_base.html" %}
 
 {% load i18n %}
 {% load django_bootstrap5 %}
@@ -7,7 +7,7 @@
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 
-{% block content %}
+{% block modal_content %}
 {% get_providers as socialaccount_providers %}
 
 <h1 class="text-center">Log In</h1>

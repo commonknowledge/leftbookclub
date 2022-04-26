@@ -171,3 +171,12 @@ class User(AbstractUser):
 
     def shipping_zip(self):
         return self.shipping_address.get("zip", None)
+
+    def cleanup_membership_subscriptions(self, keep=[]):
+        for sub in self.stripe_customer.subscriptions.all():
+            should_keep = keep is None or (sub.id != keep and sub.id not in keep)
+            if sub.metadata.get("gift_mode", None) is None and not should_keep:
+                try:
+                    stripe.Subscription.delete(sub.id)
+                except:
+                    pass

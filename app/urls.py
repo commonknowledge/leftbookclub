@@ -15,9 +15,10 @@ from app.shopify_webhook.views import WebhookView
 from app.views import (
     CancellationView,
     CartOptionsView,
-    GiftCodeRedeemSuccessView,
     GiftCodeRedeemView,
+    GiftMembershipSetupView,
     LoginRequiredTemplateView,
+    MemberSignupCompleteView,
     ShippingCostView,
     StripeCustomerPortalView,
 )
@@ -60,9 +61,14 @@ urlpatterns = [
         name="redeem",
     ),
     path(
-        "redeem/success/",
-        LoginRequiredTemplateView.as_view(template_name="app/welcome.html"),
-        name="redeem_success",
+        "redeem/setup/",
+        GiftMembershipSetupView.as_view(),
+        name="redeem_setup",
+    ),
+    path(
+        "welcome/",
+        MemberSignupCompleteView.as_view(),
+        name="member_signup_complete",
     ),
     path(
         "redeem/<str:code>/",

@@ -1,18 +1,7 @@
-FROM node:lts AS builder
+FROM python3.10-nodejs18-bullseye
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn --frozen-lockfile
-COPY frontend ./frontend/
-COPY app/templates ./app/templates
-COPY vite.config.js tsconfig.json env.d.ts ./
-RUN NODE_ENV=production yarn vite build
-
-FROM python:3.10-slim-bullseye
-# Configure system
-WORKDIR /app
-
-
+# OS deps
 COPY Aptfile ./
 RUN apt-get update && cat Aptfile | xargs apt-get install --yes --quiet --no-install-recommends 
 RUN groupadd -r app && useradd --no-log-init -r -g app app
@@ -24,12 +13,22 @@ USER app
 RUN poetry config virtualenvs.create true
 RUN poetry config virtualenvs.in-project true
 
-# Install
+# Python deps
 COPY --chown=app:app pyproject.toml poetry.lock ./
 RUN poetry install -n
 
+# Frontend deps
+COPY package.json yarn.lock ./
+RUN yarn --frozen-lockfile
+
+# Remaining project files
 COPY --chown=app:app . ./
-COPY --chown=app --from=builder /app/vite ./vite
+
+# Frontend build
+# with files available for purgecss
+RUN NODE_ENV=production yarn vite build
+
+# Django prep
 ENV DJANGO_SETTINGS_MODULE=app.settings.production
 ENV PATH=$PATH:/home/app/.local/bin
 RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear

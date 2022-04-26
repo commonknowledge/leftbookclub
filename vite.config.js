@@ -22,21 +22,21 @@ export default defineConfig(({ command }) => {
         input: BUNDLE_ENTRYPOINTS,
       },
     },
-    // css:
-    //   command === "build"
-    //     ? {
-    //         postcss: {
-    //           plugins: [
-    //             purgecss({
-    //               content: [
-    //                 "./app/**/*.html",
-    //                 "./frontend/**/*.ts",
-    //                 "./static/**/*.js",
-    //               ],
-    //             }),
-    //           ],
-    //         },
-    //       }
-    //     : undefined,
+    css:
+      command === "build"
+        ? {
+            postcss: {
+              plugins: [
+                purgecss({
+                  content: [
+                    "./app/**/*.html",
+                    "./frontend/**/*.ts",
+                    "./static/**/*.js",
+                  ],
+                }),
+              ],
+            },
+          }
+        : undefined,
   };
 });

@@ -103,9 +103,6 @@ MEDIA_URL: "https://fra1.digitaloceanspaces.com/leftbookclub/",
 //From Mailjet
 MAILJET_API_KEY: "...",
 MAILJET_SECRET_KEY: "...",
-//From https://mjml.io
-MJML_APPLICATION_ID: "...",
-MJML_SECRET_KEY: "...",
 //From https://left-book-club-shop.myshopify.com/admin/apps/private/349095133417
 SHOPIFY_APP_API_SECRET: "...",
 SHOPIFY_PRIVATE_APP_PASSWORD: "...",

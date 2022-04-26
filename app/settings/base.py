@@ -64,6 +64,14 @@ INSTALLED_APPS = [
     "mjml",
 ]
 
+# if (
+#     os.environ.get("MJML_APPLICATION_ID", None) is not None
+#     and os.environ.get("MJML_SECRET_KEY", None) is not None
+# ):
+#     INSTALLED_APPS += ["mjml"]
+# else:
+#     print("Warning: MJML is not installed")
+
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

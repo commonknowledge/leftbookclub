@@ -27,6 +27,7 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
 from app.shopify_webhook.signals import products_create
+from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.views import CreateCheckoutSessionView, ShippingCostView
@@ -146,9 +147,7 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
             )
 
         product = LBCProduct.objects.get(id=product_id)
-        price = product.get_prices_for_country(
-            iso_a2=country, recurring__interval="month"
-        ).first()
+        price = product.basic_price
         zone = ShippingZone.get_for_country(country)
 
         if price is None:
@@ -164,7 +163,31 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
 
         checkout_args = dict(
             mode="subscription",
-            line_items=[{"price": price.id, "quantity": 1}],
+            line_items=[
+                {
+                    # Membership
+                    "price": price.id,
+                    "quantity": 1,
+                },
+                {
+                    # Shipping
+                    "price_data": {
+                        "currency": zone.rate_currency,
+                        "product_data": {"name": f"Shipping to {zone.nickname}"},
+                        "unit_amount_decimal": zone.rate.amount * 100,
+                        # running on the same payment schedule as the membership
+                        "recurring": include_keys(
+                            price.recurring,
+                            (
+                                "interval",
+                                "interval_count",
+                            ),
+                        ),
+                        "metadata": {"shipping": True},
+                    },
+                    "quantity": 1,
+                },
+            ],
             # By default, customer details aren't updated, but we want them to be.
             customer_update={
                 "shipping": "auto",

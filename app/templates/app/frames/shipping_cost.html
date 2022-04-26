@@ -5,16 +5,17 @@
       {% bootstrap_button disabled=True button_type="submit" content="We can't ship to this country" button_class='w-100 btn-primary my-2' %}
     {% else %}
       <div class='p-3 bg-light rounded-3 my-2'>
-        <div class="text-muted mb-1">
-          {{ product.basic_price.human_readable_price }} subscription fee
+        <div class="text-muted mb-1 d-flex justify-content-between w-100">
+          <span>Membership</span>
+          <span>{% money_localize product.basic_price.unit_amount|div:100 product.basic_price.currency %}</span>
         </div>
-        {% if shipping_fee is not None %}
-        <div class="text-muted mb-1">
-          {% money_localize shipping_fee|div:100 final_price.currency %} shipping fee
+        <div class="text-muted mb-1 d-flex justify-content-between w-100">
+          <span>Shipping</span>
+          <span>{% if shipping_zone.rate.amount == 0 %}FREE{% else %}{% money_localize shipping_zone.rate %}{% endif %}</span>
         </div>
-        {% endif %}
-        <div class="h5 mb-1">
-          {{ final_price.human_readable_price }} <span class="text-muted fw-light">total</small>
+        <div class="h5 mb-1 d-flex justify-content-between w-100">
+          <span>Total</span>
+          <span>{% money_localize final_price %}<small>{{ product.basic_price|stripe_billing_scheme }}</small></span>
         </div>
         {% if request.GET.gift_mode %}
         <div class="text-muted mb-0">

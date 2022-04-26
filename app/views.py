@@ -16,6 +16,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
+from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 
 from app.forms import GiftCodeForm, StripeShippingForm
@@ -218,21 +219,16 @@ class ShippingCostView(TemplateView):
         if product_id is None or country_id is None:
             return context
         product = LBCProduct.objects.get(id=product_id)
-        basic_price = product.basic_price
-        shipping_price = product.get_prices_for_country(
-            iso_a2=country_id,
-            recurring__interval=basic_price.recurring["interval"],
-            recurring__interval_count=basic_price.recurring["interval_count"],
-        ).first()
-        if basic_price is None or shipping_price is None:
-            return context
         zone = ShippingZone.get_for_country(country_id)
         context = {
             **context,
             "zone": zone,
             "product": product,
-            "shipping_fee": shipping_price.unit_amount - basic_price.unit_amount,
-            "final_price": shipping_price,
+            "shipping_zone": zone,
+            "final_price": Money(
+                product.basic_price.unit_amount / 100, product.basic_price.currency
+            )
+            + Money(zone.rate.amount, product.basic_price.currency),
             "url_pattern": self.url_pattern,
         }
 

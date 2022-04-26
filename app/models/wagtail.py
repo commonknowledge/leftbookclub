@@ -434,7 +434,11 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
-            return shopify.Product.find(self.shopify_product_id)
+            try:
+                product = shopify.Product.find(self.shopify_product_id)
+                return product
+            except:
+                return None
 
     @property
     @django_cached("shopify_product_metafields", get_key=shopify_product_id_key)
@@ -442,8 +446,11 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
-            metafields = self.shopify_product.metafields()
-            return metafields_to_dict(metafields)
+            try:
+                metafields = self.shopify_product.metafields()
+                return metafields_to_dict(metafields)
+            except:
+                return {}
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -472,7 +479,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     @property
     def seo_description(self) -> str:
         try:
-            return strip_tags(self.shopify_product.body_html).replace("\n", "")
+            tags = strip_tags(self.shopify_product.body_html).replace("\n", "")
+            return tags
         except:
             return ""
 
@@ -482,7 +490,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         Middleware for seo_image_sources
         """
         try:
-            return self.shopify_product.images[0].src
+            image = self.shopify_product.images[0].src
+            return image
         except:
             return ""
 

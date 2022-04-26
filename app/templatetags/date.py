@@ -15,6 +15,8 @@ register = template.Library()
 def to_date(self):
     if isinstance(self, date) or isinstance(self, datetime):
         return self
+    if isinstance(self, int):
+        return datetime.fromtimestamp(self)
     return parse(self)
 
 

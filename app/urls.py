@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.templatetags.static import static as get_static_path
 from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
@@ -14,9 +15,10 @@ from app.shopify_webhook.views import WebhookView
 from app.views import (
     CancellationView,
     CartOptionsView,
-    GiftCodeRedeemSuccessView,
     GiftCodeRedeemView,
+    GiftMembershipSetupView,
     LoginRequiredTemplateView,
+    MemberSignupCompleteView,
     ShippingCostView,
     StripeCustomerPortalView,
 )
@@ -31,7 +33,7 @@ urlpatterns = [
     path("documents/", include(wagtaildocs_urls)),
     path(
         "favicon.ico",
-        RedirectView.as_view(url="/static/images/logo.png", permanent=True),
+        RedirectView.as_view(url=get_static_path("images/logo.png"), permanent=True),
     ),
     path(
         "accounts/profile/",
@@ -59,9 +61,14 @@ urlpatterns = [
         name="redeem",
     ),
     path(
-        "redeem/success/",
-        LoginRequiredTemplateView.as_view(template_name="app/welcome.html"),
-        name="redeem_success",
+        "redeem/setup/",
+        GiftMembershipSetupView.as_view(),
+        name="redeem_setup",
+    ),
+    path(
+        "welcome/",
+        MemberSignupCompleteView.as_view(),
+        name="member_signup_complete",
     ),
     path(
         "redeem/<str:code>/",

@@ -5,8 +5,12 @@
 {% with request.GET.gift_mode as gift_mode %}
   <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
     {% if not gift_mode %}
-      <h1 class="h1 fw-normal">Join the Left Book Club</h1>
-      <p class="fs-5 text-muted">Your subscription will begin with the most recently published book in your chosen collection.</p>
+      {% if user.is_member %}
+        <h1 class="h1 fw-normal">Switch to a different membership tier</h1>
+      {% else %}
+        <h1 class="h1 fw-normal">Join the Left Book Club</h1>
+        <p class="fs-5 text-muted">Your subscription will begin with the most recently published book in your chosen collection.</p>
+      {% endif %}
       {% bootstrap_button href="?gift_mode=true" content="Gift someone a membership" %}
     {% else %}
       <h1 class="h1 fw-normal">Gift someone {% setting "GIFT_MONTHS" %} months of membership</h1>

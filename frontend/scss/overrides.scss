@@ -5,11 +5,13 @@
   margin: 0;
 }
 
-[data-controller="shipping"] #flag_id_country {
-  position: absolute;
-  pointer-events: none;
-  bottom: 14px;
-  right: 36px;
+#flag_id_country {
+  display: none;
+  // position: absolute;
+  // pointer-events: none;
+  // top: 50%;
+  // transform: translateY(-50%);
+  // right: 36px;
 }
 
 @include media-breakpoint-up(sm) {

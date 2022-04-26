@@ -4,7 +4,10 @@ from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.contrib.auth.models import AbstractUser
 
-from app.utils.stripe import subscription_with_promocode
+from app.utils.stripe import (
+    get_primary_product_for_djstripe_subscription,
+    subscription_with_promocode,
+)
 
 from .stripe import LBCProduct
 
@@ -40,6 +43,12 @@ class User(AbstractUser):
         except:
             return None
 
+    def stripe_customer_id(self) -> str:
+        customer = self.stripe_customer
+        if customer:
+            return customer.id
+        return None
+
     @property
     def active_subscription(self) -> djstripe.models.Subscription:
         try:
@@ -54,11 +63,19 @@ class User(AbstractUser):
     def is_member(self):
         return self.active_subscription is not None
 
+    def subscription_status(self):
+        if self.is_member:
+            return self.active_subscription.status
+        return None
+
     @property
     def subscribed_product(self) -> LBCProduct:
         try:
-            product = self.active_subscription.plan.product
-            return product
+            if self.active_subscription is not None:
+                product = get_primary_product_for_djstripe_subscription(
+                    self.active_subscription
+                )
+                return product
         except:
             return None
 
@@ -107,3 +124,59 @@ class User(AbstractUser):
         if len(allauth_emails) > 0:
             return allauth_emails[0].email
         return self.email
+
+    @property
+    def shipping_address(self):
+        try:
+            shipping = self.stripe_customer.shipping.get("address", {})
+            return shipping
+        except:
+            return {}
+
+    def shipping_name(self):
+        try:
+            name = None
+            if self.get_full_name() is not None:
+                name = self.get_full_name()
+            if name is None or len(name) == 0:
+                try:
+                    name = self.stripe_customer.shipping.get("name", None)
+                except:
+                    pass
+            if name is None or len(name) == 0:
+                try:
+                    name = self.stripe_customer.name
+                except:
+                    pass
+            if name is None or len(name) == 0:
+                name = self.username
+            return name
+        except:
+            return ""
+
+    def shipping_line_1(self):
+        return self.shipping_address.get("line1", "")
+
+    def shipping_line_2(self):
+        return self.shipping_address.get("line2", None)
+
+    def shipping_line_2(self):
+        return self.shipping_address.get("line2", None)
+
+    def shipping_city(self):
+        return self.shipping_address.get("city", None)
+
+    def shipping_country(self):
+        return self.shipping_address.get("country", None)
+
+    def shipping_zip(self):
+        return self.shipping_address.get("zip", None)
+
+    def cleanup_membership_subscriptions(self, keep=[]):
+        for sub in self.stripe_customer.subscriptions.all():
+            should_keep = keep is None or (sub.id != keep and sub.id not in keep)
+            if sub.metadata.get("gift_mode", None) is None and not should_keep:
+                try:
+                    stripe.Subscription.delete(sub.id)
+                except:
+                    pass

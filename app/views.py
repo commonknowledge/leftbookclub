@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from datetime import datetime
 from multiprocessing.sharedctypes import Value
+from pipes import Template
 
 import djstripe.models
 import stripe
@@ -10,13 +11,14 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.http import HttpRequest, HttpResponseRedirect
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from djstripe import settings as djstripe_settings
 
-from app.forms import GiftCodeForm
+from app.forms import GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
 from app.utils.stripe import create_gift, gift_giver_subscription_from_code
@@ -71,101 +73,136 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
         }
 
 
-class CheckoutSessionCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
+class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
     template_name = "app/welcome.html"
 
     def get_context_data(self, *args, **kwargs):
         # Get parent Context
         page_context = super().get_context_data(**kwargs)
+        session_id = self.request.GET.get("session_id", None)
+        gift_mode = False
+        session = None
+        customer = None
+        subscription = None
 
-        # Get checkout data
-        session = stripe.checkout.Session.retrieve(self.request.GET.get("session_id"))
-        customer_from_stripe = stripe.Customer.retrieve(session.customer)
-        customer, is_new = djstripe.models.Customer._get_or_create_from_stripe_object(
-            customer_from_stripe
-        )
-        subscription = stripe.Subscription.retrieve(session.subscription)
-        gift_mode = session.metadata.get("gift_mode")
+        if session_id is not None:
+            session = stripe.checkout.Session.retrieve(session_id)
+            customer_from_stripe = stripe.Customer.retrieve(session.customer)
+            (
+                customer,
+                is_new,
+            ) = djstripe.models.Customer._get_or_create_from_stripe_object(
+                customer_from_stripe
+            )
+            subscription = stripe.Subscription.retrieve(session.subscription)
+            gift_mode = session.metadata.get("gift_mode")
 
-        if gift_mode is not None:
-            page_context["gift_mode"] = True
-            try:
-                promo_code_id = subscription.metadata.get("promo_code", None)
-                if promo_code_id is not None:
-                    # Refreshed the page -- don't let them generate a new coupon each time they do that!
-                    promo_code = stripe.PromotionCode.retrieve(promo_code_id)
-                    page_context["promo_code"] = promo_code.code
-                else:
-                    # First time
-                    subscription = stripe.Subscription.modify(
-                        session.subscription,
-                        metadata={"gift_mode": True},
-                        cancel_at=(datetime.now() - relativedelta(days=1))
-                        + relativedelta(months=settings.GIFT_MONTHS),
-                    )
-                    # 2. Generate coupon
-                    product_id = subscription.get("items").data[0].price.product
-                    coupon = stripe.Coupon.create(
-                        applies_to={"products": [product_id]},
-                        percent_off=100,
-                        duration="repeating",
-                        duration_in_months=settings.GIFT_MONTHS,
-                    )
-                    promo_code = stripe.PromotionCode.create(
-                        coupon=coupon.id,
-                        max_redemptions=1,
-                        metadata={
-                            "gift_giver_subscription": session.subscription,
-                            "related_django_user": self.request.user.id,
-                        },
-                    )
-                    page_context["promo_code"] = promo_code.code
+        membership_context = {}
 
-                    subscription = stripe.Subscription.modify(
-                        session.subscription,
-                        metadata={"promo_code": promo_code.id},
-                    )
+        # try:
+        if (
+            gift_mode is not None
+            and gift_mode is not False
+            and session is not None
+            and subscription is not None
+            and customer is not None
+        ):
+            """
+            Resolve gift purchase by creating a promo code and relating it to the gift buyer's subscription,
+            for future reference.
+            """
+            membership_context = self.finish_gift_purchase(
+                session, subscription, customer
+            )
+        elif session is not None and subscription is not None and customer is not None:
+            """
+            Resolve a normal membership purchase
+            """
+            membership_context = self.finish_self_purchase(
+                session, subscription, customer
+            )
+        # except Exception as error:
+        #     page_context['error'] = str(error)
 
-                    # Send them this promo code via email
-                    redeem_url = self.request.build_absolute_uri(
-                        reverse("redeem", kwargs={"code": promo_code.code})
-                    )
-                    send_mail(
-                        "Your Left Book Club Gift Code",
-                        f"Your gift code is {promo_code.code}. It can be redeemed at {redeem_url}",
-                        "noreply@leftbookclub.com",
-                        [self.request.user.email],
-                        html_message=render_to_string(
-                            template_name="app/emails/send_gift_code.html",
-                            context={
-                                "user": self.request.user,
-                                "promo_code": promo_code.code,
-                            },
-                        ),
-                    )
-            except:
-                page_context["error"] = True
-        else:
-            # Relate the django user to this customer
-            customer.subscriber = self.request.user
-            customer.save()
-
-            # Delete old subscriptions
-            for sub in self.request.user.stripe_customer.subscriptions.all():
-                if (
-                    sub.metadata.get("gift_mode", None) is None
-                    and sub.id != subscription.id
-                ):
-                    try:
-                        stripe.Subscription.delete(sub.id)
-                    except:
-                        pass
-
-        subscription = djstripe.models.Subscription.sync_from_stripe_data(subscription)
-        page_context["subscription"] = subscription
+        page_context = {**page_context, **membership_context}
 
         # Sync Stripe data to Django
         self.request.user.refresh_stripe_data()
+
+        return page_context
+
+    def finish_self_purchase(self, session, subscription, customer) -> dict:
+        # Relate the django user to this customer
+        customer.subscriber = self.request.user
+        customer.save()
+
+        # Delete old subscriptions
+        self.request.user.cleanup_membership_subscriptions(keep=[subscription.id])
+
+        return {}
+
+    def finish_gift_purchase(self, session, gift_giver_subscription, customer) -> dict:
+        page_context = {}
+        page_context[
+            "gift_giver_subscription"
+        ] = djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
+        page_context["gift_mode"] = True
+        promo_code_id = gift_giver_subscription.metadata.get("promo_code", None)
+        if promo_code_id is not None:
+            # Refreshed the page -- don't let them generate a new coupon each time they do that!
+            promo_code = stripe.PromotionCode.retrieve(promo_code_id)
+            page_context["promo_code"] = promo_code.code
+        else:
+            # First time
+            gift_giver_subscription = stripe.Subscription.modify(
+                session.subscription,
+                metadata={"gift_mode": True},
+                cancel_at=(datetime.now() - relativedelta(days=1))
+                + relativedelta(months=settings.GIFT_MONTHS),
+            )
+            # 2. Generate coupon
+            product_id = gift_giver_subscription.get("items").data[0].price.product
+            coupon = stripe.Coupon.create(
+                applies_to={"products": [product_id]},
+                percent_off=100,
+                duration="repeating",
+                duration_in_months=settings.GIFT_MONTHS,
+            )
+            promo_code = stripe.PromotionCode.create(
+                coupon=coupon.id,
+                max_redemptions=1,
+                metadata={
+                    "gift_giver_subscription": session.subscription,
+                    "related_django_user": self.request.user.id,
+                },
+            )
+            page_context["promo_code"] = promo_code.code
+
+            gift_giver_subscription = stripe.Subscription.modify(
+                session.subscription,
+                metadata={"promo_code": promo_code.id},
+            )
+
+            djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
+            page_context["gift_giver_subscription"] = gift_giver_subscription
+
+            # Send them this promo code via email
+            redeem_url = self.request.build_absolute_uri(
+                reverse("redeem", kwargs={"code": promo_code.code})
+            )
+            send_mail(
+                "Your Left Book Club Gift Code",
+                f"Your gift code is {promo_code.code}. It can be redeemed at {redeem_url}",
+                "noreply@leftbookclub.com",
+                [self.request.user.email],
+                html_message=render_to_string(
+                    template_name="app/emails/send_gift_code.html",
+                    context={
+                        "user": self.request.user,
+                        "promo_code": promo_code.code,
+                    },
+                ),
+            )
 
         return page_context
 
@@ -237,28 +274,7 @@ class CartOptionsView(TemplateView):
 class GiftCodeRedeemView(FormView):
     template_name = "app/redeem.html"
     form_class = GiftCodeForm
-    success_url = reverse_lazy("redeem_success")
-
-    def form_valid(self, form):
-        gift_giver_subscription = gift_giver_subscription_from_code(
-            form.cleaned_data["code"]
-        )
-        if gift_giver_subscription is None:
-            raise ValueError("Couldn't figure out how this promo code was generated")
-
-        if self.request.user.stripe_customer is not None:
-            # Cancel old subscriptions
-            subscriptions = stripe.Subscription.list(
-                customer=self.request.user.stripe_customer.id,
-                status="active",
-                limit=100,
-            )
-            for sub in subscriptions.data:
-                if sub.metadata.get("gift_mode", None) is None:
-                    stripe.Subscription.delete(sub)
-
-        create_gift(gift_giver_subscription, self.request.user)
-        return super().form_valid(form)
+    success_url = reverse_lazy("redeem_setup")
 
     def get_initial(self, *args, **kwargs):
         code = self.kwargs.get("code", None)
@@ -267,6 +283,17 @@ class GiftCodeRedeemView(FormView):
         else:
             return super().get_initial()
 
+    def form_valid(self, form):
+        gift_giver_subscription = gift_giver_subscription_from_code(
+            form.cleaned_data["code"]
+        )
+        if gift_giver_subscription is None:
+            raise ValueError("Couldn't figure out how this promo code was generated")
+
+        self.request.session["gift_giver_subscription"] = gift_giver_subscription.id
+
+        return super().form_valid(form)
+
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return {
             "code": self.kwargs.get("code", None),
@@ -274,8 +301,71 @@ class GiftCodeRedeemView(FormView):
         }
 
 
-class GiftCodeRedeemSuccessView(LoginRequiredTemplateView):
-    template_name = "app/welcome.html"
+class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
+    template_name = "app/redeem_setup.html"
+    form_class = StripeShippingForm
+    success_url = reverse_lazy("member_signup_complete")
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        if self.request.session.get("gift_giver_subscription", None) is None:
+            redirect("redeem")
+            return {}
+        return super().get_context_data(**kwargs)
+
+    def get_initial(self, *args, **kwargs):
+        initial = {"name": self.request.user.get_full_name(), "country": "GB"}
+        if self.request.user.stripe_customer is not None:
+            shipping_data = self.request.user.stripe_customer.shipping
+            if shipping_data is not None:
+                initial.update(
+                    {
+                        key: value
+                        for key, value in StripeShippingForm.stripe_data_to_initial(
+                            shipping_data
+                        ).items()
+                        if value is not None
+                    }
+                )
+        return initial
+
+    def form_valid(self, form):
+        if self.request.session.get("gift_giver_subscription", None) is None:
+            return redirect("redeem")
+
+        # Create subscription
+        # try:
+        self.finish_gift_redemption(self.request.session["gift_giver_subscription"])
+        self.request.session["gift_giver_subscription"] = None
+        # except Exception as error:
+        #     print(error)
+        #     self.request.session["gift_giver_subscription"] = None
+        #     return redirect(reverse_lazy('redeem'))
+
+        # Add shipping
+        if form.has_changed():
+            customer = stripe.Customer.modify(
+                self.request.user.stripe_customer.id, shipping=form.to_stripe()
+            )
+            djstripe.models.Customer.sync_from_stripe_data(customer)
+
+        return super().form_valid(form)
+
+    def finish_gift_redemption(self, gift_giver_subscription_id) -> dict:
+        if self.request.user.stripe_customer is not None:
+            self.request.user.cleanup_membership_subscriptions()
+
+        try:
+            stripe_sub = stripe.Subscription.retrieve(gift_giver_subscription_id)
+            gift_giver_subscription = (
+                djstripe.models.Subscription.sync_from_stripe_data(stripe_sub)
+            )
+            create_gift(gift_giver_subscription, self.request.user)
+        except djstripe.models.Subscription.DoesNotExist:
+            raise ValueError(
+                "Couldn't set up your gifted subscription. Please email info@leftbookclub.com and we'll get you started!"
+            )
+
+        return {}
 
 
 class CancellationView(LoginRequiredTemplateView):

@@ -6,8 +6,12 @@
   </a>
   <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
     {% for item in menu_items %}
-    <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
-    {% endfor %}  
+      <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
+    {% endfor %}
+    <li><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark {{ item.active_class }}">Redeem a gift card</a></li>
+    {% if request.session.gift_giver_subscription is not None %}
+      <li><a href="{% url 'redeem_setup' %}" class="nav-link px-2 link-dark text-danger {{ item.active_class }}">Finish your membership setup!</a></li>
+    {% endif %}
   </ul>
   <div class="col-md-3 text-end">
     {% if user.is_authenticated %}

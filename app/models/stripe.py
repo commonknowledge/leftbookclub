@@ -13,9 +13,71 @@ from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list
+from app.utils.stripe import (
+    get_primary_product_for_djstripe_subscription,
+    get_shipping_product_for_djstripe_subscription,
+)
+
+
+class LBCCustomer(djstripe.models.Customer):
+    class Meta:
+        proxy = True
+
+
+class LBCSubscription(djstripe.models.Subscription):
+    class Meta:
+        proxy = True
+
+    def primary_product_name(self):
+        primary_product = get_primary_product_for_djstripe_subscription(self)
+        shipping_product = get_shipping_product_for_djstripe_subscription(self)
+        if primary_product:
+            if shipping_product:
+                return f"{primary_product.name} + {shipping_product.name}"
+            return primary_product.name
+
+    def customer_id(self):
+        return self.customer.id
+
+    def recipient_name(self):
+        try:
+            user = self.customer.subscriber
+            return user.shipping_name()
+        except:
+            return None
+
+    @property
+    def customer_shipping_address(self):
+        try:
+            shipping = self.customer.shipping
+            address = shipping.get("address", {})
+            return address
+        except:
+            return {}
+
+    def shipping_line_1(self):
+        return self.customer_shipping_address.get("line_1", None)
+
+    def shipping_line_2(self):
+        return self.customer_shipping_address.get("line_2", None)
+
+    def shipping_line_2(self):
+        return self.customer_shipping_address.get("line_2", None)
+
+    def shipping_city(self):
+        return self.customer_shipping_address.get("city", None)
+
+    def shipping_country(self):
+        return self.customer_shipping_address.get("country", None)
+
+    def shipping_zip(self):
+        return self.customer_shipping_address.get("zip", None)
 
 
 class LBCProduct(djstripe.models.Product):
+    class Meta:
+        proxy = True
+
     @classmethod
     def get_active_plans(self):
         plans = self.objects.filter(metadata__pickable="1", active=True, type="service")
@@ -59,9 +121,6 @@ class LBCProduct(djstripe.models.Product):
         related_subscription_id = self.metadata.get("gift_giver_subscription", None)
         if related_subscription_id:
             return djstripe.models.Subscription.get(id=related_subscription_id)
-
-    class Meta:
-        proxy = True
 
 
 alphanumeric = RegexValidator(

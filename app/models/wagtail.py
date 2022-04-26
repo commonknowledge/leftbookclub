@@ -175,7 +175,7 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
         )
         callback_url_args = {}
 
-        if gift_mode is not None:
+        if gift_mode is not None and gift_mode is not False:
             callback_url_args["gift_mode"] = True
             checkout_args["metadata"]["gift_mode"] = True
         else:

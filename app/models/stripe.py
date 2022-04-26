@@ -20,6 +20,53 @@ class LBCCustomer(djstripe.models.Customer):
         proxy = True
 
 
+class LBCSubscription(djstripe.models.Subscription):
+    class Meta:
+        proxy = True
+
+    def product(self):
+        if self.plan:
+            return self.plan.product.name
+        return None
+
+    def customer_id(self):
+        return self.customer.id
+
+    def recipient_name(self):
+        try:
+            user = self.customer.subscriber
+            return user.shipping_name()
+        except:
+            return None
+
+    @property
+    def customer_shipping_address(self):
+        try:
+            shipping = self.customer.shipping
+            address = shipping.get("address", {})
+            return address
+        except:
+            return {}
+
+    def shipping_line_1(self):
+        return self.customer_shipping_address.get("line_1", None)
+
+    def shipping_line_2(self):
+        return self.customer_shipping_address.get("line_2", None)
+
+    def shipping_line_2(self):
+        return self.customer_shipping_address.get("line_2", None)
+
+    def shipping_city(self):
+        return self.customer_shipping_address.get("city", None)
+
+    def shipping_country(self):
+        return self.customer_shipping_address.get("country", None)
+
+    def shipping_zip(self):
+        return self.customer_shipping_address.get("zip", None)
+
+
 class LBCProduct(djstripe.models.Product):
     class Meta:
         proxy = True

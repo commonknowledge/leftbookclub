@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "wagtail.contrib.modeladmin",
     "wagtailmenus",
     "wagtailseo",
+    "admin_list_controls",
 ]
 
 if os.environ.get("MJML_APPLICATION_ID", None) is not None and os.environ.get(

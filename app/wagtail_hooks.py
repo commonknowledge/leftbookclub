@@ -1,12 +1,17 @@
 import djstripe.models
 import shopify
+from admin_list_controls.actions import SubmitForm
+from admin_list_controls.components import Button, Columns, Panel
+from admin_list_controls.filters import BooleanFilter, ChoiceFilter, TextFilter
+from admin_list_controls.views import ListControlsIndexView
+from django.db.models import Count
 from django.templatetags.static import static
 from django.utils.html import format_html
 from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
 from wagtail.core import hooks
 
 from app.models.django import User
-from app.models.stripe import LBCCustomer, ShippingZone
+from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
 
 
 @hooks.register("insert_global_admin_css")
@@ -30,8 +35,51 @@ class ShippingAdmin(ModelAdmin):
 modeladmin_register(ShippingAdmin)
 
 
+class IndexView(ListControlsIndexView):
+    def build_list_controls(self):
+        products = list(
+            LBCSubscription.objects.order_by()
+            .values_list("plan__product__id", "plan__product__name")
+            .annotate(frequency=Count("plan__product__id"))
+            .order_by("-frequency")
+        )
+        statuses = list(
+            LBCSubscription.objects.all().values_list("status").order_by().distinct()
+        )
+        config = [
+            Panel()(
+                Columns()(
+                    ChoiceFilter(
+                        name="status",
+                        label="Subscription Status",
+                        multiple=True,
+                        choices=tuple((s[0], s[0]) for s in statuses),
+                        default_value="active",
+                        apply_to_queryset=lambda queryset, values: queryset.filter(
+                            status__in=values
+                        ),
+                    ),
+                    ChoiceFilter(
+                        name="product",
+                        label="Product",
+                        multiple=True,
+                        choices=tuple((p[0], p[1]) for p in products),
+                        apply_to_queryset=lambda queryset, values: queryset.filter(
+                            plan__product__in=values
+                        ),
+                    ),
+                ),
+                Button(action=SubmitForm())(
+                    "Apply filters",
+                ),
+            ),
+        ]
+        return config
+
+
 class CustomerAdmin(ModelAdmin):
-    model = User
+    index_view_class = IndexView
+    model = LBCSubscription
     menu_label = "Members"  # ditch this to use verbose_name_plural from model
     menu_icon = "fa-users"  # change as required
     menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
@@ -41,17 +89,14 @@ class CustomerAdmin(ModelAdmin):
     )
     list_display = (
         "id",
-        "shipping_name",
-        "_subscribed_product",
-        "subscription_status",
-        "stripe_customer_id",
-    )
-    list_filter = (
-        "djstripe_customers__subscriptions__status",
-        "djstripe_customers__subscriptions__plan__product",
+        "product",
+        "status",
+        "metadata",
+        "recipient_name",
+        "customer_id",
     )
     list_export = (
-        "shipping_name",
+        "recipient_name",
         "shipping_line_1",
         "shipping_line_1",
         "shipping_line_2",
@@ -61,17 +106,10 @@ class CustomerAdmin(ModelAdmin):
     )
     export_filename = "lbc_members"
 
-    base_url_path = "membership-list"
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-
-        # Only show members who have their own membership, not gift membership
         return qs.filter(
-            djstripe_customers__isnull=False,
-            djstripe_customers__subscriptions__isnull=False,
-            djstripe_customers__shipping__isnull=False,
-            # djstripe_customers__subscriptions__status__in=('active', 'trialing', ),
+            customer__shipping__address__isnull=False, metadata__gift_mode__isnull=True
         )
 
 

@@ -30,6 +30,7 @@ from app.shopify_webhook.signals import products_create
 from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
+from app.utils.stripe import create_one_off_shipping_price_data_for_price
 from app.views import CreateCheckoutSessionView, ShippingCostView
 
 from .stripe import LBCProduct, ShippingZone
@@ -171,20 +172,9 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
                 },
                 {
                     # Shipping
-                    "price_data": {
-                        "currency": zone.rate_currency,
-                        "product_data": {"name": f"Shipping to {zone.nickname}"},
-                        "unit_amount_decimal": zone.rate.amount * 100,
-                        # running on the same payment schedule as the membership
-                        "recurring": include_keys(
-                            price.recurring,
-                            (
-                                "interval",
-                                "interval_count",
-                            ),
-                        ),
-                        "metadata": {"shipping": True},
-                    },
+                    "price_data": create_one_off_shipping_price_data_for_price(
+                        price, zone
+                    ),
                     "quantity": 1,
                 },
             ],

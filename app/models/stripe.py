@@ -217,6 +217,16 @@ class ShippingZone(models.Model):
             return defined_row
         return ShippingZone(nickname="Rest Of World", code=self.row_code, countries=[])
 
+    @classmethod
+    def get_for_code(cls, code: str):
+        if code is not None:
+            try:
+                zone = ShippingZone.objects.get(code=code)
+                return zone
+            except:
+                pass
+        return ShippingZone.default_zone
+
     stripe_allowed_countries = [
         "AC",
         "AD",

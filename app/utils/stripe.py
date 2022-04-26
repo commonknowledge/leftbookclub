@@ -6,6 +6,8 @@ import djstripe.models
 import stripe
 from dateutil.relativedelta import relativedelta
 
+from app.utils import include_keys
+
 
 def is_real_gift_code(code):
     possible_codes = stripe.PromotionCode.list(code=code)
@@ -56,22 +58,74 @@ def subscription_with_promocode(
     return sub
 
 
+def create_one_off_shipping_price_data_for_price(price, zone):
+    shipping_product = djstripe.models.Product.objects.filter(
+        metadata__shipping__isnull=False, active=True
+    ).first()
+    if shipping_product is None:
+        stripe_shipping_product = stripe.Product.create(
+            name="Shipping", unit_label="delivery", metadata={"shipping": True}
+        )
+        shipping_product = djstripe.models.Product.sync_from_stripe_data(
+            stripe_shipping_product
+        )
+    return {
+        "currency": zone.rate_currency,
+        "unit_amount_decimal": zone.rate.amount * 100,
+        "product": shipping_product.id,
+        "recurring": include_keys(
+            price.recurring,
+            (
+                "interval",
+                "interval_count",
+            ),
+        ),
+        "metadata": {"shipping": True, "shipping_zone": zone.code},
+    }
+
+
 def create_gift(
     gift_giver_subscription: djstripe.models.Subscription, user
 ) -> djstripe.models.Subscription:
+    from app.models.stripe import ShippingZone
+
     if user.stripe_customer is None:
         djstripe.models.Customer.create(user)
+
+    # Update stripe data so we're working with the latest statuses
+    fresh_sub = stripe.Subscription.retrieve(gift_giver_subscription.id)
+    gift_giver_subscription = djstripe.models.Subscription.sync_from_stripe_data(
+        fresh_sub
+    )
 
     # Get number of months from gift_giver_subscription.metadata.get('promo_code_id') -> pc.coupon.duration_in_months
     promo_code_id = gift_giver_subscription.metadata.get("promo_code")
     # promo_code = stripe.PromotionCode.retrieve(promo_code_id)
 
+    items = []
+    for si in gift_giver_subscription.items.all():
+        if (
+            si.price.active == True
+            and si.price.metadata.get("shipping_zone", False) is False
+        ):
+            items.append({"price": si.price.id, "quantity": si.quantity})
+        else:
+            zone = ShippingZone.get_for_code(
+                code=si.price.metadata.get("shipping_zone", "ROW")
+            )
+            items.append(
+                {
+                    # Shipping
+                    "price_data": create_one_off_shipping_price_data_for_price(
+                        si.price, zone
+                    ),
+                    "quantity": si.quantity,
+                }
+            )
+
     args = dict(
         customer=user.stripe_customer.id,
-        items=[
-            {"price": si.price.id, "quantity": si.quantity}
-            for si in gift_giver_subscription.items.all()
-        ],
+        items=items,
         # cancel_at=(datetime.now() - relativedelta(days=1)) + relativedelta(months=promo_code.coupon.duration_in_months),
         promotion_code=promo_code_id,
         payment_behavior="allow_incomplete",

@@ -1,4 +1,4 @@
-FROM nikolaik/python3.10-nodejs18-bullseye
+FROM nikolaik/python-nodejs:python3.10-nodejs18
 WORKDIR /app
 
 # OS deps

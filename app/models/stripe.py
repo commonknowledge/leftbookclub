@@ -3,6 +3,7 @@ import stripe
 from django import forms
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models.functions import Length
 from django.forms import RadioSelect
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries as django_countries
@@ -130,11 +131,8 @@ alphanumeric = RegexValidator(
 
 @register_snippet
 class ShippingZone(models.Model):
-    # class CountriesMode(models.TextChoices):
-    #     INCLUDE = 'INCLUDE', _('Include countries')
-    #     EXCLUDE = 'EXCLUDE', _('Exclude countries')
-
     nickname = models.CharField(max_length=300, help_text="Nickname for admin use")
+
     code = models.CharField(
         max_length=3,
         validators=[alphanumeric],
@@ -153,11 +151,18 @@ class ShippingZone(models.Model):
         help_text="Per-delivery shipping fee",
     )
 
-    countries = CountryField(multiple=True)
+    rest_of_world = models.BooleanField(
+        help_text="If selected, this zone's shipping rate will be used as the default shipping rate.",
+        null=True,
+        blank=True,
+    )
+
+    countries = CountryField(multiple=True, max_length=1000)
 
     panels = [
         FieldPanel("nickname"),
         FieldPanel("code"),
+        FieldPanel("rest_of_world"),
         FieldPanel("rate"),
         FieldPanel("countries", widget=forms.CheckboxSelectMultiple),
     ]
@@ -170,7 +175,11 @@ class ShippingZone(models.Model):
         # Check for a zone that has this code
         # If no zone, default to ROW pricing
         # settings.DEFAULT_SHIPPING_PRICE
-        zone = ShippingZone.objects.filter(countries__icontains=iso_a2).first()
+        zone = (
+            ShippingZone.objects.filter(countries__icontains=iso_a2)
+            .order_by(Length("countries").asc())
+            .first()
+        )
         if zone is None:
             zone = ShippingZone.default_zone
         return zone
@@ -200,6 +209,12 @@ class ShippingZone(models.Model):
     @classmethod
     @property
     def default_zone(self):
+        defined_row = ShippingZone.objects.filter(rest_of_world=True).first()
+        if defined_row:
+            if defined_row.code != self.row_code:
+                defined_row.code = self.row_code
+                defined_row.save()
+            return defined_row
         return ShippingZone(nickname="Rest Of World", code=self.row_code, countries=[])
 
     stripe_allowed_countries = [

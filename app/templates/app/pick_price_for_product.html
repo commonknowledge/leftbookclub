@@ -54,9 +54,9 @@
         {% routablepageurl page 'pick_product' as back_link %}
         {% comment %} TODO: how to concat gift_mode {% endcomment %}
         {% if gift_mode %}
-          {% bootstrap_button href=back_link|add:"?gift_mode=true" content="Change plan" button_class="w-100 btn-light text-dark" %}
+          {% bootstrap_button href=back_link|add:"?gift_mode=true" content="Pick a different plan" button_class="w-100 btn-light text-dark" %}
         {% else %}
-          {% bootstrap_button href=back_link content="Change plan" button_class="w-100 btn-light text-dark" %}
+          {% bootstrap_button href=back_link content="Pick a different plan" button_class="w-100 btn-light text-dark" %}
         {% endif %}
       </div>
     </div>

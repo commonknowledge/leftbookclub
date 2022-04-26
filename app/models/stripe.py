@@ -157,7 +157,7 @@ class ShippingZone(models.Model):
         blank=True,
     )
 
-    countries = CountryField(multiple=True, max_length=1000)
+    countries = CountryField(multiple=True, max_length=1000, blank=True)
 
     panels = [
         FieldPanel("nickname"),

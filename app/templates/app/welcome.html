@@ -4,13 +4,6 @@
 {% block content %}
     {% if error %}
         {% bootstrap_alert error alert_type='danger' %}
-    {% elif user.active_subscription is None %}
-        <h3 class='fw-light text-center'>
-          You're not a member at the moment.
-        </h3>
-        <div class='my-4 text-center'>
-          {% bootstrap_button href="/" content="Become a member" %}
-        </div>
     {% elif gift_mode %}
       <main class='container'>
         <div class="row justify-content-md-center text-center">
@@ -36,7 +29,14 @@
           </div>
         </div>
       </main>
-    {% else %}
+      {% elif user.active_subscription is None %}
+        <h3 class='fw-light text-center'>
+          You're not a member at the moment.
+        </h3>
+        <div class='my-4 text-center'>
+          {% bootstrap_button href="/" content="Become a member" %}
+        </div>
+      {% else %}
       <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
         <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
         <p class="fs-5 text-muted">Your first book is on its way!</p>

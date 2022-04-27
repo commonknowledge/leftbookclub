@@ -4,6 +4,8 @@ import stripe
 from django.apps import AppConfig
 from django.conf import settings
 
+from app.stripe_webhooks import *
+
 
 class LeftBookClub(AppConfig):
     name = "app"

@@ -48,6 +48,22 @@ def gift_giver_subscription_from_code(
     return None
 
 
+def gift_recipient_subscription_from_code(
+    code_or_id: str,
+) -> Union[djstripe.models.Subscription, None]:
+    promo_code = None
+
+    if code_or_id.startswith("promo_"):
+        possible_codes = stripe.PromotionCode.list(code=code_or_id).data
+        if len(possible_codes) > 0:
+            promo_code = possible_codes[0]
+
+    if promo_code:
+        return djstripe.models.Subscription.objects.filter(
+            metadata__promo_code=promo_code.id
+        ).first()
+
+
 def subscription_with_promocode(
     sub: Union[stripe.Subscription, djstripe.models.Subscription]
 ):
@@ -129,6 +145,8 @@ def create_gift(
         # cancel_at=(datetime.now() - relativedelta(days=1)) + relativedelta(months=promo_code.coupon.duration_in_months),
         promotion_code=promo_code_id,
         payment_behavior="allow_incomplete",
+        collection_method="send_invoice",
+        off_session=True,
         metadata={
             "gift_giver_subscription": gift_giver_subscription.id,
             "promo_code": promo_code_id,

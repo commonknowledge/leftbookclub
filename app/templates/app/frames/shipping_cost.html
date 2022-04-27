@@ -17,11 +17,6 @@
           <span>Total</span>
           <span>{% money_localize final_price %}<small>{{ product.basic_price|stripe_billing_scheme }}</small></span>
         </div>
-        {% if request.GET.gift_mode %}
-        <div class="text-muted mb-0">
-          For {% setting "GIFT_MONTHS" %} months
-        </div>
-        {% endif %}
       </div>
       {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary my-2' %}
     {% endif %}

@@ -292,10 +292,6 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 
 WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)
 
-# Gift period
-
-GIFT_MONTHS = 12
-
 # MJML
 MJML_BACKEND_MODE = "cmd"
 MJML_EXEC_CMD = "node_modules/.bin/mjml"

@@ -157,18 +157,14 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
         else:
             # First time
             gift_giver_subscription = stripe.Subscription.modify(
-                session.subscription,
-                metadata={"gift_mode": True},
-                cancel_at=(datetime.now() - relativedelta(days=1))
-                + relativedelta(months=settings.GIFT_MONTHS),
+                session.subscription, metadata={"gift_mode": True}
             )
             # 2. Generate coupon
             product_id = gift_giver_subscription.get("items").data[0].price.product
             coupon = stripe.Coupon.create(
                 applies_to={"products": [product_id]},
                 percent_off=100,
-                duration="repeating",
-                duration_in_months=settings.GIFT_MONTHS,
+                duration="forever",
             )
             promo_code = stripe.PromotionCode.create(
                 coupon=coupon.id,

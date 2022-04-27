@@ -64,6 +64,7 @@ if os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"):
         "SECRET_KEY": os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"),
     }
 
+
 try:
     from .local import *
 except ImportError:

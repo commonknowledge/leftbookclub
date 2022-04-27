@@ -23,6 +23,7 @@ from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 
+from app import analytics
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
@@ -139,6 +140,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
 
         # Sync Stripe data to Django
         self.request.user.refresh_stripe_data()
+        analytics.signup(self.request.user)
 
         return page_context
 
@@ -159,6 +161,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
         ] = djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
         page_context["gift_mode"] = True
         promo_code_id = gift_giver_subscription.metadata.get("promo_code", None)
+
         if promo_code_id is not None:
             # Refreshed the page -- don't let them generate a new coupon each time they do that!
             promo_code = stripe.PromotionCode.retrieve(promo_code_id)
@@ -250,6 +253,7 @@ class GiftCodeRedeemView(FormView):
 
         self.request.session["gift_giver_subscription"] = gift_giver_subscription.id
 
+        analytics.redeem(self.request.user)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:

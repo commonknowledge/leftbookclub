@@ -334,12 +334,10 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         #     self.request.session["gift_giver_subscription"] = None
         #     return redirect(reverse_lazy('redeem'))
 
-        # Add shipping
-        if form.has_changed():
-            customer = stripe.Customer.modify(
-                self.request.user.stripe_customer.id, shipping=form.to_stripe()
-            )
-            djstripe.models.Customer.sync_from_stripe_data(customer)
+        customer = stripe.Customer.modify(
+            self.request.user.stripe_customer.id, shipping=form.to_stripe()
+        )
+        djstripe.models.Customer.sync_from_stripe_data(customer)
 
         return super().form_valid(form)
 

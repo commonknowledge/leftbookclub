@@ -24,13 +24,13 @@ RUN yarn --frozen-lockfile
 # Remaining project files
 COPY --chown=app:app . ./
 
-# Frontend build
-# with files available for purgecss
-RUN NODE_ENV=production yarn vite build
-
-# Django prep
+# Collect static so that templates are available for purging
 ENV DJANGO_SETTINGS_MODULE=app.settings.production
 ENV PATH=$PATH:/home/app/.local/bin
 RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
+
+# Frontend build
+# with files available for purgecss
+RUN NODE_ENV=production yarn vite build
 
 CMD ["bash", "-c", "poetry run gunicorn $GUNICORN_ARGS -b 0.0.0.0:${PORT:-80} app.wsgi"]

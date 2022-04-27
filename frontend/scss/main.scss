@@ -13,13 +13,36 @@
 @import "bootstrap/scss/functions";
 
 // Customisation
-$primary: #fade70;
+$black: #231f20;
+$yellow: #f8f400;
+$black: #231f20;
+$teal: #46a9c2;
+$darkgreen: #2d936c;
+$lilacgrey: #a5a1bb;
+$coral: #fe825e;
+$purple: #9a93ff;
+$magenta: #ff55b4;
+$pink: #ffbbd2;
+$lightgreen: #8fbb99;
 
 // Layout & components
 
 /* purgecss start ignore */
 // Whitelist these because django bootstrap packages can't be scanned via purgecss currently
 @import "bootstrap/scss/variables";
+
+$black: #231f20;
+$yellow: #f8f400;
+$black: #231f20;
+$teal: #46a9c2;
+$darkgreen: #2d936c;
+$lilacgrey: #a5a1bb;
+$coral: #fe825e;
+$purple: #9a93ff;
+$magenta: #ff55b4;
+$pink: #ffbbd2;
+$lightgreen: #8fbb99;
+// $primary: $black;
 
 $font-sizes: (
   1: $h1-font-size,
@@ -29,6 +52,35 @@ $font-sizes: (
   5: $h5-font-size,
   6: $h6-font-size,
   7: $h6-font-size * 0.75,
+);
+
+$colors: (
+  // bootstrap
+  "blue": $blue,
+  "indigo": $indigo,
+  // "purple":     $purple,
+  // "pink":       $pink,
+  "red": $red,
+  "orange": $orange,
+  // "yellow":     $yellow,
+  "green": $green,
+  // "teal":       $teal,
+  "cyan": $cyan,
+  "white": $white,
+  "gray": $gray-600,
+  "gray-dark": $gray-800,
+
+  "primary": $primary,
+  "yellow": $yellow,
+  "black": $black,
+  "teal": $teal,
+  "darkgreen": $darkgreen,
+  "lilacgrey": $lilacgrey,
+  "coral": $coral,
+  "purple": $purple,
+  "magenta": $magenta,
+  "pink": $pink,
+  "lightgreen": $lightgreen
 );
 
 @import "bootstrap/scss/mixins";

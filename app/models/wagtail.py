@@ -149,6 +149,40 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
     ]
 
 
+class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
+    choices = [
+        # ('primary', 'primary'),
+        ("tw-bg-yellow", "yellow"),
+        # ('black', 'black'),
+        ("tw-bg-teal", "teal"),
+        ("tw-bg-darkgreen", "darkgreen"),
+        ("tw-bg-lilacgrey", "lilacgrey"),
+        ("tw-bg-coral", "coral"),
+        ("tw-bg-purple", "purple"),
+        ("tw-bg-magenta", "magenta"),
+        ("tw-bg-pink", "pink"),
+        ("tw-bg-lightgreen", "lightgreen"),
+    ]
+
+    class Meta:
+        icon = "fa-paint"
+
+
+class PlanBlock(blocks.StructBlock):
+    plan = blocks.PageChooserBlock(
+        page_type=MembershipPlanPage,
+        target_model=MembershipPlanPage,
+        can_choose_root=False,
+    )
+    background_color = BackgroundColourChoiceBlock(required=False)
+    promotion_label = blocks.CharBlock(
+        required=False, help_text="Label that highlights this product"
+    )
+
+    class Meta:
+        icon = "fa-money"
+
+
 class MembershipOptionsBlock(blocks.StructBlock):
     heading = blocks.CharBlock(
         form_classname="full title", default="Choose your plan", null=True, blank=True
@@ -158,13 +192,7 @@ class MembershipOptionsBlock(blocks.StructBlock):
         blank=True,
         default="<p>Your subscription will begin with the most recently published book in your chosen collection.</p>",
     )
-    plans = blocks.ListBlock(
-        blocks.PageChooserBlock(
-            page_type=MembershipPlanPage,
-            target_model=MembershipPlanPage,
-            can_choose_root=False,
-        )
-    )
+    plans = blocks.ListBlock(PlanBlock)
 
     class Meta:
         template = "app/blocks/membership_options.html"

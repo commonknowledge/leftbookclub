@@ -1463,6 +1463,17 @@ python-versions = ">=3.6"
 wagtail = ">=2.9"
 
 [[package]]
+name = "wagtail-transfer"
+version = "0.8.2"
+description = "Content transfer for Wagtail"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+docs = ["mkdocs (>=1.0,<1.1)", "mkdocs-material (>=4.6,<4.7)"]
+
+[[package]]
 name = "wagtailfontawesome"
 version = "1.2.1"
 description = "Add FontAwesome icons to StreamField."
@@ -1556,7 +1567,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "19974a520a37749b055127f6676ea7d8ee0af411d0a60143c6df0f3d08d20274"
+content-hash = "d817257f7009280a24daae9c05b6d8f817db05d016eb44ce0123e3cbb2ef565a"
 
 [metadata.files]
 anyascii = [
@@ -2280,6 +2291,9 @@ wagtail-autocomplete = [
 wagtail-seo = [
     {file = "wagtail-seo-1.0.0.tar.gz", hash = "sha256:3f2668a1e25d954dc17212af6e17ea8e157cbb4d6a78e7490ea53881a2c4aa77"},
     {file = "wagtail_seo-1.0.0-py3-none-any.whl", hash = "sha256:ca548817f426decec000fa18bbfbcf6de228760c9a621061275158a86fc20b7a"},
+]
+wagtail-transfer = [
+    {file = "wagtail_transfer-0.8.2-py3-none-any.whl", hash = "sha256:2d57c5bb1facbceface9cef7606534534b3ea2456a1859cfddb3665b27fb1782"},
 ]
 wagtailfontawesome = [
     {file = "wagtailfontawesome-1.2.1-py2.py3-none-any.whl", hash = "sha256:76b1c64c4f1042d468a83e4352f74b57bda4a4aa09cdfeeb8663dead5ed632be"},

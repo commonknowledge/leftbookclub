@@ -20,7 +20,9 @@ from app.views import (
     LoginRequiredTemplateView,
     MemberSignupCompleteView,
     ShippingCostView,
+    ShippingForProductView,
     StripeCustomerPortalView,
+    SubscriptionCheckoutView,
 )
 
 # from wagtail_transfer import urls as wagtailtransfer_urls
@@ -74,6 +76,17 @@ urlpatterns = [
         "redeem/<str:code>/",
         GiftCodeRedeemView.as_view(),
         name="redeem",
+    ),
+    path("checkout/<product_id>/", SubscriptionCheckoutView.as_view(), name="checkout"),
+    path(
+        "product/<product_id>/",
+        ShippingForProductView.as_view(),
+        name="shipping_for_product",
+    ),
+    path(
+        "product/<product_id>/<country_id>/",
+        ShippingForProductView.as_view(),
+        name="shipping_for_product",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),

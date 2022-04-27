@@ -1,7 +1,19 @@
-{% extends "base.html" %}
-{% load static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% load wagtailcore_tags django_bootstrap5 djmoney %}
+{% with plan.prices.all.0 as display_price %}
+{% with plan.products.all as products %}
+  <h3>{{ plan.title }}</h3>
+  <h5>{% money_localize display_price.price %} per {% if display_price.interval_count > 1 %}{{ display_price.interval_count }}{% endif %} {{ display_price.interval}}{{plan.price.0.interval_count|pluralize:",s" }}</h5>
+  <h5>{{ plan.deliveries_per_year }} deliveries per year</h5>
+  <div>{{ plan.description|richtext }}</div>
+  {% if products|length == 1 %}
+    {% bootstrap_button href="/product/"|add:products.0.id content="Select" %}
+  {% else %}
+    {% bootstrap_button href=plan.url content="Select" %}
+  {% endif %}
+{% endwith %}
+{% endwith %}
 
-{% block content %}
+{% comment %} {% load static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% with request.GET.gift_mode as gift_mode %}
   <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
     {% if not gift_mode %}
@@ -59,5 +71,4 @@
       {% endfor %}
     </div>
   </main>
-{% endwith %}
-{% endblock %}
+{% endwith %} {% endcomment %}

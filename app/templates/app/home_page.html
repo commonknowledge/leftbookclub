@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+
+{% block content %}
+  {% if page.layout %}
+    {% for block in page.layout %}
+        <section>{% include_block block %}</section>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

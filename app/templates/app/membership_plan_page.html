@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+
+{% block content %}
+  {% load wagtailcore_tags django_bootstrap5 djmoney %}
+  {% with page.prices.all.0 as display_price %}
+  {% with page.products.all as products %}
+    <h3>{{ page.title }}</h3>
+    <h5>{% money_localize display_price.price %} per {% if display_price.interval_count > 1 %}{{ display_price.interval_count }}{% endif %} {{ display_price.interval}}{{page.price.0.interval_count|pluralize:",s" }}</h5>
+    <h5>{{ page.deliveries_per_year }} deliveries per year</h5>
+    <div>{{ page.description|richtext }}</div>
+    {% if products|length == 1 %}
+      {% bootstrap_button href="/product/"|add:products.0.id content="Select" %}
+    {% else %}
+      {% for product in products %}
+        {% bootstrap_button href="/product/"|add:product.id content="Select "|add:product.name %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% endwith %}
+{% endblock %}

@@ -2,7 +2,7 @@
 {% load static wagtailroutablepage_tags django_bootstrap5 %}
 {% block content %}
 {% with request.GET.gift_mode as gift_mode %}
-  {% routablepageurl page 'pick_product' as back_link %}
+  {% url 'pick_product' as back_link %}
   <main>
     <div class="row justify-content-md-center">
       <div class='col col-md-6 col-lg-4'>
@@ -34,7 +34,7 @@
           data-shipping-url-value="{{ url_pattern }}{% if gift_mode %}?gift_mode=true{% endif %}"
           data-shipping-product-value="{{ product.id }}"
           data-shipping-target="form"
-          action="{% routablepageurl page "checkout" product_id=product.id %}"
+          action="{% url "checkout" product_id=product.id %}"
           method="get"
         >
           {% if gift_mode %}

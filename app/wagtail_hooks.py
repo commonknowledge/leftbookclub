@@ -12,11 +12,30 @@ from wagtail.core import hooks
 
 from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
+from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice
 
 
 @hooks.register("insert_global_admin_css")
 def global_admin_css():
     return format_html('<link rel="stylesheet" href="{}">', static("wagtailadmin.css"))
+
+
+class MembershipOptionsAdmin(ModelAdmin):
+    model = MembershipPlanPage
+    menu_icon = "fa-money"  # change as required
+    menu_label = "Plans"
+
+
+modeladmin_register(MembershipOptionsAdmin)
+
+
+class PriceOptionsAdmin(ModelAdmin):
+    model = MembershipPlanPrice
+    menu_label = "Prices"
+    menu_icon = "fa-money"  # change as required
+
+
+modeladmin_register(PriceOptionsAdmin)
 
 
 class ShippingAdmin(ModelAdmin):

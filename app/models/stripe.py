@@ -75,6 +75,7 @@ class LBCSubscription(djstripe.models.Subscription):
         return self.customer_shipping_address.get("zip", None)
 
 
+@register_snippet
 class LBCProduct(djstripe.models.Product):
     class Meta:
         proxy = True

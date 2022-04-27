@@ -1,8 +1,11 @@
 from typing import Any, Dict
 
+import urllib.parse
 from datetime import datetime
+from importlib.metadata import metadata
 from multiprocessing.sharedctypes import Value
 from pipes import Template
+from urllib.parse import urlencode
 
 import djstripe.models
 import stripe
@@ -19,10 +22,14 @@ from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 
-from app.forms import GiftCodeForm, StripeShippingForm
+from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
-from app.utils.stripe import create_gift, gift_giver_subscription_from_code
+from app.utils.stripe import (
+    create_gift,
+    create_one_off_shipping_price_data_for_price,
+    gift_giver_subscription_from_code,
+)
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -383,3 +390,112 @@ def gift_giver_subscription_was_cancelled(event, **kwargs):
         promo_code = some_subscription.metadata.get("promo_code", None)
         recipient_subscription = gift_recipient_subscription_from_code(promo_code)
         stripe.Subcription.delete(recipient_subscription.id)
+
+
+class ShippingForProductView(TemplateView):
+    template_name = "app/pick_price_for_product.html"
+
+    def get_context_data(self, product_id, country_id="GB", **kwargs) -> Dict[str, Any]:
+        """
+        When a product has been selected, select shipping country.
+        """
+
+        context = super().get_context_data(**kwargs)
+
+        product = LBCProduct.objects.get(id=product_id)
+
+        context.update(
+            {
+                "product": product,
+                "default_country_code": country_id,
+                "country_selector_form": CountrySelectorForm(
+                    initial={"country": country_id}
+                ),
+                "url_pattern": ShippingCostView.url_pattern,
+            }
+        )
+
+        return context
+
+
+class SubscriptionCheckoutView(TemplateView):
+    """
+    Create a checkout session with a line item of price_id
+    """
+
+    # TODO: should take an array of price_id, actually
+    def get(self, request: HttpRequest, *args: Any, product_id=None, **kwargs: Any):
+        country = request.GET.get("country", None)
+        gift_mode = request.GET.get("gift_mode", None)
+
+        if country is None:
+            return redirect(
+                urllib.parse.urljoin(
+                    self.get_full_url(request),
+                    reverse_lazy(
+                        "pick_price_for_product", kwargs={"product_id": product_id}
+                    ),
+                )
+            )
+
+        product = LBCProduct.objects.get(id=product_id)
+        price = product.basic_price
+        zone = ShippingZone.get_for_country(country)
+
+        if price is None:
+            return redirect(
+                urllib.parse.urljoin(
+                    self.get_full_url(request),
+                    reverse_lazy(
+                        "pick_price_for_product",
+                        kwargs={"product_id": product_id, "country_id": country},
+                    ),
+                )
+            )
+
+        checkout_args = dict(
+            mode="subscription",
+            line_items=[
+                {
+                    # Membership
+                    "price": price.id,
+                    "quantity": 1,
+                },
+                {
+                    # Shipping
+                    "price_data": create_one_off_shipping_price_data_for_price(
+                        price, zone
+                    ),
+                    "quantity": 1,
+                },
+            ],
+            # By default, customer details aren't updated, but we want them to be.
+            customer_update={
+                "shipping": "auto",
+                "address": "auto",
+                "name": "auto",
+            },
+            metadata={},
+        )
+        callback_url_args = {}
+
+        if gift_mode is not None and gift_mode is not False:
+            callback_url_args["gift_mode"] = True
+            checkout_args["metadata"]["gift_mode"] = True
+        else:
+            checkout_args["shipping_address_collection"] = {
+                "allowed_countries": zone.country_codes
+            }
+
+        checkout_args["success_url"] = urllib.parse.urljoin(
+            self.get_full_url(request),
+            reverse_lazy("member_signup_complete")
+            + "?session_id={CHECKOUT_SESSION_ID}&"
+            + urlencode(callback_url_args),
+        )
+        checkout_args["cancel_url"] = urllib.parse.urljoin(
+            self.get_full_url(request),
+            reverse_lazy("pick_product") + "?" + urlencode(callback_url_args),
+        )
+
+        return CreateCheckoutSessionView.as_view(context=checkout_args)(request)

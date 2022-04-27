@@ -174,9 +174,9 @@ class User(AbstractUser):
 
     def cleanup_membership_subscriptions(self, keep=[]):
         for sub in self.stripe_customer.subscriptions.all():
-            should_keep = keep is None or (sub.id != keep and sub.id not in keep)
-            if sub.metadata.get("gift_mode", None) is None and not should_keep:
+            if sub.metadata.get("gift_mode", None) is None and not sub.id in keep:
                 try:
-                    stripe.Subscription.delete(sub.id)
+                    stripe.Subscription.delete(sub.id, prorate=True)
                 except:
                     pass
+        self.refresh_stripe_data()

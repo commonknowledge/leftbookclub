@@ -4,33 +4,47 @@
 {% block account_content %}
 <div>
   {% if request.user.is_member or request.user.gifts_bought|length > 0 %}
-    <div class='d-flex flex-column justify-content-center align-items-center'>
-      <div class='my-4 text-center'>
+    <div class='d-flex flex-column'>
+      {% if request.user.is_member %}
+      <section class='card'>
+        <div class="card-body">
+          <h4>
+            Membership fee
+          </h4>
+          {% for si in user.active_subscription.items.all %}
+          <div class='row'>
+            <div class='col'>{{ si.plan.product.name }}</div><div class='col'>{{ si.plan.human_readable_price }}</div>
+          </div>
+          {% endfor %}
+          {% if user.active_subscription.discount.coupon %}
+          <div class='row'>
+            <div class='col'>Discount</div><div class='col'>{{ user.active_subscription.discount.coupon.percent_off }}% off</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      <div class='my-4'>
         {% url "customerportal" as portal_url %}
         {% bootstrap_button href=portal_url content="Update shipping and billing" %}
       </div>
-      {% if request.user.is_member %}
-        <h3 class='fw-light text-center'>
-          Your {{user.subscribed_product.name}} fee is {{ user.subscribed_price.human_readable_price }}.
-        </h3>
-        {% if user.active_subscription.discount.coupon %}
-          <h5 class='text-center mt-4'>You have applied gift cards</h5>
-          {% include "app/includes/gift_card.html" with subscription=user.active_subscription display_code=False product_display=False %}
-        {% endif %}
-      {% endif %}
       {% if request.user.gifts_bought|length > 0 %}
-        <h3>
-          You're paying for gift cards
-        </h3>
-        {% for subscription in request.user.gifts_bought %}
-          {% if subscription.status != 'active' %}
-            <h5>Not active / no charge</h3>
-          {% endif %}
-          <div class='my-4 w-100 d-flex flex-column align-items-center justify-content-center'>
-            <div class='h5 fw-light text-center'>{{ subscription.plan.human_readable_price }} until {{ subscription.cancel_at|date:"d M Y" }}</div>
-            {% include "app/includes/gift_card.html" with subscription=subscription %}
-          </div>
-        {% endfor %}
+        <section class='card'>
+          <div class="card-body">
+            <h4>
+              Gift cards you're paying for
+            </h4>
+            {% for subscription in request.user.gifts_bought %}
+              {% if subscription.status != 'active' %}
+                <h5>Not active / no charge</h3>
+              {% endif %}
+              <div class='my-4 w-100 d-flex flex-column align-items-center justify-content-center'>
+                <div class='h5 fw-light text-center'>{{ subscription.plan.human_readable_price }} until {{ subscription.cancel_at|date:"d M Y" }}</div>
+                {% include "app/includes/gift_card.html" with subscription=subscription %}
+              </div>
+            {% endfor %}
+            </div>
+        </section>
       {% endif %}
     </div>
   {% else %}

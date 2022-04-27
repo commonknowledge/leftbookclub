@@ -21,3 +21,9 @@ def value_at_path(obj, path):
         return obj[last]
     else:
         return obj[int(last)]
+
+
+def include_keys(dictionary, keys):
+    """Filters a dict by only including certain keys."""
+    key_set = set(keys) & set(dictionary.keys())
+    return {key: dictionary[key] for key in key_set}

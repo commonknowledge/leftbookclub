@@ -28,7 +28,7 @@
         {% elif code and not code|is_redeemable_gift_card and code|is_real_gift_card %}
           {% bootstrap_alert "This code has already been redeemed" %}
         {% else %}
-          {% bootstrap_form form %}
+          {% bootstrap_form form show_label=False %}
         {% endif %}
       </div>
     </div>

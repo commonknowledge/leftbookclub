@@ -27,8 +27,10 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
 from app.shopify_webhook.signals import products_create
+from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
+from app.utils.stripe import create_one_off_shipping_price_data_for_price
 from app.views import CreateCheckoutSessionView, ShippingCostView
 
 from .stripe import LBCProduct, ShippingZone
@@ -146,9 +148,7 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
             )
 
         product = LBCProduct.objects.get(id=product_id)
-        price = product.get_prices_for_country(
-            iso_a2=country, recurring__interval="month"
-        ).first()
+        price = product.basic_price
         zone = ShippingZone.get_for_country(country)
 
         if price is None:
@@ -164,7 +164,20 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
 
         checkout_args = dict(
             mode="subscription",
-            line_items=[{"price": price.id, "quantity": 1}],
+            line_items=[
+                {
+                    # Membership
+                    "price": price.id,
+                    "quantity": 1,
+                },
+                {
+                    # Shipping
+                    "price_data": create_one_off_shipping_price_data_for_price(
+                        price, zone
+                    ),
+                    "quantity": 1,
+                },
+            ],
             # By default, customer details aren't updated, but we want them to be.
             customer_update={
                 "shipping": "auto",
@@ -411,7 +424,11 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
-            return shopify.Product.find(self.shopify_product_id)
+            try:
+                product = shopify.Product.find(self.shopify_product_id)
+                return product
+            except:
+                return None
 
     @property
     @django_cached("shopify_product_metafields", get_key=shopify_product_id_key)
@@ -419,8 +436,11 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
-            metafields = self.shopify_product.metafields()
-            return metafields_to_dict(metafields)
+            try:
+                metafields = self.shopify_product.metafields()
+                return metafields_to_dict(metafields)
+            except:
+                return {}
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -449,7 +469,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     @property
     def seo_description(self) -> str:
         try:
-            return strip_tags(self.shopify_product.body_html).replace("\n", "")
+            tags = strip_tags(self.shopify_product.body_html).replace("\n", "")
+            return tags
         except:
             return ""
 
@@ -459,7 +480,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         Middleware for seo_image_sources
         """
         try:
-            return self.shopify_product.images[0].src
+            image = self.shopify_product.images[0].src
+            return image
         except:
             return ""
 

@@ -1,4 +1,5 @@
 from django.test import TestCase
+from djmoney.money import Money
 
 from app.models import *
 
@@ -33,6 +34,24 @@ class CacheTestCase(TestCase):
             calculated_zone = ShippingZone.get_for_country(code)
             self.assertEqual(calculated_zone, zone)
 
+    def test_use_most_specific_zone(self):
+        """
+        Expect the zone identified to be the one with the fewest other countries in it.
+        """
+        ShippingZone.objects.create(
+            nickname="West Europe", code="WER", countries=["FR", "DE"]
+        )
+        expected_zone = ShippingZone.objects.create(
+            nickname="Test 2", code="FR", countries=["FR"]
+        )
+        ShippingZone.objects.create(
+            nickname="Eurasia",
+            code="EUR",
+            countries=["FR", "DE", "PT", "IT", "ES", "GR", "RU"],
+        )
+        calculated_zone = ShippingZone.get_for_country("FR")
+        self.assertEqual(calculated_zone, expected_zone)
+
     # Get zone for code !!!not in^ should work => ROW
     def test_row_country_checker(self):
         input_codes = ["FR", "DE"]
@@ -53,3 +72,19 @@ class CacheTestCase(TestCase):
             len(ShippingZone.default_zone.country_codes),
             len(ShippingZone.all_country_codes) - len(input_codes),
         )
+
+    def test_row_for_remaining_countries(self):
+        # Expect default ROW rate to be 0 GBP
+        self.assertEqual(Money(0, "GBP"), ShippingZone.default_zone.rate)
+
+    # When ROW is set, it should be returned rather than the default
+    def test_row_for_remaining_countries(self):
+        row_rate = Money(100, "GBP")
+        ShippingZone.objects.create(nickname="Test", code="EU", countries=["FR", "DE"])
+        ShippingZone.objects.create(
+            nickname="Test 2", code="ROW", rest_of_world=True, rate=row_rate
+        )
+        self.assertEqual(
+            ShippingZone.get_for_country("IT").code, ShippingZone.default_zone.code
+        )
+        self.assertEqual(row_rate, ShippingZone.default_zone.rate)

@@ -3,12 +3,13 @@ import stripe
 from django import forms
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models.functions import Length
 from django.forms import RadioSelect
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries as django_countries
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
-from djmoney.models.fields import MoneyField
+from djmoney.models.fields import Money, MoneyField
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.snippets.models import register_snippet
 
@@ -130,29 +131,39 @@ alphanumeric = RegexValidator(
 
 @register_snippet
 class ShippingZone(models.Model):
-    # class CountriesMode(models.TextChoices):
-    #     INCLUDE = 'INCLUDE', _('Include countries')
-    #     EXCLUDE = 'EXCLUDE', _('Exclude countries')
-
     nickname = models.CharField(max_length=300, help_text="Nickname for admin use")
+
     code = models.CharField(
         max_length=3,
         validators=[alphanumeric],
         unique=True,
         help_text="The code is used to identify the right price in Stripe. Stripe product prices with metadata UK: 4.00 will be selected, for example.",
     )
-    # rate = MoneyField(max_digits=14, decimal_places=2, default_currency='GBP', null=False, blank=False)
-    # countries_mode = models.CharField(
-    #   max_length=10,
-    #   choices=CountriesMode.choices,
-    #   default=CountriesMode.INCLUDE,
-    #   help_text="Should the countries here be excluded from the full list (e.g. rest of world) or included? (e.g. EU)"
-    # )
-    countries = CountryField(multiple=True)
+
+    rate = MoneyField(
+        verbose_name="Shipping fee",
+        default=Money(0, "GBP"),
+        max_digits=14,
+        decimal_places=2,
+        default_currency="GBP",
+        null=False,
+        blank=False,
+        help_text="Per-delivery shipping fee",
+    )
+
+    rest_of_world = models.BooleanField(
+        help_text="If selected, this zone's shipping rate will be used as the default shipping rate.",
+        null=True,
+        blank=True,
+    )
+
+    countries = CountryField(multiple=True, max_length=1000, blank=True)
 
     panels = [
         FieldPanel("nickname"),
         FieldPanel("code"),
+        FieldPanel("rest_of_world"),
+        FieldPanel("rate"),
         FieldPanel("countries", widget=forms.CheckboxSelectMultiple),
     ]
 
@@ -164,7 +175,11 @@ class ShippingZone(models.Model):
         # Check for a zone that has this code
         # If no zone, default to ROW pricing
         # settings.DEFAULT_SHIPPING_PRICE
-        zone = ShippingZone.objects.filter(countries__icontains=iso_a2).first()
+        zone = (
+            ShippingZone.objects.filter(countries__icontains=iso_a2)
+            .order_by(Length("countries").asc())
+            .first()
+        )
         if zone is None:
             zone = ShippingZone.default_zone
         return zone
@@ -194,7 +209,23 @@ class ShippingZone(models.Model):
     @classmethod
     @property
     def default_zone(self):
+        defined_row = ShippingZone.objects.filter(rest_of_world=True).first()
+        if defined_row:
+            if defined_row.code != self.row_code:
+                defined_row.code = self.row_code
+                defined_row.save()
+            return defined_row
         return ShippingZone(nickname="Rest Of World", code=self.row_code, countries=[])
+
+    @classmethod
+    def get_for_code(cls, code: str):
+        if code is not None:
+            try:
+                zone = ShippingZone.objects.get(code=code)
+                return zone
+            except:
+                pass
+        return ShippingZone.default_zone
 
     stripe_allowed_countries = [
         "AC",

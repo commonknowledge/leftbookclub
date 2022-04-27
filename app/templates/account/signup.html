@@ -23,7 +23,7 @@
         
     <form data-turbo="false" id="signup_form" method="post" action="{% url 'account_signup' %}">
       {% csrf_token %}
-      {% bootstrap_form form %}
+      {% bootstrap_form form show_label=False %}
       {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
       {% endif %}

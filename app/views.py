@@ -16,6 +16,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
+from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 
 from app.forms import GiftCodeForm, StripeShippingForm
@@ -95,7 +96,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
                 customer_from_stripe
             )
             subscription = stripe.Subscription.retrieve(session.subscription)
-            gift_mode = session.metadata.get("gift_mode")
+            gift_mode = session.metadata.get("gift_mode", None)
 
         membership_context = {}
 
@@ -111,6 +112,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             Resolve gift purchase by creating a promo code and relating it to the gift buyer's subscription,
             for future reference.
             """
+            print("gift_mode!!!")
             membership_context = self.finish_gift_purchase(
                 session, subscription, customer
             )
@@ -155,18 +157,14 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
         else:
             # First time
             gift_giver_subscription = stripe.Subscription.modify(
-                session.subscription,
-                metadata={"gift_mode": True},
-                cancel_at=(datetime.now() - relativedelta(days=1))
-                + relativedelta(months=settings.GIFT_MONTHS),
+                session.subscription, metadata={"gift_mode": True}
             )
             # 2. Generate coupon
             product_id = gift_giver_subscription.get("items").data[0].price.product
             coupon = stripe.Coupon.create(
                 applies_to={"products": [product_id]},
                 percent_off=100,
-                duration="repeating",
-                duration_in_months=settings.GIFT_MONTHS,
+                duration="forever",
             )
             promo_code = stripe.PromotionCode.create(
                 coupon=coupon.id,
@@ -218,21 +216,16 @@ class ShippingCostView(TemplateView):
         if product_id is None or country_id is None:
             return context
         product = LBCProduct.objects.get(id=product_id)
-        basic_price = product.basic_price
-        shipping_price = product.get_prices_for_country(
-            iso_a2=country_id,
-            recurring__interval=basic_price.recurring["interval"],
-            recurring__interval_count=basic_price.recurring["interval_count"],
-        ).first()
-        if basic_price is None or shipping_price is None:
-            return context
         zone = ShippingZone.get_for_country(country_id)
         context = {
             **context,
             "zone": zone,
             "product": product,
-            "shipping_fee": shipping_price.unit_amount - basic_price.unit_amount,
-            "final_price": shipping_price,
+            "shipping_zone": zone,
+            "final_price": Money(
+                product.basic_price.unit_amount / 100, product.basic_price.currency
+            )
+            + Money(zone.rate.amount, product.basic_price.currency),
             "url_pattern": self.url_pattern,
         }
 
@@ -341,12 +334,10 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         #     self.request.session["gift_giver_subscription"] = None
         #     return redirect(reverse_lazy('redeem'))
 
-        # Add shipping
-        if form.has_changed():
-            customer = stripe.Customer.modify(
-                self.request.user.stripe_customer.id, shipping=form.to_stripe()
-            )
-            djstripe.models.Customer.sync_from_stripe_data(customer)
+        customer = stripe.Customer.modify(
+            self.request.user.stripe_customer.id, shipping=form.to_stripe()
+        )
+        djstripe.models.Customer.sync_from_stripe_data(customer)
 
         return super().form_valid(form)
 
@@ -377,3 +368,18 @@ class CancellationView(LoginRequiredTemplateView):
                 stripe.Subscription.delete(self.request.user.active_subscription.id)
                 return HttpResponseRedirect(reverse("account_membership"))
         return super().dispatch(request, *args, **kwargs)
+
+
+import stripe
+from djstripe import webhooks
+
+from app.utils.stripe import gift_recipient_subscription_from_code
+
+
+@webhooks.handler("customer.subscription.deleted")
+def gift_giver_subscription_was_cancelled(event, **kwargs):
+    some_subscription = event.data.object
+    if some_subscription.metadata.get("gift_mode", None) is not None:
+        promo_code = some_subscription.metadata.get("promo_code", None)
+        recipient_subscription = gift_recipient_subscription_from_code(promo_code)
+        stripe.Subcription.delete(recipient_subscription.id)

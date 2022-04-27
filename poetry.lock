@@ -121,14 +121,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.21.46"
+version = "1.22.1"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.24.46,<1.25.0"
+botocore = ">=1.25.1,<1.26.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -137,7 +137,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.24.46"
+version = "1.25.1"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -221,7 +221,7 @@ test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
 
 [[package]]
 name = "cryptography"
-version = "36.0.2"
+version = "37.0.0"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
 category = "main"
 optional = false
@@ -236,7 +236,7 @@ docstest = ["pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling 
 pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
 sdist = ["setuptools_rust (>=0.11.4)"]
 ssh = ["bcrypt (>=3.1.5)"]
-test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
+test = ["pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
 
 [[package]]
 name = "darglint"
@@ -706,7 +706,7 @@ lxml = ["lxml"]
 
 [[package]]
 name = "identify"
-version = "2.4.12"
+version = "2.5.0"
 description = "File identification library for Python"
 category = "main"
 optional = false
@@ -1464,14 +1464,21 @@ wagtail = ">=2.9"
 
 [[package]]
 name = "wagtail-transfer"
-version = "0.8.2"
-description = "Content transfer for Wagtail"
+version = "0.8.3"
+description = ""
 category = "main"
 optional = false
 python-versions = "*"
+develop = false
 
 [package.extras]
 docs = ["mkdocs (>=1.0,<1.1)", "mkdocs-material (>=4.6,<4.7)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/wagtail/wagtail-transfer.git"
+reference = "master"
+resolved_reference = "fb7bec17f0af174144cc70e5ea2287d6b2e64d43"
 
 [[package]]
 name = "wagtailfontawesome"
@@ -1567,7 +1574,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "d817257f7009280a24daae9c05b6d8f817db05d016eb44ce0123e3cbb2ef565a"
+content-hash = "03080faadf42162e272545a813683cbe75ef038a08a49a7e905abf075f9a2dcc"
 
 [metadata.files]
 anyascii = [
@@ -1629,12 +1636,12 @@ black = [
     {file = "black-22.3.0.tar.gz", hash = "sha256:35020b8886c022ced9282b51b5a875b6d1ab0c387b31a065b84db7c33085ca79"},
 ]
 boto3 = [
-    {file = "boto3-1.21.46-py3-none-any.whl", hash = "sha256:3b13d727854aba9dea900b6c7fa134c52396869d842460d14fab8b85b69645f7"},
-    {file = "boto3-1.21.46.tar.gz", hash = "sha256:9ac902076eac82112f4536cc2606a1f597a387dbc56b250575ac2d2c64c75e20"},
+    {file = "boto3-1.22.1-py3-none-any.whl", hash = "sha256:c7c996aa06a754e3e5cc5c64c840f02314333bdf6fe33054de9083be56aa6521"},
+    {file = "boto3-1.22.1.tar.gz", hash = "sha256:096ff3255c1327f14e63d29d7bed4900cc350d42916498c5cc37a90a7051d3dc"},
 ]
 botocore = [
-    {file = "botocore-1.24.46-py3-none-any.whl", hash = "sha256:663d8f02b98641846eb959c54c840cc33264d5f2dee5b8fc09ee8adbef0f8dcf"},
-    {file = "botocore-1.24.46.tar.gz", hash = "sha256:89a203bba3c8f2299287e48a9e112e2dbe478cf67eaac26716f0e7f176446146"},
+    {file = "botocore-1.25.1-py3-none-any.whl", hash = "sha256:33bb9659d4327f4f3aed6d6aee0fa467ffe635eee2a091cb6befe66e8956f234"},
+    {file = "botocore-1.25.1.tar.gz", hash = "sha256:ede020a3ee2ed1110b415af4bbd57b7275df66bbc96d20aa6310cabf0c5cfe36"},
 ]
 certifi = [
     {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
@@ -1713,26 +1720,28 @@ commonmark = [
     {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
 ]
 cryptography = [
-    {file = "cryptography-36.0.2-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:4e2dddd38a5ba733be6a025a1475a9f45e4e41139d1321f412c6b360b19070b6"},
-    {file = "cryptography-36.0.2-cp36-abi3-macosx_10_10_x86_64.whl", hash = "sha256:4881d09298cd0b669bb15b9cfe6166f16fc1277b4ed0d04a22f3d6430cb30f1d"},
-    {file = "cryptography-36.0.2-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:ea634401ca02367c1567f012317502ef3437522e2fc44a3ea1844de028fa4b84"},
-    {file = "cryptography-36.0.2-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:7be666cc4599b415f320839e36367b273db8501127b38316f3b9f22f17a0b815"},
-    {file = "cryptography-36.0.2-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8241cac0aae90b82d6b5c443b853723bcc66963970c67e56e71a2609dc4b5eaf"},
-    {file = "cryptography-36.0.2-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7b2d54e787a884ffc6e187262823b6feb06c338084bbe80d45166a1cb1c6c5bf"},
-    {file = "cryptography-36.0.2-cp36-abi3-manylinux_2_24_x86_64.whl", hash = "sha256:c2c5250ff0d36fd58550252f54915776940e4e866f38f3a7866d92b32a654b86"},
-    {file = "cryptography-36.0.2-cp36-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:ec6597aa85ce03f3e507566b8bcdf9da2227ec86c4266bd5e6ab4d9e0cc8dab2"},
-    {file = "cryptography-36.0.2-cp36-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:ca9f686517ec2c4a4ce930207f75c00bf03d94e5063cbc00a1dc42531511b7eb"},
-    {file = "cryptography-36.0.2-cp36-abi3-win32.whl", hash = "sha256:f64b232348ee82f13aac22856515ce0195837f6968aeaa94a3d0353ea2ec06a6"},
-    {file = "cryptography-36.0.2-cp36-abi3-win_amd64.whl", hash = "sha256:53e0285b49fd0ab6e604f4c5d9c5ddd98de77018542e88366923f152dbeb3c29"},
-    {file = "cryptography-36.0.2-pp37-pypy37_pp73-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:32db5cc49c73f39aac27574522cecd0a4bb7384e71198bc65a0d23f901e89bb7"},
-    {file = "cryptography-36.0.2-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d2b3d199647468d410994dbeb8cec5816fb74feb9368aedf300af709ef507e3e"},
-    {file = "cryptography-36.0.2-pp37-pypy37_pp73-manylinux_2_24_x86_64.whl", hash = "sha256:da73d095f8590ad437cd5e9faf6628a218aa7c387e1fdf67b888b47ba56a17f0"},
-    {file = "cryptography-36.0.2-pp38-pypy38_pp73-macosx_10_10_x86_64.whl", hash = "sha256:0a3bf09bb0b7a2c93ce7b98cb107e9170a90c51a0162a20af1c61c765b90e60b"},
-    {file = "cryptography-36.0.2-pp38-pypy38_pp73-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:8897b7b7ec077c819187a123174b645eb680c13df68354ed99f9b40a50898f77"},
-    {file = "cryptography-36.0.2-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:82740818f2f240a5da8dfb8943b360e4f24022b093207160c77cadade47d7c85"},
-    {file = "cryptography-36.0.2-pp38-pypy38_pp73-manylinux_2_24_x86_64.whl", hash = "sha256:1f64a62b3b75e4005df19d3b5235abd43fa6358d5516cfc43d87aeba8d08dd51"},
-    {file = "cryptography-36.0.2-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:e167b6b710c7f7bc54e67ef593f8731e1f45aa35f8a8a7b72d6e42ec76afd4b3"},
-    {file = "cryptography-36.0.2.tar.gz", hash = "sha256:70f8f4f7bb2ac9f340655cbac89d68c527af5bb4387522a8413e841e3e6628c9"},
+    {file = "cryptography-37.0.0-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:d97479d943d549d4a78f044b0620a7d349191ed40933ffabff1cc5875e20682c"},
+    {file = "cryptography-37.0.0-cp36-abi3-macosx_10_10_x86_64.whl", hash = "sha256:d886b2c9f8d1ab0916673bc3c89dd04fc6e6591861872c9f08402b0ab2843b82"},
+    {file = "cryptography-37.0.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:ebdc9c4b3577bb76b0defebe4ef8b866da5228a1c53fbbf394b7677fe292fee9"},
+    {file = "cryptography-37.0.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:db1b9516e3072e0342287e06779bec84118bd780f794c8c07bd5da142a526103"},
+    {file = "cryptography-37.0.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d426093df7f00de859bad45d6a09fdab9b8e4c6e46ea897dd0a302b94c7f6871"},
+    {file = "cryptography-37.0.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:57273f69b334c6d30f4d27abc7fb9c919ef4c6193af64420572808302bb45768"},
+    {file = "cryptography-37.0.0-cp36-abi3-manylinux_2_24_x86_64.whl", hash = "sha256:bc54780dd8f7236874ac29fc155c5cf811f7d910e5f0575932a38bdaac3b5146"},
+    {file = "cryptography-37.0.0-cp36-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:183d6a540659c6a729c08971f09f3fb1044c89dd5af9d6f18da824a071f5445d"},
+    {file = "cryptography-37.0.0-cp36-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:2dfd682771c04c7e85a4b4ea6aa1682a3fd6f4d9845468fa6ba512b80a560a8d"},
+    {file = "cryptography-37.0.0-cp36-abi3-win32.whl", hash = "sha256:2d3d8a69d262ba27923466194bef637150aef286b11b160e087992206ac32f0c"},
+    {file = "cryptography-37.0.0-cp36-abi3-win_amd64.whl", hash = "sha256:710b9041fb97cc576e288b5f96583578ed352dd60608a402045405c388522b94"},
+    {file = "cryptography-37.0.0-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bf893131cd79dc8eaf4940b3aa2f4a68eba050471f5deacfaedea6aab04f574f"},
+    {file = "cryptography-37.0.0-pp37-pypy37_pp73-manylinux_2_24_x86_64.whl", hash = "sha256:d119feb387ce2df9bfb92e5785df9094325cfa974e2e6aa08c8e4a8b56786afe"},
+    {file = "cryptography-37.0.0-pp38-pypy38_pp73-macosx_10_10_x86_64.whl", hash = "sha256:1af4f31870ef2180aba1c04f6d957461a570c8cabcc4b5ac7fabf2b4a0364ea0"},
+    {file = "cryptography-37.0.0-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4c52cb32ea0b9798234823d37c93cab8004c574b2d224f048cd5829d0639387b"},
+    {file = "cryptography-37.0.0-pp38-pypy38_pp73-manylinux_2_24_x86_64.whl", hash = "sha256:e86734f28656f6fd5993ab32bd2d2680c3b8341d6f875faf5212bc78715db2a4"},
+    {file = "cryptography-37.0.0-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:eee79c6c16949ed817c8cf288e6e124c4b8996e3312d9e7884c71cf9bdda212e"},
+    {file = "cryptography-37.0.0-pp39-pypy39_pp73-macosx_10_10_x86_64.whl", hash = "sha256:5c2517a2c58213ee62b36ee9ece4a710179ddb07db90e31d7619e7ea472c9dc3"},
+    {file = "cryptography-37.0.0-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8921428ca6403d7eb52ee0e728e8b02601060a5791f6d64c8a3a12b5722064af"},
+    {file = "cryptography-37.0.0-pp39-pypy39_pp73-manylinux_2_24_x86_64.whl", hash = "sha256:0234bdb18620ed16bf186f0591aea0bbc321ecaf59c859d5f5cbe7b646d8377e"},
+    {file = "cryptography-37.0.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:cab59c774125596fa72f1decc5805894313b40f370a7c75597e37f0211027944"},
+    {file = "cryptography-37.0.0.tar.gz", hash = "sha256:5a761fc1ff0eae360a80656bea462c3163dfaa8093b2fa0f72af929217b14a97"},
 ]
 darglint = [
     {file = "darglint-1.8.1-py3-none-any.whl", hash = "sha256:5ae11c259c17b0701618a20c3da343a3eb98b3bc4b5a83d31cdd94f5ebdced8d"},
@@ -1885,8 +1894,8 @@ html5lib = [
     {file = "html5lib-1.1.tar.gz", hash = "sha256:b2e5b40261e20f354d198eae92afc10d750afb487ed5e50f9c4eaf07c184146f"},
 ]
 identify = [
-    {file = "identify-2.4.12-py2.py3-none-any.whl", hash = "sha256:5f06b14366bd1facb88b00540a1de05b69b310cbc2654db3c7e07fa3a4339323"},
-    {file = "identify-2.4.12.tar.gz", hash = "sha256:3f3244a559290e7d3deb9e9adc7b33594c1bc85a9dd82e0f1be519bf12a1ec17"},
+    {file = "identify-2.5.0-py2.py3-none-any.whl", hash = "sha256:3acfe15a96e4272b4ec5662ee3e231ceba976ef63fd9980ed2ce9cc415df393f"},
+    {file = "identify-2.5.0.tar.gz", hash = "sha256:c83af514ea50bf2be2c4a3f2fb349442b59dc87284558ae9ff54191bff3541d2"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
@@ -2292,9 +2301,7 @@ wagtail-seo = [
     {file = "wagtail-seo-1.0.0.tar.gz", hash = "sha256:3f2668a1e25d954dc17212af6e17ea8e157cbb4d6a78e7490ea53881a2c4aa77"},
     {file = "wagtail_seo-1.0.0-py3-none-any.whl", hash = "sha256:ca548817f426decec000fa18bbfbcf6de228760c9a621061275158a86fc20b7a"},
 ]
-wagtail-transfer = [
-    {file = "wagtail_transfer-0.8.2-py3-none-any.whl", hash = "sha256:2d57c5bb1facbceface9cef7606534534b3ea2456a1859cfddb3665b27fb1782"},
-]
+wagtail-transfer = []
 wagtailfontawesome = [
     {file = "wagtailfontawesome-1.2.1-py2.py3-none-any.whl", hash = "sha256:76b1c64c4f1042d468a83e4352f74b57bda4a4aa09cdfeeb8663dead5ed632be"},
     {file = "wagtailfontawesome-1.2.1.tar.gz", hash = "sha256:6c1bd2d6061880848de6374ceb75d38a8c9b0debb1d4aef8a2fdc9d565a8f417"},

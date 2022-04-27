@@ -1,9 +1,15 @@
 {% load wagtailcore_tags django_bootstrap5 djmoney %}
-<section>
-  <header class='row'>
-    <div class='col'>
+{% with request.GET.gift_mode as gift_mode %}
+<section class='my-4'>
+  <header class='row gx-0'>
+    <div class='col p-4'>
       <h2>{{ value.heading }}</h2>
       <div>{{ value.description|richtext }}</div>
+      {% if not gift_mode %}
+        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href="?gift_mode=true" content="Gift a membership" %}
+      {% else %}
+        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=request.path content="Buy yourself a membership instead" %}
+      {% endif %}
     </div>
   </header>
   <div class='row'>
@@ -45,6 +51,7 @@
   {% endfor %}
   </div>
 </section>
+{% endwith %}
 
 {% comment %} {% load static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% with request.GET.gift_mode as gift_mode %}

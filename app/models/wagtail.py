@@ -148,6 +148,21 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
         AutocompletePanel("products", target_model=LBCProduct),
     ]
 
+    @property
+    def basic_price(self):
+        price = self.monthly_price
+        if price is None:
+            price = self.prices.order_by("price", "interval").first()
+        return price
+
+    @property
+    def monthly_price(self):
+        return self.prices.filter(interval="month").first()
+
+    @property
+    def annual_price(self):
+        return self.prices.filter(interval="year").first()
+
 
 class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
     choices = [

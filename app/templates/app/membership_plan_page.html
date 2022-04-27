@@ -1,21 +1,43 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting url %}
 
 {% block content %}
   {% load wagtailcore_tags django_bootstrap5 djmoney %}
-  {% with page.prices.all.0 as display_price %}
+  {% with request.GET.gift_mode as gift_mode %}
+  {% with request.GET.annual as annual %}
   {% with page.products.all as products %}
     <h3>{{ page.title }}</h3>
-    <h5>{% money_localize display_price.price %} per {% if display_price.interval_count > 1 %}{{ display_price.interval_count }}{% endif %} {{ display_price.interval}}{{page.price.0.interval_count|pluralize:",s" }}</h5>
     <h5>{{ page.deliveries_per_year }} deliveries per year</h5>
     <div>{{ page.description|richtext }}</div>
+    <h5>Pricing</h5>
+    {% if not gift_mode %}
+      {% qs_link gift_mode="true" as url %}
+      {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Gift a membership" %}
+    {% else %}
+      {% qs_link gift_mode=None as url %}
+      {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Buy yourself a membership instead" %}
+    {% endif %}
+    {% if not annual %}
+      {% qs_link annual="true" as url %}
+      {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to annual pricing" %}
+    {% else %}
+      {% qs_link annual=None as url %}
+      {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to monthly pricing" %}
+    {% endif %}
+    {% if annual and page.annual_price %}
+      <div class='fw-bold'>{% include "app/includes/plan_price.html" with price=page.annual_price %}</div>
+    {% else %}
+      <div class='fw-bold'>{% include "app/includes/plan_price.html" with price=page.basic_price %}</div>
+    {% endif %}
     {% if products|length == 1 %}
       {% bootstrap_button href="/product/"|add:products.0.id content="Select" %}
     {% else %}
+      <h5>Options</h5>
       {% for product in products %}
         {% bootstrap_button href="/product/"|add:product.id content="Select "|add:product.name %}
       {% endfor %}
     {% endif %}
+  {% endwith %}
   {% endwith %}
   {% endwith %}
 {% endblock %}

@@ -34,7 +34,7 @@ if os.getenv("MAILJET_API_KEY"):
     ANYMAIL = {
         "SEND_DEFAULTS": {"envelope_sender": DEFAULT_FROM_EMAIL},
         "MAILJET_API_KEY": os.getenv("MAILJET_API_KEY"),
-        "MAILJET_SECRET_KEY": os.getenv("MAILJET_SECRET_KEY"),
+        "MAILJET_SECRET_KEY": os.getenv("MAILJET_SECRET π_KEY"),
     }
     EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
 elif os.getenv("MAILGUN_API_URL"):
@@ -50,6 +50,19 @@ elif os.getenv("MAILGUN_API_URL"):
     SERVER_EMAIL = f"admin@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
 
 WAGTAILTRANSFER_SECRET_KEY = os.getenv("WAGTAILTRANSFER_SECRET_KEY")
+WAGTAILTRANSFER_SOURCES = {}
+
+if os.getenv("WAGTAILTRANSFER_SECRET_KEY_STAGING"):
+    WAGTAILTRANSFER_SOURCES["staging"] = {
+        "BASE_URL": "https://lbc-staging.fly.dev/wagtail-transfer/",
+        "SECRET_KEY": os.getenv("WAGTAILTRANSFER_SECRET_KEY_STAGING"),
+    }
+
+if os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"):
+    WAGTAILTRANSFER_SOURCES["production"] = {
+        "BASE_URL": "https://lbc-production.fly.dev/wagtail-transfer/",
+        "SECRET_KEY": os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"),
+    }
 
 try:
     from .local import *

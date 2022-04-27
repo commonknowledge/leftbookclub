@@ -2,3 +2,4 @@ node_modules
 .devcontainer
 .github
 .*_cache
+app/settings/local.py

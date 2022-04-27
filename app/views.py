@@ -96,7 +96,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
                 customer_from_stripe
             )
             subscription = stripe.Subscription.retrieve(session.subscription)
-            gift_mode = session.metadata.get("gift_mode")
+            gift_mode = session.metadata.get("gift_mode", None)
 
         membership_context = {}
 
@@ -112,6 +112,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             Resolve gift purchase by creating a promo code and relating it to the gift buyer's subscription,
             for future reference.
             """
+            print("gift_mode!!!")
             membership_context = self.finish_gift_purchase(
                 session, subscription, customer
             )

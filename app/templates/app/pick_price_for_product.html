@@ -2,6 +2,7 @@
 {% load static wagtailroutablepage_tags django_bootstrap5 %}
 {% block content %}
 {% with request.GET.gift_mode as gift_mode %}
+  {% routablepageurl page 'pick_product' as back_link %}
   <main>
     <div class="row justify-content-md-center">
       <div class='col col-md-6 col-lg-4'>
@@ -9,12 +10,23 @@
           <h2 class="h3 fw-normal text-center">Confirm{% if gift_mode %} gift{% endif %} details</h2>
         </header>
         <div class="mb-3">
-          <label class="form-label">You're purchasing</label>
+          <label class="form-label"> 
+            {% if gift_mode %}
+              You're buying a gift card for someone:
+            {% elif user.is_member %}
+              You're switching to another plan:
+            {% endif %}
+          </label>
           <div class='p-3 bg-light rounded-3 my-2'>
             <div class="h5 mb-0">
-              {{ product.name }} {% if request.GET.gift_mode %}<span>- as a gift</span>{% endif %}
+              {{ product.name }} {% if gift_mode %}<span>- as a gift</span>{% endif %}
             </div>
           </div>
+          {% if gift_mode %}
+            {% bootstrap_button href=back_link|add:"?gift_mode=true" content="Change" button_class="w-100 btn-outline-light text-dark" size='sm' %}
+          {% else %}
+            {% bootstrap_button href=back_link content="Change" button_class="w-100 btn-outline-light text-dark" size='sm' %}
+          {% endif %}
         </div>
         <form
           data-turbo="false"
@@ -40,7 +52,7 @@
               </div>
             </div>
           </turbo-frame>
-          {% if user.is_member and gift_mode is None %}
+          {% if user.is_member and not gift_mode %}
           <div class='row justify-content-center'>
             <div class="form-check max-width-card w-100">
               <input required class="form-check-input" type="checkbox" value="" id='confirm_cancel_current_subscriptions' name='confirm_cancel_current_subscriptions'>
@@ -51,13 +63,6 @@
           </div>
           {% endif %}
         </form>
-        {% routablepageurl page 'pick_product' as back_link %}
-        {% comment %} TODO: how to concat gift_mode {% endcomment %}
-        {% if gift_mode %}
-          {% bootstrap_button href=back_link|add:"?gift_mode=true" content="Pick a different plan" button_class="w-100 btn-light text-dark" %}
-        {% else %}
-          {% bootstrap_button href=back_link content="Pick a different plan" button_class="w-100 btn-light text-dark" %}
-        {% endif %}
       </div>
     </div>
   </main>

@@ -171,6 +171,11 @@ class ShippingZone(models.Model):
     def __str__(self) -> str:
         return f"[{self.code}] {self.nickname}"
 
+    autocomplete_search_field = "nickname"
+
+    def autocomplete_label(self):
+        return str(self)
+
     @classmethod
     def get_for_country(self, iso_a2: str):
         # Check for a zone that has this code

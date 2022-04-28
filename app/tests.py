@@ -1,5 +1,6 @@
 from django.test import TestCase
 from djmoney.money import Money
+from djstripe.enums import ProductType
 
 from app.models import *
 
@@ -179,3 +180,77 @@ class CacheTestCase(TestCase):
             classic_plan.monthly_price.price_including_shipping(zone),
             Money(11.50, "GBP"),
         )
+
+    # When ROW is set, it should be returned rather than the default
+    def test_row_for_remaining_countries(self):
+        row_rate = Money(100, "GBP")
+        ShippingZone.objects.create(nickname="Test", code="EU", countries=["FR", "DE"])
+        ShippingZone.objects.create(
+            nickname="Test 2", code="ROW", rest_of_world=True, rate=row_rate
+        )
+        self.assertEqual(
+            ShippingZone.get_for_country("IT").code, ShippingZone.default_zone.code
+        )
+        self.assertEqual(row_rate, ShippingZone.default_zone.rate)
+
+    # When ROW is set, it should be returned rather than the default
+    def test_shipping_excluded(self):
+        self.assertEqual(ShippingZone.objects.count(), 0)
+        zone = ShippingZone(
+            nickname="Test", code="UK", countries=["GB"], rate=Money(3, "GBP")
+        )
+        expensive_zone = ShippingZone(
+            nickname="Test", code="EU", countries=["FR"], rate=Money(10, "GBP")
+        )
+        solidarity_plan = MembershipPlanPage(
+            title="Solidarity",
+            deliveries_per_year=12,
+            products=[
+                LBCProduct(
+                    id="prod_fake", name="Some Product", type=ProductType.service
+                )
+            ],
+            prices=[
+                MembershipPlanPrice(
+                    price=Money(10, "GBP"),
+                    interval="month",
+                    interval_count=1,
+                ),
+                MembershipPlanPrice(
+                    price=Money(100, "GBP"),
+                    interval="year",
+                    interval_count=1,
+                    free_shipping_zones=[zone],
+                ),
+            ],
+        )
+
+        # First, assert that shipping is calculated properly when `free_shipping_zones` is set
+        self.assertGreater(
+            solidarity_plan.annual_price.shipping_fee(expensive_zone),
+            Money(0, expensive_zone.rate_currency),
+        )
+        line_items = solidarity_plan.annual_price.to_checkout_line_items(
+            solidarity_plan.products.first(), expensive_zone
+        )
+        # self.assertEqual(len(line_items), 2)
+        for item in line_items:
+            if "shipping" in item["price_data"]["metadata"].keys():
+                self.assertGreater(item["price_data"]["unit_amount_decimal"], 0)
+
+        # Now check that `free_shipping_zones` has the desired effects:
+
+        # 1. Shipping is calculated abstractly as being excluded for this annual price
+        self.assertEqual(
+            solidarity_plan.annual_price.shipping_fee(zone),
+            Money(0, zone.rate_currency),
+        )
+
+        # 2. And this calculation means that a line item for shipping is presently 0
+        # (meaning we can upgrade them to a different shipping fee later on)
+        line_items = solidarity_plan.annual_price.to_checkout_line_items(
+            solidarity_plan.products.first(), zone
+        )
+        for item in line_items:
+            if "shipping" in item["price_data"]["metadata"].keys():
+                self.assertEqual(item["price_data"]["unit_amount_decimal"], 0)

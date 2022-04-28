@@ -455,16 +455,7 @@ class SubscriptionCheckoutView(TemplateView):
         checkout_args = dict(
             mode="subscription",
             allow_promotion_codes=True,
-            line_items=[
-                {
-                    "price_data": price.to_price_data(product),
-                    "quantity": 1,
-                },
-                {
-                    "price_data": price.to_shipping_price_data(zone),
-                    "quantity": 1,
-                },
-            ],
+            line_items=price.to_checkout_line_items(product, zone),
             # By default, customer details aren't updated, but we want them to be.
             customer_update={
                 "shipping": "auto",

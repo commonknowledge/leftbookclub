@@ -19,7 +19,7 @@
             {% endif %}
           </span>
           <span>
-            {% if shipping_zone.rate.amount == 0 %}
+            {% if shipping_zone.rate.amount == 0 or shipping_price.amount == 0 %}
               FREE
             {% else %}
               {% money_localize shipping_price %}

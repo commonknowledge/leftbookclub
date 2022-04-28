@@ -16,8 +16,10 @@ from django.utils.html import strip_tags
 from django_countries import countries
 from djmoney.models.fields import Money, MoneyField
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
+from modelcluster.models import ClusterableModel
 from wagtail.admin.edit_handlers import (
     FieldPanel,
+    FieldRowPanel,
     InlinePanel,
     MultiFieldPanel,
     PageChooserPanel,
@@ -99,7 +101,7 @@ class ArticleSeoMixin(SeoMetadataMixin):
 
 
 @register_snippet
-class MembershipPlanPrice(Orderable):
+class MembershipPlanPrice(Orderable, ClusterableModel):
     plan = ParentalKey("app.MembershipPlanPage", related_name="prices")
 
     price = MoneyField(
@@ -129,6 +131,30 @@ class MembershipPlanPrice(Orderable):
 
     description = RichTextField(null=True, blank=True)
 
+    free_shipping_zones = ParentalManyToManyField(
+        ShippingZone,
+        related_name="excluded_prices",
+        help_text="Waive shipping fees for customers in these shipping zones.",
+        blank=True,
+    )
+
+    panels = [
+        FieldPanel("price"),
+        FieldRowPanel(
+            [
+                FieldPanel("interval_count"),
+                FieldPanel("interval"),
+            ],
+            heading="billing schedule",
+        ),
+        AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+        FieldPanel(
+            "description",
+            classname="full",
+            help_text="Displayed to visitors who are considering purchasing a plan at this price.",
+        ),
+    ]
+
     @property
     def deliveries_per_billing_period(self) -> float:
         if self.interval == "year":
@@ -138,10 +164,12 @@ class MembershipPlanPrice(Orderable):
         if self.interval == "week":
             return (self.plan.deliveries_per_year / 52) * self.interval_count
         if self.interval == "day":
-            return (self.plan.deliveries_per_year / 365) * self.interval_count
+            return (self.plan.deliveries_per_year / 365.25) * self.interval_count
         return self.plan.deliveries_per_year
 
     def shipping_fee(self, zone) -> Money:
+        if self.free_shipping_zones.filter(id=zone.id).exists():
+            return Money(0, zone.rate_currency)
         return zone.rate * self.deliveries_per_billing_period
 
     def price_including_shipping(self, zone):
@@ -169,9 +197,9 @@ class MembershipPlanPrice(Orderable):
         if self.interval == "month":
             return self.interval_count
         if self.interval == "week":
-            return self.interval_count / 4.2
+            return self.interval_count / (52 / 7)
         if self.interval == "day":
-            return self.interval_count / 30
+            return self.interval_count / (365.25 / 12)
 
     @property
     def equivalent_monthly_price(self) -> str:
@@ -218,6 +246,21 @@ class MembershipPlanPrice(Orderable):
                 **self.metadata,
             },
         }
+
+    def to_checkout_line_items(self, product, zone):
+        line_items = [
+            {
+                "price_data": self.to_price_data(product),
+                "quantity": 1,
+            },
+            # Keep the shipping fee in, even if it's 0
+            # so that we can upgrade/downgrade shipping prices in the future
+            {
+                "price_data": self.to_shipping_price_data(zone),
+                "quantity": 1,
+            },
+        ]
+        return line_items
 
 
 class MembershipPlanPage(ArticleSeoMixin, Page):

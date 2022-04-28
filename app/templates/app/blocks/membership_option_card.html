@@ -39,7 +39,7 @@
             {% bootstrap_button button_class='btn-outline-dark' href=url|add:gift_qs content="Get this as a gift" %}
           {% endwith %}
         {% else %}
-          {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:qs content="Select" %}
+          {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:qs content="See options" %}
           {% qs_link gift_mode=True as gift_qs %}
           {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:gift_qs content="Get this as a gift" %}
         {% endif %}

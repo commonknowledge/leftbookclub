@@ -168,7 +168,7 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         return self.plan.deliveries_per_year
 
     def shipping_fee(self, zone) -> Money:
-        if self.free_shipping_zones.filter(id=zone.id).exists():
+        if self.free_shipping_zones.filter(code=zone.code).exists():
             return Money(0, zone.rate_currency)
         return zone.rate * self.deliveries_per_billing_period
 

@@ -196,20 +196,20 @@ class CacheTestCase(TestCase):
     # When ROW is set, it should be returned rather than the default
     def test_shipping_excluded(self):
         self.assertEqual(ShippingZone.objects.count(), 0)
-        zone = ShippingZone(
+        zone = ShippingZone.objects.create(
             nickname="Test", code="UK", countries=["GB"], rate=Money(3, "GBP")
         )
-        expensive_zone = ShippingZone(
+        expensive_zone = ShippingZone.objects.create(
             nickname="Test", code="EU", countries=["FR"], rate=Money(10, "GBP")
         )
+        product = LBCProduct.objects.create(
+            id="prod_fake", name="Some Product", type=ProductType.service
+        )
         solidarity_plan = MembershipPlanPage(
+            slug="solidarity",
             title="Solidarity",
             deliveries_per_year=12,
-            products=[
-                LBCProduct(
-                    id="prod_fake", name="Some Product", type=ProductType.service
-                )
-            ],
+            products=[product],
             prices=[
                 MembershipPlanPrice(
                     price=Money(10, "GBP"),
@@ -223,6 +223,12 @@ class CacheTestCase(TestCase):
                     free_shipping_zones=[zone],
                 ),
             ],
+        )
+
+        # Sanity check: monthly price without free_shipping_zones defined will charge for shipping
+        self.assertGreater(
+            solidarity_plan.monthly_price.shipping_fee(expensive_zone),
+            Money(0, expensive_zone.rate_currency),
         )
 
         # First, assert that shipping is calculated properly when `free_shipping_zones` is set

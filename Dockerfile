@@ -33,4 +33,7 @@ RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 # with files available for purgecss
 RUN NODE_ENV=production yarn vite build
 
+# Rerun collect static to include the built files
+RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
+
 CMD ["bash", "-c", "poetry run gunicorn $GUNICORN_ARGS -b 0.0.0.0:${PORT:-80} app.wsgi"]

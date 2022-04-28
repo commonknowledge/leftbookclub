@@ -173,7 +173,6 @@ def create_gift(
     args = dict(
         customer=user.stripe_customer.id,
         items=items,
-        # cancel_at=(datetime.now() - relativedelta(days=1)) + relativedelta(months=promo_code.coupon.duration_in_months),
         promotion_code=promo_code_id,
         payment_behavior="allow_incomplete",
         off_session=True,

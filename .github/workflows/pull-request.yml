@@ -19,7 +19,7 @@ jobs:
         PY_IGNORE_IMPORTMISMATCH: 1
         STRIPE_LIVE_MODE: ${{ secrets.STRIPE_LIVE_MODE }}
         STRIPE_TEST_PUBLIC_KEY: ${{ secrets.STRIPE_TEST_PUBLIC_KEY }}
-        STRIPE_TEST_SECRET_KEY: ${{ secrets.STRIPE_LIVE_MODE }}
+        STRIPE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
     services:
       db:
         image: kartoza/postgis:latest

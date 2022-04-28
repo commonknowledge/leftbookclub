@@ -217,9 +217,25 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
         FieldPanel("deliveries_per_year"),
         FieldPanel("description"),
         InlinePanel("prices", min_num=1, label="Price"),
+        FieldPanel("pick_product_title", classname="full title"),
         FieldPanel("pick_product_text"),
         AutocompletePanel("products", target_model=LBCProduct),
     ]
+
+    @property
+    def delivery_frequency(self):
+        months_between = self.deliveries_per_year / 12
+        s = "every "
+        if months_between == 1:
+            s += "month"
+        # Could replace this with https://github.com/savoirfairelinux/num2words
+        elif months_between == 1 / 2:
+            s += "two months"
+        elif months_between == 1 / 3:
+            s += "three months"
+        else:
+            s += f"{months_between} months"
+        return s
 
     @property
     def basic_price(self) -> MembershipPlanPrice:

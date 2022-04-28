@@ -6,13 +6,6 @@
     <div class='col p-4'>
       <h2>{{ value.heading }}</h2>
       <div>{{ value.description|richtext }}</div>
-      {% if not gift_mode %}
-        {% qs_link gift_mode="true" as url %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Gift a membership" %}
-      {% else %}
-        {% qs_link gift_mode=None as url %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Buy yourself a membership instead" %}
-      {% endif %}
       {% if not annual %}
         {% qs_link annual="true" as url %}
         {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to annual pricing" %}
@@ -22,7 +15,7 @@
       {% endif %}
     </div>
   </header>
-  <div class='row'>
+  <div class='row gx-3'>
   {% for option in value.plans %}
     {% if option.plan.live %}
       {% include_block option %}

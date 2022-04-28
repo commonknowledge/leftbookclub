@@ -4,15 +4,15 @@ register = template.Library()
 from random import choice
 
 backgrounds = [
-    "tw-bg-yellow",
-    "tw-bg-purple",
+    "tw-bg-coral",
+    "tw-bg-lightgreen",
     "tw-bg-magenta",
     "tw-bg-pink",
-    "tw-bg-lightgreen",
     "tw-bg-darkgreen",
+    "tw-bg-yellow",
+    "tw-bg-purple",
     "tw-bg-lilacgrey",
     "tw-bg-teal",
-    "tw-bg-coral",
 ]
 
 

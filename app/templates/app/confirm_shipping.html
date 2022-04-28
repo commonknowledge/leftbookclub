@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load static wagtailroutablepage_tags django_bootstrap5 %}
+{% load static wagtailroutablepage_tags django_bootstrap5 url %}
 {% block content %}
 {% with request.GET.gift_mode as gift_mode %}
-  {% url 'pick_product' as back_link %}
+  {% qs_link as qs %}
   <main>
     <div class="row justify-content-md-center">
       <div class='col col-md-6 col-lg-4'>
@@ -22,29 +22,24 @@
               {{ product.name }} {% if gift_mode %}<span>- as a gift</span>{% endif %}
             </div>
           </div>
-          {% if gift_mode %}
-            {% bootstrap_button href=back_link|add:"?gift_mode=true" content="Change" button_class="w-100 btn-outline-light text-dark" size='sm' %}
-          {% else %}
-            {% bootstrap_button href=back_link content="Change" button_class="w-100 btn-outline-light text-dark" size='sm' %}
-          {% endif %}
+          {% qs_link as qs %}
+          {% bootstrap_button href=plan.url|add:qs content="Change" button_class="w-100 btn-outline-light text-dark" size='sm' %}
         </div>
         <form
           data-turbo="false"
           data-controller="shipping"
-          data-shipping-url-value="{{ url_pattern }}{% if gift_mode %}?gift_mode=true{% endif %}"
+          data-shipping-url-value="{{ url_pattern }}{{ qs }}"
+          data-shipping-price-value="{{ price.id }}"
           data-shipping-product-value="{{ product.id }}"
           data-shipping-target="form"
-          action="{% url "checkout" product_id=product.id %}"
+          action="{% url "checkout" price_id=price.id product_id=product.id %}{{ qs }}"
           method="get"
         >
-          {% if gift_mode %}
-            <input type='hidden' name='gift_mode' value='true' />
-          {% endif %}
           {% csrf_token %}
           <div class='position-relative'>
             {% bootstrap_field country_selector_form.country %}
           </div>
-          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" product_id=product.id country_id=default_country_code %}{% if gift_mode %}?gift_mode=true{% endif %}">
+          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" price_id=price.id product_id=product.id country_id=default_country_code %}{{ qs }}">
             <div class='p-3 bg-light rounded-3 my-2'>
               <div class="text-muted mb-1 text-center">
                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
-from django.urls import reverse, reverse_lazy
+from django.urls import include, path, re_path, reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from djmoney.money import Money
@@ -25,11 +25,7 @@ from djstripe import settings as djstripe_settings
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
-from app.utils.stripe import (
-    create_gift,
-    create_one_off_shipping_price_data_for_price,
-    gift_giver_subscription_from_code,
-)
+from app.utils.stripe import create_gift, gift_giver_subscription_from_code
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -212,33 +208,6 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
         return page_context
 
 
-class ShippingCostView(TemplateView):
-    template_name = "app/frames/shipping_cost.html"
-    url_pattern = "shippingcosts/<str:product_id>/<str:country_id>/"
-
-    def get_context_data(self, product_id=None, country_id=None, **kwargs):
-        from .models import LBCProduct, ShippingZone
-
-        context = super().get_context_data(**kwargs)
-        if product_id is None or country_id is None:
-            return context
-        product = LBCProduct.objects.get(id=product_id)
-        zone = ShippingZone.get_for_country(country_id)
-        context = {
-            **context,
-            "zone": zone,
-            "product": product,
-            "shipping_zone": zone,
-            "final_price": Money(
-                product.basic_price.unit_amount / 100, product.basic_price.currency
-            )
-            + Money(zone.rate.amount, product.basic_price.currency),
-            "url_pattern": self.url_pattern,
-        }
-
-        return context
-
-
 class LoginRequiredTemplateView(LoginRequiredMixin, TemplateView):
     pass
 
@@ -255,7 +224,7 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
 
 class CartOptionsView(TemplateView):
     template_name = "app/frames/cart_options.html"
-    url_pattern = "cartoptions/<str:product_id>/"
+    url_pattern = "cartoptions/<product_id>/"
 
     def get_context_data(self, product_id=None, **kwargs):
         from .models import BookPage
@@ -275,6 +244,8 @@ class GiftCodeRedeemView(FormView):
     template_name = "app/redeem.html"
     form_class = GiftCodeForm
     success_url = reverse_lazy("redeem_setup")
+
+    url_params = "<code>/"
 
     def get_initial(self, *args, **kwargs):
         code = self.kwargs.get("code", None)
@@ -393,19 +364,27 @@ def gift_giver_subscription_was_cancelled(event, **kwargs):
 
 
 class ShippingForProductView(TemplateView):
-    template_name = "app/pick_price_for_product.html"
+    template_name = "app/confirm_shipping.html"
 
-    def get_context_data(self, product_id, country_id="GB", **kwargs) -> Dict[str, Any]:
+    url_params = ["<price_id>/<product_id>/", "<price_id>/<product_id>/<country_id>/"]
+
+    def get_context_data(
+        self, price_id, product_id, country_id="GB", **kwargs
+    ) -> Dict[str, Any]:
         """
         When a product has been selected, select shipping country.
         """
+        from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice
 
         context = super().get_context_data(**kwargs)
-
         product = LBCProduct.objects.get(id=product_id)
+        price = MembershipPlanPrice.objects.get(
+            id=price_id, plan__products__id=product_id
+        )
 
         context.update(
             {
+                "price": price,
                 "product": product,
                 "default_country_code": country_id,
                 "country_selector_form": CountrySelectorForm(
@@ -418,54 +397,71 @@ class ShippingForProductView(TemplateView):
         return context
 
 
+class ShippingCostView(TemplateView):
+    template_name = "app/frames/shipping_cost.html"
+    url_pattern = "shippingcosts/<price_id>/<product_id>/<country_id>/"
+
+    def get_context_data(self, price_id, product_id, country_id="GB", **kwargs):
+        """
+        Display shipping fee based on selected country
+        """
+        from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice
+
+        from .models import LBCProduct, ShippingZone
+
+        context = super().get_context_data(**kwargs)
+        price = MembershipPlanPrice.objects.get(id=price_id)
+        product = LBCProduct.objects.get(id=product_id)
+        zone = ShippingZone.get_for_country(country_id)
+        context = {
+            **context,
+            "zone": zone,
+            "price": price,
+            "product": product,
+            "shipping_zone": zone,
+            "shipping_price": price.shipping_fee(zone),
+            "final_price": price.price_including_shipping(zone),
+            "url_pattern": self.url_pattern,
+        }
+
+        return context
+
+
 class SubscriptionCheckoutView(TemplateView):
     """
     Create a checkout session with a line item of price_id
     """
 
+    url_params = "<price_id>/<product_id>/"
+
     # TODO: should take an array of price_id, actually
-    def get(self, request: HttpRequest, *args: Any, product_id=None, **kwargs: Any):
-        country = request.GET.get("country", None)
+    def get(
+        self,
+        request: HttpRequest,
+        *args: Any,
+        product_id=None,
+        price_id=None,
+        **kwargs: Any,
+    ):
+        from app.models.wagtail import MembershipPlanPrice
+
+        country = request.GET.get("country", "GB")
         gift_mode = request.GET.get("gift_mode", None)
-
-        if country is None:
-            return redirect(
-                urllib.parse.urljoin(
-                    self.get_full_url(request),
-                    reverse_lazy(
-                        "pick_price_for_product", kwargs={"product_id": product_id}
-                    ),
-                )
-            )
-
         product = LBCProduct.objects.get(id=product_id)
-        price = product.basic_price
+        price = MembershipPlanPrice.objects.get(
+            id=price_id, plan__products__id=product_id
+        )
         zone = ShippingZone.get_for_country(country)
-
-        if price is None:
-            return redirect(
-                urllib.parse.urljoin(
-                    self.get_full_url(request),
-                    reverse_lazy(
-                        "pick_price_for_product",
-                        kwargs={"product_id": product_id, "country_id": country},
-                    ),
-                )
-            )
 
         checkout_args = dict(
             mode="subscription",
             line_items=[
                 {
-                    # Membership
-                    "price": price.id,
+                    "price_data": price.to_price_data(product),
                     "quantity": 1,
                 },
                 {
-                    # Shipping
-                    "price_data": create_one_off_shipping_price_data_for_price(
-                        price, zone
-                    ),
+                    "price_data": price.to_shipping_price_data(zone),
                     "quantity": 1,
                 },
             ],
@@ -488,14 +484,14 @@ class SubscriptionCheckoutView(TemplateView):
             }
 
         checkout_args["success_url"] = urllib.parse.urljoin(
-            self.get_full_url(request),
+            settings.BASE_URL,
             reverse_lazy("member_signup_complete")
             + "?session_id={CHECKOUT_SESSION_ID}&"
             + urlencode(callback_url_args),
         )
         checkout_args["cancel_url"] = urllib.parse.urljoin(
-            self.get_full_url(request),
-            reverse_lazy("pick_product") + "?" + urlencode(callback_url_args),
+            settings.BASE_URL,
+            "?" + urlencode(callback_url_args),
         )
 
         return CreateCheckoutSessionView.as_view(context=checkout_args)(request)

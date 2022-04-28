@@ -1,2 +1,2 @@
 {% load djmoney %}
-{% money_localize price.price %} per {% if price.interval_count > 1 %}{{ price.interval_count }}{% endif %} {{ price.interval}}{{price.interval_count|pluralize:",s" }}
+{% money_localize price.price %}{{ price.humanise_interval }}

@@ -1,0 +1,33 @@
+{% load wagtailcore_tags django_bootstrap5 url %}
+{% with option.plan.products.all as products %}
+  <article class='col col-md-4'>
+    <div class='{% firstof option.background_color "bg-yellow" %} overflow-hidden'>
+      <div class='
+        {% if not option.promotion_label %}opacity-0{% else %}opacity-50{% endif %}
+        py-2 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7
+      '>
+        {% comment %} Loop center:N times {% endcomment %}
+        {% with ''|center:50 as range %}
+          {% for _ in range %}
+            {% firstof option.promotion_label "placeholder" %}
+          {% endfor %}
+        {% endwith %}
+      </div>
+      <div class='px-4 pt-1 pb-4'>
+          <h3>{{ option.plan.title }}</h3>
+          <div class='fw-bold'>{% include "app/includes/plan_price.html" with price=request_price %}</div>
+          <div class='fw-bold'>{{ option.plan.deliveries_per_year }} deliveries per year</div>
+          <div>{{ option.plan.description|richtext }}</div>
+          {% qs_link as qs %}
+          <div class='mt-3'>
+            {% if products|length == 1 %}
+              {% url "plan_shipping" price_id=request_price.id product_id=products.0.id as url %}
+              {% bootstrap_button button_class='btn-outline-dark' href=url|add:qs content="Select" %}
+            {% else %}
+              {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:qs content="Select" %}
+            {% endif %}
+          </div>
+        </div>
+    </div>
+  </article>
+{% endwith %}

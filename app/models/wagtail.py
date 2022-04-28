@@ -43,7 +43,7 @@ from app.shopify_webhook.signals import products_create
 from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
-from app.utils.stripe import create_one_off_shipping_price_data_for_price
+from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
 from app.views import CreateCheckoutSessionView, ShippingCostView
 
 from .stripe import LBCProduct, ShippingZone
@@ -100,7 +100,8 @@ class ArticleSeoMixin(SeoMetadataMixin):
 
 @register_snippet
 class MembershipPlanPrice(Orderable):
-    page = ParentalKey("app.MembershipPlanPage", related_name="prices")
+    plan = ParentalKey("app.MembershipPlanPage", related_name="prices")
+
     price = MoneyField(
         default=Money(0, "GBP"),
         max_digits=14,
@@ -123,7 +124,74 @@ class MembershipPlanPrice(Orderable):
         null=False,
         blank=True,
     )
+
     interval_count = models.IntegerField(default=1, null=False, blank=True)
+
+    @property
+    def deliveries_per_billing_period(self) -> float:
+        if self.interval == "year":
+            return self.plan.deliveries_per_year * self.interval_count
+        if self.interval == "month":
+            return (self.plan.deliveries_per_year / 12) * self.interval_count
+        if self.interval == "week":
+            return (self.plan.deliveries_per_year / 52) * self.interval_count
+        if self.interval == "day":
+            return (self.plan.deliveries_per_year / 365) * self.interval_count
+        return self.plan.deliveries_per_year
+
+    def shipping_fee(self, zone) -> Money:
+        return zone.rate * self.deliveries_per_billing_period
+
+    def price_including_shipping(self, zone):
+        return self.price + self.shipping_fee(zone)
+
+    def humanised_interval(self):
+        s = "/"
+        if self.interval_count > 1:
+            s += self.interval_count + " "
+        s += self.interval
+        if self.interval_count > 1:
+            s += "s"
+        return s
+
+    def __str__(self) -> str:
+        money = str(self.price)
+        interval = self.humanised_interval()
+        return f"{money}{interval}"
+
+    @property
+    def metadata(self):
+        return {"wagtail_price": self.id}
+
+    def to_price_data(self, product):
+        return {
+            "unit_amount_decimal": self.price.amount * 100,
+            "currency": self.price_currency,
+            "product": product.id,
+            "recurring": {
+                "interval": self.interval,
+                "interval_count": self.interval_count,
+            },
+            "metadata": self.metadata,
+        }
+
+    def to_shipping_price_data(self, zone):
+        shipping_product = get_shipping_product()
+        shipping_fee = self.shipping_fee(zone)
+        return {
+            "unit_amount_decimal": shipping_fee.amount * 100,
+            "currency": shipping_fee.currency,
+            "product": shipping_product.id,
+            "recurring": {
+                "interval": self.interval,
+                "interval_count": self.interval_count,
+            },
+            "metadata": {
+                **create_shipping_zone_metadata(zone),
+                "deliveries_per_period": self.deliveries_per_billing_period,
+                **self.metadata,
+            },
+        }
 
 
 class MembershipPlanPage(ArticleSeoMixin, Page):
@@ -131,9 +199,14 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
 
     deliveries_per_year = models.IntegerField()
     description = RichTextField(null=True, blank=True)
-    # Can be used to show a "which one?" page by referencing the membership plan slug
+    pick_product_title = models.CharField(
+        default="Choose a book series",
+        max_length=150,
+        help_text="Displayed if there are multiple products to pick from",
+        null=True,
+        blank=True,
+    )
     pick_product_text = RichTextField(
-        default="<h1>Choose a book series</h1>",
         help_text="Displayed if there are multiple products to pick from",
         null=True,
         blank=True,
@@ -149,19 +222,29 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
     ]
 
     @property
-    def basic_price(self):
+    def basic_price(self) -> MembershipPlanPrice:
         price = self.monthly_price
         if price is None:
             price = self.prices.order_by("price", "interval").first()
         return price
 
     @property
-    def monthly_price(self):
-        return self.prices.filter(interval="month").first()
+    def monthly_price(self) -> MembershipPlanPrice:
+        return self.prices.filter(interval="month").order_by("interval_count").first()
 
     @property
-    def annual_price(self):
-        return self.prices.filter(interval="year").first()
+    def annual_price(self) -> MembershipPlanPrice:
+        return self.prices.filter(interval="year").order_by("interval_count").first()
+
+    def get_price_for_request(self, request):
+        if request.GET.get("annual", None) is not None:
+            return self.annual_price
+        return self.basic_price
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["request_price"] = self.get_price_for_request(request)
+        return context
 
 
 class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
@@ -194,7 +277,15 @@ class PlanBlock(blocks.StructBlock):
         required=False, help_text="Label that highlights this product"
     )
 
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["request_price"] = value["plan"].get_price_for_request(
+            parent_context.get("request")
+        )
+        return context
+
     class Meta:
+        template = "app/blocks/membership_option_card.html"
         icon = "fa-money"
 
 
@@ -210,7 +301,7 @@ class MembershipOptionsBlock(blocks.StructBlock):
     plans = blocks.ListBlock(PlanBlock)
 
     class Meta:
-        template = "app/blocks/membership_options.html"
+        template = "app/blocks/membership_options_grid.html"
         icon = "fa-users"
 
 

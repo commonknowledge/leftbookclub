@@ -1,15 +1,18 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting url %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting url brand %}
 
 {% block content %}
   {% load wagtailcore_tags django_bootstrap5 djmoney %}
   {% with request.GET.gift_mode as gift_mode %}
   {% with request.GET.annual as annual %}
   {% with page.products.all as products %}
-    <h3>{{ page.title }}</h3>
+    <div class='text-muted'>Membership plan</div>
+    <h1>{{ page.title }}</h1>
+    <h5>{{ request_price }}</h5>
     <h5>{{ page.deliveries_per_year }} deliveries per year</h5>
-    <div>{{ page.description|richtext }}</div>
-    <h5>Pricing</h5>
+    <h5>{{ page.description|richtext }}</h5>
+
+    <hr />
     {% if not gift_mode %}
       {% qs_link gift_mode="true" as url %}
       {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Gift a membership" %}
@@ -24,19 +27,35 @@
       {% qs_link annual=None as url %}
       {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to monthly pricing" %}
     {% endif %}
-    {% if annual and page.annual_price %}
-      <div class='fw-bold'>{% include "app/includes/plan_price.html" with price=page.annual_price %}</div>
-    {% else %}
-      <div class='fw-bold'>{% include "app/includes/plan_price.html" with price=page.basic_price %}</div>
-    {% endif %}
+    <hr />
+
+    {% qs_link as qs %}
+    <section>
     {% if products|length == 1 %}
-      {% bootstrap_button href="/product/"|add:products.0.id content="Select" %}
+      {% url "plan_shipping" price_id=request_price.id product_id=products.0.id as url %}
+      {% bootstrap_button href=url|add:qs content="Select" %}
     {% else %}
-      <h5>Options</h5>
+      <h3>{{page.pick_product_title}}</h3>
+      {% if page.pick_product_text %}{{page.pick_product_text|richtext}}{% endif %}
+      <div class='row'>
       {% for product in products %}
-        {% bootstrap_button href="/product/"|add:product.id content="Select "|add:product.name %}
+        <article class='col-12 col-md-6 col-lg-4'>
+          <div class='{% brand_background_by_index forloop.counter0 %} overflow-hidden'>
+            <div class='p-4'>
+              <h3>{{ product.name }}</h3>
+              <div>{{product.description }}</div>
+              {% qs_link as qs %}
+              <div class='mt-3'>
+                {% url "plan_shipping" price_id=request_price.id product_id=product.id as url %}
+                {% bootstrap_button button_class='btn-outline-dark' href=url|add:qs content="Select" %}
+              </div>
+            </div>
+          </div>
+        </article>
       {% endfor %}
+      </div>
     {% endif %}
+    </section>
   {% endwith %}
   {% endwith %}
   {% endwith %}

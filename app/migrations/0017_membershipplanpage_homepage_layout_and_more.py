@@ -851,7 +851,7 @@ class Migration(migrations.Migration):
                     "pick_product_text",
                     wagtail.core.fields.RichTextField(
                         blank=True,
-                        default="<h1>Choose a book series</h1>",
+                        default="<h3>Choose a book series</h3>",
                         help_text="Displayed if there are multiple products to pick from",
                         null=True,
                     ),

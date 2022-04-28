@@ -2,7 +2,7 @@
 {% with plan.prices.all.0 as display_price %}
 {% with plan.products.all as products %}
   <h3>{{ plan.title }}</h3>
-  <h5>{% money_localize display_price.price %} per {% if display_price.interval_count > 1 %}{{ display_price.interval_count }}{% endif %} {{ display_price.interval}}{{plan.price.0.interval_count|pluralize:",s" }}</h5>
+  <h5>{% money_localize display_price.price %}{{ display_price.humanize_interval }}</h5>
   <h5>{{ plan.deliveries_per_year }} deliveries per year</h5>
   <div>{{ plan.description|richtext }}</div>
   {% if products|length == 1 %}

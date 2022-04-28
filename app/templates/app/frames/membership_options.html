@@ -18,7 +18,7 @@
     {% if option.plan.live %}
       {% with option.plan.prices.all.0 as display_price %}
       {% with option.plan.products.all as products %}
-      <article class='col col-md-4'>
+      <article class='col-12 col-md-6 col-lg-4'>
         <div class='{% firstof option.background_color "bg-yellow" %} overflow-hidden'>
           <div class='
             {% if not option.promotion_label %}opacity-0{% else %}opacity-50{% endif %}
@@ -33,7 +33,7 @@
           </div>
           <div class='px-4 pt-1 pb-4'>
               <h3>{{ option.plan.title }}</h3>
-              <div class='fw-bold'>{% money_localize display_price.price %} per {% if display_price.interval_count > 1 %}{{ display_price.interval_count }}{% endif %} {{ display_price.interval}}{{option.plan.price.0.interval_count|pluralize:",s" }}</div>
+              <div class='fw-bold'>{% money_localize display_price.price %}{{ display_price.humanised_interval }}</div>
               <div class='fw-bold'>{{ option.plan.deliveries_per_year }} deliveries per year</div>
               <div>{{ option.plan.description|richtext }}</div>
               <div class='mt-3'>

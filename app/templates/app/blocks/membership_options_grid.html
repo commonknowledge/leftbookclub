@@ -1,12 +1,12 @@
 {% load wagtailcore_tags django_bootstrap5 url %}
 {% with request.GET.gift_mode as gift_mode %}
 {% with request.GET.annual as annual %}
-<section class='my-4'>
+<section class='my-4 bg-white p-2'>
   <header class='row gx-0'>
     <div class='col p-4'>
       <h2>{{ value.heading }}</h2>
       <div>{{ value.description|richtext }}</div>
-      <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
+      <div class="btn-group my-1" role="group" aria-label="Basic outlined example">
         {% qs_link annual=None as url %}
         {% if not annual %}
           {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Monthly pricing" %}

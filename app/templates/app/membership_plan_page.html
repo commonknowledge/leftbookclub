@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting url brand %}
-
+{% block body_class %}tw-bg-background{% endblock %}
 {% block content %}
   {% load wagtailcore_tags django_bootstrap5 djmoney %}
   {% with request.GET.gift_mode as gift_mode %}
   {% with request.GET.annual as annual %}
   {% with page.products.all as products %}
-  <header class='row border border-1 py-5 mb-4'>
+  <header class='row bg-white py-3 py-lg-5 mb-lg-4'>
     <div class='col-12 text-center'>
       <div class='opacity-50'>Membership plan</div>
       <h1>{{ page.title }}</h1>
@@ -14,7 +14,7 @@
     </div>
   </header>
   <div class='row'>
-    <div class='col col-md-4'>
+    <div class='col col-lg-4'>
       <section>
         <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
           {% qs_link annual=None as url %}
@@ -46,7 +46,7 @@
         {% endif %}
       </section>
     </div>
-    <section class='col col-md-8'>
+    <section class='col col-lg-8'>
     {% if products|length == 1 %}
       {% url "plan_shipping" price_id=request_price.id product_id=products.0.id as url %}
       {% qs_link gift_mode=None as not_gift_qs %}
@@ -56,11 +56,11 @@
     {% else %}
       <h3>{{page.pick_product_title}}</h3>
       {% if page.pick_product_text %}{{page.pick_product_text|richtext}}{% endif %}
-      <div class='row gx-3'>
+      <div class='row gx-3 gy-3'>
       {% for product in products %}
-        <article class='col-12 col-md-6'>
+        <article class='col-12 col-lg-6'>
           <div class='{% brand_background_by_index forloop.counter0 %} overflow-hidden h-100 d-flex flex-column'>
-            <div class='p-4'>
+            <div class='p-4 pb-0'>
               <h3 class='mb-2'>{{ product.name }}</h3>
               <div class='mt-2'>{{product.description }}</div>
             </div>

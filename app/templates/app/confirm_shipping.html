@@ -1,70 +1,85 @@
 {% extends "base.html" %}
-{% load static wagtailroutablepage_tags django_bootstrap5 url %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url %}
+{% block body_class %}tw-bg-background{% endblock %}
 {% block content %}
+{% with request.GET.annual as annual %}
 {% with request.GET.gift_mode as gift_mode %}
   {% qs_link as qs %}
   <main>
-    <div class="row justify-content-md-center">
-      <div class='col col-md-6 col-lg-4'>
-        <header class="pricing-header my-4">
-          <h2 class="h3 fw-normal text-center">Confirm{% if gift_mode %} gift{% endif %} details</h2>
-        </header>
-        <div class="mb-3">
-          <label class="form-label"> 
-            {% if gift_mode %}
-              You're buying a gift card for someone:
-            {% elif user.is_member %}
-              You're switching to another plan:
-            {% endif %}
-          </label>
-          <div class='p-3 bg-light rounded-3 my-2'>
-            <div class="h5 mb-0">
-              {{ product.name }} {% if gift_mode %}<span>gift card</span>{% endif %}
+    <header class="pricing-header my-4 my-lg-5 text-center">
+      <h2 class="h3 fw-normal text-center">Confirm{% if gift_mode %} gift{% endif %} details</h2>
+    </header>
+    <div class="row justify-content-center">
+      {% comment %} Shipping form {% endcomment %}
+      <section class='col-12 col-md-7 col-lg-4'>
+        <div class='max-width-card mx-auto'>
+          <form
+            data-turbo="false"
+            data-controller="shipping"
+            data-shipping-url-value="{{ url_pattern }}{{ qs }}"
+            data-shipping-price-value="{{ price.id }}"
+            data-shipping-product-value="{{ product.id }}"
+            data-shipping-target="form"
+            action="{% url "checkout" price_id=price.id product_id=product.id %}{{ qs }}"
+            method="get"
+          >
+            <div class='d-none'>
+              {% if gift_mode %}
+                <input type='hidden' name='gift_mode' value="{{gift_mode}}" />
+              {% endif %}
             </div>
-          </div>
-          {% qs_link as qs %}
-          {% bootstrap_button href=plan.url|add:qs content="Change" button_class="w-100 btn-outline-light text-dark" size='sm' %}
-        </div>
-        <form
-          data-turbo="false"
-          data-controller="shipping"
-          data-shipping-url-value="{{ url_pattern }}{{ qs }}"
-          data-shipping-price-value="{{ price.id }}"
-          data-shipping-product-value="{{ product.id }}"
-          data-shipping-target="form"
-          action="{% url "checkout" price_id=price.id product_id=product.id %}{{ qs }}"
-          method="get"
-        >
-          <div class='d-none'>
-            {% if gift_mode %}
-              <input type='hidden' name='gift_mode' value="{{gift_mode}}" />
-            {% endif %}
-          </div>
-          {% csrf_token %}
-          <div class='position-relative'>
-            {% bootstrap_field country_selector_form.country %}
-          </div>
-          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" price_id=price.id product_id=product.id country_id=default_country_code %}{{ qs }}">
-            <div class='p-3 bg-light rounded-3 my-2'>
-              <div class="text-muted mb-1 text-center">
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <span>Loading shipping options...</span>
+            {% csrf_token %}
+            <div class='position-relative'>
+              {% bootstrap_field country_selector_form.country %}
+            </div>
+            <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" price_id=price.id product_id=product.id country_id=default_country_code %}{{ qs }}">
+              <div class='p-3 bg-light rounded-3 my-2'>
+                <div class="text-muted mb-1 text-center">
+                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  <span>Loading shipping options...</span>
+                </div>
+              </div>
+            </turbo-frame>
+            {% if user.is_member and not gift_mode %}
+            <div class='row justify-content-center'>
+              <div class="form-check max-width-card w-100">
+                <input required class="form-check-input" type="checkbox" value="" id='confirm_cancel_current_subscriptions' name='confirm_cancel_current_subscriptions'>
+                <label class="form-check-label" for="confirm_cancel_current_subscriptions">
+                  <p>I confirm that my existing subscription(s) will be <u>immediately cancelled</u> and replaced with this new subscription: <i>{{ user.subscribed_product.name }}</i></p>
+                </label>
               </div>
             </div>
-          </turbo-frame>
-          {% if user.is_member and not gift_mode %}
-          <div class='row justify-content-center'>
-            <div class="form-check max-width-card w-100">
-              <input required class="form-check-input" type="checkbox" value="" id='confirm_cancel_current_subscriptions' name='confirm_cancel_current_subscriptions'>
-              <label class="form-check-label" for="confirm_cancel_current_subscriptions">
-                <p>I confirm that my existing subscription(s) will be <u>immediately cancelled</u> and replaced with this new subscription: <i>{{ user.subscribed_product.name }}</i></p>
-              </label>
-            </div>
-          </div>
+            {% endif %}
+          </form>
+        </div>
+      </section>
+
+      {% comment %} Product preview {% endcomment %}
+      <section class='d-none d-md-block col-md-5 col-lg-4'>
+        <label class="form-label" for="id_country">What you're getting</label>
+        <article class='bg-white mb-3 p-4'>
+          {% if gift_mode %}
+            <span class="badge rounded-pill bg-success text-white">Gift card</span>
+          {% else %}
+            <span class="badge rounded-pill bg-success text-white">New membership</span>
           {% endif %}
-        </form>
-      </div>
+          <h2>{{ price.plan.title }}</h2>
+          <div class='fw-bold'>A book {{ price.plan.delivery_frequency }}</div>
+          {% if price.plan.products.all|length > 1 %}
+            <div class='fw-bold'>({{ product.name }})</div>
+          {% endif %}
+          <div class='mt-2'>{{ price.plan.description|richtext }}</div>
+          {% if price.description %}
+            <div class='mt-2'>
+              <div class='fw-bold mb-2'>Plus! Only at this price:</div>
+              {{ price.description|richtext }}
+            </div>
+          {% endif %}
+        </article>
+      </section>
+
     </div>
   </main>
+{% endwith %}
 {% endwith %}
 {% endblock %}

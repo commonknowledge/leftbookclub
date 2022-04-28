@@ -454,6 +454,7 @@ class SubscriptionCheckoutView(TemplateView):
 
         checkout_args = dict(
             mode="subscription",
+            allow_promotion_codes=True,
             line_items=[
                 {
                     "price_data": price.to_price_data(product),

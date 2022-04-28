@@ -36,12 +36,13 @@
             {% qs_link gift_mode=None as not_gift_qs %}
             {% bootstrap_button button_class='btn-outline-dark' href=url|add:not_gift_qs content="Select" %}
             {% qs_link gift_mode=True as gift_qs %}
-            {% bootstrap_button button_class='btn-outline-dark' href=url|add:gift_qs content="Get this as a gift" %}
+            {% bootstrap_button button_class='btn-outline-dark' href=url|add:gift_qs content="Get as a gift" %}
+            {% bootstrap_button href=option.plan.url|add:qs button_class='btn-outline' content="Learn more" %}
           {% endwith %}
         {% else %}
           {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:qs content="See options" %}
           {% qs_link gift_mode=True as gift_qs %}
-          {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:gift_qs content="Get this as a gift" %}
+          {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:gift_qs content="Get as a gift" %}
         {% endif %}
       </div>
     </div>

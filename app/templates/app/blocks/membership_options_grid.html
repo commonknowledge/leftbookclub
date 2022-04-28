@@ -6,13 +6,20 @@
     <div class='col p-4'>
       <h2>{{ value.heading }}</h2>
       <div>{{ value.description|richtext }}</div>
-      {% if not annual %}
-        {% qs_link annual="true" as url %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to annual pricing" %}
-      {% else %}
+      <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
         {% qs_link annual=None as url %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to monthly pricing" %}
-      {% endif %}
+        {% if not annual %}
+          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Monthly pricing" %}
+        {% else %}
+          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Monthly pricing" %}
+        {% endif %}
+        {% qs_link annual="true" as url %}
+        {% if annual %}
+          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Annual pricing" %}
+        {% else %}
+          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Annual pricing: pay upfront and save!" %}
+        {% endif %}
+      </div>
     </div>
   </header>
   <div class='row gx-3'>
@@ -22,6 +29,16 @@
     {% endif %}
   {% endfor %}
   </div>
+  <div class='row'>
+  
+  {% comment %} </div>
+  <div class='row gx-3'>
+  {% for option in value.plans %}
+    {% if option.plan.live %}
+      {% include_block option %}
+    {% endif %}
+  {% endfor %}
+  </div> {% endcomment %}
 </section>
 {% endwith %}
 {% endwith %}

@@ -8,21 +8,37 @@
   {% with page.products.all as products %}
     <div class='text-muted'>Membership plan</div>
     <h1>{{ page.title }}</h1>
-    <div>
-      <span class='h5'>{{ request_price }}</span>
-      {% if not annual %}
-        {% qs_link annual="true" as url %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to annual pricing" %}
-      {% else %}
-        {% qs_link annual=None as url %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Switch to monthly pricing" %}
-      {% endif %}
-    </div>
+    <h5>{{ request_price.price_string }}</h5>
+    {% if request_price.interval == 'year' %}
+      <h5>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
+    {% endif %}
     <h5>A book {{ page.delivery_frequency }}</h5>
 
     <section class='my-4'>
       {{ page.description|richtext }}
+
+      {% if request_price.description %}
+        <div class='mt-3'>
+          <div class='fw-bold mb-2'>Plus! Only at this price:</div>
+          {{ request_price.description|richtext }}
+        </div>
+      {% endif %}
     </section>
+
+    <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
+      {% qs_link annual=None as url %}
+      {% if not annual %}
+        {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Monthly pricing" %}
+      {% else %}
+        {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Monthly pricing" %}
+      {% endif %}
+      {% qs_link annual="true" as url %}
+      {% if annual %}
+        {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Annual pricing" %}
+      {% else %}
+        {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Annual pricing: pay upfront and save!" %}
+      {% endif %}
+    </div>
 
     <section>
     {% if products|length == 1 %}

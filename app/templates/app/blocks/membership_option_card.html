@@ -13,12 +13,21 @@
           {% endfor %}
         {% endwith %}
       </div>
-      <div class='px-4 pt-1 pb-4'>
-          <h3 class='mb-2'>{{ option.plan.title }}</h3>
-          <div class='fw-bold'>{% include "app/includes/plan_price.html" with price=request_price %}</div>
-          <div class='fw-bold'>A book {{ option.plan.delivery_frequency }}</div>
-          <div class='mt-2'>{{ option.plan.description|richtext }}</div>
-          {% qs_link as qs %}
+      <div class='px-4 pt-1'>
+        <h3 class='mb-2'>{{ option.plan.title }}</h3>
+        <h5 class='fw-bold'>{{ request_price.price_string }}</h5>
+        {% if request_price.interval == 'year' %}
+          <h5 class='fw-bold'>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
+        {% endif %}
+        <h5 class='fw-bold'>A book {{ option.plan.delivery_frequency }}</h5>
+        <div class='mt-2'>{{ option.plan.description|richtext }}</div>
+        {% if request_price.description %}
+          <div class='mt-2'>
+            <div class='fw-bold mb-2'>Plus! Only at this price:</div>
+            {{ request_price.description|richtext }}
+          </div>
+        {% endif %}
+        {% qs_link as qs %}
       </div>
       <div class='mt-auto p-4'>
         {% if products|length == 1 %}

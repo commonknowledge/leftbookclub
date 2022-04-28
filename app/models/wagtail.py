@@ -127,6 +127,8 @@ class MembershipPlanPrice(Orderable):
 
     interval_count = models.IntegerField(default=1, null=False, blank=True)
 
+    description = RichTextField(null=True, blank=True)
+
     @property
     def deliveries_per_billing_period(self) -> float:
         if self.interval == "year":
@@ -154,10 +156,34 @@ class MembershipPlanPrice(Orderable):
             s += "s"
         return s
 
-    def __str__(self) -> str:
+    @property
+    def price_string(self) -> str:
         money = str(self.price)
         interval = self.humanised_interval()
         return f"{money}{interval}"
+
+    @property
+    def months_per_billing_cycle(self):
+        if self.interval == "year":
+            return 12 * self.interval_count
+        if self.interval == "month":
+            return self.interval_count
+        if self.interval == "week":
+            return self.interval_count / 4.2
+        if self.interval == "day":
+            return self.interval_count / 30
+
+    @property
+    def equivalent_monthly_price(self) -> str:
+        return self.price / self.months_per_billing_cycle
+
+    @property
+    def equivalent_monthly_price_string(self) -> str:
+        money = str(self.equivalent_monthly_price)
+        return f"{money}/month"
+
+    def __str__(self) -> str:
+        return f"{self.price_string} on {self.plan}"
 
     @property
     def metadata(self):
@@ -251,6 +277,12 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
     @property
     def annual_price(self) -> MembershipPlanPrice:
         return self.prices.filter(interval="year").order_by("interval_count").first()
+
+    @property
+    def annual_percent_off_per_month(self) -> str:
+        return (
+            self.annual_price.equivalent_monthly_price - self.basic_price.price
+        ) / self.basic_price.price
 
     def get_price_for_request(self, request):
         if request.GET.get("annual", None) is not None:

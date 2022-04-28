@@ -44,7 +44,8 @@
     "esbenp.prettier-vscode",
     "orta.vscode-jest",
     "batisteo.vscode-django",
-    "Zignd.html-css-class-completion"
+    "Zignd.html-css-class-completion",
+    "bradlc.vscode-tailwindcss"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [5000, 5432],

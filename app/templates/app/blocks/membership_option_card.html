@@ -1,0 +1,50 @@
+{% load wagtailcore_tags django_bootstrap5 url %}
+{% with option.plan.products.all as products %}
+  <article class='col col-md-4'>
+    <div class='{% firstof option.background_color "bg-yellow" %} overflow-hidden h-100 d-flex flex-column'>
+      <div class='
+        {% if not option.promotion_label %}opacity-0{% else %}opacity-50{% endif %}
+        py-2 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7
+      '>
+        {% comment %} Loop center:N times {% endcomment %}
+        {% with ''|center:50 as range %}
+          {% for _ in range %}
+            {% firstof option.promotion_label "placeholder" %}
+          {% endfor %}
+        {% endwith %}
+      </div>
+      <div class='px-4 pt-1'>
+        <h2 class='h1 mb-2'>{{ option.plan.title }}</h2>
+        <h5 class='fw-bold'>{{ request_price.price_string }}</h5>
+        {% if request_price.interval == 'year' %}
+          <h5 class='fw-bold'>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
+        {% endif %}
+        <h5 class='fw-bold'>A book {{ option.plan.delivery_frequency }}</h5>
+        <div class='mt-2'>{{ option.plan.description|richtext }}</div>
+        {% if request_price.description %}
+          <div class='mt-2'>
+            <div class='fw-bold mb-2'>Plus! Only at this price:</div>
+            {{ request_price.description|richtext }}
+          </div>
+        {% endif %}
+        {% qs_link as qs %}
+      </div>
+      <div class='mt-auto p-4'>
+        {% if products|length == 1 %}
+          {% with products.0 as product %}
+            {% url "plan_shipping" price_id=request_price.id product_id=product.id as url %}
+            {% qs_link gift_mode=None as not_gift_qs %}
+            {% bootstrap_button button_class='btn-outline-dark' href=url|add:not_gift_qs content="Select" %}
+            {% qs_link gift_mode=True as gift_qs %}
+            {% bootstrap_button button_class='btn-outline-dark' href=url|add:gift_qs content="Get as a gift" %}
+            {% bootstrap_button href=option.plan.url|add:qs button_class='btn-outline' content="Learn more" %}
+          {% endwith %}
+        {% else %}
+          {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:qs content="See options" %}
+          {% qs_link gift_mode=True as gift_qs %}
+          {% bootstrap_button button_class='btn-outline-dark' href=option.plan.url|add:gift_qs content="Get as a gift" %}
+        {% endif %}
+      </div>
+    </div>
+  </article>
+{% endwith %}

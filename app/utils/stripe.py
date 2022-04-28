@@ -74,7 +74,7 @@ def subscription_with_promocode(
     return sub
 
 
-def create_one_off_shipping_price_data_for_price(price, zone):
+def get_shipping_product():
     shipping_product = djstripe.models.Product.objects.filter(
         metadata__shipping__isnull=False, active=True
     ).first()
@@ -85,6 +85,26 @@ def create_one_off_shipping_price_data_for_price(price, zone):
         shipping_product = djstripe.models.Product.sync_from_stripe_data(
             stripe_shipping_product
         )
+    return shipping_product
+
+
+def recreate_one_off_stripe_price(price: stripe.Price):
+    return {
+        "unit_amount_decimal": price.unit_amount,
+        "currency": price.currency,
+        "product": price.product.id,
+        "recurring": include_keys(
+            price.recurring,
+            (
+                "interval",
+                "interval_count",
+            ),
+        ),
+    }
+
+
+def create_one_off_shipping_price_data_for_price(price: stripe.Price, zone):
+    shipping_product = get_shipping_product()
     return {
         "currency": zone.rate_currency,
         "unit_amount_decimal": zone.rate.amount * 100,
@@ -96,8 +116,12 @@ def create_one_off_shipping_price_data_for_price(price, zone):
                 "interval_count",
             ),
         ),
-        "metadata": {"shipping": True, "shipping_zone": zone.code},
+        "metadata": create_shipping_zone_metadata(zone),
     }
+
+
+def create_shipping_zone_metadata(zone):
+    return {"shipping": True, "shipping_zone": zone.code}
 
 
 def create_gift(
@@ -120,12 +144,7 @@ def create_gift(
 
     items = []
     for si in gift_giver_subscription.items.all():
-        if (
-            si.price.active == True
-            and si.price.metadata.get("shipping_zone", False) is False
-        ):
-            items.append({"price": si.price.id, "quantity": si.quantity})
-        else:
+        if si.price.metadata.get("shipping_zone", None) is not None:
             zone = ShippingZone.get_for_code(
                 code=si.price.metadata.get("shipping_zone", "ROW")
             )
@@ -138,14 +157,24 @@ def create_gift(
                     "quantity": si.quantity,
                 }
             )
+        else:
+            # Could we reuse MembershipPrice?
+            # Yes, if we knew the (wagtail) price.id and product.id
+            # Product ID comes from the si.price
+            # Wagtail Price ID... we could potentially put on the metadata?
+            items.append(
+                {
+                    # Membership
+                    "price_data": recreate_one_off_stripe_price(si.price),
+                    "quantity": si.quantity,
+                }
+            )
 
     args = dict(
         customer=user.stripe_customer.id,
         items=items,
-        # cancel_at=(datetime.now() - relativedelta(days=1)) + relativedelta(months=promo_code.coupon.duration_in_months),
         promotion_code=promo_code_id,
         payment_behavior="allow_incomplete",
-        collection_method="send_invoice",
         off_session=True,
         metadata={
             "gift_giver_subscription": gift_giver_subscription.id,

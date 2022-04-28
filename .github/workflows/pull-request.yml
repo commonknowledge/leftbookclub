@@ -6,6 +6,7 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    environment: staging
     container:
       image: ghcr.io/commonknowledge/do-app-baseimage-django-node:364385f9d196a2bbe2d5faea025520cc0316501f
       # Workaround for: https://github.com/actions/checkout/issues/211
@@ -16,6 +17,9 @@ jobs:
         DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
         DEBUG: True
         PY_IGNORE_IMPORTMISMATCH: 1
+        STRIPE_LIVE_MODE: ${{ secrets.STRIPE_LIVE_MODE }}
+        STRIPE_TEST_PUBLIC_KEY: ${{ secrets.STRIPE_TEST_PUBLIC_KEY }}
+        STRIPE_TEST_SECRET_KEY: ${{ secrets.STRIPE_LIVE_MODE }}
     services:
       db:
         image: kartoza/postgis:latest

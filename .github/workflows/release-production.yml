@@ -6,7 +6,9 @@ env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 jobs:
   deploy:
-    environment: production
+    environment:
+      name: production
+      url: https://lbc-production.fly.dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

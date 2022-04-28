@@ -7,7 +7,9 @@ env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 jobs:
   deploy:
-    environment: staging
+    environment:
+      name: staging
+      url: https://lbc-staging.fly.dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

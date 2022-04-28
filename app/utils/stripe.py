@@ -92,7 +92,7 @@ def recreate_one_off_stripe_price(price: stripe.Price):
     return {
         "unit_amount_decimal": price.unit_amount,
         "currency": price.currency,
-        "product": price.product,
+        "product": price.product.id,
         "recurring": include_keys(
             price.recurring,
             (
@@ -176,7 +176,6 @@ def create_gift(
         # cancel_at=(datetime.now() - relativedelta(days=1)) + relativedelta(months=promo_code.coupon.duration_in_months),
         promotion_code=promo_code_id,
         payment_behavior="allow_incomplete",
-        collection_method="send_invoice",
         off_session=True,
         metadata={
             "gift_giver_subscription": gift_giver_subscription.id,

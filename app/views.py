@@ -245,8 +245,6 @@ class GiftCodeRedeemView(FormView):
     form_class = GiftCodeForm
     success_url = reverse_lazy("redeem_setup")
 
-    url_params = "<code>/"
-
     def get_initial(self, *args, **kwargs):
         code = self.kwargs.get("code", None)
         if code is not None:
@@ -447,6 +445,7 @@ class SubscriptionCheckoutView(TemplateView):
 
         country = request.GET.get("country", "GB")
         gift_mode = request.GET.get("gift_mode", None)
+        gift_mode = gift_mode is not None and gift_mode is not False
         product = LBCProduct.objects.get(id=product_id)
         price = MembershipPlanPrice.objects.get(
             id=price_id, plan__products__id=product_id
@@ -475,7 +474,7 @@ class SubscriptionCheckoutView(TemplateView):
         )
         callback_url_args = {}
 
-        if gift_mode is not None and gift_mode is not False:
+        if gift_mode:
             callback_url_args["gift_mode"] = True
             checkout_args["metadata"]["gift_mode"] = True
         else:

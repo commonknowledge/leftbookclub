@@ -19,7 +19,7 @@
           </label>
           <div class='p-3 bg-light rounded-3 my-2'>
             <div class="h5 mb-0">
-              {{ product.name }} {% if gift_mode %}<span>- as a gift</span>{% endif %}
+              {{ product.name }} {% if gift_mode %}<span>gift card</span>{% endif %}
             </div>
           </div>
           {% qs_link as qs %}
@@ -35,6 +35,11 @@
           action="{% url "checkout" price_id=price.id product_id=product.id %}{{ qs }}"
           method="get"
         >
+          <div class='d-none'>
+            {% if gift_mode %}
+              <input type='hidden' name='gift_mode' value="{{gift_mode}}" />
+            {% endif %}
+          </div>
           {% csrf_token %}
           <div class='position-relative'>
             {% bootstrap_field country_selector_form.country %}

@@ -68,14 +68,14 @@ urlpatterns = [
         name="redeem_setup",
     ),
     path(
+        f"redeem/<str:code>/",
+        GiftCodeRedeemView.as_view(),
+        name="redeem",
+    ),
+    path(
         "welcome/",
         MemberSignupCompleteView.as_view(),
         name="member_signup_complete",
-    ),
-    path(
-        f"redeem/f{GiftCodeRedeemView.url_params}",
-        GiftCodeRedeemView.as_view(),
-        name="redeem",
     ),
     path(
         f"checkout/{SubscriptionCheckoutView.url_params}",

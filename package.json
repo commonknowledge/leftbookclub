@@ -10,7 +10,7 @@
     "@hotwired/stimulus": "^3.0.1",
     "@hotwired/turbo": "^7.0.1",
     "@popperjs/core": "^2.10.2",
-    "@stripe/stripe-js": "^1.27.0",
+    "@stripe/stripe-js": "^1.29.0",
     "@types/shopify-buy": "npm:@brandboostinggmbh/shopify-buy-types",
     "autoprefixer": "^10.4.5",
     "bootstrap": "^5.1.3",

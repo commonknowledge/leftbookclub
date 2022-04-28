@@ -10,8 +10,20 @@
           <span>{{ price.price }}</span>
         </div>
         <div class="text-muted mb-1 d-flex justify-content-between w-100">
-          <span>Shipping</span>
-          <span>{% if shipping_zone.rate.amount == 0 %}FREE{% else %}{% money_localize shipping_zone.rate %}/delivery{% endif %}</span>
+          <span>
+            Shipping
+            {% if price.interval == 'month' and price.plan.deliveries_per_year < 12 %}
+              (costs spread monthly)
+            {% elif price.interval == 'year' %}
+              ({{ price.plan.deliveries_per_year }} deliveries/year)
+            {% endif %}
+          </span>
+          <span>
+            {% if shipping_zone.rate.amount == 0 %}
+              FREE
+            {% else %}
+              {% money_localize shipping_price %}
+            {% endif %}</span>
         </div>
         <div class="h5 mb-1 d-flex justify-content-between w-100">
           <span>Total</span>

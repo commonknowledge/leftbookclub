@@ -6,41 +6,47 @@
   {% with request.GET.gift_mode as gift_mode %}
   {% with request.GET.annual as annual %}
   {% with page.products.all as products %}
-    <div class='text-muted'>Membership plan</div>
-    <h1>{{ page.title }}</h1>
-    <h5>{{ request_price.price_string }}</h5>
-    {% if request_price.interval == 'year' %}
-      <h5>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
-    {% endif %}
-    <h5>A book {{ page.delivery_frequency }}</h5>
-
-    <section class='my-4'>
-      {{ page.description|richtext }}
-
-      {% if request_price.description %}
-        <div class='mt-3'>
-          <div class='fw-bold mb-2'>Plus! Only at this price:</div>
-          {{ request_price.description|richtext }}
-        </div>
-      {% endif %}
-    </section>
-
-    <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
-      {% qs_link annual=None as url %}
-      {% if not annual %}
-        {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Monthly pricing" %}
-      {% else %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Monthly pricing" %}
-      {% endif %}
-      {% qs_link annual="true" as url %}
-      {% if annual %}
-        {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Annual pricing" %}
-      {% else %}
-        {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Annual pricing: pay upfront and save!" %}
-      {% endif %}
+  <header class='row border border-1 py-5 mb-4'>
+    <div class='col-12 text-center'>
+      <div class='opacity-50'>Membership plan</div>
+      <h1>{{ page.title }}</h1>
+      <h5>A book {{ page.delivery_frequency }}</h5>
     </div>
+  </header>
+  <div class='row'>
+    <div class='col col-md-4'>
+      <section>
+        <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
+          {% qs_link annual=None as url %}
+          {% if not annual %}
+            {% bootstrap_button button_class='btn-secondary' size='sm' href=url content="Monthly" %}
+          {% else %}
+            {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Monthly" %}
+          {% endif %}
+          {% qs_link annual="true" as url %}
+          {% if annual %}
+            {% bootstrap_button button_class='btn-secondary' size='sm' href=url content="Annual" %}
+          {% else %}
+            {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Annual" %}
+          {% endif %}
+        </div>
+        <h5>{{ request_price.price_string }}</h5>
+        {% if request_price.interval == 'year' %}
+          <h5>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
+        {% endif %}
+      </section>
+      <section>
+        {{ page.description|richtext }}
 
-    <section>
+        {% if request_price.description %}
+          <div class='mt-3'>
+            <div class='fw-bold mb-2'>Plus! Only at this price:</div>
+            {{ request_price.description|richtext }}
+          </div>
+        {% endif %}
+      </section>
+    </div>
+    <section class='col col-md-8'>
     {% if products|length == 1 %}
       {% url "plan_shipping" price_id=request_price.id product_id=products.0.id as url %}
       {% qs_link gift_mode=None as not_gift_qs %}
@@ -52,7 +58,7 @@
       {% if page.pick_product_text %}{{page.pick_product_text|richtext}}{% endif %}
       <div class='row gx-3'>
       {% for product in products %}
-        <article class='col-12 col-md-6 col-lg-4'>
+        <article class='col-12 col-md-6'>
           <div class='{% brand_background_by_index forloop.counter0 %} overflow-hidden h-100 d-flex flex-column'>
             <div class='p-4'>
               <h3 class='mb-2'>{{ product.name }}</h3>
@@ -71,6 +77,7 @@
       </div>
     {% endif %}
     </section>
+  </div>
   {% endwith %}
   {% endwith %}
   {% endwith %}

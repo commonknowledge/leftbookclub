@@ -49,7 +49,11 @@ class User(AbstractUser):
                 self.stripe_customer._sync_subscriptions()
             elif self.stripe_id is not None and len(self.stripe_id) > 0:
                 try:
-                    print("Sync starting: historical stripe customer", self.id, self.stripe_id)
+                    print(
+                        "Sync starting: historical stripe customer",
+                        self.id,
+                        self.stripe_id,
+                    )
                     stripe_customer = stripe.Customer.retrieve(self.stripe_id)
                     (
                         local_customer,
@@ -61,9 +65,17 @@ class User(AbstractUser):
                     local_customer.save()
                     djstripe.models.Customer.sync_from_stripe_data(stripe_customer)
                     self.stripe_customer._sync_subscriptions()
-                    print("Sync complete ✅: historical stripe customer", self.id, self.stripe_id)
+                    print(
+                        "Sync complete ✅: historical stripe customer",
+                        self.id,
+                        self.stripe_id,
+                    )
                 except:
-                    print("Sync failed ❌: historical stripe customer", self.id, self.stripe_id)
+                    print(
+                        "Sync failed ❌: historical stripe customer",
+                        self.id,
+                        self.stripe_id,
+                    )
         except:
             pass
 

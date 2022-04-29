@@ -1,32 +1,29 @@
 {% load wagtailcore_tags django_bootstrap5 %}
-<div class="card mb-3 mx-auto bg-white">
+<article class="mx-auto">
   <div class="row g-0">
     {% if page.shopify_product.images.0 %}
-    <div class="col-md-6">
-      <div class='sticky sticky-top'>
-        <img src="{{ page.shopify_product.images.0.src }}" class="d-block w-100" />
-      </div>
+    <div class="col-12 col-md-6" style="background: url('{{ page.shopify_product.images.0.src }}') center no-repeat; background-size: cover; min-height: 250px">
     </div>
     {% endif %}
-    <div class="col-md-6">
+    <div class="col-12 col-md-6 tw-p-3 tw-pb-4 md:tw-px-4 md:tw-py-5 lg:tw-px-5 lg:tw-py-6">
       <div class="card-body">
         {% if label %}
           <span class="badge rounded-pill bg-primary mb-3">{{ label }}</span>
         {% endif %}
-        <h1 class='m-0 fs-2'>{{page.title}}</h1>    
+        <h2 class='m-0 h1 fw-bold'>{{page.title}}</h2>    
         {% if page.shopify_product_metafields.subtitle %}
-          <h2 class='m-0 fs-2 text-secondary'>{{page.shopify_product_metafields.subtitle}}</h2>
+          <h3 class='m-0 h4'>{{page.shopify_product_metafields.subtitle}}</h3>
         {% endif %}
         {% if page.shopify_product_metafields.author %}
-          <div class='h5 fs-2'>By {{ page.shopify_product_metafields.author|join:", "}}</div>   
+          <div class='h4'>By {{ page.shopify_product_metafields.author|join:", "}}</div>   
         {% endif %}
         {% for forward in page.shopify_product_metafields.forward_by %}
           <div>{{ forward }}</div>
         {% endfor %}
         <p class="card-text">{{ page.shopify_product.body_html|safe|truncatewords_html:60 }}</p>
         {% pageurl page as url %}
-        {% bootstrap_button href=url content="Read more" %}
+        {% bootstrap_button button_class="btn-outline-dark" href=url content="Read more" %}
       </div>
     </div>
   </div>
-</div>
+</article>

@@ -396,31 +396,6 @@ class MembershipOptionsBlock(blocks.StructBlock):
         icon = "fa-users"
 
 
-class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
-    show_in_menus_default = True
-    layout = StreamField(
-        [
-            ("heading", blocks.CharBlock(form_classname="full title")),
-            ("paragraph", blocks.RichTextBlock()),
-            ("membership_options", MembershipOptionsBlock()),
-            ("image", ImageChooserBlock()),
-            # TODO: Featured book block
-            # TODO: hero text block  (background=yellow)
-            # TODO: section text block
-            # TODO: two column block (text=left / right)
-            # TODO: recent books block (max_count=8)
-            # TODO: USP block
-            # TODO: newsletter block
-        ],
-        null=True,
-        blank=True,
-    )
-
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
-
-    seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["body"]
-
-
 class CustomImage(AbstractImage):
 
     # Making blank / null explicit because you *really* need alt text
@@ -491,10 +466,7 @@ class BlogPage(ArticleSeoMixin, Page):
         ImageChooserPanel("feed_image"),
     ]
 
-    seo_description_sources = ArticleSeoMixin.seo_description_sources + [
-        "intro",
-        "body",
-    ]
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["intro"]
 
     seo_image_sources = ArticleSeoMixin.seo_image_sources + ["feed_image"]
 
@@ -516,8 +488,6 @@ class InformationPage(ArticleSeoMixin, Page):
         ImageChooserPanel("cover_image"),
         StreamFieldPanel("body", classname="full"),
     ]
-
-    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
 
     seo_image_sources = ArticleSeoMixin.seo_image_sources + ["cover_image"]
 
@@ -544,8 +514,6 @@ class BookIndexPage(IndexPageSeoMixin, Page):
         ]
         context["products"] = products
         return context
-
-    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
 
 
 def shopify_product_id_key(page):
@@ -690,6 +658,8 @@ class MerchandisePage(BaseShopifyProductPage):
 
 
 class BookPage(BaseShopifyProductPage):
+    parent_page_types = ["app.BookIndexPage"]
+
     published_date = models.DateField(null=True, blank=True)
 
     content_panels = BaseShopifyProductPage.content_panels + [
@@ -718,3 +688,165 @@ class BookPage(BaseShopifyProductPage):
 def sync(*args, **kwargs):
     print(args, kwargs)
     BaseShopifyProductPage.sync_shopify_products_to_pages()
+
+
+class HeroTextBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(max_length=250, form_classname="full title")
+    background_color = BackgroundColourChoiceBlock(required=False)
+
+    class Meta:
+        template = "app/blocks/hero_block.html"
+        icon = "fa fa-alphabet"
+
+
+class TextBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(max_length=250, form_classname="full title")
+    text = blocks.RichTextBlock()
+    background_color = BackgroundColourChoiceBlock(required=False)
+
+    class Meta:
+        template = "app/blocks/text_block.html"
+        icon = "fa fa-alphabet"
+
+
+class ListItemBlock(blocks.StructBlock):
+    title = blocks.CharBlock(max_length=250, form_classname="full title")
+    image = ImageChooserBlock(required=False)
+    image_css = blocks.CharBlock(max_length=500, required=False)
+    caption = blocks.CharBlock(max_length=350)
+    background_color = BackgroundColourChoiceBlock(required=False)
+
+    class Meta:
+        template = "app/blocks/list_item_block.html"
+        icon = "fa fa-alphabet"
+
+
+class ColumnsBlock(blocks.StructBlock):
+    column_width = blocks.ChoiceBlock(
+        choices=(
+            ("small", "small"),
+            ("medium", "medium"),
+            ("large", "large"),
+        ),
+        default="small",
+    )
+
+
+class ListBlock(ColumnsBlock):
+    items = blocks.ListBlock(ListItemBlock)
+
+    class Meta:
+        template = "app/blocks/list_block.html"
+        icon = "fa fa-alphabet"
+
+
+class FeaturedBookBlock(blocks.StructBlock):
+    book = blocks.PageChooserBlock(
+        page_type=BookPage,
+        target_model=BookPage,
+        can_choose_root=False,
+    )
+    background_color = BackgroundColourChoiceBlock(required=False)
+    promotion_label = blocks.CharBlock(
+        required=False, help_text="Label that highlights this product"
+    )
+
+    class Meta:
+        template = "app/blocks/featured_book_block.html"
+        icon = "fa fa-book"
+
+
+class BookGridBlock(ColumnsBlock):
+    class Meta:
+        template = "app/blocks/book_grid_block.html"
+        icon = "fa fa-book"
+
+
+class SelectedBooksBlock(BookGridBlock):
+    books = blocks.ListBlock(
+        blocks.PageChooserBlock(
+            page_type=BookPage,
+            target_model=BookPage,
+            can_choose_root=False,
+        )
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["books"] = value["books"]
+        return context
+
+
+class RecentlyPublishedBooks(BookGridBlock):
+    max_books = blocks.IntegerBlock(
+        default=4, help_text="How many books should show up?"
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["books"] = (
+            BookPage.objects.order_by("-published_date")
+            .filter(published_date__isnull=False)
+            .all()[: value["max_books"]]
+        )
+        return context
+
+
+class SingleBookBlock(blocks.StructBlock):
+    book = blocks.PageChooserBlock(
+        page_type=BookPage,
+        target_model=BookPage,
+        can_choose_root=False,
+    )
+
+    class Meta:
+        template = "app/blocks/single_book_block.html"
+        icon = "fa fa-book"
+
+
+class TwoColumnBlock(blocks.StructBlock):
+    stream_blocks = [
+        ("hero_text", HeroTextBlock()),
+        ("text", TextBlock()),
+        ("title_image_caption", ListItemBlock()),
+        ("image", ImageChooserBlock()),
+        ("single_book", SingleBookBlock()),
+        ("membership_plan", PlanBlock()),
+    ]
+    left = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
+    right = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
+
+    class Meta:
+        template = "app/blocks/two_column_block.html"
+        icon = "fa fa-th-large"
+
+
+class NewsletterSignupBlock(blocks.StructBlock):
+    class Meta:
+        template = "app/blocks/newsletter_signup_block.html"
+        icon = "fa fa-email"
+
+
+class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
+    show_in_menus_default = True
+    layout = StreamField(
+        [
+            ("membership_options", MembershipOptionsBlock()),
+            ("image", ImageChooserBlock()),
+            ("featured_book", FeaturedBookBlock()),
+            ("book_selection", SelectedBooksBlock()),
+            ("recently_published_books", RecentlyPublishedBooks()),
+            ("hero_text", HeroTextBlock()),
+            ("heading", blocks.CharBlock(form_classname="full title")),
+            ("text", TextBlock()),
+            ("list", ListBlock()),
+            ("two_columns", TwoColumnBlock()),
+            ("newsletter_signup", NewsletterSignupBlock()),
+        ],
+        null=True,
+        blank=True,
+    )
+
+    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+    seo_description_sources = IndexPageSeoMixin.seo_description_sources

@@ -1,3 +1,4 @@
+import pycountry
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from import_export import resources
@@ -19,6 +20,13 @@ class UserResource(resources.ModelResource):
 
         if "username" not in row:
             row["username"] = row["email"]
+
+        if "country" in row:
+            countries = pycountry.countries.search_fuzzy(row["country"])
+            if len(countries) > 0:
+                row["country"] = countries[0].alpha_2
+            else:
+                row.pop("country", None)
 
         return row
 

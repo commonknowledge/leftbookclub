@@ -55,6 +55,10 @@ class User(AbstractUser):
                         self.stripe_id,
                     )
                     stripe_customer = stripe.Customer.retrieve(self.stripe_id)
+
+                    if self.address1:
+                        self.update_stripe_shipping()
+
                     (
                         local_customer,
                         is_new,
@@ -78,6 +82,22 @@ class User(AbstractUser):
                     )
         except:
             pass
+
+    def update_stripe_shipping(self):
+        stripe.Customer.modify(
+            self.stripe_customer.id,
+            shipping={
+                "name": self.get_full_name(),
+                "address": {
+                    "line1": self.address1,
+                    "line2": self.address2,
+                    "postal_code": self.postcode,
+                    "city": self.city,
+                    "state": self.state,
+                    "country": self.country,
+                },
+            },
+        )
 
     @property
     def stripe_customer(self) -> djstripe.models.Customer:

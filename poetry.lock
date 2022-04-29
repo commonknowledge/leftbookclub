@@ -1013,6 +1013,14 @@ python-versions = "*"
 six = "*"
 
 [[package]]
+name = "pycountry"
+version = "22.3.5"
+description = "ISO country, subdivision, language, currency and script definitions and their translations"
+category = "main"
+optional = false
+python-versions = ">=3.6, <4"
+
+[[package]]
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
@@ -1616,7 +1624,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "6f33a8acbe931405b687103a6adb3d66cfa13e8e12095560558d31a5fd5456f5"
+content-hash = "fcecdeeab5761deaad765e1327f5788fb5c370b63eea3c63e2fb9723c8089955"
 
 [metadata.files]
 anyascii = [
@@ -2136,6 +2144,9 @@ py-moneyed = [
 ]
 pyactiveresource = [
     {file = "pyactiveresource-2.2.2.tar.gz", hash = "sha256:2f03844652dc206d9a086b0b15564d78dcec55786fa5fe0055dd2119e0dffdd8"},
+]
+pycountry = [
+    {file = "pycountry-22.3.5.tar.gz", hash = "sha256:b2163a246c585894d808f18783e19137cb70a0c18fb36748dc01fc6f109c1646"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},

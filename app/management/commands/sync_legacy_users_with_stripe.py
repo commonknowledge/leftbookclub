@@ -15,6 +15,16 @@ class Command(BaseCommand):
             "-b", "--batch", dest="batch_size", type=int, default=100000
         )
 
+    def legacy_data_to_stripe_address(user):
+        return {
+            "line1": user.address1,
+            "line2": user.address2,
+            "postal_code": user.postcode,
+            "city": user.city,
+            "state": user.state,
+            "country": user.country,
+        }
+
     @transaction.atomic
     def handle(self, *args, **options):
         batch_size = options.get("batch_size")
@@ -24,41 +34,38 @@ class Command(BaseCommand):
             .all()[:batch_size]
         )
         print("Syncing legacy users", len(legacy_users))
-        for u in legacy_users:
-            if u.stripe_id is not None and len(u.stripe_id) > 0:
+        for user in legacy_users:
+            if user.stripe_id is not None and len(user.stripe_id) > 0:
                 try:
-                    print(
-                        "Sync starting: historical stripe customer",
-                        u.id,
-                        u.stripe_id,
-                    )
-                    stripe_customer = stripe.Customer.retrieve(u.stripe_id)
+                    stripe_customer = None
+                    try:
+                        stripe_customer = stripe.Customer.retrieve(user.stripe_id)
+                    except:
+                        pass
 
                     if stripe_customer is None:
-                        print("No such stripe customer found", u.stripe_id)
-                        # u.stripe_id = None
-                        # u.save()
-                        continue
-
-                    if u.address1:
-                        stripe.Customer.modify(
-                            self.stripe_customer.id,
+                        """
+                        Create a new stripe customer if required
+                        """
+                        stripe_customer = stripe.Customer.create(
+                            name=user.get_full_name(),
+                            email=user.email,
+                            address=self.legacy_data_to_stripe_address(user),
                             shipping={
-                                "name": self.get_full_name(),
-                                "address": {
-                                    "line1": self.address1,
-                                    "line2": self.address2,
-                                    "postal_code": self.postcode,
-                                    "city": self.city,
-                                    "state": self.state,
-                                    "country": self.country,
-                                },
+                                "name": user.get_full_name(),
+                                "address": self.legacy_data_to_stripe_address(user),
                             },
                         )
-                        print(
-                            "Updated shipping",
-                            u.id,
-                            u.stripe_id,
+                    elif user.address1:
+                        """
+                        Else update shipping data if possible
+                        """
+                        stripe_customer = stripe.Customer.modify(
+                            stripe_customer.id,
+                            shipping={
+                                "name": user.get_full_name(),
+                                "address": self.legacy_data_to_stripe_address(user),
+                            },
                         )
 
                     (
@@ -67,19 +74,19 @@ class Command(BaseCommand):
                     ) = djstripe.models.Customer._get_or_create_from_stripe_object(
                         stripe_customer
                     )
-                    local_customer.subscriber = u.request.user
+                    local_customer.subscriber = user
                     local_customer.save()
                     djstripe.models.Customer.sync_from_stripe_data(stripe_customer)
-                    u.stripe_customer._sync_subscriptions()
+                    user.stripe_customer._sync_subscriptions()
                     print(
                         "Sync complete ✅: historical stripe customer",
-                        u.id,
-                        u.stripe_id,
+                        user.id,
+                        user.stripe_id,
                     )
                 except Exception as e:
                     print(
                         "Sync failed ❌: historical stripe customer",
-                        u.id,
-                        u.stripe_id,
+                        user.id,
+                        user.stripe_id,
                     )
                     raise e

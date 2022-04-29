@@ -47,7 +47,7 @@ formatting: codestyle
 
 .PHONY: test
 test:
-	poetry run pytest -vs -m "not integration_test"
+	poetry run pytest
 	yarn test
 
 .PHONY: check-codestyle
@@ -65,12 +65,10 @@ check-safety:
 	poetry run bandit -ll --recursive pyck tests
 
 .PHONY: lint
-lint: check-codestyle check-safety test
+lint: check-codestyle check-safety
 
 .PHONY: ci
-ci: lint
-	poetry run pytest
-	yarn test
+ci: lint test
 
 
 #* Assets

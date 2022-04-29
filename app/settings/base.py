@@ -62,7 +62,10 @@ INSTALLED_APPS = [
     "wagtailseo",
     "admin_list_controls",
     "mjml",
+    "import_export",
 ]
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 # if (
 #     os.environ.get("MJML_APPLICATION_ID", None) is not None

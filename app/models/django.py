@@ -47,57 +47,8 @@ class User(AbstractUser):
                 djstripe.models.Customer.sync_from_stripe_data(customer)
                 # Update subscriptions
                 self.stripe_customer._sync_subscriptions()
-            elif self.stripe_id is not None and len(self.stripe_id) > 0:
-                try:
-                    print(
-                        "Sync starting: historical stripe customer",
-                        self.id,
-                        self.stripe_id,
-                    )
-                    stripe_customer = stripe.Customer.retrieve(self.stripe_id)
-
-                    if self.address1:
-                        self.update_stripe_shipping()
-
-                    (
-                        local_customer,
-                        is_new,
-                    ) = djstripe.models.Customer._get_or_create_from_stripe_object(
-                        stripe_customer
-                    )
-                    local_customer.subscriber = self.request.user
-                    local_customer.save()
-                    djstripe.models.Customer.sync_from_stripe_data(stripe_customer)
-                    self.stripe_customer._sync_subscriptions()
-                    print(
-                        "Sync complete ✅: historical stripe customer",
-                        self.id,
-                        self.stripe_id,
-                    )
-                except:
-                    print(
-                        "Sync failed ❌: historical stripe customer",
-                        self.id,
-                        self.stripe_id,
-                    )
         except:
             pass
-
-    def update_stripe_shipping(self):
-        stripe.Customer.modify(
-            self.stripe_customer.id,
-            shipping={
-                "name": self.get_full_name(),
-                "address": {
-                    "line1": self.address1,
-                    "line2": self.address2,
-                    "postal_code": self.postcode,
-                    "city": self.city,
-                    "state": self.state,
-                    "country": self.country,
-                },
-            },
-        )
 
     @property
     def stripe_customer(self) -> djstripe.models.Customer:

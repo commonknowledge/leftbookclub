@@ -12,7 +12,9 @@ class UserResource(resources.ModelResource):
         model = models.User
 
     def before_import_row(self, row, *args, **kwargs):
-        row.pop("id", None)
+        if "id" in row:
+            row["old_id"] = row["id"]
+            row.pop("id", None)
 
         algo_prefix = "bcrypt$"
         if "password" in row and algo_prefix not in row["password"]:

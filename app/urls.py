@@ -9,8 +9,8 @@ from django.views.generic.base import RedirectView
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
-from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 from wagtail_transfer import urls as wagtailtransfer_urls
+from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 
 from app.shopify_webhook.views import WebhookView
 from app.views import (
@@ -21,7 +21,9 @@ from app.views import (
     LoginRequiredTemplateView,
     MemberSignupCompleteView,
     ShippingCostView,
+    ShippingForProductView,
     StripeCustomerPortalView,
+    SubscriptionCheckoutView,
 )
 
 # from wagtail_transfer import urls as wagtailtransfer_urls
@@ -32,7 +34,7 @@ urlpatterns = [
     re_path(r"^admin/autocomplete/", include(autocomplete_admin_urls)),
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
-    re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
+    re_path(r"^wagtail-transfer/", include(wagtailtransfer_urls)),
     path(
         "favicon.ico",
         RedirectView.as_view(url=get_static_path("images/logo.png"), permanent=True),
@@ -68,14 +70,29 @@ urlpatterns = [
         name="redeem_setup",
     ),
     path(
+        f"redeem/<str:code>/",
+        GiftCodeRedeemView.as_view(),
+        name="redeem",
+    ),
+    path(
         "welcome/",
         MemberSignupCompleteView.as_view(),
         name="member_signup_complete",
     ),
     path(
-        "redeem/<str:code>/",
-        GiftCodeRedeemView.as_view(),
-        name="redeem",
+        f"checkout/{SubscriptionCheckoutView.url_params}",
+        SubscriptionCheckoutView.as_view(),
+        name="checkout",
+    ),
+    path(
+        f"confirm-shipping/{ShippingForProductView.url_params[0]}",
+        ShippingForProductView.as_view(),
+        name="plan_shipping",
+    ),
+    path(
+        f"confirm-shipping/{ShippingForProductView.url_params[1]}",
+        ShippingForProductView.as_view(),
+        name="plan_shipping",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),

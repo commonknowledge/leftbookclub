@@ -5,12 +5,14 @@ class ShippingController extends Controller {
 
   readonly formTarget!: HTMLFormElement;
   readonly frameTarget!: HTMLFormElement;
+  readonly priceValue!: string;
   readonly productValue!: string;
   readonly urlValue!: string;
 
   static values = {
     url: String,
     product: String,
+    price: String,
   };
 
   formTargetConnected() {
@@ -26,8 +28,9 @@ class ShippingController extends Controller {
     const newFrameURL = new URL(
       "/" +
         this.urlValue
-          .replace("<str:product_id>", this.productValue)
-          .replace("<str:country_id>", country_code),
+          .replace("<price_id>", this.priceValue)
+          .replace("<product_id>", this.productValue)
+          .replace("<country_id>", country_code),
       window.location.toString()
     );
     this.frameTarget.src = newFrameURL;

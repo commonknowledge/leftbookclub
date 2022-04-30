@@ -75,6 +75,7 @@ class LBCSubscription(djstripe.models.Subscription):
         return self.customer_shipping_address.get("zip", None)
 
 
+@register_snippet
 class LBCProduct(djstripe.models.Product):
     class Meta:
         proxy = True
@@ -169,6 +170,11 @@ class ShippingZone(models.Model):
 
     def __str__(self) -> str:
         return f"[{self.code}] {self.nickname}"
+
+    autocomplete_search_field = "nickname"
+
+    def autocomplete_label(self):
+        return str(self)
 
     @classmethod
     def get_for_country(self, iso_a2: str):

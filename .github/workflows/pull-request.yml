@@ -16,6 +16,9 @@ jobs:
         DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
         DEBUG: True
         PY_IGNORE_IMPORTMISMATCH: 1
+        STRIPE_LIVE_MODE: "False"
+        STRIPE_TEST_PUBLIC_KEY: ${{ secrets.STRIPE_TEST_PUBLIC_KEY }}
+        STRIPE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
     services:
       db:
         image: kartoza/postgis:latest

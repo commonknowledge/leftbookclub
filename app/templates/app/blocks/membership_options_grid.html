@@ -1,0 +1,34 @@
+{% load wagtailcore_tags django_bootstrap5 url %}
+{% with request.GET.gift_mode as gift_mode %}
+{% with request.GET.annual as annual %}
+<section class='bg-white p-2'>
+  <header class='row gx-0'>
+    <div class='col p-3'>
+      <h2 class='h1 fw-bold'>{{ value.heading }}</h2>
+      <div>{{ value.description|richtext }}</div>
+      <div class="btn-group my-1" role="group" aria-label="Basic outlined example">
+        {% qs_link annual=None as url %}
+        {% if not annual %}
+          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Monthly pricing" %}
+        {% else %}
+          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Monthly pricing" %}
+        {% endif %}
+        {% qs_link annual="true" as url %}
+        {% if annual %}
+          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Annual pricing" %}
+        {% else %}
+          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Annual pricing: pay upfront and save!" %}
+        {% endif %}
+      </div>
+    </div>
+  </header>
+  <div class='row g-2'>
+  {% for option in value.plans %}
+    {% if option.plan.live %}
+      {% include_block option %}
+    {% endif %}
+  {% endfor %}
+  </div>
+</section>
+{% endwith %}
+{% endwith %}

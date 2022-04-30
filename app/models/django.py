@@ -3,6 +3,7 @@ import stripe
 from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 
 from app.utils.stripe import (
     get_primary_product_for_djstripe_subscription,
@@ -20,6 +21,20 @@ def custom_user_casual_name(user: AbstractUser) -> str:
 
 
 class User(AbstractUser):
+    # Fields imported from the old app
+    old_id = models.IntegerField(null=True, blank=True, unique=True)
+    tel = models.CharField(max_length=191, null=True, blank=True)
+    address1 = models.CharField(max_length=191, null=True, blank=True)
+    address2 = models.CharField(max_length=191, null=True, blank=True)
+    city = models.CharField(max_length=191, null=True, blank=True)
+    state = models.CharField(max_length=191, null=True, blank=True)
+    country = models.CharField(max_length=191, null=True, blank=True)
+    postcode = models.CharField(max_length=10, null=True, blank=True)
+    gender = models.CharField(max_length=100, null=True, blank=True)
+    birthday = models.DateField(null=True, blank=True)
+    occupation = models.CharField(max_length=191, null=True, blank=True)
+    stripe_id = models.CharField(max_length=191, null=True, blank=True)
+
     @property
     def display_name(self):
         return user_display(self)

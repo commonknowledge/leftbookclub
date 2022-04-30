@@ -14,14 +14,29 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.html import strip_tags
 from django_countries import countries
-from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
+from djmoney.models.fields import Money, MoneyField
+from modelcluster.fields import ParentalKey, ParentalManyToManyField
+from modelcluster.models import ClusterableModel
+from wagtail.admin.edit_handlers import (
+    FieldPanel,
+    FieldRowPanel,
+    InlinePanel,
+    MultiFieldPanel,
+    PageChooserPanel,
+    StreamFieldPanel,
+)
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
-from wagtail.core.fields import RichTextField
-from wagtail.core.models import Page
+from wagtail.core import blocks
+from wagtail.core.fields import RichTextField, StreamField
+from wagtail.core.models import Orderable, Page
 from wagtail.core.rich_text import get_text_for_indexing
+from wagtail.images.blocks import ImageChooserBlock
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.images.models import AbstractImage, AbstractRendition
 from wagtail.search import index
+from wagtail.snippets.blocks import SnippetChooserBlock
+from wagtail.snippets.models import register_snippet
+from wagtailautocomplete.edit_handlers import AutocompletePanel
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
@@ -30,7 +45,7 @@ from app.shopify_webhook.signals import products_create
 from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
-from app.utils.stripe import create_one_off_shipping_price_data_for_price
+from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
 from app.views import CreateCheckoutSessionView, ShippingCostView
 
 from .stripe import LBCProduct, ShippingZone
@@ -80,146 +95,305 @@ class ArticleSeoMixin(SeoMetadataMixin):
     promote_panels = SeoMixin.seo_panels
 
 
-class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
-    body = RichTextField(blank=True)
-    show_in_menus_default = True
+# class ProductBlock(StructBlock):
+#     page = ParentalKey("app.MembershipPlanPage", related_name="products")
+#     product = SnippetChooserBlock(djstripe.models.LBCProduct)
 
-    content_panels = Page.content_panels + [
-        FieldPanel("body", classname="full"),
+
+@register_snippet
+class MembershipPlanPrice(Orderable, ClusterableModel):
+    plan = ParentalKey("app.MembershipPlanPage", related_name="prices")
+
+    price = MoneyField(
+        default=Money(0, "GBP"),
+        max_digits=14,
+        decimal_places=2,
+        default_currency="GBP",
+        null=False,
+        blank=False,
+    )
+
+    class Interval(models.TextChoices):
+        year = "year"
+        month = "month"
+        week = "week"
+        day = "day"
+
+    interval = models.CharField(
+        max_length=10,
+        choices=Interval.choices,
+        default=Interval.month,
+        null=False,
+        blank=True,
+    )
+
+    interval_count = models.IntegerField(default=1, null=False, blank=True)
+
+    description = RichTextField(null=True, blank=True)
+
+    free_shipping_zones = ParentalManyToManyField(
+        ShippingZone,
+        related_name="excluded_prices",
+        help_text="Waive shipping fees for customers in these shipping zones.",
+        blank=True,
+    )
+
+    panels = [
+        FieldPanel("price"),
+        FieldRowPanel(
+            [
+                FieldPanel("interval_count"),
+                FieldPanel("interval"),
+            ],
+            heading="billing schedule",
+        ),
+        AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+        FieldPanel(
+            "description",
+            classname="full",
+            help_text="Displayed to visitors who are considering purchasing a plan at this price.",
+        ),
     ]
 
-    seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["body"]
+    @property
+    def deliveries_per_billing_period(self) -> float:
+        if self.interval == "year":
+            return self.plan.deliveries_per_year * self.interval_count
+        if self.interval == "month":
+            return (self.plan.deliveries_per_year / 12) * self.interval_count
+        if self.interval == "week":
+            return (self.plan.deliveries_per_year / 52) * self.interval_count
+        if self.interval == "day":
+            return (self.plan.deliveries_per_year / 365.25) * self.interval_count
+        return self.plan.deliveries_per_year
 
-    @route(r"^$")  # will override the default Page serving mechanism
-    def pick_product(self, request):
-        """
-        Provide a list of products to the template, to start the membership signup flow
-        """
+    def shipping_fee(self, zone) -> Money:
+        if self.free_shipping_zones.filter(code=zone.code).exists():
+            return Money(0, zone.rate_currency)
+        return zone.rate * self.deliveries_per_billing_period
 
-        products = LBCProduct.get_active_plans()
+    def price_including_shipping(self, zone):
+        return self.price + self.shipping_fee(zone)
 
-        return self.render(
-            request,
-            context_overrides={
-                "products": products,
+    def humanised_interval(self):
+        s = "/"
+        if self.interval_count > 1:
+            s += self.interval_count + " "
+        s += self.interval
+        if self.interval_count > 1:
+            s += "s"
+        return s
+
+    @property
+    def price_string(self) -> str:
+        money = str(self.price)
+        interval = self.humanised_interval()
+        return f"{money}{interval}"
+
+    @property
+    def months_per_billing_cycle(self):
+        if self.interval == "year":
+            return 12 * self.interval_count
+        if self.interval == "month":
+            return self.interval_count
+        if self.interval == "week":
+            return self.interval_count / (52 / 7)
+        if self.interval == "day":
+            return self.interval_count / (365.25 / 12)
+
+    @property
+    def equivalent_monthly_price(self) -> str:
+        return self.price / self.months_per_billing_cycle
+
+    @property
+    def equivalent_monthly_price_string(self) -> str:
+        money = str(self.equivalent_monthly_price)
+        return f"{money}/month"
+
+    def __str__(self) -> str:
+        return f"{self.price_string} on {self.plan}"
+
+    @property
+    def metadata(self):
+        return {"wagtail_price": self.id}
+
+    def to_price_data(self, product):
+        return {
+            "unit_amount_decimal": self.price.amount * 100,
+            "currency": self.price_currency,
+            "product": product.id,
+            "recurring": {
+                "interval": self.interval,
+                "interval_count": self.interval_count,
             },
-            template="app/pick_product.html",
-        )
+            "metadata": self.metadata,
+        }
 
-    @route(r"^product/(?P<product_id>.+)/$")
-    @route(r"^product/(?P<product_id>.+)/(?P<country_id>.+)/$")
-    def pick_price_for_product(self, request, product_id, country_id="GB"):
-        """
-        When a product has been selected, select shipping country.
-        """
-
-        product = LBCProduct.objects.get(id=product_id)
-
-        return self.render(
-            request,
-            context_overrides={
-                "product": product,
-                "default_country_code": country_id,
-                "country_selector_form": CountrySelectorForm(
-                    initial={"country": country_id}
-                ),
-                "url_pattern": ShippingCostView.url_pattern,
+    def to_shipping_price_data(self, zone):
+        shipping_product = get_shipping_product()
+        shipping_fee = self.shipping_fee(zone)
+        return {
+            "unit_amount_decimal": shipping_fee.amount * 100,
+            "currency": shipping_fee.currency,
+            "product": shipping_product.id,
+            "recurring": {
+                "interval": self.interval,
+                "interval_count": self.interval_count,
             },
-            template="app/pick_price_for_product.html",
-        )
-
-    @route(r"^checkout/(?P<product_id>.+)/$")
-    def checkout(self, request, product_id):
-        """
-        Create a checkout session with a line item of price_id
-        """
-
-        country = request.GET.get("country", None)
-        gift_mode = request.GET.get("gift_mode", None)
-
-        if country is None:
-            return redirect(
-                urllib.parse.urljoin(
-                    self.get_full_url(request),
-                    self.reverse_subpage(
-                        "pick_price_for_product", kwargs={"product_id": product_id}
-                    ),
-                )
-            )
-
-        product = LBCProduct.objects.get(id=product_id)
-        price = product.basic_price
-        zone = ShippingZone.get_for_country(country)
-
-        if price is None:
-            return redirect(
-                urllib.parse.urljoin(
-                    self.get_full_url(request),
-                    self.reverse_subpage(
-                        "pick_price_for_product",
-                        kwargs={"product_id": product_id, "country_id": country},
-                    ),
-                )
-            )
-
-        checkout_args = dict(
-            mode="subscription",
-            line_items=[
-                {
-                    # Membership
-                    "price": price.id,
-                    "quantity": 1,
-                },
-                {
-                    # Shipping
-                    "price_data": create_one_off_shipping_price_data_for_price(
-                        price, zone
-                    ),
-                    "quantity": 1,
-                },
-            ],
-            # By default, customer details aren't updated, but we want them to be.
-            customer_update={
-                "shipping": "auto",
-                "address": "auto",
-                "name": "auto",
+            "metadata": {
+                **create_shipping_zone_metadata(zone),
+                "deliveries_per_period": self.deliveries_per_billing_period,
+                **self.metadata,
             },
-            metadata={},
-        )
-        callback_url_args = {}
+        }
 
-        if gift_mode is not None and gift_mode is not False:
-            callback_url_args["gift_mode"] = True
-            checkout_args["metadata"]["gift_mode"] = True
+    def to_checkout_line_items(self, product, zone):
+        line_items = [
+            {
+                "price_data": self.to_price_data(product),
+                "quantity": 1,
+            },
+            # Keep the shipping fee in, even if it's 0
+            # so that we can upgrade/downgrade shipping prices in the future
+            {
+                "price_data": self.to_shipping_price_data(zone),
+                "quantity": 1,
+            },
+        ]
+        return line_items
+
+
+class MembershipPlanPage(ArticleSeoMixin, Page):
+    parent_page_types = ["app.HomePage"]
+
+    deliveries_per_year = models.IntegerField()
+    description = RichTextField(null=True, blank=True)
+    pick_product_title = models.CharField(
+        default="Choose a book series",
+        max_length=150,
+        help_text="Displayed if there are multiple products to pick from",
+        null=True,
+        blank=True,
+    )
+    pick_product_text = RichTextField(
+        help_text="Displayed if there are multiple products to pick from",
+        null=True,
+        blank=True,
+    )
+    products = ParentalManyToManyField(LBCProduct, blank=True)
+
+    panels = content_panels = Page.content_panels + [
+        FieldPanel("deliveries_per_year"),
+        FieldPanel("description"),
+        InlinePanel("prices", min_num=1, label="Price"),
+        FieldPanel("pick_product_title", classname="full title"),
+        FieldPanel("pick_product_text"),
+        AutocompletePanel("products", target_model=LBCProduct),
+    ]
+
+    @property
+    def delivery_frequency(self):
+        months_between = self.deliveries_per_year / 12
+        s = "every "
+        if months_between == 1:
+            s += "month"
+        # Could replace this with https://github.com/savoirfairelinux/num2words
+        elif months_between == 1 / 2:
+            s += "two months"
+        elif months_between == 1 / 3:
+            s += "three months"
         else:
-            checkout_args["shipping_address_collection"] = {
-                "allowed_countries": zone.country_codes
-            }
+            s += f"{months_between} months"
+        return s
 
-        checkout_args["success_url"] = urllib.parse.urljoin(
-            self.get_full_url(request),
-            reverse_lazy("member_signup_complete")
-            + "?session_id={CHECKOUT_SESSION_ID}&"
-            + urlencode(callback_url_args),
+    @property
+    def basic_price(self) -> MembershipPlanPrice:
+        price = self.monthly_price
+        if price is None:
+            price = self.prices.order_by("price", "interval").first()
+        return price
+
+    @property
+    def monthly_price(self) -> MembershipPlanPrice:
+        return self.prices.filter(interval="month").order_by("interval_count").first()
+
+    @property
+    def annual_price(self) -> MembershipPlanPrice:
+        return self.prices.filter(interval="year").order_by("interval_count").first()
+
+    @property
+    def annual_percent_off_per_month(self) -> str:
+        return (
+            self.annual_price.equivalent_monthly_price - self.basic_price.price
+        ) / self.basic_price.price
+
+    def get_price_for_request(self, request):
+        if request.GET.get("annual", None) is not None:
+            return self.annual_price
+        return self.basic_price
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["request_price"] = self.get_price_for_request(request)
+        return context
+
+
+class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
+    choices = [
+        # ('primary', 'primary'),
+        ("tw-bg-yellow", "yellow"),
+        # ('black', 'black'),
+        ("tw-bg-teal", "teal"),
+        ("tw-bg-darkgreen", "darkgreen"),
+        ("tw-bg-lilacgrey", "lilacgrey"),
+        ("tw-bg-coral", "coral"),
+        ("tw-bg-purple", "purple"),
+        ("tw-bg-magenta", "magenta"),
+        ("tw-bg-pink", "pink"),
+        ("tw-bg-lightgreen", "lightgreen"),
+    ]
+
+    class Meta:
+        icon = "fa-paint"
+
+
+class PlanBlock(blocks.StructBlock):
+    plan = blocks.PageChooserBlock(
+        page_type=MembershipPlanPage,
+        target_model=MembershipPlanPage,
+        can_choose_root=False,
+    )
+    background_color = BackgroundColourChoiceBlock(required=False)
+    promotion_label = blocks.CharBlock(
+        required=False, help_text="Label that highlights this product"
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["request_price"] = value["plan"].get_price_for_request(
+            parent_context.get("request")
         )
-        checkout_args["cancel_url"] = urllib.parse.urljoin(
-            self.get_full_url(request),
-            self.reverse_subpage("pick_product") + "?" + urlencode(callback_url_args),
-        )
+        return context
 
-        return CreateCheckoutSessionView.as_view(context=checkout_args)(request)
+    class Meta:
+        template = "app/blocks/membership_option_card.html"
+        icon = "fa-money"
 
-    @route(r"^error/$")
-    def subscription_error(self, request):
-        """
-        Present a thank you page and run any wrapup activites that are required.
-        """
 
-        return self.render(
-            request,
-            context_overrides={"error": True},
-            template="app/subscription_error.html",
-        )
+class MembershipOptionsBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(
+        form_classname="full title", default="Choose your plan", null=True, blank=True
+    )
+    description = blocks.RichTextBlock(
+        null=True,
+        blank=True,
+        default="<p>Your subscription will begin with the most recently published book in your chosen collection.</p>",
+    )
+    plans = blocks.ListBlock(PlanBlock)
+
+    class Meta:
+        template = "app/blocks/membership_options_grid.html"
+        icon = "fa-users"
 
 
 class CustomImage(AbstractImage):
@@ -292,10 +466,7 @@ class BlogPage(ArticleSeoMixin, Page):
         ImageChooserPanel("feed_image"),
     ]
 
-    seo_description_sources = ArticleSeoMixin.seo_description_sources + [
-        "intro",
-        "body",
-    ]
+    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["intro"]
 
     seo_image_sources = ArticleSeoMixin.seo_image_sources + ["feed_image"]
 
@@ -317,8 +488,6 @@ class InformationPage(ArticleSeoMixin, Page):
         ImageChooserPanel("cover_image"),
         StreamFieldPanel("body", classname="full"),
     ]
-
-    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
 
     seo_image_sources = ArticleSeoMixin.seo_image_sources + ["cover_image"]
 
@@ -345,8 +514,6 @@ class BookIndexPage(IndexPageSeoMixin, Page):
         ]
         context["products"] = products
         return context
-
-    seo_description_sources = ArticleSeoMixin.seo_description_sources + ["body"]
 
 
 def shopify_product_id_key(page):
@@ -491,6 +658,8 @@ class MerchandisePage(BaseShopifyProductPage):
 
 
 class BookPage(BaseShopifyProductPage):
+    parent_page_types = ["app.BookIndexPage"]
+
     published_date = models.DateField(null=True, blank=True)
 
     content_panels = BaseShopifyProductPage.content_panels + [
@@ -519,3 +688,165 @@ class BookPage(BaseShopifyProductPage):
 def sync(*args, **kwargs):
     print(args, kwargs)
     BaseShopifyProductPage.sync_shopify_products_to_pages()
+
+
+class HeroTextBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(max_length=250, form_classname="full title")
+    background_color = BackgroundColourChoiceBlock(required=False)
+
+    class Meta:
+        template = "app/blocks/hero_block.html"
+        icon = "fa fa-alphabet"
+
+
+class TextBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(max_length=250, form_classname="full title")
+    text = blocks.RichTextBlock()
+    background_color = BackgroundColourChoiceBlock(required=False)
+
+    class Meta:
+        template = "app/blocks/text_block.html"
+        icon = "fa fa-alphabet"
+
+
+class ListItemBlock(blocks.StructBlock):
+    title = blocks.CharBlock(max_length=250, form_classname="full title")
+    image = ImageChooserBlock(required=False)
+    image_css = blocks.CharBlock(max_length=500, required=False)
+    caption = blocks.CharBlock(max_length=350)
+    background_color = BackgroundColourChoiceBlock(required=False)
+
+    class Meta:
+        template = "app/blocks/list_item_block.html"
+        icon = "fa fa-alphabet"
+
+
+class ColumnsBlock(blocks.StructBlock):
+    column_width = blocks.ChoiceBlock(
+        choices=(
+            ("small", "small"),
+            ("medium", "medium"),
+            ("large", "large"),
+        ),
+        default="small",
+    )
+
+
+class ListBlock(ColumnsBlock):
+    items = blocks.ListBlock(ListItemBlock)
+
+    class Meta:
+        template = "app/blocks/list_block.html"
+        icon = "fa fa-alphabet"
+
+
+class FeaturedBookBlock(blocks.StructBlock):
+    book = blocks.PageChooserBlock(
+        page_type=BookPage,
+        target_model=BookPage,
+        can_choose_root=False,
+    )
+    background_color = BackgroundColourChoiceBlock(required=False)
+    promotion_label = blocks.CharBlock(
+        required=False, help_text="Label that highlights this product"
+    )
+
+    class Meta:
+        template = "app/blocks/featured_book_block.html"
+        icon = "fa fa-book"
+
+
+class BookGridBlock(ColumnsBlock):
+    class Meta:
+        template = "app/blocks/book_grid_block.html"
+        icon = "fa fa-book"
+
+
+class SelectedBooksBlock(BookGridBlock):
+    books = blocks.ListBlock(
+        blocks.PageChooserBlock(
+            page_type=BookPage,
+            target_model=BookPage,
+            can_choose_root=False,
+        )
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["books"] = value["books"]
+        return context
+
+
+class RecentlyPublishedBooks(BookGridBlock):
+    max_books = blocks.IntegerBlock(
+        default=4, help_text="How many books should show up?"
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["books"] = (
+            BookPage.objects.order_by("-published_date")
+            .filter(published_date__isnull=False)
+            .all()[: value["max_books"]]
+        )
+        return context
+
+
+class SingleBookBlock(blocks.StructBlock):
+    book = blocks.PageChooserBlock(
+        page_type=BookPage,
+        target_model=BookPage,
+        can_choose_root=False,
+    )
+
+    class Meta:
+        template = "app/blocks/single_book_block.html"
+        icon = "fa fa-book"
+
+
+class TwoColumnBlock(blocks.StructBlock):
+    stream_blocks = [
+        ("hero_text", HeroTextBlock()),
+        ("text", TextBlock()),
+        ("title_image_caption", ListItemBlock()),
+        ("image", ImageChooserBlock()),
+        ("single_book", SingleBookBlock()),
+        ("membership_plan", PlanBlock()),
+    ]
+    left = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
+    right = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
+
+    class Meta:
+        template = "app/blocks/two_column_block.html"
+        icon = "fa fa-th-large"
+
+
+class NewsletterSignupBlock(blocks.StructBlock):
+    class Meta:
+        template = "app/blocks/newsletter_signup_block.html"
+        icon = "fa fa-email"
+
+
+class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
+    show_in_menus_default = True
+    layout = StreamField(
+        [
+            ("membership_options", MembershipOptionsBlock()),
+            ("image", ImageChooserBlock()),
+            ("featured_book", FeaturedBookBlock()),
+            ("book_selection", SelectedBooksBlock()),
+            ("recently_published_books", RecentlyPublishedBooks()),
+            ("hero_text", HeroTextBlock()),
+            ("heading", blocks.CharBlock(form_classname="full title")),
+            ("text", TextBlock()),
+            ("list", ListBlock()),
+            ("two_columns", TwoColumnBlock()),
+            ("newsletter_signup", NewsletterSignupBlock()),
+        ],
+        null=True,
+        blank=True,
+    )
+
+    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+    seo_description_sources = IndexPageSeoMixin.seo_description_sources

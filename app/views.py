@@ -1,8 +1,11 @@
 from typing import Any, Dict
 
+import urllib.parse
 from datetime import datetime
+from importlib.metadata import metadata
 from multiprocessing.sharedctypes import Value
 from pipes import Template
+from urllib.parse import urlencode
 
 import djstripe.models
 import stripe
@@ -13,16 +16,20 @@ from django.core.mail import send_mail
 from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
-from django.urls import reverse, reverse_lazy
+from django.urls import include, path, re_path, reverse, reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 
-from app.forms import GiftCodeForm, StripeShippingForm
+from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
-from app.utils.stripe import create_gift, gift_giver_subscription_from_code
+from app.utils.stripe import (
+    configure_gift_giver_subscription_and_code,
+    create_gift_recipient_subscription,
+    gift_giver_subscription_from_code,
+)
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -155,34 +162,10 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             promo_code = stripe.PromotionCode.retrieve(promo_code_id)
             page_context["promo_code"] = promo_code.code
         else:
-            # First time
-            gift_giver_subscription = stripe.Subscription.modify(
-                session.subscription, metadata={"gift_mode": True}
+            config_details = configure_gift_giver_subscription_and_code(
+                session.subscription, self.request.user.id
             )
-            # 2. Generate coupon
-            product_id = gift_giver_subscription.get("items").data[0].price.product
-            coupon = stripe.Coupon.create(
-                applies_to={"products": [product_id]},
-                percent_off=100,
-                duration="forever",
-            )
-            promo_code = stripe.PromotionCode.create(
-                coupon=coupon.id,
-                max_redemptions=1,
-                metadata={
-                    "gift_giver_subscription": session.subscription,
-                    "related_django_user": self.request.user.id,
-                },
-            )
-            page_context["promo_code"] = promo_code.code
-
-            gift_giver_subscription = stripe.Subscription.modify(
-                session.subscription,
-                metadata={"promo_code": promo_code.id},
-            )
-
-            djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
-            page_context["gift_giver_subscription"] = gift_giver_subscription
+            page_context.update(config_details)
 
             # Send them this promo code via email
             redeem_url = self.request.build_absolute_uri(
@@ -205,33 +188,6 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
         return page_context
 
 
-class ShippingCostView(TemplateView):
-    template_name = "app/frames/shipping_cost.html"
-    url_pattern = "shippingcosts/<str:product_id>/<str:country_id>/"
-
-    def get_context_data(self, product_id=None, country_id=None, **kwargs):
-        from .models import LBCProduct, ShippingZone
-
-        context = super().get_context_data(**kwargs)
-        if product_id is None or country_id is None:
-            return context
-        product = LBCProduct.objects.get(id=product_id)
-        zone = ShippingZone.get_for_country(country_id)
-        context = {
-            **context,
-            "zone": zone,
-            "product": product,
-            "shipping_zone": zone,
-            "final_price": Money(
-                product.basic_price.unit_amount / 100, product.basic_price.currency
-            )
-            + Money(zone.rate.amount, product.basic_price.currency),
-            "url_pattern": self.url_pattern,
-        }
-
-        return context
-
-
 class LoginRequiredTemplateView(LoginRequiredMixin, TemplateView):
     pass
 
@@ -248,7 +204,7 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
 
 class CartOptionsView(TemplateView):
     template_name = "app/frames/cart_options.html"
-    url_pattern = "cartoptions/<str:product_id>/"
+    url_pattern = "cartoptions/<product_id>/"
 
     def get_context_data(self, product_id=None, **kwargs):
         from .models import BookPage
@@ -281,7 +237,7 @@ class GiftCodeRedeemView(FormView):
             form.cleaned_data["code"]
         )
         if gift_giver_subscription is None:
-            raise ValueError("Couldn't figure out how this promo code was generated")
+            raise ValueError("This is a normal promo code. Select a plan to apply it.")
 
         self.request.session["gift_giver_subscription"] = gift_giver_subscription.id
 
@@ -350,7 +306,9 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
             gift_giver_subscription = (
                 djstripe.models.Subscription.sync_from_stripe_data(stripe_sub)
             )
-            create_gift(gift_giver_subscription, self.request.user)
+            create_gift_recipient_subscription(
+                gift_giver_subscription, self.request.user
+            )
         except djstripe.models.Subscription.DoesNotExist:
             raise ValueError(
                 "Couldn't set up your gifted subscription. Please email info@leftbookclub.com and we'll get you started!"
@@ -383,3 +341,130 @@ def gift_giver_subscription_was_cancelled(event, **kwargs):
         promo_code = some_subscription.metadata.get("promo_code", None)
         recipient_subscription = gift_recipient_subscription_from_code(promo_code)
         stripe.Subcription.delete(recipient_subscription.id)
+
+
+class ShippingForProductView(TemplateView):
+    template_name = "app/confirm_shipping.html"
+
+    url_params = ["<price_id>/<product_id>/", "<price_id>/<product_id>/<country_id>/"]
+
+    def get_context_data(
+        self, price_id, product_id, country_id="GB", **kwargs
+    ) -> Dict[str, Any]:
+        """
+        When a product has been selected, select shipping country.
+        """
+        from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice
+
+        context = super().get_context_data(**kwargs)
+        product = LBCProduct.objects.get(id=product_id)
+        price = MembershipPlanPrice.objects.get(
+            id=price_id, plan__products__id=product_id
+        )
+
+        context.update(
+            {
+                "price": price,
+                "product": product,
+                "default_country_code": country_id,
+                "country_selector_form": CountrySelectorForm(
+                    initial={"country": country_id}
+                ),
+                "url_pattern": ShippingCostView.url_pattern,
+            }
+        )
+
+        return context
+
+
+class ShippingCostView(TemplateView):
+    template_name = "app/frames/shipping_cost.html"
+    url_pattern = "shippingcosts/<price_id>/<product_id>/<country_id>/"
+
+    def get_context_data(self, price_id, product_id, country_id="GB", **kwargs):
+        """
+        Display shipping fee based on selected country
+        """
+        from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice
+
+        from .models import LBCProduct, ShippingZone
+
+        context = super().get_context_data(**kwargs)
+        price = MembershipPlanPrice.objects.get(id=price_id)
+        product = LBCProduct.objects.get(id=product_id)
+        zone = ShippingZone.get_for_country(country_id)
+        context = {
+            **context,
+            "zone": zone,
+            "price": price,
+            "product": product,
+            "shipping_zone": zone,
+            "shipping_price": price.shipping_fee(zone),
+            "final_price": price.price_including_shipping(zone),
+            "url_pattern": self.url_pattern,
+        }
+
+        return context
+
+
+class SubscriptionCheckoutView(TemplateView):
+    """
+    Create a checkout session with a line item of price_id
+    """
+
+    url_params = "<price_id>/<product_id>/"
+
+    # TODO: should take an array of price_id, actually
+    def get(
+        self,
+        request: HttpRequest,
+        *args: Any,
+        product_id=None,
+        price_id=None,
+        **kwargs: Any,
+    ):
+        from app.models.wagtail import MembershipPlanPrice
+
+        country = request.GET.get("country", "GB")
+        gift_mode = request.GET.get("gift_mode", None)
+        gift_mode = gift_mode is not None and gift_mode is not False
+        product = LBCProduct.objects.get(id=product_id)
+        price = MembershipPlanPrice.objects.get(
+            id=price_id, plan__products__id=product_id
+        )
+        zone = ShippingZone.get_for_country(country)
+
+        checkout_args = dict(
+            mode="subscription",
+            allow_promotion_codes=True,
+            line_items=price.to_checkout_line_items(product, zone),
+            # By default, customer details aren't updated, but we want them to be.
+            customer_update={
+                "shipping": "auto",
+                "address": "auto",
+                "name": "auto",
+            },
+            metadata={},
+        )
+        callback_url_args = {}
+
+        if gift_mode:
+            callback_url_args["gift_mode"] = True
+            checkout_args["metadata"]["gift_mode"] = True
+        else:
+            checkout_args["shipping_address_collection"] = {
+                "allowed_countries": zone.country_codes
+            }
+
+        checkout_args["success_url"] = urllib.parse.urljoin(
+            settings.BASE_URL,
+            reverse_lazy("member_signup_complete")
+            + "?session_id={CHECKOUT_SESSION_ID}&"
+            + urlencode(callback_url_args),
+        )
+        checkout_args["cancel_url"] = urllib.parse.urljoin(
+            settings.BASE_URL,
+            "?" + urlencode(callback_url_args),
+        )
+
+        return CreateCheckoutSessionView.as_view(context=checkout_args)(request)

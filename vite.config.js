@@ -1,5 +1,9 @@
 import { defineConfig } from "vite";
 import purgecss from "@fullhuman/postcss-purgecss";
+import tailwindcss from "tailwindcss";
+import tailwindNesting from "tailwindcss/nesting";
+import postcssImport from "postcss-import";
+import autoprefixer from "autoprefixer";
 
 const BUNDLE_ENTRYPOINTS = {
   main: "./frontend/main.ts",
@@ -27,16 +31,24 @@ export default defineConfig(({ command }) => {
         ? {
             postcss: {
               plugins: [
+                postcssImport,
+                tailwindNesting,
+                tailwindcss,
+                autoprefixer,
                 purgecss({
                   content: [
-                    "./app/**/*.html",
-                    "./frontend/**/*.ts",
-                    "./static/**/*.js",
+                    "./app/**/*.{py,html,js,ts}",
+                    "./frontend/**/*.{html,js,ts}",
+                    "./static/**/*.{html,js,ts}",
                   ],
                 }),
               ],
             },
           }
-        : undefined,
+        : {
+            postcss: {
+              plugins: [postcssImport, tailwindNesting, tailwindcss],
+            },
+          },
   };
 });

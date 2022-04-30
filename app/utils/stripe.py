@@ -74,7 +74,7 @@ def subscription_with_promocode(
     return sub
 
 
-def create_one_off_shipping_price_data_for_price(price, zone):
+def get_shipping_product():
     shipping_product = djstripe.models.Product.objects.filter(
         metadata__shipping__isnull=False, active=True
     ).first()
@@ -85,6 +85,26 @@ def create_one_off_shipping_price_data_for_price(price, zone):
         shipping_product = djstripe.models.Product.sync_from_stripe_data(
             stripe_shipping_product
         )
+    return shipping_product
+
+
+def recreate_one_off_stripe_price(price: stripe.Price):
+    return {
+        "unit_amount_decimal": price.unit_amount,
+        "currency": price.currency,
+        "product": price.product.id,
+        "recurring": include_keys(
+            price.recurring,
+            (
+                "interval",
+                "interval_count",
+            ),
+        ),
+    }
+
+
+def create_one_off_shipping_price_data_for_price(price: stripe.Price, zone):
+    shipping_product = get_shipping_product()
     return {
         "currency": zone.rate_currency,
         "unit_amount_decimal": zone.rate.amount * 100,
@@ -96,12 +116,53 @@ def create_one_off_shipping_price_data_for_price(price, zone):
                 "interval_count",
             ),
         ),
-        "metadata": {"shipping": True, "shipping_zone": zone.code},
+        "metadata": create_shipping_zone_metadata(zone),
     }
 
 
-def create_gift(
-    gift_giver_subscription: djstripe.models.Subscription, user
+def create_shipping_zone_metadata(zone):
+    return {"shipping": True, "shipping_zone": zone.code}
+
+
+def configure_gift_giver_subscription_and_code(
+    gift_giver_subscription_id: str, gift_giver_user_id, metadata={}
+):
+    # First time
+    gift_giver_subscription = stripe.Subscription.modify(
+        gift_giver_subscription_id, metadata={"gift_mode": True}
+    )
+    # 2. Generate coupon
+    product_id = gift_giver_subscription.get("items").data[0].price.product
+    coupon = stripe.Coupon.create(
+        applies_to={"products": [product_id]},
+        percent_off=100,
+        duration="forever",
+    )
+    promo_code = stripe.PromotionCode.create(
+        coupon=coupon.id,
+        max_redemptions=1,
+        metadata={
+            "gift_giver_subscription": gift_giver_subscription_id,
+            "related_django_user": gift_giver_user_id,
+            **metadata,
+        },
+    )
+
+    gift_giver_subscription = stripe.Subscription.modify(
+        gift_giver_subscription_id,
+        metadata={"promo_code": promo_code.id, **metadata},
+    )
+
+    djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
+
+    return {
+        "promo_code": promo_code,
+        "gift_giver_subscription": gift_giver_subscription,
+    }
+
+
+def create_gift_recipient_subscription(
+    gift_giver_subscription: djstripe.models.Subscription, user, metadata={}
 ) -> djstripe.models.Subscription:
     from app.models.stripe import ShippingZone
 
@@ -120,12 +181,7 @@ def create_gift(
 
     items = []
     for si in gift_giver_subscription.items.all():
-        if (
-            si.price.active == True
-            and si.price.metadata.get("shipping_zone", False) is False
-        ):
-            items.append({"price": si.price.id, "quantity": si.quantity})
-        else:
+        if si.price.metadata.get("shipping_zone", None) is not None:
             zone = ShippingZone.get_for_code(
                 code=si.price.metadata.get("shipping_zone", "ROW")
             )
@@ -138,24 +194,37 @@ def create_gift(
                     "quantity": si.quantity,
                 }
             )
+        else:
+            # Could we reuse MembershipPrice?
+            # Yes, if we knew the (wagtail) price.id and product.id
+            # Product ID comes from the si.price
+            # Wagtail Price ID... we could potentially put on the metadata?
+            items.append(
+                {
+                    # Membership
+                    "price_data": recreate_one_off_stripe_price(si.price),
+                    "quantity": si.quantity,
+                }
+            )
 
     args = dict(
         customer=user.stripe_customer.id,
         items=items,
-        # cancel_at=(datetime.now() - relativedelta(days=1)) + relativedelta(months=promo_code.coupon.duration_in_months),
         promotion_code=promo_code_id,
         payment_behavior="allow_incomplete",
-        collection_method="send_invoice",
         off_session=True,
         metadata={
             "gift_giver_subscription": gift_giver_subscription.id,
             "promo_code": promo_code_id,
+            **metadata,
         },
     )
     subscription = stripe.Subscription.create(**args)
 
     djstripe.models.Subscription.sync_from_stripe_data(subscription)
     user.refresh_stripe_data()
+
+    return subscription
 
 
 def get_primary_product_for_djstripe_subscription(sub):

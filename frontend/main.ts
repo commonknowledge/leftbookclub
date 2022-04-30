@@ -1,6 +1,7 @@
 import "./scss/main.scss";
 import "@hotwired/turbo";
 import "bootstrap";
+import "./scss/tailwind.scss";
 
 import { startApp } from "groundwork-ui";
 

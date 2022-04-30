@@ -55,6 +55,10 @@ class Command(BaseCommand):
                                 "name": user.get_full_name(),
                                 "address": self.legacy_data_to_stripe_address(user),
                             },
+                            metadata={
+                                "legacy_id": user.old_id,
+                                "djstripe_subscriber": user.id,
+                            },
                         )
                     elif user.address1:
                         """
@@ -65,6 +69,10 @@ class Command(BaseCommand):
                             shipping={
                                 "name": user.get_full_name(),
                                 "address": self.legacy_data_to_stripe_address(user),
+                            },
+                            metadata={
+                                "legacy_id": user.old_id,
+                                "djstripe_subscriber": user.id,
                             },
                         )
 

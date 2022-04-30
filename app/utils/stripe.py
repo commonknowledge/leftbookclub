@@ -124,8 +124,45 @@ def create_shipping_zone_metadata(zone):
     return {"shipping": True, "shipping_zone": zone.code}
 
 
-def create_gift(
-    gift_giver_subscription: djstripe.models.Subscription, user
+def configure_gift_giver_subscription_and_code(
+    gift_giver_subscription_id: str, gift_giver_user_id, metadata={}
+):
+    # First time
+    gift_giver_subscription = stripe.Subscription.modify(
+        gift_giver_subscription_id, metadata={"gift_mode": True}
+    )
+    # 2. Generate coupon
+    product_id = gift_giver_subscription.get("items").data[0].price.product
+    coupon = stripe.Coupon.create(
+        applies_to={"products": [product_id]},
+        percent_off=100,
+        duration="forever",
+    )
+    promo_code = stripe.PromotionCode.create(
+        coupon=coupon.id,
+        max_redemptions=1,
+        metadata={
+            "gift_giver_subscription": gift_giver_subscription_id,
+            "related_django_user": gift_giver_user_id,
+            **metadata,
+        },
+    )
+
+    gift_giver_subscription = stripe.Subscription.modify(
+        gift_giver_subscription_id,
+        metadata={"promo_code": promo_code.id, **metadata},
+    )
+
+    djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
+
+    return {
+        "promo_code": promo_code,
+        "gift_giver_subscription": gift_giver_subscription,
+    }
+
+
+def create_gift_recipient_subscription(
+    gift_giver_subscription: djstripe.models.Subscription, user, metadata={}
 ) -> djstripe.models.Subscription:
     from app.models.stripe import ShippingZone
 
@@ -179,12 +216,15 @@ def create_gift(
         metadata={
             "gift_giver_subscription": gift_giver_subscription.id,
             "promo_code": promo_code_id,
+            **metadata,
         },
     )
     subscription = stripe.Subscription.create(**args)
 
     djstripe.models.Subscription.sync_from_stripe_data(subscription)
     user.refresh_stripe_data()
+
+    return subscription
 
 
 def get_primary_product_for_djstripe_subscription(sub):

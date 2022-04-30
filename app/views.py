@@ -25,7 +25,11 @@ from djstripe import settings as djstripe_settings
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
-from app.utils.stripe import create_gift, gift_giver_subscription_from_code
+from app.utils.stripe import (
+    configure_gift_giver_subscription_and_code,
+    create_gift_recipient_subscription,
+    gift_giver_subscription_from_code,
+)
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -158,34 +162,10 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             promo_code = stripe.PromotionCode.retrieve(promo_code_id)
             page_context["promo_code"] = promo_code.code
         else:
-            # First time
-            gift_giver_subscription = stripe.Subscription.modify(
-                session.subscription, metadata={"gift_mode": True}
+            config_details = configure_gift_giver_subscription_and_code(
+                session.subscription, self.request.user.id
             )
-            # 2. Generate coupon
-            product_id = gift_giver_subscription.get("items").data[0].price.product
-            coupon = stripe.Coupon.create(
-                applies_to={"products": [product_id]},
-                percent_off=100,
-                duration="forever",
-            )
-            promo_code = stripe.PromotionCode.create(
-                coupon=coupon.id,
-                max_redemptions=1,
-                metadata={
-                    "gift_giver_subscription": session.subscription,
-                    "related_django_user": self.request.user.id,
-                },
-            )
-            page_context["promo_code"] = promo_code.code
-
-            gift_giver_subscription = stripe.Subscription.modify(
-                session.subscription,
-                metadata={"promo_code": promo_code.id},
-            )
-
-            djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
-            page_context["gift_giver_subscription"] = gift_giver_subscription
+            page_context.update(config_details)
 
             # Send them this promo code via email
             redeem_url = self.request.build_absolute_uri(
@@ -257,7 +237,7 @@ class GiftCodeRedeemView(FormView):
             form.cleaned_data["code"]
         )
         if gift_giver_subscription is None:
-            raise ValueError("Couldn't figure out how this promo code was generated")
+            raise ValueError("This is a normal promo code. Select a plan to apply it.")
 
         self.request.session["gift_giver_subscription"] = gift_giver_subscription.id
 
@@ -326,7 +306,9 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
             gift_giver_subscription = (
                 djstripe.models.Subscription.sync_from_stripe_data(stripe_sub)
             )
-            create_gift(gift_giver_subscription, self.request.user)
+            create_gift_recipient_subscription(
+                gift_giver_subscription, self.request.user
+            )
         except djstripe.models.Subscription.DoesNotExist:
             raise ValueError(
                 "Couldn't set up your gifted subscription. Please email info@leftbookclub.com and we'll get you started!"

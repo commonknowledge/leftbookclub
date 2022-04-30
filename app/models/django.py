@@ -22,7 +22,7 @@ def custom_user_casual_name(user: AbstractUser) -> str:
 
 class User(AbstractUser):
     # Fields imported from the old app
-    old_id = models.IntegerField(null=True, blank=True)
+    old_id = models.IntegerField(null=True, blank=True, unique=True)
     tel = models.CharField(max_length=191, null=True, blank=True)
     address1 = models.CharField(max_length=191, null=True, blank=True)
     address2 = models.CharField(max_length=191, null=True, blank=True)

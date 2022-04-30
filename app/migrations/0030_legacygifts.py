@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("djstripe", "0011_alter_invoice_charge_alter_invoice_customer_and_more"),
+        ("djstripe", "0010_alter_customer_balance"),
         ("app", "0029_alter_user_old_id"),
     ]
 

@@ -17,7 +17,7 @@ class PlansAndShippingTestCase(TestCase):
 
     # No zone, ROW should include all acceptable countries
     # and all codes are cool with stripe
-    def countries_are_acceptable_to_stripe(self):
+    def test_countries_are_acceptable_to_stripe(self):
         self.assertSetEqual(
             set(ShippingZone.stripe_allowed_countries),
             set(ShippingZone.default_zone.country_codes),
@@ -316,7 +316,7 @@ class GiftTestCase(TestCase):
 
         return super().setUp()
 
-    def buying_gift_card(self):
+    def test_buying_gift_card(self):
         # create subscription
         checkout_args = SubscriptionCheckoutView.create_checkout_args(
             product=self.gift_plan.products.first(),

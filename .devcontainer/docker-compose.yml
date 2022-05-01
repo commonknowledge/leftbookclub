@@ -42,7 +42,8 @@ services:
 
   stripe:
     image: stripe/stripe-cli
-    command: listen --forward-to app:8000/djstripe/webhook/
+    network_mode: host
+    command: listen --api-key ${STRIPE_API_KEY} --device-name ${STRIPE_DEVICE_NAME} --forward-to host.docker.internal:8000/stripe/webhook/
     depends_on:
       - app
     env_file: devcontainer.env

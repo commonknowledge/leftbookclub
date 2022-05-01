@@ -57,7 +57,8 @@ modeladmin_register(ShippingAdmin)
 class IndexView(ListControlsIndexView):
     def build_list_controls(self):
         products = list(
-            djstripe.models.Plan.objects.order_by()
+            djstripe.models.Plan.objects.filter(active=True)
+            .order_by()
             .values_list("product__id", "product__name")
             .annotate(frequency=Count("product__id"))
             .order_by("-frequency")

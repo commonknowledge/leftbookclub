@@ -76,7 +76,7 @@ class LegacyGifts(models.Model):
             # Only proceed if the gift giver subscription is active
             giving_sub = stripe.Subscription.retrieve(self.giving_sub.id)
             self.giving_sub.sync_from_stripe_data(giving_sub)
-            if self.giving_sub != SubscriptionStatus.canceled:
+            if self.giving_sub.status != SubscriptionStatus.canceled:
                 # Convert gift codes into promotion codes and mark the gift giver subscriptions with the relevant metadata (gift_mode=True, promo_code=X)
                 details = configure_gift_giver_subscription_and_code(
                     self.giving_sub.id,

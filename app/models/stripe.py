@@ -221,7 +221,12 @@ class ShippingZone(models.Model):
                 defined_row.code = self.row_code
                 defined_row.save()
             return defined_row
-        return ShippingZone(nickname="Rest Of World", code=self.row_code, countries=[])
+        return ShippingZone(
+            nickname="Rest Of World",
+            rest_of_world=True,
+            code=self.row_code,
+            countries=[],
+        )
 
     @classmethod
     def get_for_code(cls, code: str):

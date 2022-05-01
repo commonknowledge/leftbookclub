@@ -47,19 +47,23 @@ class Command(BaseCommand):
                         """
                         Create a new stripe customer if required
                         """
-                        stripe_customer = stripe.Customer.create(
-                            name=user.get_full_name(),
-                            email=user.email,
-                            address=self.legacy_data_to_stripe_address(user),
-                            shipping={
-                                "name": user.get_full_name(),
-                                "address": self.legacy_data_to_stripe_address(user),
-                            },
-                            metadata={
-                                "legacy_id": user.old_id,
-                                "djstripe_subscriber": user.id,
-                            },
+                        stripe_customer = stripe.Customer.search(
+                            query=f"metadata['legacy_id']:'{user.old_id}'",
                         )
+                        if stripe_customer is None:
+                            stripe_customer = stripe.Customer.create(
+                                name=user.get_full_name(),
+                                email=user.email,
+                                address=self.legacy_data_to_stripe_address(user),
+                                shipping={
+                                    "name": user.get_full_name(),
+                                    "address": self.legacy_data_to_stripe_address(user),
+                                },
+                                metadata={
+                                    "legacy_id": user.old_id,
+                                    "djstripe_subscriber": user.id,
+                                },
+                            )
                     elif user.address1:
                         """
                         Else update shipping data if possible

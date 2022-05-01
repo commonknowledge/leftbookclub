@@ -147,7 +147,8 @@ def configure_gift_giver_subscription_and_code(
     ).first()
     if coupon is None:
         coupon = stripe.Coupon.create(
-            name=f"Gift card for {product.name}",
+            # stripe name has a max length
+            name=f"Gift Card: {product.name}"[:40],
             applies_to={"products": [product.id]},
             percent_off=100,
             duration="forever",

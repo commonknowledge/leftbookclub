@@ -50,6 +50,19 @@ elif os.getenv("MAILGUN_API_URL"):
     SERVER_EMAIL = f"admin@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
 
 WAGTAILTRANSFER_SECRET_KEY = os.getenv("WAGTAILTRANSFER_SECRET_KEY")
+WAGTAILTRANSFER_SOURCES = {}
+
+if os.getenv("WAGTAILTRANSFER_SECRET_KEY_STAGING"):
+    WAGTAILTRANSFER_SOURCES["staging"] = {
+        "BASE_URL": "https://lbc-staging.fly.dev/wagtail-transfer/",
+        "SECRET_KEY": os.getenv("WAGTAILTRANSFER_SECRET_KEY_STAGING"),
+    }
+
+if os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"):
+    WAGTAILTRANSFER_SOURCES["production"] = {
+        "BASE_URL": "https://lbc-production.fly.dev/wagtail-transfer/",
+        "SECRET_KEY": os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"),
+    }
 
 try:
     from .local import *

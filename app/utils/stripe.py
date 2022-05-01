@@ -170,12 +170,11 @@ def configure_gift_giver_subscription_and_code(
         metadata={"promo_code": promo_code.id, **metadata},
     )
 
-    djstripe.models.Subscription.sync_from_stripe_data(gift_giver_subscription)
+    gift_giver_subscription = djstripe.models.Subscription.sync_from_stripe_data(
+        gift_giver_subscription
+    )
 
-    return {
-        "promo_code": promo_code,
-        "gift_giver_subscription": gift_giver_subscription,
-    }
+    return promo_code, gift_giver_subscription
 
 
 def create_gift_recipient_subscription(
@@ -244,7 +243,9 @@ def create_gift_recipient_subscription(
     return subscription
 
 
-def get_primary_product_for_djstripe_subscription(sub) -> djstripe.models.Product:
+def get_primary_product_for_djstripe_subscription(
+    sub: djstripe.models.Subscription,
+) -> djstripe.models.Product:
     if sub.plan is not None and sub.plan.product is not None:
         return sub.plan.product
     sis = []

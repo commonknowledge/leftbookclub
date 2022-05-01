@@ -25,6 +25,7 @@ from djstripe import settings as djstripe_settings
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
+from app.models.wagtail import MembershipPlanPrice
 from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
     create_gift_recipient_subscription,
@@ -162,10 +163,14 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             promo_code = stripe.PromotionCode.retrieve(promo_code_id)
             page_context["promo_code"] = promo_code.code
         else:
-            config_details = configure_gift_giver_subscription_and_code(
+            (
+                promo_code,
+                gift_giver_subscription,
+            ) = configure_gift_giver_subscription_and_code(
                 session.subscription, self.request.user.id
             )
-            page_context.update(config_details)
+            page_context["promo_code"] = promo_code
+            page_context["gift_giver_subscription"] = gift_giver_subscription
 
             # Send them this promo code via email
             redeem_url = self.request.build_absolute_uri(
@@ -414,26 +419,13 @@ class SubscriptionCheckoutView(TemplateView):
 
     url_params = "<price_id>/<product_id>/"
 
-    # TODO: should take an array of price_id, actually
-    def get(
-        self,
-        request: HttpRequest,
-        *args: Any,
-        product_id=None,
-        price_id=None,
-        **kwargs: Any,
-    ):
-        from app.models.wagtail import MembershipPlanPrice
-
-        country = request.GET.get("country", "GB")
-        gift_mode = request.GET.get("gift_mode", None)
-        gift_mode = gift_mode is not None and gift_mode is not False
-        product = LBCProduct.objects.get(id=product_id)
-        price = MembershipPlanPrice.objects.get(
-            id=price_id, plan__products__id=product_id
-        )
-        zone = ShippingZone.get_for_country(country)
-
+    @classmethod
+    def create_checkout_args(
+        zone: ShippingZone,
+        gift_mode: bool,
+        product: LBCProduct,
+        price: MembershipPlanPrice,
+    ) -> dict:
         checkout_args = dict(
             mode="subscription",
             allow_promotion_codes=True,
@@ -465,6 +457,27 @@ class SubscriptionCheckoutView(TemplateView):
         checkout_args["cancel_url"] = urllib.parse.urljoin(
             settings.BASE_URL,
             "?" + urlencode(callback_url_args),
+        )
+
+    def get(
+        self,
+        request: HttpRequest,
+        *args: Any,
+        product_id=None,
+        price_id=None,
+        **kwargs: Any,
+    ):
+        country = request.GET.get("country", "GB")
+        zone = ShippingZone.get_for_country(country)
+        gift_mode = request.GET.get("gift_mode", None)
+        gift_mode = gift_mode is not None and gift_mode is not False
+        product = LBCProduct.objects.get(id=product_id)
+        price = MembershipPlanPrice.objects.get(
+            id=price_id, plan__products__id=product_id
+        )
+
+        checkout_args = SubscriptionCheckoutView.create_checkout_args(
+            zone=zone, price=price, product=product, gift_mode=gift_mode
         )
 
         return CreateCheckoutSessionView.as_view(context=checkout_args)(request)

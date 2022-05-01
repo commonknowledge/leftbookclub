@@ -46,7 +46,6 @@ from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
-from app.views import CreateCheckoutSessionView, ShippingCostView
 
 from .stripe import LBCProduct, ShippingZone
 

@@ -1,11 +1,17 @@
+import djstripe.models
 from django.test import TestCase
 from djmoney.money import Money
 from djstripe.enums import ProductType
 
 from app.models import *
+from app.utils.stripe import (
+    configure_gift_giver_subscription_and_code,
+    create_gift_recipient_subscription,
+)
+from app.views import SubscriptionCheckoutView
 
 
-class CacheTestCase(TestCase):
+class PlansAndShippingTestCase(TestCase):
     def setUp(self):
         ShippingZone.objects.all().delete()
 
@@ -260,3 +266,128 @@ class CacheTestCase(TestCase):
         for item in line_items:
             if "shipping" in item["price_data"]["metadata"].keys():
                 self.assertEqual(item["price_data"]["unit_amount_decimal"], 0)
+
+
+class GiftTestCase(TestCase):
+    def setUp(self) -> None:
+        # sync all products
+        products = stripe.Product.list(limit=100)
+        for product in products:
+            djstripe.models.Product.sync_from_stripe_data(product)
+
+        # sync all coupons
+        coupons = stripe.Coupon.list(limit=100)
+        for coupon in coupons:
+            djstripe.models.Coupon.sync_from_stripe_data(coupon)
+
+        # create user
+        self.user = User.objects.create_user(
+            "UnitTest", "unit-test@leftbookclub.com", "default_pw_12345_xyz_lbc"
+        )
+        password = User.objects.make_random_password()
+        self.user.set_password(password)
+        self.user.save(update_fields=["password"])
+
+        # set up stripe customer details
+        possible_customers = stripe.Customer.list(email=self.user.email).data
+        customer = None
+        if len(possible_customers) > 0:
+            customer = possible_customers[0]
+        else:
+            customer = stripe.Customer.create(
+                email=self.user.email, metadata={"text_mode": "true"}
+            )
+        if customer is None:
+            raise ValueError("Test failed; couldn't get test customer from Stripe")
+        customer = djstripe.models.Customer.sync_from_stripe_data(possible_customers[0])
+        customer.subscriber = self.user
+
+        # configure a gift plan
+        self.gift_plan = MembershipPlanPage(
+            title="The Gift of Solidarity",
+            deliveries_per_year=12,
+            products=[djstripe.models.Product.filter(active=True).first()],
+            prices=[
+                MembershipPlanPrice(
+                    price=Money(10, "GBP"), interval="month", interval_count=1
+                )
+            ],
+        )
+
+        return super().setUp()
+
+    def buying_gift_card(self):
+        # create subscription
+        checkout_args = SubscriptionCheckoutView.create_checkout_args(
+            product=self.gift_plan.products.first(),
+            price=self.gift_plan.monthly_price,
+            gift_mode=True,
+            zone=ShippingZone.default_zone,
+        )
+        gift_giver_subscription = stripe.Subscription.create(
+            customer=self.user.stripe_customer,
+            items=checkout_args["line_items"],
+            metadata={"automated_test_record": "true"},
+        )
+
+        # TODO: test line items are correct
+
+        (
+            promo_code,
+            gift_giver_subscription,
+        ) = configure_gift_giver_subscription_and_code(
+            gift_giver_subscription.id,
+            self.user.id,
+            metadata={"automated_test_record": "true"},
+        )
+        self.assertEqual(
+            self.user.active_subscription,
+            None,
+            "Gift subscriptions should not count as active membership subscriptions for the gift purchaser.",
+        )
+
+        # Test that promo code and updated_subscription have correct metadata
+        self.assertEqual(
+            gift_giver_subscription.metadata["automated_test_record"],
+            "true",
+            "configure_gift_giver_subscription_and_code() should pass through custom metadata -- to subscription",
+        )
+        self.assertEqual(gift_giver_subscription.metadata["gift_mode"], "true")
+        self.assertEqual(gift_giver_subscription.metadata["promo_code"], promo_code.id)
+        self.assertEqual(
+            promo_code.metadata["gift_giver_subscription"], gift_giver_subscription.id
+        )
+        self.assertEqual(
+            promo_code.metadata["automated_test_record"],
+            "true",
+            "configure_gift_giver_subscription_and_code() should pass through custom metadata -- to promo_code",
+        )
+
+        # Test redemption on self
+        recipient_subscription = create_gift_recipient_subscription(
+            gift_giver_subscription, self.user.id
+        )
+
+        # Assert that the recipient subscription is correctly set up in Stripe
+        self.assertEqual(
+            recipient_subscription.status, djstripe.enums.SubscriptionStatus.active
+        )
+        self.assertNotEqual(recipient_subscription.discount, None)
+        self.assertEqual(
+            get_primary_product_for_djstripe_subscription(gift_giver_subscription),
+            get_primary_product_for_djstripe_subscription(recipient_subscription),
+        )
+        self.assertEqual(
+            get_shipping_product_for_djstripe_subscription(gift_giver_subscription),
+            get_shipping_product_for_djstripe_subscription(recipient_subscription),
+        )
+
+        # Assert metadata on gift recipient sub is correct
+        self.assertEqual(
+            recipient_subscription.metadata["gift_giver_subscription"],
+            gift_giver_subscription.id,
+        )
+        self.assertEqual(recipient_subscription.metadata["promo_code"], promo_code.id)
+
+        # Assert that this has trickled through to the user model methods
+        self.assertEqual(self.user.active_subscription, recipient_subscription)

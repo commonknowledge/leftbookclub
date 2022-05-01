@@ -277,7 +277,7 @@ class GiftTestCase(TestCase):
     users = []
 
     @classmethod
-    def create_user(cls):
+    def create_user(cls) -> User:
         uid = "".join(random.choice(string.ascii_lowercase) for i in range(10))
         user = User.objects.create_user(
             uid, f"unit-test-{uid}@leftbookclub.com", "default_pw_12345_xyz_lbc"
@@ -519,3 +519,11 @@ class GiftTestCase(TestCase):
         # Assert that the promo code can't be used anymore, because it's been redeemed
         promo_code = stripe.PromotionCode.retrieve(promo_code.id)
         self.assertFalse(promo_code.active)
+
+    # def test_gift_subscription_ends(self):
+    #     self.assertTrue(True)
+    #     # TODO: listen for "customer.subscription.deleted" webhook
+    #     # with dummy data saying that it is self.gift_giver_user's subscriptions
+    #     self.gift_recipient_user.gift_recipient_user.refresh_stripe_data()
+    #     self.assertIsNone(self.gift_recipient_user.active_subscription)
+    #     pass

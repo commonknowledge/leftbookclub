@@ -15,3 +15,5 @@ class LeftBookClub(AppConfig):
         shopify.Session(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         )
+        # Implicitly connect a signal handlers decorated with @receiver.
+        from . import signals

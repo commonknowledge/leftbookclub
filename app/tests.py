@@ -18,9 +18,10 @@ class PlansAndShippingTestCase(TestCase):
     # No zone, ROW should include all acceptable countries
     # and all codes are cool with stripe
     def test_countries_are_acceptable_to_stripe(self):
-        self.assertSetEqual(
-            set(ShippingZone.stripe_allowed_countries),
-            set(ShippingZone.default_zone.country_codes),
+        self.assertEqual(
+            set(ShippingZone.default_zone.country_codes)
+            - set(ShippingZone.stripe_allowed_countries),
+            set(),
         )
 
     # With one zone, that zone should country_codes = input
@@ -299,7 +300,7 @@ class GiftTestCase(TestCase):
             )
         if customer is None:
             raise ValueError("Test failed; couldn't get test customer from Stripe")
-        customer = djstripe.models.Customer.sync_from_stripe_data(possible_customers[0])
+        customer = djstripe.models.Customer.sync_from_stripe_data(customer)
         customer.subscriber = self.user
 
         # configure a gift plan
@@ -315,6 +316,10 @@ class GiftTestCase(TestCase):
         )
 
         return super().setUp()
+
+    def tearDown(self) -> None:
+        stripe.Customer.delete(self.user.stripe_customer.id)
+        return super().tearDown()
 
     def test_buying_gift_card(self):
         # create subscription
@@ -391,3 +396,7 @@ class GiftTestCase(TestCase):
 
         # Assert that this has trickled through to the user model methods
         self.assertEqual(self.user.active_subscription, recipient_subscription)
+
+        # Assert that the promo code can't be used anymore, because it's been redeemed
+        promo_code = stripe.PromotionCode.retrieve(promo_code.id)
+        self.assertFalse(promo_code.active)

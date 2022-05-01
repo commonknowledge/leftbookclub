@@ -421,11 +421,15 @@ class SubscriptionCheckoutView(TemplateView):
 
     @classmethod
     def create_checkout_args(
-        zone: ShippingZone,
-        gift_mode: bool,
+        cls,
         product: LBCProduct,
         price: MembershipPlanPrice,
+        zone: ShippingZone,
+        gift_mode: bool = False,
     ) -> dict:
+        if product is None or price is None or zone is None:
+            raise ValueError("product/price/zone required to create checkout")
+
         checkout_args = dict(
             mode="subscription",
             allow_promotion_codes=True,
@@ -459,6 +463,8 @@ class SubscriptionCheckoutView(TemplateView):
             "?" + urlencode(callback_url_args),
         )
 
+        return checkout_args
+
     def get(
         self,
         request: HttpRequest,
@@ -477,7 +483,7 @@ class SubscriptionCheckoutView(TemplateView):
         )
 
         checkout_args = SubscriptionCheckoutView.create_checkout_args(
-            zone=zone, price=price, product=product, gift_mode=gift_mode
+            product=product, price=price, zone=zone, gift_mode=gift_mode
         )
 
         return CreateCheckoutSessionView.as_view(context=checkout_args)(request)

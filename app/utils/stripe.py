@@ -1,10 +1,14 @@
-from typing import Union
+from typing import TYPE_CHECKING, Tuple, Union
 
 from datetime import datetime
 
 import djstripe.models
 import stripe
 from dateutil.relativedelta import relativedelta
+
+if TYPE_CHECKING:
+    # see https://stackoverflow.com/a/39757388/1053937
+    from app.models.django import User
 
 from app.utils import include_keys
 
@@ -126,7 +130,7 @@ def create_shipping_zone_metadata(zone):
 
 def configure_gift_giver_subscription_and_code(
     gift_giver_subscription_id: str, gift_giver_user_id, metadata={}
-):
+) -> Tuple[stripe.PromotionCode, djstripe.models.Subscription]:
     gift_giver_subscription = stripe.Subscription.modify(
         gift_giver_subscription_id, metadata={"gift_mode": True}
     )
@@ -138,7 +142,9 @@ def configure_gift_giver_subscription_and_code(
         raise ValueError("This subscription doesn't have a giftable product.")
 
     # Get or create coupon, based on the membership product
-    coupon = djstripe.models.Coupon.filter(metadata__gift_product_id=product.id).first()
+    coupon = djstripe.models.Coupon.objects.filter(
+        metadata__gift_product_id=product.id
+    ).first()
     if coupon is None:
         coupon = stripe.Coupon.create(
             name=f"Gift card for {product.name}",
@@ -178,7 +184,7 @@ def configure_gift_giver_subscription_and_code(
 
 
 def create_gift_recipient_subscription(
-    gift_giver_subscription: djstripe.models.Subscription, user, metadata={}
+    gift_giver_subscription: djstripe.models.Subscription, user: "User", metadata={}
 ) -> djstripe.models.Subscription:
     from app.models.stripe import ShippingZone
 
@@ -237,7 +243,7 @@ def create_gift_recipient_subscription(
     )
     subscription = stripe.Subscription.create(**args)
 
-    djstripe.models.Subscription.sync_from_stripe_data(subscription)
+    subscription = djstripe.models.Subscription.sync_from_stripe_data(subscription)
     user.refresh_stripe_data()
 
     return subscription

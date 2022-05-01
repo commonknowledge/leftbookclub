@@ -1,3 +1,7 @@
+import random
+import string
+from datetime import date, datetime
+
 import djstripe.models
 from django.test import TestCase
 from djmoney.money import Money
@@ -282,43 +286,62 @@ class GiftTestCase(TestCase):
             djstripe.models.Coupon.sync_from_stripe_data(coupon)
 
         # create user
+        uid = "".join(random.choice(string.ascii_lowercase) for i in range(10))
         self.user = User.objects.create_user(
-            "UnitTest", "unit-test@leftbookclub.com", "default_pw_12345_xyz_lbc"
+            "UnitTest", f"unit-test-{uid}@leftbookclub.com", "default_pw_12345_xyz_lbc"
         )
         password = User.objects.make_random_password()
         self.user.set_password(password)
         self.user.save(update_fields=["password"])
 
         # set up stripe customer details
-        possible_customers = stripe.Customer.list(email=self.user.email).data
-        customer = None
-        if len(possible_customers) > 0:
-            customer = possible_customers[0]
-        else:
-            customer = stripe.Customer.create(
-                email=self.user.email, metadata={"text_mode": "true"}
-            )
-        if customer is None:
-            raise ValueError("Test failed; couldn't get test customer from Stripe")
+        customer = stripe.Customer.create(
+            email=self.user.email, metadata={"text_mode": "true"}
+        )
+        self.payment_card = stripe.PaymentMethod.create(
+            type="card",
+            card={
+                "number": "4242424242424242",
+                "exp_month": 5,
+                "exp_year": date.today().year + 3,
+                "cvc": "314",
+            },
+        )
+        stripe.PaymentMethod.attach(
+            self.payment_card.id,
+            customer=customer.id,
+        )
         customer = djstripe.models.Customer.sync_from_stripe_data(customer)
         customer.subscriber = self.user
+        customer.save()
+        self.assertIsNotNone(self.user.stripe_customer)
 
         # configure a gift plan
         self.gift_plan = MembershipPlanPage(
             title="The Gift of Solidarity",
             deliveries_per_year=12,
-            products=[djstripe.models.Product.filter(active=True).first()],
+            products=[],
             prices=[
                 MembershipPlanPrice(
-                    price=Money(10, "GBP"), interval="month", interval_count=1
+                    price=Money(10, "GBP"),
+                    interval="month",
+                    interval_count=1,
                 )
             ],
         )
+        Page.get_first_root_node().add_child(instance=self.gift_plan)
+        self.gift_plan.save()
+        product = djstripe.models.Product.objects.filter(
+            active=True, metadata__shipping__isnull=True
+        ).first()
+        self.gift_plan.products.add(product)
+        self.assertIsNotNone(self.gift_plan.products.first())
 
         return super().setUp()
 
     def tearDown(self) -> None:
-        stripe.Customer.delete(self.user.stripe_customer.id)
+        if self.user.stripe_customer is not None:
+            stripe.Customer.delete(self.user.stripe_customer.id)
         return super().tearDown()
 
     def test_buying_gift_card(self):
@@ -326,13 +349,14 @@ class GiftTestCase(TestCase):
         checkout_args = SubscriptionCheckoutView.create_checkout_args(
             product=self.gift_plan.products.first(),
             price=self.gift_plan.monthly_price,
-            gift_mode=True,
             zone=ShippingZone.default_zone,
+            gift_mode=True,
         )
         gift_giver_subscription = stripe.Subscription.create(
-            customer=self.user.stripe_customer,
+            customer=self.user.stripe_customer.id,
             items=checkout_args["line_items"],
             metadata={"automated_test_record": "true"},
+            default_payment_method=self.payment_card.id,
         )
 
         # TODO: test line items are correct
@@ -357,7 +381,7 @@ class GiftTestCase(TestCase):
             "true",
             "configure_gift_giver_subscription_and_code() should pass through custom metadata -- to subscription",
         )
-        self.assertEqual(gift_giver_subscription.metadata["gift_mode"], "true")
+        self.assertIsNotNone(gift_giver_subscription.metadata["gift_mode"])
         self.assertEqual(gift_giver_subscription.metadata["promo_code"], promo_code.id)
         self.assertEqual(
             promo_code.metadata["gift_giver_subscription"], gift_giver_subscription.id
@@ -370,7 +394,7 @@ class GiftTestCase(TestCase):
 
         # Test redemption on self
         recipient_subscription = create_gift_recipient_subscription(
-            gift_giver_subscription, self.user.id
+            gift_giver_subscription, self.user
         )
 
         # Assert that the recipient subscription is correctly set up in Stripe

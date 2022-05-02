@@ -90,7 +90,6 @@ class Command(BaseCommand):
                     )
                     local_customer.subscriber = user
                     local_customer.save()
-                    djstripe.models.Customer.sync_from_stripe_data(stripe_customer)
                     user.stripe_customer._sync_subscriptions()
                     print(
                         "Sync complete ✅: historical stripe customer",

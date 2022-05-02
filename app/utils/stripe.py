@@ -272,6 +272,12 @@ def create_gift_recipient_subscription(
     )
     subscription = stripe.Subscription.create(**args)
 
+    # For easy forward access
+    stripe.Subscription.modify(
+        gift_giver_subscription.id,
+        metadata={"gift_recipient_subscription": subscription.id},
+    )
+
     subscription = djstripe.models.Subscription.sync_from_stripe_data(subscription)
     user.refresh_stripe_data()
 

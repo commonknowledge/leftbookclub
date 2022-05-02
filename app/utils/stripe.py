@@ -147,6 +147,9 @@ def configure_gift_giver_subscription_and_code(
     product = get_primary_product_for_djstripe_subscription(dj_sub)
     if product is None:
         raise ValueError("This subscription doesn't have a giftable product.")
+    shipping_product = get_shipping_product()
+    if shipping_product is None:
+        raise ValueError("Couldn't get shipping product")
 
     # Get or create coupon, based on the membership product
     coupon = djstripe.models.Coupon.objects.filter(
@@ -156,7 +159,7 @@ def configure_gift_giver_subscription_and_code(
         coupon = stripe.Coupon.create(
             # stripe name has a max length
             name=f"Gift Card: {product.name}"[:40],
-            applies_to={"products": [product.id]},
+            applies_to={"products": [product.id, shipping_product.id]},
             percent_off=100,
             duration="forever",
             metadata={

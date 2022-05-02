@@ -14,6 +14,6 @@ def cancel_gift_recipient_subscription(event, **kwargs):
     ):
         promo_code = object.get("metadata", {}).get("promo_code", None)
         recipient_subscription = gift_recipient_subscription_from_code(promo_code)
-        stripe.Subcription.delete(recipient_subscription.id)
+        stripe.Subscription.delete(recipient_subscription.id)
         # TODO: send them an email
         # update their situation on mailchimp

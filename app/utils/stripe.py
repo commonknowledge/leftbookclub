@@ -80,18 +80,56 @@ def subscription_with_promocode(
     return sub
 
 
-def get_shipping_product():
-    shipping_product = djstripe.models.Product.objects.filter(
-        metadata__shipping__isnull=False, active=True
+def get_shipping_product() -> djstripe.models.Product:
+    shipping_product = None
+    product_name = "Shipping"
+    metadata_key = "shipping"
+    metadata_value = "True"
+    shipping_products = stripe.Product.search(
+        query=f'active:"true" AND name:"{product_name}" AND metadata["{metadata_key}"]:"{metadata_value}"',
+    ).data
+    if len(shipping_products) > 0:
+        shipping_product = shipping_products[0]
+    else:
+        shipping_product = stripe.Product.create(
+            name=product_name,
+            unit_label="delivery",
+            metadata={metadata_key: metadata_value},
+        )
+    dj_shipping_product = djstripe.models.Product.sync_from_stripe_data(
+        shipping_product
+    )
+    return dj_shipping_product
+
+
+def get_gift_card_coupon(product: djstripe.models.Product) -> djstripe.models.Coupon:
+    coupon_name = f"Gift Card: {product.name}"[:40]
+
+    coupon = djstripe.models.Coupon.objects.filter(
+        metadata__gift_product_id=product.id
     ).first()
-    if shipping_product is None:
-        stripe_shipping_product = stripe.Product.create(
-            name="Shipping", unit_label="delivery", metadata={"shipping": True}
+
+    if coupon is None:
+        shipping_product = get_shipping_product()
+        if shipping_product is None:
+            raise ValueError("Couldn't get shipping product")
+
+        coupon = stripe.Coupon.create(
+            name=coupon_name,
+            percent_off=100,
+            duration="forever",
+            applies_to={"products": [product.id, shipping_product.id]},
+            metadata={
+                # Required because dj-stripe does not yet save the applied_to field
+                # and stripe does not supporting querying coupons by applied_to
+                # but we nonetheless need a way to query for it.
+                # We can do this with metadata.
+                "gift_product_id": product.id
+            },
         )
-        shipping_product = djstripe.models.Product.sync_from_stripe_data(
-            stripe_shipping_product
-        )
-    return shipping_product
+        coupon = djstripe.models.Coupon.sync_from_stripe_data(coupon)
+
+    return coupon
 
 
 def recreate_one_off_stripe_price(price: stripe.Price):
@@ -144,29 +182,13 @@ def configure_gift_giver_subscription_and_code(
         raise ValueError("This subscription doesn't have a giftable product.")
 
     # Get or create coupon, based on the membership product
-    coupon = djstripe.models.Coupon.objects.filter(
-        metadata__gift_product_id=product.id
-    ).first()
-    if coupon is None:
-        coupon = stripe.Coupon.create(
-            # stripe name has a max length
-            name=f"Gift Card: {product.name}"[:40],
-            applies_to={"products": [product.id]},
-            percent_off=100,
-            duration="forever",
-            metadata={
-                # Required because dj-stripe does not yet save the applied_to field
-                # and stripe does not supporting querying coupons by applied_to
-                # but we nonetheless need a way to query for it.
-                # We can do this with metadata.
-                "gift_product_id": product.id
-            },
-        )
-        coupon = djstripe.models.Coupon.sync_from_stripe_data(coupon)
+    coupon = get_gift_card_coupon(product)
 
+    # Optionally explicitly set the customer-facing code
     promo_code_extras = {}
     if code is not None:
         promo_code_extras["code"] = code
+
     promo_code = stripe.PromotionCode.create(
         coupon=coupon.id,
         max_redemptions=1,

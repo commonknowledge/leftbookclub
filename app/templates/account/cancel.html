@@ -4,7 +4,23 @@
 
 {% block account_content %}
 <div>
-  {% if request.user.is_member %}
+  {% if subscription and subscription.cancel_at %}
+    <h3 class='my-4 text-center'>This subscription has been cancelled</h3>
+    <p>Membership will expire on {{subscription.cancel_at}}</p>
+  {% elif gift_mode %}
+    {% comment %} Cancelling a gift plan {% endcomment %}
+    <h3 class='my-4 text-center'>Thinking of cancelling this gift card?</h3>
+    <p class='text-center'>
+      You'll no longer be billed by LBC. The gift membership that was redeemed
+      {% if gift_recipient_subscription %} by {{ gift_recipient_subscription.customer.name }} {% endif %}
+      will <b>end on {{ subscription.current_period_end }}</b>.
+    </p>
+    <form method='POST' class='text-center' data-turbo='false'>
+      {% csrf_token %}
+      {% bootstrap_button button_class='btn-outline-danger' content="I really want to cancel" %}
+    </form>
+  {% elif request.user.is_member %}
+    {% comment %} Cancelling your own plan {% endcomment %}
     <h3 class='my-4 text-center'>Thinking of cancelling?</h3>
     <div class='d-flex flex-column justify-content-center align-items-center my-4'>
       {% include "app/includes/membership_card.html" %}
@@ -28,9 +44,11 @@
         </div>
       </section>
     {% endif %}
+    <p class='text-center'>
+      If you choose to cancel, you'll no longer be billed by LBC and your membership will <b>end on {{ subscription.current_period_end }}</b>.</p>
     <form method='POST' class='text-center' data-turbo='false'>
       {% csrf_token %}
-      {% bootstrap_button button_class='btn-outline-danger' content="I really want to cancel" %}
+      {% bootstrap_button button_class='btn-outline-danger' content="Cancel" %}
     </form>
   {% else %}
     <h3 class='fw-light text-center'>

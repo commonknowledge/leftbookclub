@@ -60,6 +60,11 @@ urlpatterns = [
         name="cancel_membership",
     ),
     path(
+        "accounts/cancel/<str:subscription_id>",
+        CancellationView.as_view(),
+        name="cancel_membership",
+    ),
+    path(
         "redeem/",
         GiftCodeRedeemView.as_view(),
         name="redeem",

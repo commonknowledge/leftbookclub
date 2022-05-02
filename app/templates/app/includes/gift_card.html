@@ -59,6 +59,9 @@
     </div>
     <div class='p-3 bg-light text-left'>
       <div class='fs-7 text-muted'>Created on {{ subscription.created|to_date|date:"d M Y" }}</div>
+      {% if subscription.cancel_at %} 
+        <div class='fs-7 text-danger'>Expires on on {{ subscription.cancel_at|to_date|date:"d M Y" }}</div>
+      {% endif %}
     </div>
   </article>
 {% endwith %}

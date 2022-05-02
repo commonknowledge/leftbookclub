@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.http import HttpRequest, HttpResponseRedirect
+from django.http.response import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import include, path, re_path, reverse, reverse_lazy
@@ -30,6 +31,7 @@ from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
     create_gift_recipient_subscription,
     gift_giver_subscription_from_code,
+    gift_recipient_subscription_from_code,
 )
 
 
@@ -120,7 +122,6 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             Resolve gift purchase by creating a promo code and relating it to the gift buyer's subscription,
             for future reference.
             """
-            print("gift_mode!!!")
             membership_context = self.finish_gift_purchase(
                 session, subscription, customer
             )
@@ -325,12 +326,41 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
 class CancellationView(LoginRequiredTemplateView):
     template_name = "account/cancel.html"
 
-    def post(self, request, *args, **kwargs):
-        if self.request.method == "POST":
-            if self.request.user.is_member:
-                stripe.Subscription.delete(self.request.user.active_subscription.id)
+    def get_context_data(self, subscription_id=None, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        if subscription_id and self.request.user.stripe_customer is not None:
+            try:
+                subscription_id = subscription_id
+                subscription = self.request.user.stripe_customer.subscriptions.get(
+                    id=subscription_id
+                )
+                context["subscription"] = subscription
+                if subscription.metadata.get("gift_mode", None) is not None:
+                    context["gift_mode"] = True
+                    promo_code_id = subscription.metadata.get("promo_code")
+                    context[
+                        "gift_recipient_subscription"
+                    ] = gift_recipient_subscription_from_code(promo_code_id)
+                return context
+            except djstripe.models.Subscription.DoesNotExist:
+                raise Http404
+        else:
+            context["subscription"] = self.request.user.active_subscription
+            return context
+
+    def post(self, request, *args, subscription_id=None, **kwargs):
+        if request.method == "POST":
+            if subscription_id is None:
+                subscription_id = request.user.active_subscription.id
+            if (
+                request.user.stripe_customer is not None
+                and request.user.stripe_customer.subscriptions.filter(
+                    id=subscription_id
+                ).exists()
+            ):
+                stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
                 return HttpResponseRedirect(reverse("account_membership"))
-        return super().dispatch(request, *args, **kwargs)
+        raise Http404
 
 
 class ShippingForProductView(TemplateView):

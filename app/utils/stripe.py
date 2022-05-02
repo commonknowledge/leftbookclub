@@ -55,16 +55,18 @@ def gift_giver_subscription_from_code(
 def gift_recipient_subscription_from_code(
     code_or_id: str,
 ) -> Union[djstripe.models.Subscription, None]:
-    promo_code = None
+    promo_code_id = None
 
     if code_or_id.startswith("promo_"):
+        promo_code_id = code_or_id
+    else:
         possible_codes = stripe.PromotionCode.list(code=code_or_id).data
         if len(possible_codes) > 0:
-            promo_code = possible_codes[0]
+            promo_code_id = possible_codes[0].id
 
-    if promo_code:
+    if promo_code_id:
         return djstripe.models.Subscription.objects.filter(
-            metadata__promo_code=promo_code.id
+            metadata__promo_code=promo_code_id
         ).first()
 
 

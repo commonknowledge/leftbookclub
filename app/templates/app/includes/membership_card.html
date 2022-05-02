@@ -14,8 +14,8 @@
             <div>Gifted by {{user.subscribed_product.gift_giver_subscription.customer.subscriber}}</div>
           {% endif %}
           <div class='text-muted'>Since {{ user.active_subscription.created|date:"d M Y" }}</div>
-          {% if user.subscribed_product.cancel_at %}
-            <div class='text-muted'>Expires on {{user.subscribed_price.ends_at}}</div>
+          {% if user.active_subscription.cancel_at %}
+            <div class='text-danger'>Expires on {{user.active_subscription.cancel_at}}</div>
           {% endif %}
         </div>
       </div>

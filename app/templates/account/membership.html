@@ -3,12 +3,14 @@
 
 {% block account_content %}
 <div>
-  {% if request.user.is_member %}
+  {% if user.is_member %}
     <div class='d-flex flex-column justify-content-center align-items-center'>
       {% include "app/includes/membership_card.html" %}
       <br /><br />
-      {% url "cancel_membership" as cancellation_url %}
-      {% bootstrap_button size='sm' button_class='btn-outline-light text-muted' href=cancellation_url content="Cancel membership" %}
+      {% if not user.active_subscription.cancel_at %}
+        {% url "cancel_membership" as cancellation_url %}
+        {% bootstrap_button size='sm' button_class='btn-outline-danger' href=cancellation_url content="Cancel membership" %}
+      {% endif %}
     </div>
   {% else %}
     <h3 class='fw-light text-center'>

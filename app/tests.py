@@ -325,6 +325,10 @@ class GiftTestCase(TestCase):
         customer.subscriber = cls.gift_giver_user
         customer.save()
 
+        ShippingZone.objects.create(
+            rest_of_world=True, code="ROW", nickname="ROW", rate=Money(2, "GBP")
+        )
+
         # configure a gift plan
         cls.gift_plan = MembershipPlanPage(
             title="The Gift of Solidarity",

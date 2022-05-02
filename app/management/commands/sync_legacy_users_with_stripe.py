@@ -15,7 +15,7 @@ class Command(BaseCommand):
             "-b", "--batch", dest="batch_size", type=int, default=100000
         )
 
-    def legacy_data_to_stripe_address(user):
+    def legacy_data_to_stripe_address(self, user):
         return {
             "line1": user.address1,
             "line2": user.address2,
@@ -47,10 +47,12 @@ class Command(BaseCommand):
                         """
                         Create a new stripe customer if required
                         """
-                        stripe_customer = stripe.Customer.search(
+                        stripe_customers = stripe.Customer.search(
                             query=f"metadata['legacy_id']:'{user.old_id}'",
-                        )
-                        if stripe_customer is None:
+                        ).data
+                        if len(stripe_customers) > 0:
+                            stripe_customer = stripe_customers[0]
+                        else:
                             stripe_customer = stripe.Customer.create(
                                 name=user.get_full_name(),
                                 email=user.email,

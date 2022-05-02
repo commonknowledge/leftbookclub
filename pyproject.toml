@@ -31,7 +31,8 @@ django-livereload-server = "^0.4"
 stripe = "^2.68.0"
 django-mathfilters = "^1.0.0"
 django-money = "^2.1.1"
-dj-stripe = "^2.6.1"
+# dj-stripe = { git = "https://github.com/commonknowledge/dj-stripe.git", branch = "fixes" }
+# poetry add git+https://github.com/commonknowledge/dj-stripe.git#fixes
 pre-commit = "^2.17.0"
 wagtail-autocomplete = "^0.7.0"
 django-allauth = "^0.50.0"
@@ -50,6 +51,7 @@ wagtail-admin-list-controls = "^0.1.7"
 Django = {extras = ["bcrypt"], version = "^4.0.4"}
 django-import-export = "^2.8.0"
 pycountry = "^22.3.5"
+dj-stripe = {git = "https://github.com/commonknowledge/dj-stripe.git", rev = "fixes"}
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

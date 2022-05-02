@@ -81,13 +81,16 @@ def subscription_with_promocode(
 
 
 def get_shipping_product() -> djstripe.models.Product:
+    shipping_product = None
     product_name = "Shipping"
     metadata_key = "shipping"
     metadata_value = "True"
-    shipping_product = stripe.Product.search(
+    shipping_products = stripe.Product.search(
         query=f'active:"true" AND name:"{product_name}" AND metadata["{metadata_key}"]:"{metadata_value}"',
-    )
-    if shipping_product is None:
+    ).data
+    if len(shipping_products) > 0:
+        shipping_product = shipping_products[0]
+    else:
         shipping_product = stripe.Product.create(
             name=product_name,
             unit_label="delivery",

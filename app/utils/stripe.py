@@ -80,18 +80,23 @@ def subscription_with_promocode(
     return sub
 
 
-def get_shipping_product():
-    shipping_product = djstripe.models.Product.objects.filter(
-        metadata__shipping__isnull=False, active=True
-    ).first()
+def get_shipping_product() -> djstripe.models.Product:
+    product_name = "Shipping"
+    metadata_key = "shipping"
+    metadata_value = "True"
+    shipping_product = stripe.Product.search(
+        query=f'active:"true" AND name:"{product_name}" AND metadata["{metadata_key}"]:"{metadata_value}"',
+    )
     if shipping_product is None:
-        stripe_shipping_product = stripe.Product.create(
-            name="Shipping", unit_label="delivery", metadata={"shipping": True}
+        shipping_product = stripe.Product.create(
+            name=product_name,
+            unit_label="delivery",
+            metadata={metadata_key: metadata_value},
         )
-        shipping_product = djstripe.models.Product.sync_from_stripe_data(
-            stripe_shipping_product
-        )
-    return shipping_product
+    dj_shipping_product = djstripe.models.Product.sync_from_stripe_data(
+        shipping_product
+    )
+    return dj_shipping_product
 
 
 def recreate_one_off_stripe_price(price: stripe.Price):

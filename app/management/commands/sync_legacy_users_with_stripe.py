@@ -52,6 +52,13 @@ class Command(BaseCommand):
                         ).data
                         if len(stripe_customers) > 0:
                             stripe_customer = stripe_customers[0]
+                            # Update the django user ID because this may vary from system to system
+                            stripe_customer = stripe.Customer.modify(
+                                stripe_customer.id,
+                                metadata={
+                                    "djstripe_subscriber": user.id,
+                                },
+                            )
                         else:
                             stripe_customer = stripe.Customer.create(
                                 name=user.get_full_name(),

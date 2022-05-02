@@ -131,7 +131,7 @@ def create_shipping_zone_metadata(zone):
 
 
 def configure_gift_giver_subscription_and_code(
-    gift_giver_subscription_id: str, gift_giver_user_id, metadata={}
+    gift_giver_subscription_id: str, gift_giver_user_id, metadata={}, code: str = None
 ) -> Tuple[stripe.PromotionCode, djstripe.models.Subscription]:
     gift_giver_subscription = stripe.Subscription.modify(
         gift_giver_subscription_id, metadata={"gift_mode": True}
@@ -164,6 +164,9 @@ def configure_gift_giver_subscription_and_code(
         )
         coupon = djstripe.models.Coupon.sync_from_stripe_data(coupon)
 
+    promo_code_extras = {}
+    if code is not None:
+        promo_code_extras["code"] = code
     promo_code = stripe.PromotionCode.create(
         coupon=coupon.id,
         max_redemptions=1,
@@ -172,6 +175,7 @@ def configure_gift_giver_subscription_and_code(
             "related_django_user": gift_giver_user_id,
             **metadata,
         },
+        **promo_code_extras,
     )
 
     gift_giver_subscription = stripe.Subscription.modify(

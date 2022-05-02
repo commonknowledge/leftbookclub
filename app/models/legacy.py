@@ -85,6 +85,7 @@ class LegacyGifts(models.Model):
                     self.giving_sub.id,
                     self.giving_user.id,
                     metadata=migration_breadcrumb_metadata,
+                    code=self.gift_code,
                 )
                 # Check for where a recipient user exists + the recipient user doesn't already have a non-gift_mode subscription
                 if (

@@ -281,15 +281,12 @@ STRIPE_LIVE_MODE = os.environ.get("STRIPE_LIVE_MODE", "False").lower() in (
     "1",
     "t",
 )
-DJSTRIPE_WEBHOOK_VALIDATION = "retrieve_event"
-DJSTRIPE_WEBHOOK_SECRET = os.environ.get(
-    "STRIPE_WEBHOOK_SECRET", None
-)  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
+DJSTRIPE_WEBHOOK_VALIDATION = "verify_signature"
+DJSTRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", None)
 DJSTRIPE_USE_NATIVE_JSONFIELD = (
     True  # We recommend setting to True for new installations
 )
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
-
 
 # Shopify
 SHOPIFY_DOMAIN = os.environ.get("SHOPIFY_DOMAIN", "left-book-club-shop.myshopify.com")

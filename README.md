@@ -42,7 +42,6 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 
 - `cd app` to enter the right area
 - Run `poetry run python manage.py createsuperuser` to set up an admin user
-- To get stripe webhooks forwarded to the local app, [follow these instructions](https://stripe.com/docs/stripe-vscode#webhooks)
 - When you first set up, you should sync Stripe to the local database:
 
   ```
@@ -115,5 +114,4 @@ BASE_URL: "https://...fly.dev"
 STRIPE_TEST_PUBLIC_KEY: "..."
 STRIPE_TEST_SECRET_KEY: "..."
 STRIPE_WEBHOOK_SECRET: "..."
-DJSTRIPE_WEBHOOK_SECRET: "..."
 ```

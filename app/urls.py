@@ -102,7 +102,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
     path("customer_portal/", StripeCustomerPortalView.as_view(), name="customerportal"),
-    path("webhooks/shopify/", WebhookView.as_view(), name="shopify_webhook"),
+    path("shopify/webhook/", WebhookView.as_view(), name="shopify_webhook"),
     path(
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),

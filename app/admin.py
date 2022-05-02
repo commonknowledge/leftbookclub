@@ -36,3 +36,13 @@ class UserResource(resources.ModelResource):
 @admin.register(models.User)
 class CustomUserAdmin(UserAdmin, ImportExportModelAdmin):
     resource_class = UserResource
+
+
+class LegacyGiftResource(resources.ModelResource):
+    class Meta:
+        model = models.LegacyGifts
+
+
+@admin.register(models.LegacyGifts)
+class CustomLegacyGiftAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_class = LegacyGiftResource

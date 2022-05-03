@@ -7,6 +7,14 @@
 
 @use "bootilities"; // Tailwind-style utilities
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+* {
+  letter-spacing: -0.04em;
+}
+p {
+  letter-spacing: -0.025em;
+}
+
 // scss-docs-start import-stack
 
 // Configuration
@@ -54,6 +62,10 @@ $font-sizes: (
   6: $h6-font-size,
   7: $h6-font-size * 0.75,
 );
+
+$font-family-base: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
+  "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
 $colors: (
   // bootstrap

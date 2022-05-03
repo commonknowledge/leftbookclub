@@ -480,27 +480,6 @@ class BlogPage(ArticleSeoMixin, Page):
     seo_image_sources = ArticleSeoMixin.seo_image_sources + ["feed_image"]
 
 
-class InformationPage(ArticleSeoMixin, Page):
-    show_in_menus_default = True
-
-    cover_image = models.ForeignKey(
-        CustomImage,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="+",
-    )
-
-    body = ArticleContentStream()
-
-    content_panels = Page.content_panels + [
-        ImageChooserPanel("cover_image"),
-        StreamFieldPanel("body", classname="full"),
-    ]
-
-    seo_image_sources = ArticleSeoMixin.seo_image_sources + ["cover_image"]
-
-
 class BookIndexPage(IndexPageSeoMixin, Page):
     body = ArticleContentStream()
 
@@ -833,6 +812,7 @@ class TwoColumnBlock(blocks.StructBlock):
         ("image", ImageChooserBlock()),
         ("single_book", SingleBookBlock()),
         ("membership_plan", PlanBlock()),
+        ("richtext", ArticleText()),
     ]
     left = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
     right = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
@@ -853,7 +833,7 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
             ("recently_published_books", RecentlyPublishedBooks()),
             ("hero_text", HeroTextBlock()),
             ("heading", blocks.CharBlock(form_classname="full title")),
-            ("richtext", blocks.ArticleText()),
+            ("richtext", ArticleText()),
             ("one_column_heading_and_text", TextBlock()),
             ("list_of_heading_image_text", ListBlock()),
             ("two_columns", TwoColumnBlock()),
@@ -866,3 +846,41 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
     seo_description_sources = IndexPageSeoMixin.seo_description_sources
+
+
+class InformationPage(ArticleSeoMixin, Page):
+    show_in_menus_default = True
+
+    cover_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    content_panels = Page.content_panels + [
+        ImageChooserPanel("cover_image"),
+        StreamFieldPanel("layout", classname="full"),
+    ]
+
+    layout = StreamField(
+        [
+            ("membership_options", MembershipOptionsBlock()),
+            ("image", ImageChooserBlock()),
+            ("featured_book", FeaturedBookBlock()),
+            ("book_selection", SelectedBooksBlock()),
+            ("recently_published_books", RecentlyPublishedBooks()),
+            ("hero_text", HeroTextBlock()),
+            ("heading", blocks.CharBlock(form_classname="full title")),
+            ("richtext", ArticleText()),
+            ("one_column_heading_and_text", TextBlock()),
+            ("list_of_heading_image_text", ListBlock()),
+            ("two_columns", TwoColumnBlock()),
+            ("newsletter_signup", NewsletterSignupBlock()),
+        ],
+        null=True,
+        blank=True,
+    )
+
+    seo_image_sources = ArticleSeoMixin.seo_image_sources + ["cover_image"]

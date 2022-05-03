@@ -38,6 +38,9 @@ class CustomUserAdmin(UserAdmin, ImportExportModelAdmin):
     resource_class = UserResource
 
 
+from import_export.fields import Field
+
+
 class LegacyGiftResource(resources.ModelResource):
     class Meta:
         model = models.LegacyGifts

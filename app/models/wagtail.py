@@ -9,7 +9,6 @@ import stripe
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
-from django.dispatch import receiver
 from django.http.response import Http404
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -42,7 +41,6 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
-from app.shopify_webhook.signals import products_create
 from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
@@ -684,12 +682,6 @@ class BookPage(BaseShopifyProductPage):
 
     class Meta:
         ordering = ["published_date"]
-
-
-@receiver(products_create)
-def sync(*args, **kwargs):
-    print(args, kwargs)
-    BaseShopifyProductPage.sync_shopify_products_to_pages()
 
 
 class HeroTextBlock(blocks.StructBlock):

@@ -1,6 +1,8 @@
 import stripe
+from django.dispatch import receiver
 from djstripe import webhooks
 
+from app.shopify_webhook.signals import products_create
 from app.utils.stripe import gift_recipient_subscription_from_code
 
 
@@ -17,3 +19,11 @@ def cancel_gift_recipient_subscription(event, **kwargs):
         stripe.Subscription.delete(recipient_subscription.id)
         # TODO: send them an email
         # update their situation on mailchimp
+
+
+@receiver(products_create)
+def sync(*args, **kwargs):
+    from app.models.wagtail import BaseShopifyProductPage
+
+    print(args, kwargs)
+    BaseShopifyProductPage.sync_shopify_products_to_pages()

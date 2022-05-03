@@ -4,7 +4,24 @@
 {% block content %}
   {% if page.layout %}
     {% for block in page.layout %}
-        <section class='my-2'>{% include_block block %}</section>
+        {% if block.type == 'heading' %}
+          <h2 class='my-2'>{% include_block block %}</h2>
+        {% if block.type == 'richtext' %}
+          <section class='
+            my-2
+            col col-12 col-md-6 col-lg-5
+            {% if block.alignment == "left" %}
+            {% elif block.alignment == "center" %}
+              justify-content-md-center
+            {% if block.alignment == "right" %}
+              justify-content-md-end
+            {% endif %}
+          '>
+            {% include_block block %}
+          </section>
+        {% else %}
+          <section class='my-2'>{% include_block block %}</section>
+        {% endif %}
     {% endfor %}
   {% endif %}
 {% endblock %}

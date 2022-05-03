@@ -355,6 +355,17 @@ class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
         icon = "fa-paint"
 
 
+class AlignmentChoiceBlock(blocks.ChoiceBlock):
+    choices = [
+        ("left", "left"),
+        ("center", "center"),
+        ("right", "right"),
+    ]
+
+    class Meta:
+        icon = "fa-arrows-h"
+
+
 class PlanBlock(blocks.StructBlock):
     plan = blocks.PageChooserBlock(
         page_type=MembershipPlanPage,
@@ -798,10 +809,23 @@ class SingleBookBlock(blocks.StructBlock):
         icon = "fa fa-book"
 
 
+class NewsletterSignupBlock(blocks.StructBlock):
+    class Meta:
+        template = "app/blocks/newsletter_signup_block.html"
+        icon = "fa fa-email"
+
+
+class ArticleText(blocks.StructBlock):
+    text = blocks.RichTextBlock(form_classname="full title")
+    alignment = AlignmentChoiceBlock(
+        help_text="Doesn't apply when used inside a column."
+    )
+
+
 class TwoColumnBlock(blocks.StructBlock):
     stream_blocks = [
         ("hero_text", HeroTextBlock()),
-        ("text", TextBlock()),
+        ("heading_and_text", TextBlock()),
         ("title_image_caption", ListItemBlock()),
         ("image", ImageChooserBlock()),
         ("single_book", SingleBookBlock()),
@@ -815,12 +839,6 @@ class TwoColumnBlock(blocks.StructBlock):
         icon = "fa fa-th-large"
 
 
-class NewsletterSignupBlock(blocks.StructBlock):
-    class Meta:
-        template = "app/blocks/newsletter_signup_block.html"
-        icon = "fa fa-email"
-
-
 class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
     layout = StreamField(
@@ -832,8 +850,9 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
             ("recently_published_books", RecentlyPublishedBooks()),
             ("hero_text", HeroTextBlock()),
             ("heading", blocks.CharBlock(form_classname="full title")),
-            ("text", TextBlock()),
-            ("list", ListBlock()),
+            ("richtext", blocks.ArticleText()),
+            ("one_column_heading_and_text", TextBlock()),
+            ("list_of_heading_image_text", ListBlock()),
             ("two_columns", TwoColumnBlock()),
             ("newsletter_signup", NewsletterSignupBlock()),
         ],

@@ -27,7 +27,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         batch_size = options.get("batch_size")
-        legacy_users = User.objects.filter(djstripe_customers=None).all()[:batch_size]
+        legacy_users = User.objects.filter(
+            old_id__isnull=False, djstripe_customers=None
+        ).all()[:batch_size]
         print("Syncing legacy users", len(legacy_users))
         for user in legacy_users:
             with transaction.atomic():
@@ -55,33 +57,44 @@ class Command(BaseCommand):
                             },
                         )
                     else:
+                        kwargs = {}
+                        if user.address1 is not None:
+                            kwargs = dict(
+                                address=self.legacy_data_to_stripe_address(user),
+                                shipping={
+                                    "name": user.get_full_name(),
+                                    "address": self.legacy_data_to_stripe_address(user),
+                                },
+                            )
                         stripe_customer = stripe.Customer.create(
                             name=user.get_full_name(),
                             email=user.email,
+                            metadata={
+                                "legacy_id": user.old_id,
+                                "djstripe_subscriber": user.id,
+                            },
+                            **kwargs,
+                        )
+                elif user.address1 is not None:
+                    """
+                    Else update shipping data if possible
+                    """
+                    kwargs = {}
+                    if user.address1:
+                        kwargs = dict(
                             address=self.legacy_data_to_stripe_address(user),
                             shipping={
                                 "name": user.get_full_name(),
                                 "address": self.legacy_data_to_stripe_address(user),
                             },
-                            metadata={
-                                "legacy_id": user.old_id,
-                                "djstripe_subscriber": user.id,
-                            },
                         )
-                elif user.address1:
-                    """
-                    Else update shipping data if possible
-                    """
                     stripe_customer = stripe.Customer.modify(
                         stripe_customer.id,
-                        shipping={
-                            "name": user.get_full_name(),
-                            "address": self.legacy_data_to_stripe_address(user),
-                        },
                         metadata={
                             "legacy_id": user.old_id,
                             "djstripe_subscriber": user.id,
                         },
+                        **kwargs,
                     )
 
                 local_customer = djstripe.models.Customer.sync_from_stripe_data(

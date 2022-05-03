@@ -798,10 +798,13 @@ class NewsletterSignupBlock(blocks.StructBlock):
 
 
 class ArticleText(blocks.StructBlock):
-    text = blocks.RichTextBlock(form_classname="full title")
+    text = blocks.RichTextBlock(form_classname="full")
     alignment = AlignmentChoiceBlock(
         help_text="Doesn't apply when used inside a column."
     )
+
+    class Meta:
+        template = "app/blocks/richtext.html"
 
 
 class TwoColumnBlock(blocks.StructBlock):
@@ -851,16 +854,7 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
 class InformationPage(ArticleSeoMixin, Page):
     show_in_menus_default = True
 
-    cover_image = models.ForeignKey(
-        CustomImage,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="+",
-    )
-
     content_panels = Page.content_panels + [
-        ImageChooserPanel("cover_image"),
         StreamFieldPanel("layout", classname="full"),
     ]
 
@@ -882,5 +876,3 @@ class InformationPage(ArticleSeoMixin, Page):
         null=True,
         blank=True,
     )
-
-    seo_image_sources = ArticleSeoMixin.seo_image_sources + ["cover_image"]

@@ -1,24 +1,37 @@
 {% load static account menu_tags %}
 
-<header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-  <a href="/" class="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">
-    <img src="{% static 'images/logo.png' %}" style='width: 65px; height: 65px;' alt="Left Book Club logo" title="Left Book Club" />
-  </a>
-  <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-    {% for item in menu_items %}
-      <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
+<header>
+  <nav class='text-uppercase tw-text-sm navbar navbar-expand-lg container'>
+    <ul class="nav col-12 col-md tw-justify-center md:tw-justify-start tw-order-3 md:tw-order-1">
+      {% for item in menu_items %}
+        <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
+      {% endfor %}
+      <li><a href="href" class="nav-link px-2 link-dark {{ item.active_class }}">Item</a></li>
+    </ul>
+    <a href="/" class="text-center col text-dark text-decoration-none md:tw-flex-grow-0 tw-order-1 md:tw-order-2">
+      <img src="{% static 'images/logo.png' %}" style='width: 100px; height: 100px;' alt="Left Book Club logo" title="Left Book Club" />
+    </a>
+    <ul class="nav col-12 col-md tw-justify-center md:tw-justify-end tw-order-2 md:tw-order-3">
+      {% if request.session.gift_giver_subscription is not None %}
+        <li><a href="{% url 'redeem_setup' %}" class="nav-link px-2 link-dark text-danger">Set up your membership</a></li>
+      {% else %}
+        <li><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark">Gift Cards</a></li>
+      {% endif %}
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'account_membership' %}" class="nav-link px-2 link-dark">{% user_display request.user %}</a></li>
+        <li><a href="{% url 'account_logout' %}" class="nav-link px-2 link-dark">Sign out</a></li>
+      {% else %}
+        <li><a href="{% url 'account_login' %}" class="nav-link px-2 link-dark">Login</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  <div class='pt-3 pb-1 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7 tw-tracking-widest fw-light tw-opacity-75'>
+  {% comment %} Loop center:N times {% endcomment %}
+  {% with ''|center:50 as range %}
+    {% for _ in range %}
+      Read. Debate. Organise.
     {% endfor %}
-    <li><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark {{ item.active_class }}">Redeem a gift card</a></li>
-    {% if request.session.gift_giver_subscription is not None %}
-      <li><a href="{% url 'redeem_setup' %}" class="nav-link px-2 link-dark text-danger {{ item.active_class }}">Finish your membership setup!</a></li>
-    {% endif %}
-  </ul>
-  <div class="col-md-3 text-end">
-    {% if user.is_authenticated %}
-      <a href="{% url 'account_membership' %}" class="btn btn-outline-primary me-2">{% user_display request.user %}</a>
-      <a href="{% url 'account_logout' %}" class="btn btn-outline-primary me-2">Sign out</a>
-    {% else %}
-      <a href="{% url 'account_login' %}" class="btn btn-outline-primary me-2">Login</a>
-    {% endif %}
+  {% endwith %}
   </div>
+  <div class='tw-border-b-2 pt-2'></div>  
 </header>

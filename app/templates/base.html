@@ -30,8 +30,8 @@
         <div id='wagtailuserbar-data-turbo-permanent-wrapper' data-turbo-permanent>
           {% wagtailuserbar %}
         </div>
-        <div class="container py-3">
         {% main_menu max_levels=1 template="menus/header.html" %}
+        <div class="container py-3">
         {% block content %}{% endblock %}
         {% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}
         </div>

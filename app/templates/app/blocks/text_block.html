@@ -1,9 +1,8 @@
 {% load wagtailcore_tags %}
 <section class='{{value.background_color}} p-2'>
-  <section class='row gx-0'>
-    <div class='col col-md-6 col-lg-5 p-3'>
-      <h2 class='h1 fw-bold'>{{value.heading}}</h2>
-      {{value.text|richtext}}
-    </div>
-  </section>
+  <h2 class='h1 fw-bold'>{{value.heading}}</h2>
+  {{value.text|richtext}}
+  {% if value.button %}
+    {% include_block value.button %}
+  {% endif %}
 </section>

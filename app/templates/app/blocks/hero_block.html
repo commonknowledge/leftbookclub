@@ -1,8 +1,15 @@
-{% load wagtailcore_tags %}
-<section class='{{value.background_color}} p-2'>
+{% load wagtailcore_tags django_bootstrap5 %}
+<section class='{{value.background_color}} p-2 h-100' style='min-height: 200px;'>
   <section class='row gx-0'>
-    <div class='col col-lg-7 p-3 pb-5'>
+    <div class='col {% if fullwidth %}col-lg-7{% endif %} p-3 pb-5'>
       <h2 class='h1 fw-bold'>{{value.heading}}</h2>
+      {% firstof value.button.page.title value.button.text as text %}
+      {% firstof value.button.href value.button.page.url as url %}
+      {% firstof value.button.size "md" as size %}
+      {% firstof value.button.style "btn-outline-dark" as style %}
+      {% if text and url %}
+        {% bootstrap_button href=url content=text size=size button_class=style %}
+      {% endif %}
     </div>
   </section>
 </section>

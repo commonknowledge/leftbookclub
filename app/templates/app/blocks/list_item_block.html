@@ -6,5 +6,12 @@
       {% image value.image width-500 class='tw-max-w-full h-auto d-block mx-auto' %}
     </div>
     <div class='text-muted'>{{value.caption}}</div>
+    {% firstof value.button.page.title value.button.text as text %}
+    {% firstof value.button.href value.button.page.url as url %}
+    {% firstof value.button.size "md" as size %}
+    {% firstof value.button.style "btn-outline-dark" as style %}
+    {% if text and url %}
+      {% bootstrap_button href=url content=text size=size button_class=style %}
+    {% endif %}
   </div>
 </article>

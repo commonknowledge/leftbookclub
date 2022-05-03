@@ -1,4 +1,4 @@
-{% load django_vite menu_tags %}
+{% load wagtailuserbar django_vite menu_tags %}
 
 <!DOCTYPE html>
 <html class="no-js" lang="en">
@@ -26,7 +26,10 @@
         {% endblock %}
     </head>
 
-    <body class="{% block body_class %}{% endblock %}">
+    <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }} {% endif %}">
+        <div id='wagtailuserbar-data-turbo-permanent-wrapper' data-turbo-permanent>
+          {% wagtailuserbar %}
+        </div>
         <div class="container py-3">
         {% main_menu max_levels=1 template="menus/header.html" %}
         {% block content %}{% endblock %}

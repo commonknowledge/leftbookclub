@@ -1,10 +1,1 @@
-{% extends "base.html" %}
-{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
-{% block body_class %}tw-bg-background{% endblock %}
-{% block content %}
-  {% if page.layout %}
-    {% for block in page.layout %}
-        <section class='my-2'>{% include_block block %}</section>
-    {% endfor %}
-  {% endif %}
-{% endblock %}
+{% extends "layout_page.html" %}

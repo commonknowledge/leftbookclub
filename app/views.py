@@ -378,9 +378,7 @@ class ShippingForProductView(TemplateView):
 
         context = super().get_context_data(**kwargs)
         product = LBCProduct.objects.get(id=product_id)
-        price = MembershipPlanPrice.objects.get(
-            id=price_id, plan__products__id=product_id
-        )
+        price = MembershipPlanPrice.objects.get(id=price_id, products__id=product_id)
 
         context.update(
             {
@@ -442,13 +440,17 @@ class SubscriptionCheckoutView(TemplateView):
         zone: ShippingZone,
         gift_mode: bool = False,
     ) -> dict:
-        if product is None or price is None or zone is None:
-            raise ValueError("product/price/zone required to create checkout")
+        if product is None:
+            raise ValueError("product required to create checkout")
+        if price is None:
+            raise ValueError("price required to create checkout")
+        if zone is None:
+            raise ValueError("zone required to create checkout")
 
         checkout_args = dict(
             mode="subscription",
             allow_promotion_codes=True,
-            line_items=price.to_checkout_line_items(product, zone),
+            line_items=price.to_checkout_line_items(product=product, zone=zone),
             # By default, customer details aren't updated, but we want them to be.
             customer_update={
                 "shipping": "auto",
@@ -493,9 +495,7 @@ class SubscriptionCheckoutView(TemplateView):
         gift_mode = request.GET.get("gift_mode", None)
         gift_mode = gift_mode is not None and gift_mode is not False
         product = LBCProduct.objects.get(id=product_id)
-        price = MembershipPlanPrice.objects.get(
-            id=price_id, plan__products__id=product_id
-        )
+        price = MembershipPlanPrice.objects.get(id=price_id, products__id=product_id)
 
         checkout_args = SubscriptionCheckoutView.create_checkout_args(
             product=product, price=price, zone=zone, gift_mode=gift_mode

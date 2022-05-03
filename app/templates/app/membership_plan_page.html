@@ -5,7 +5,7 @@
   {% load wagtailcore_tags django_bootstrap5 djmoney %}
   {% with request.GET.gift_mode as gift_mode %}
   {% with request.GET.annual as annual %}
-  {% with page.products.all as products %}
+  {% with request_price.products.all as products %}
   <header class='row bg-white py-3 py-lg-5 mb-lg-4'>
     <div class='col-12 text-center'>
       <div class='opacity-50'>Membership plan</div>

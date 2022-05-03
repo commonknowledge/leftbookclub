@@ -1,5 +1,5 @@
 {% load wagtailcore_tags django_bootstrap5 url %}
-{% with option.plan.products.all as products %}
+{% with request_price.products.all as products %}
   <div class='{% firstof option.background_color "bg-yellow" %} overflow-hidden h-100 d-flex flex-column'>
     <div class='
       {% if not option.promotion_label %}opacity-0{% else %}opacity-50{% endif %}

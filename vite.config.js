@@ -35,13 +35,13 @@ export default defineConfig(({ command }) => {
                 tailwindNesting,
                 tailwindcss,
                 autoprefixer,
-                purgecss({
-                  content: [
-                    "./app/**/*.{py,html,js,ts}",
-                    "./frontend/**/*.{html,js,ts}",
-                    "./static/**/*.{html,js,ts}",
-                  ],
-                }),
+                // purgecss({
+                //   content: [
+                //     "./app/**/*.{py,html,js,ts}",
+                //     "./frontend/**/*.{html,js,ts}",
+                //     "./static/**/*.{html,js,ts}",
+                //   ],
+                // }),
               ],
             },
           }

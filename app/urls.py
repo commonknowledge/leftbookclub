@@ -16,6 +16,7 @@ from app.shopify_webhook.views import WebhookView
 from app.views import (
     CancellationView,
     CartOptionsView,
+    CouponView,
     GiftCodeRedeemView,
     GiftMembershipSetupView,
     LoginRequiredTemplateView,
@@ -106,6 +107,7 @@ urlpatterns = [
     path(
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),
+    path(CouponView.url_pattern, CouponView.as_view(), name="coupon"),
     path(CartOptionsView.url_pattern, CartOptionsView.as_view(), name="cartoptions"),
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism

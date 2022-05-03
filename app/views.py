@@ -427,6 +427,21 @@ class ShippingCostView(TemplateView):
         return context
 
 
+class CouponView(TemplateView):
+    template_name = "app/frames/coupon.html"
+    url_pattern = "coupon/<str:code>/"
+
+    def get_context_data(self, code, **kwargs):
+        """
+        Display shipping fee based on selected country
+        """
+        context = super().get_context_data(**kwargs)
+        promo_code = stripe.PromotionCode.list(code=code)
+        context = {**context, "promo_code": promo_code}
+
+        return context
+
+
 class SubscriptionCheckoutView(TemplateView):
     """
     Create a checkout session with a line item of price_id

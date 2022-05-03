@@ -1,0 +1,35 @@
+{% load static mathfilters djmoney stripe_price wagtailroutablepage_tags mathfilters djmoney django_bootstrap5 setting %}
+  
+<turbo-frame id="shipping-costs">
+    {% if final_price is None %}
+      {% bootstrap_button disabled=True button_type="submit" content="We can't ship to this country" button_class='w-100 btn-primary my-2' %}
+    {% else %}
+      <div class='p-3 bg-light rounded-3 my-2'>
+        <div class="text-muted mb-1 d-flex justify-content-between w-100">
+          <span>Membership</span>
+          <span>{{ price.price }}</span>
+        </div>
+        <div class="text-muted mb-1 d-flex justify-content-between w-100">
+          <span>
+            Shipping
+            {% if price.interval == 'month' and price.plan.deliveries_per_year < 12 %}
+              (costs spread monthly)
+            {% elif price.interval == 'year' %}
+              ({{ price.plan.deliveries_per_year }} deliveries/year)
+            {% endif %}
+          </span>
+          <span>
+            {% if shipping_zone.rate.amount == 0 or shipping_price.amount == 0 %}
+              FREE
+            {% else %}
+              {% money_localize shipping_price %}
+            {% endif %}</span>
+        </div>
+        <div class="h5 mb-1 d-flex justify-content-between w-100">
+          <span>Total</span>
+          <span>{% money_localize final_price %}<small>{{ price.humanised_interval }}</small></span>
+        </div>
+      </div>
+      {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary my-2' %}
+    {% endif %}
+  </turbo-frame>

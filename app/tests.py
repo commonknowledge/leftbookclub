@@ -1,6 +1,7 @@
 import random
 import string
 from datetime import date, datetime
+from multiprocessing.sharedctypes import Value
 
 import djstripe.models
 from django.test import TestCase
@@ -220,18 +221,19 @@ class PlansAndShippingTestCase(TestCase):
             slug="solidarity",
             title="Solidarity",
             deliveries_per_year=12,
-            products=[product],
             prices=[
                 MembershipPlanPrice(
                     price=Money(10, "GBP"),
                     interval="month",
                     interval_count=1,
+                    products=[product],
                 ),
                 MembershipPlanPrice(
                     price=Money(100, "GBP"),
                     interval="year",
                     interval_count=1,
                     free_shipping_zones=[zone],
+                    products=[product],
                 ),
             ],
         )
@@ -248,7 +250,7 @@ class PlansAndShippingTestCase(TestCase):
             Money(0, expensive_zone.rate_currency),
         )
         line_items = solidarity_plan.annual_price.to_checkout_line_items(
-            solidarity_plan.products.first(), expensive_zone
+            zone=expensive_zone
         )
         # self.assertEqual(len(line_items), 2)
         for item in line_items:
@@ -265,12 +267,68 @@ class PlansAndShippingTestCase(TestCase):
 
         # 2. And this calculation means that a line item for shipping is presently 0
         # (meaning we can upgrade them to a different shipping fee later on)
-        line_items = solidarity_plan.annual_price.to_checkout_line_items(
-            solidarity_plan.products.first(), zone
-        )
+        line_items = solidarity_plan.annual_price.to_checkout_line_items(zone=zone)
         for item in line_items:
             if "shipping" in item["price_data"]["metadata"].keys():
                 self.assertEqual(item["price_data"]["unit_amount_decimal"], 0)
+
+
+class ComplexPlansAndPrices(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        contemporary_monthly = LBCProduct.objects.create(
+            id="prod_contemporary_monthly",
+            name="Some Product",
+            type=ProductType.service,
+        )
+        classic_monthly = LBCProduct.objects.create(
+            id="prod_classic_monthly", name="Some Product", type=ProductType.service
+        )
+        contemporary_annual = LBCProduct.objects.create(
+            id="prod_contemporary_annual", name="Some Product", type=ProductType.service
+        )
+        classic_annual = LBCProduct.objects.create(
+            id="prod_classic_annual", name="Some Product", type=ProductType.service
+        )
+        cls.plan = MembershipPlanPage(
+            title="Classics",
+            deliveries_per_year=12,
+            prices=[
+                MembershipPlanPrice(
+                    interval="year",
+                    interval_count=1,
+                    products=[
+                        classic_annual,
+                        # contemporary_annual
+                    ],
+                ),
+                MembershipPlanPrice(
+                    interval="month",
+                    interval_count=1,
+                    products=[classic_monthly, contemporary_monthly],
+                ),
+            ],
+        )
+
+    def test_create_line_items_for_price_with_single_product(self):
+        line_items = self.plan.annual_price.to_checkout_line_items(
+            zone=ShippingZone.default_zone
+        )
+        self.assertEqual(
+            line_items[0]["price_data"]["product"],
+            self.plan.annual_price.products.first().id,
+        )
+
+    def test_create_line_items_for_price_with_multiple_products(self):
+        with self.assertRaises(ValueError):
+            self.plan.monthly_price.to_checkout_line_items(
+                zone=ShippingZone.default_zone
+            )
+        product = self.plan.monthly_price.products.first()
+        line_items = self.plan.monthly_price.to_checkout_line_items(
+            product=product, zone=ShippingZone.default_zone
+        )
+        self.assertEqual(line_items[0]["price_data"]["product"], product.id)
 
 
 class GiftTestCase(TestCase):
@@ -330,24 +388,23 @@ class GiftTestCase(TestCase):
         )
 
         # configure a gift plan
-        cls.gift_plan = MembershipPlanPage(
-            title="The Gift of Solidarity",
-            deliveries_per_year=12,
-            products=[],
-            prices=[
-                MembershipPlanPrice(
-                    price=Money(10, "GBP"),
-                    interval="month",
-                    interval_count=1,
-                )
-            ],
-        )
-        Page.get_first_root_node().add_child(instance=cls.gift_plan)
-        cls.gift_plan.save()
         product = djstripe.models.Product.objects.filter(
             active=True, metadata__shipping__isnull=True
         ).first()
-        cls.gift_plan.products.add(product)
+        gift_plan = MembershipPlanPage(
+            title="The Gift of Solidarity",
+            deliveries_per_year=12,
+            prices=[
+                MembershipPlanPrice(
+                    price=Money(10, "GBP"), interval="month", interval_count=1
+                )
+            ],
+        )
+        Page.get_first_root_node().add_child(instance=gift_plan)
+        gift_plan.save()
+        gift_plan.monthly_price.products.set([product.djstripe_id])
+        gift_plan.monthly_price.save()
+        cls.gift_plan = gift_plan
 
         return super().setUpTestData()
 
@@ -361,7 +418,7 @@ class GiftTestCase(TestCase):
     def test_buying_gift_card_and_applying_it_to_yourself(self):
         # create subscription
         checkout_args = SubscriptionCheckoutView.create_checkout_args(
-            product=self.gift_plan.products.first(),
+            product=self.gift_plan.monthly_price.products.first(),
             price=self.gift_plan.monthly_price,
             zone=ShippingZone.default_zone,
             gift_mode=True,
@@ -444,7 +501,7 @@ class GiftTestCase(TestCase):
     def test_buying_gift_card_and_applying_it_to_yourself(self):
         # create subscription
         checkout_args = SubscriptionCheckoutView.create_checkout_args(
-            product=self.gift_plan.products.first(),
+            product=self.gift_plan.monthly_price.products.first(),
             price=self.gift_plan.monthly_price,
             zone=ShippingZone.default_zone,
             gift_mode=True,

@@ -119,6 +119,7 @@ class ArticleSeoMixin(SeoMetadataMixin):
 
 @register_snippet
 class MembershipPlanPrice(Orderable, ClusterableModel):
+    # name = models.CharField(max_length=150, blank=True)
     plan = ParentalKey("app.MembershipPlanPage", related_name="prices")
 
     price = MoneyField(
@@ -155,7 +156,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         blank=True,
     )
 
+    products = ParentalManyToManyField(LBCProduct, blank=True)
+
     panels = [
+        AutocompletePanel("products", target_model=LBCProduct),
         FieldPanel("price"),
         FieldRowPanel(
             [
@@ -264,7 +268,14 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             },
         }
 
-    def to_checkout_line_items(self, product, zone):
+    def to_checkout_line_items(self, zone=None, product=None):
+        if product is None and self.products.count() == 1:
+            product = self.products.first()
+        if product is None:
+            raise ValueError("Cannot create line items without a valid product")
+        if zone is None:
+            raise ValueError("Cannot create line items without a valid zone")
+
         line_items = [
             {
                 "price_data": self.to_price_data(product),
@@ -297,15 +308,13 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
         null=True,
         blank=True,
     )
-    products = ParentalManyToManyField(LBCProduct, blank=True)
 
     panels = content_panels = Page.content_panels + [
         FieldPanel("deliveries_per_year"),
         FieldPanel("description"),
-        InlinePanel("prices", min_num=1, label="Price"),
+        InlinePanel("prices", min_num=1, label="Subscription Pricing Options"),
         FieldPanel("pick_product_title", classname="full title"),
         FieldPanel("pick_product_text"),
-        AutocompletePanel("products", target_model=LBCProduct),
     ]
 
     @property

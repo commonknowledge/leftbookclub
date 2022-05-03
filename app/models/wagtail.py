@@ -48,6 +48,25 @@ from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
 
 from .stripe import LBCProduct, ShippingZone
 
+block_features = [
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "bold",
+    "italic",
+    "link",
+    "ol",
+    "ul",
+    "hr",
+    "link",
+    "document-link",
+    "image",
+    "embed",
+    "blockquote",
+]
+
 
 class SeoMetadataMixin(SeoMixin, Page):
     class Meta:
@@ -338,6 +357,8 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
 
 class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
     choices = [
+        ("bg-black text-white", "black"),
+        ("bg-white", "white"),
         # ('primary', 'primary'),
         ("tw-bg-yellow", "yellow"),
         # ('black', 'black'),
@@ -364,6 +385,29 @@ class AlignmentChoiceBlock(blocks.ChoiceBlock):
 
     class Meta:
         icon = "fa-arrows-h"
+        default = "center"
+
+
+class BootstrapButtonSizeChoiceBlock(blocks.ChoiceBlock):
+    choices = [
+        ("sm", "small"),
+        ("md", "medium"),
+        ("lg", "large"),
+    ]
+
+    class Meta:
+        icon = "fa-arrows-alt"
+        default = "md"
+
+
+class BootstrapButtonStyleChoiceBlock(blocks.ChoiceBlock):
+    choices = [
+        ("btn-outline-dark", "outlined"),
+        ("btn-dark text-yellow", "filled"),
+    ]
+
+    class Meta:
+        default = "btn-outline-dark"
 
 
 class PlanBlock(blocks.StructBlock):
@@ -674,25 +718,28 @@ class BookPage(BaseShopifyProductPage):
         ordering = ["published_date"]
 
 
+class ButtonBlock(blocks.StructBlock):
+    text = blocks.CharBlock(max_length=15, required=False)
+    page = blocks.PageChooserBlock(
+        required=False, help_text="Pick a page or specify a URL"
+    )
+    href = blocks.URLBlock(
+        required=False, help_text="Pick a page or specify a URL", label="URL"
+    )
+    size = BootstrapButtonSizeChoiceBlock(required=False, default="md")
+    style = BootstrapButtonStyleChoiceBlock(required=False, default="btn-outline-dark")
+
+    class Meta:
+        template = "app/blocks/cta.html"
+
+
 class HeroTextBlock(blocks.StructBlock):
     heading = blocks.CharBlock(max_length=250, form_classname="full title")
     background_color = BackgroundColourChoiceBlock(required=False)
+    button = ButtonBlock(required=False)
 
     class Meta:
         template = "app/blocks/hero_block.html"
-        icon = "fa fa-alphabet"
-
-
-class TextBlock(blocks.StructBlock):
-    heading = blocks.CharBlock(max_length=250, form_classname="full title")
-    text = blocks.RichTextBlock()
-    background_color = BackgroundColourChoiceBlock(required=False)
-    alignment = AlignmentChoiceBlock(
-        help_text="Doesn't apply when used inside a column."
-    )
-
-    class Meta:
-        template = "app/blocks/text_block.html"
         icon = "fa fa-alphabet"
 
 
@@ -700,8 +747,9 @@ class ListItemBlock(blocks.StructBlock):
     title = blocks.CharBlock(max_length=250, form_classname="full title")
     image = ImageChooserBlock(required=False)
     image_css = blocks.CharBlock(max_length=500, required=False)
-    caption = blocks.CharBlock(max_length=350)
+    caption = blocks.RichTextBlock(max_length=500)
     background_color = BackgroundColourChoiceBlock(required=False)
+    button = ButtonBlock(required=False)
 
     class Meta:
         template = "app/blocks/list_item_block.html"
@@ -798,7 +846,7 @@ class NewsletterSignupBlock(blocks.StructBlock):
 
 
 class ArticleText(blocks.StructBlock):
-    text = blocks.RichTextBlock(form_classname="full")
+    text = blocks.RichTextBlock(form_classname="full", features=block_features)
     alignment = AlignmentChoiceBlock(
         help_text="Doesn't apply when used inside a column."
     )
@@ -807,72 +855,56 @@ class ArticleText(blocks.StructBlock):
         template = "app/blocks/richtext.html"
 
 
-class TwoColumnBlock(blocks.StructBlock):
+class ColumnBlock(blocks.StructBlock):
     stream_blocks = [
         ("hero_text", HeroTextBlock()),
-        ("heading_and_text", TextBlock()),
         ("title_image_caption", ListItemBlock()),
         ("image", ImageChooserBlock()),
         ("single_book", SingleBookBlock()),
         ("membership_plan", PlanBlock()),
-        ("richtext", ArticleText()),
+        ("richtext", blocks.RichTextBlock(features=block_features)),
+        ("button", ButtonBlock()),
     ]
-    left = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
-    right = blocks.StreamBlock(stream_blocks, min_num=1, max_num=1)
+    background_color = BackgroundColourChoiceBlock(required=False)
+    content = blocks.StreamBlock(stream_blocks, required=False)
+
+
+class MultiColumnBlock(blocks.StructBlock):
+    background_color = BackgroundColourChoiceBlock(required=False)
+    columns = blocks.ListBlock(ColumnBlock, min_num=1, max_num=5)
 
     class Meta:
-        template = "app/blocks/two_column_block.html"
+        template = "app/blocks/columns_block.html"
         icon = "fa fa-th-large"
+
+
+def create_streamfield():
+    return StreamField(
+        [
+            ("membership_options", MembershipOptionsBlock()),
+            ("image", ImageChooserBlock()),
+            ("featured_book", FeaturedBookBlock()),
+            ("book_selection", SelectedBooksBlock()),
+            ("recently_published_books", RecentlyPublishedBooks()),
+            ("hero_text", HeroTextBlock()),
+            ("heading", blocks.CharBlock(form_classname="full title")),
+            ("richtext", ArticleText()),
+            ("list_of_heading_image_text", ListBlock()),
+            ("columns", MultiColumnBlock()),
+            ("newsletter_signup", NewsletterSignupBlock()),
+        ],
+        null=True,
+        blank=True,
+    )
 
 
 class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
-    layout = StreamField(
-        [
-            ("membership_options", MembershipOptionsBlock()),
-            ("image", ImageChooserBlock()),
-            ("featured_book", FeaturedBookBlock()),
-            ("book_selection", SelectedBooksBlock()),
-            ("recently_published_books", RecentlyPublishedBooks()),
-            ("hero_text", HeroTextBlock()),
-            ("heading", blocks.CharBlock(form_classname="full title")),
-            ("richtext", ArticleText()),
-            ("one_column_heading_and_text", TextBlock()),
-            ("list_of_heading_image_text", ListBlock()),
-            ("two_columns", TwoColumnBlock()),
-            ("newsletter_signup", NewsletterSignupBlock()),
-        ],
-        null=True,
-        blank=True,
-    )
-
+    layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
-
-    seo_description_sources = IndexPageSeoMixin.seo_description_sources
 
 
 class InformationPage(ArticleSeoMixin, Page):
     show_in_menus_default = True
-
-    content_panels = Page.content_panels + [
-        StreamFieldPanel("layout", classname="full"),
-    ]
-
-    layout = StreamField(
-        [
-            ("membership_options", MembershipOptionsBlock()),
-            ("image", ImageChooserBlock()),
-            ("featured_book", FeaturedBookBlock()),
-            ("book_selection", SelectedBooksBlock()),
-            ("recently_published_books", RecentlyPublishedBooks()),
-            ("hero_text", HeroTextBlock()),
-            ("heading", blocks.CharBlock(form_classname="full title")),
-            ("richtext", ArticleText()),
-            ("one_column_heading_and_text", TextBlock()),
-            ("list_of_heading_image_text", ListBlock()),
-            ("two_columns", TwoColumnBlock()),
-            ("newsletter_signup", NewsletterSignupBlock()),
-        ],
-        null=True,
-        blank=True,
-    )
+    layout = create_streamfield()
+    content_panels = Page.content_panels + [StreamFieldPanel("layout")]

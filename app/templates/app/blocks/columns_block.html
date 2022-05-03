@@ -1,0 +1,18 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<section class='my-2 {{ value.background_color }}'>
+  <section class='row g-2'>
+    {% for column in value.columns %}
+      <div class='col-12 col-md'>
+        <div class='{{ column.background_color }} h-100'>
+          {% for row in column.content %}
+              {% if row.block_type == 'image' %}
+                  {% image row.value fill-800x800 class='tw-max-w-full tw-h-auto' %}
+              {% else %} 
+                  {% include_block row %}
+              {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </section>
+</section>

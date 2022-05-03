@@ -25,7 +25,9 @@
   <div class='row g-2'>
   {% for option in value.plans %}
     {% if option.plan.live %}
-      {% include_block option %}
+      <article class='col col-md-4'>
+        {% include_block option %}
+      </article>
     {% endif %}
   {% endfor %}
   </div>

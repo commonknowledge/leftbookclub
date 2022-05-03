@@ -708,6 +708,9 @@ class TextBlock(blocks.StructBlock):
     heading = blocks.CharBlock(max_length=250, form_classname="full title")
     text = blocks.RichTextBlock()
     background_color = BackgroundColourChoiceBlock(required=False)
+    alignment = AlignmentChoiceBlock(
+        help_text="Doesn't apply when used inside a column."
+    )
 
     class Meta:
         template = "app/blocks/text_block.html"

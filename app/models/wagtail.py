@@ -1,3 +1,4 @@
+import time
 import urllib.parse
 from importlib.metadata import metadata
 from urllib.parse import urlencode
@@ -626,6 +627,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             ).product_ids()
             for book in book_ids:
                 BookPage.get_for_product(book)
+                # Very simple solution to Shopify 2 calls/second ratelimiting
+                time.sleep(0.5)
 
             # TODO: also list merch
             # products = shopify.Product.find(collection=settings.SHOPIFY_COLLECTION_ID)

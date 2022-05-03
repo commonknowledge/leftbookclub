@@ -71,3 +71,4 @@ class Command(BaseCommand):
                                 metadata=migration_breadcrumb_metadata,
                             )
                     gift.migrated = True
+                    gift.save()

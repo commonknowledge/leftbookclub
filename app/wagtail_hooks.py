@@ -46,9 +46,6 @@ class ShippingAdmin(ModelAdmin):
     exclude_from_explorer = (
         False  # or True to exclude pages of this type from Wagtail's explorer view
     )
-    # list_display = ('title', 'author')
-    # list_filter = ('author',)
-    # search_fields = ('title', 'author')
 
 
 modeladmin_register(ShippingAdmin)
@@ -146,14 +143,20 @@ class CustomerAdmin(ModelAdmin):
 modeladmin_register(CustomerAdmin)
 
 
-def create_shopify_order(
-    self, user, variant_id, quantity=1, tags=["Membership Shipment"]
-):
+def create_shopify_order(self, user, quantity=1, tags=["Membership Shipment"]):
     o = shopify.Order()
-    o.line_items = [{"variant_id": variant_id, "quantity": quantity}]
+    o.line_items = [
+        {
+            # "variant_id": variant_id,
+            "title": "New Signup",
+            "requiresShipping": True,
+            "quantity": quantity,
+        }
+    ]
     o.financial_status = "paid"
-    o.email = self.user.primary_email
+    o.email = user.primary_email
     c = shopify.Customer.search(email=o.email)
+    shopify.Customer.create(email=o.email)
     o.customer = {"id": c[0].id}
     o.send_receipt = False
     o.send_fulfillment_receipt = False

@@ -568,59 +568,49 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     # TODO: Autocomplete this in future?
     shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
 
-    content_panels = Page.content_panels + [FieldPanel("shopify_product_id")]
+    # Don't allow editing here because it won't be synced back to Shopify
+    content_panels = [
+        FieldPanel("shopify_product_id"),
+        HelpPanel(
+            heading="You can edit this book's data on Shopify",
+            content=f"""
+          Visit <a href='https://{settings.SHOPIFY_DOMAIN}/admin/products/'>the shopify products list</a> to change this product's name, description and so on. Changes will be automatically reflected in the website, via webhook updates.
+        """,
+        ),
+    ]
 
     @classmethod
-    def get_for_product(cls, id=None, product=None, handle=None):
-        if product is not None:
-            id = product.id
-
-        if id is not None:
-            # Check if it exists by ID
-            page = cls.objects.filter(shopify_product_id=id).first()
-            if page is not None:
-                return page
-
-            if product is None:
-                # Query by ID
-                with shopify.Session.temp(
-                    settings.SHOPIFY_DOMAIN,
-                    "2021-10",
-                    settings.SHOPIFY_PRIVATE_APP_PASSWORD,
-                ):
-                    product = shopify.Product.find(id)
-
-        if product is None and handle is not None:
-            # Query by handle
-            with shopify.Session.temp(
-                settings.SHOPIFY_DOMAIN,
-                "2021-10",
-                settings.SHOPIFY_PRIVATE_APP_PASSWORD,
-            ):
-                product = shopify.Product.find(handle=handle)
-
-        if product is None:
-            return None
-
-        with shopify.Session.temp(
-            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
-        ):
-            metafields = product.metafields()
-            metafields = metafields_to_dict(metafields)
-
-            # Create new page
-            page = cls.create_instance_for_product(product, metafields)
-            BookIndexPage.objects.first().add_child(instance=page)
-
-            return page
-
-    @classmethod
-    def create_instance_for_product(cls, product, metafields):
-        return cls(
+    def get_args_for_page(cls, product, metafields):
+        return dict(
             slug=product.attributes.get("handle"),
             title=product.title,
             shopify_product_id=product.id,
         )
+
+    @classmethod
+    def create_instance_for_product(cls, product, metafields):
+        return cls(**cls.get_args_for_page(product, metafields))
+
+    @classmethod
+    def update_instance_for_product(cls, product, metafields):
+        return cls.objects.get(shopify_product_id=product.id).update(
+            **cls.get_args_for_page(product, metafields)
+        )
+
+    @classmethod
+    def sync_from_shopify_product_id(cls, shopify_product_id):
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            product = shopify.Product.find(shopify_product_id)
+            metafields = product.metafields()
+            metafields = metafields_to_dict(metafields)
+            if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
+                return cls.objects.filter(shopify_product_id=shopify_product_id).update(
+                    **cls.get_args_for_page(product, metafields)
+                )
+            else:
+                return cls.create_instance_for_product(product, metafields)
 
     @property
     @django_cached("shopify_product", get_key=shopify_product_id_key)
@@ -652,8 +642,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        context["product"] = self.shopify_product
-        context["metafields"] = self.shopify_product_metafields
+        # context["product"] = self.shopify_product
+        # context["metafields"] = self.shopify_product_metafields
         return context
 
     @classmethod
@@ -666,8 +656,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             book_ids = shopify.CollectionListing.find(
                 settings.SHOPIFY_COLLECTION_ID
             ).product_ids()
-            for book in book_ids:
-                BookPage.get_for_product(book)
+            for book_id in book_ids:
+                BookPage.sync_from_shopify_product_id(book_id)
                 # Very simple solution to Shopify 2 calls/second ratelimiting
                 time.sleep(0.5)
 
@@ -679,7 +669,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     @property
     def seo_description(self) -> str:
         try:
-            tags = strip_tags(self.shopify_product.body_html).replace("\n", "")
+            tags = strip_tags(self.description).replace("\n", "")
             return tags
         except:
             return ""
@@ -690,7 +680,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         Middleware for seo_image_sources
         """
         try:
-            image = self.shopify_product.images[0].src
+            image = self.image_url
             return image
         except:
             return ""
@@ -702,12 +692,18 @@ class MerchandisePage(BaseShopifyProductPage):
 
 class BookPage(BaseShopifyProductPage):
     parent_page_types = ["app.BookIndexPage"]
-
+    subtitle = models.CharField(max_length=300, blank=True)
+    authors = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    forward_by = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    original_publisher = models.CharField(max_length=300, blank=True)
     published_date = models.DateField(null=True, blank=True)
-
-    content_panels = BaseShopifyProductPage.content_panels + [
-        FieldPanel("published_date")
-    ]
+    image_url = models.URLField(max_length=500, blank=True)
+    isbn = models.CharField(max_length=50, blank=True)
+    description = RichTextField(null=True, blank=True)
 
     @property
     def common_ancestor(cls):
@@ -715,12 +711,18 @@ class BookPage(BaseShopifyProductPage):
         return book
 
     @classmethod
-    def create_instance_for_product(cls, product, metafields):
-        return cls(
+    def get_args_for_page(cls, product, metafields):
+        return dict(
             slug=product.attributes.get("handle"),
             title=product.title,
+            description=product.body_html,
             shopify_product_id=product.id,
-            published_date=metafields.get("published_date", None),
+            published_date=metafields.get("published_date", ""),
+            authors=metafields.get("author", []),
+            forward_by=metafields.get("forward_by", []),
+            original_publisher=metafields.get("original_publisher", ""),
+            isbn=metafields.get("isbn", ""),
+            image_url=product.images[0].src,
         )
 
     class Meta:

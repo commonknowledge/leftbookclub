@@ -89,6 +89,14 @@ $colors: (
   "lightgreen": $lightgreen
 );
 
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1416px,
+  xxl: 1416px,
+);
+
 @import "bootstrap/scss/mixins";
 @import "bootstrap/scss/root";
 @import "bootstrap/scss/reboot";
@@ -136,6 +144,7 @@ $colors: (
 // Project-specific
 @import "util.scss";
 @import "overrides.scss";
+@import "blocks.scss";
 
 /* purgecss end ignore */
 

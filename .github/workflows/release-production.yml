@@ -13,4 +13,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config fly.production.toml --remote-only
+      - run: flyctl deploy --config fly.production.toml --remote-only -e COMMIT=${GITHUB_SHA}

@@ -54,6 +54,7 @@ pycountry = "^22.3.5"
 dj-stripe = {git = "https://github.com/commonknowledge/dj-stripe.git", rev = "fixes"}
 django-shopify-webhook = {git = "https://github.com/discolabs/django-shopify-webhook.git"}
 posthog = "^1.4.7"
+sentry-sdk = "^1.5.11"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

@@ -1,14 +1,16 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 <section class='my-2 {{ value.background_color }}'>
-  <section class='row gx-2'>
+  <section class='row gx-2 columns'>
     {% for column in value.columns %}
       <div class='col-12 col-md'>
-        <div class='{{ column.background_color }} h-100'>
+        <div class='{{ column.background_color }} column'>
           {% for row in column.content %}
               {% if row.block_type == 'image' %}
-                  {% image row.value fill-800x800 class='tw-max-w-full tw-h-auto' %}
+                  {% image row.value fill-800x800 class='column__image' %}
               {% elif row.block_type == 'richtext' %}
-                  <div class='px-4 py-3'>{% include_block row %}</div>
+                  <div>
+                    {% include_block row %}
+                  </div>
               {% else %} 
                   {% include_block row %}
               {% endif %}

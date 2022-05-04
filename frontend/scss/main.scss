@@ -32,7 +32,6 @@ $lightgreen: #8fbb99;
 
 /* purgecss start ignore */
 // Whitelist these because django bootstrap packages can't be scanned via purgecss currently
-@import "bootstrap/scss/variables";
 
 $black: #231f20;
 $yellow: #f8f400;
@@ -47,36 +46,14 @@ $pink: #ffbbd2;
 $lightgreen: #8fbb99;
 // $primary: $black;
 
-$font-sizes: (
-  1: $h1-font-size,
-  2: $h2-font-size,
-  3: $h3-font-size,
-  4: $h4-font-size,
-  5: $h5-font-size,
-  6: $h6-font-size,
-  7: $h6-font-size * 0.75,
-);
+$border-radius-sm: 0;
+$border-radius-lg: 0;
 
 $font-family-base: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
   "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
   "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
-$colors: (
-  // bootstrap
-  "blue": $blue,
-  "indigo": $indigo,
-  // "purple":     $purple,
-  // "pink":       $pink,
-  "red": $red,
-  "orange": $orange,
-  // "yellow":     $yellow,
-  "green": $green,
-  // "teal":       $teal,
-  "cyan": $cyan,
-  "white": $white,
-  "gray": $gray-600,
-  "gray-dark": $gray-800,
-  "primary": $primary,
+$custom-colors: (
   "yellow": $yellow,
   "black": $black,
   "teal": $teal,
@@ -86,7 +63,7 @@ $colors: (
   "purple": $purple,
   "magenta": $magenta,
   "pink": $pink,
-  "lightgreen": $lightgreen
+  "lightgreen": $lightgreen,
 );
 
 $container-max-widths: (
@@ -97,6 +74,7 @@ $container-max-widths: (
   xxl: 1416px,
 );
 
+@import "bootstrap/scss/variables";
 @import "bootstrap/scss/mixins";
 @import "bootstrap/scss/root";
 @import "bootstrap/scss/reboot";

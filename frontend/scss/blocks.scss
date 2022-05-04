@@ -1,3 +1,36 @@
 .hero {
   min-height: 467px;
 }
+
+.column {
+  height: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: map-get($spacers, 2) 0;
+  }
+
+  > :not(.column__image):not(:first-child) {
+    margin-top: map-get($spacers, 3);
+  }
+
+  > :not(.column__image) {
+    margin-left: map-get($spacers, 5);
+    margin-right: map-get($spacers, 5);
+  }
+}
+
+.column__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

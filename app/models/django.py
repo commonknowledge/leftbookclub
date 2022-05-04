@@ -4,6 +4,7 @@ from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from sentry_sdk import capture_exception
 
 from app.utils.stripe import (
     get_primary_product_for_djstripe_subscription,
@@ -47,7 +48,8 @@ class User(AbstractUser):
                 djstripe.models.Customer.sync_from_stripe_data(customer)
                 # Update subscriptions
                 self.stripe_customer._sync_subscriptions()
-        except:
+        except Exception as e:
+            capture_exception(e)
             pass
 
     @property

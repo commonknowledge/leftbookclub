@@ -177,19 +177,22 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             redeem_url = self.request.build_absolute_uri(
                 reverse("redeem", kwargs={"code": promo_code.code})
             )
-            send_mail(
-                "Your Left Book Club Gift Code",
-                f"Your gift code is {promo_code.code}. It can be redeemed at {redeem_url}",
-                "noreply@leftbookclub.com",
-                [self.request.user.email],
-                html_message=render_to_string(
-                    template_name="app/emails/send_gift_code.html",
-                    context={
-                        "user": self.request.user,
-                        "promo_code": promo_code.code,
-                    },
-                ),
-            )
+            try:
+                send_mail(
+                    "Your Left Book Club Gift Code",
+                    f"Your gift code is {promo_code.code}. It can be redeemed at {redeem_url}",
+                    "noreply@leftbookclub.com",
+                    [self.request.user.email],
+                    html_message=render_to_string(
+                        template_name="app/emails/send_gift_code.html",
+                        context={
+                            "user": self.request.user,
+                            "promo_code": promo_code.code,
+                        },
+                    ),
+                )
+            except:
+                pass
 
         return page_context
 

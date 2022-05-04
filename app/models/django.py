@@ -22,6 +22,8 @@ def custom_user_casual_name(user: AbstractUser) -> str:
 
 
 class User(AbstractUser):
+    shopify_customer_id = models.CharField(max_length=191, null=True, blank=True)
+
     # Fields imported from the old app
     old_id = models.IntegerField(null=True, blank=True, unique=True)
     tel = models.CharField(max_length=191, null=True, blank=True)

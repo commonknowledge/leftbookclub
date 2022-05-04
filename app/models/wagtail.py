@@ -588,7 +588,10 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
                     **cls.get_args_for_page(product, metafields)
                 )
             else:
-                return cls.create_instance_for_product(product, metafields)
+                instance = cls.create_instance_for_product(product, metafields)
+                BookIndexPage.objects.first().add_child(instance=instance)
+                instance.save()
+                return instance
 
     @property
     @django_cached("shopify_product", get_key=shopify_product_id_key)

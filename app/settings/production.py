@@ -45,7 +45,7 @@ elif os.getenv("MAILGUN_API_URL"):
     }
     EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
     DEFAULT_FROM_EMAIL = f"noreply@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
-    ANYMAIL["SEND_DEFAULTS"] = ({"envelope_sender": DEFAULT_FROM_EMAIL},)
+    ANYMAIL["SEND_DEFAULTS"] = {"envelope_sender": DEFAULT_FROM_EMAIL}
     # ditto (default from-email for Django errors)
     SERVER_EMAIL = f"admin@{ANYMAIL['MAILGUN_SENDER_DOMAIN']}"
 

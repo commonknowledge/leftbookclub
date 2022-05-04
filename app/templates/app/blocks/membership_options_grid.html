@@ -1,6 +1,8 @@
 {% load wagtailcore_tags django_bootstrap5 url %}
 {% with request.GET.gift_mode as gift_mode %}
 {% with request.GET.annual as annual %}
+
+<turbo-frame id="membership-options">
 <section class='bg-white p-2'>
   <header class='row gx-0'>
     <div class='col p-3'>
@@ -32,5 +34,6 @@
   {% endfor %}
   </div>
 </section>
+</turbo-frame>
 {% endwith %}
 {% endwith %}

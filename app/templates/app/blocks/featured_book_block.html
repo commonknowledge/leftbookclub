@@ -1,29 +1,11 @@
 <section class='{% firstof value.background_color "bg-white" %}'>
   <section class='row gx-0 position-relative'>
-    <div class='
-      {% if not value.promotion_label %}opacity-0{% else %}opacity-50{% endif %}
-      py-2 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7
-      position-absolute tw-top-0 tw-left-0
-    '>
-      {% comment %} Loop center:N times {% endcomment %}
-      {% with ''|center:50 as range %}
-        {% for _ in range %}
-          {% firstof value.promotion_label "placeholder" %}
-        {% endfor %}
-      {% endwith %}
-    </div>
+    {% if value.promotion_label %}
+      {% include "app/includes/banner.html" with label=value.promotion_label class="position-absolute tw-top-0 tw-left-0 pt-3" %}
+    {% endif %}
     {% include "app/includes/book_card.html" with page=value.book background_color=value.background_color description=value.description %}
-    <div class='
-      {% if not value.promotion_label %}opacity-0{% else %}opacity-50{% endif %}
-      py-2 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7
-      position-absolute tw-bottom-0 tw-left-0
-    '>
-      {% comment %} Loop center:N times {% endcomment %}
-      {% with ''|center:50 as range %}
-        {% for _ in range %}
-          {% firstof value.promotion_label "placeholder" %}
-        {% endfor %}
-      {% endwith %}
-    </div>
+    {% if value.promotion_label %}
+      {% include "app/includes/banner.html" with label=value.promotion_label class="position-absolute tw-bottom-0 tw-left-0 pb-3" %}
+    {% endif %}
   </section>
 </section>

@@ -1,17 +1,11 @@
 {% load wagtailcore_tags django_bootstrap5 url %}
 {% with request_price.products.all as products %}
   <div class='{% firstof option.background_color "bg-yellow" %} overflow-hidden h-100 d-flex flex-column'>
-    <div class='
-      {% if not option.promotion_label %}opacity-0{% else %}opacity-50{% endif %}
-      py-2 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7
-    '>
-      {% comment %} Loop center:N times {% endcomment %}
-      {% with ''|center:50 as range %}
-        {% for _ in range %}
-          {% firstof option.promotion_label "placeholder" %}
-        {% endfor %}
-      {% endwith %}
-    </div>
+    {% if value.promotion_label %}
+      {% include "app/includes/banner.html" with label=option.promotion_label class='pt-3 pb-1' %}
+    {% else %}
+      {% include "app/includes/banner.html" with label="&nbsp;." class='pt-3 pb-1 opacity-0' %}
+    {% endif %}
     <div class='px-3 pt-1'>
       <h3 class='h1 mb-2 fw-bold'>{{ option.plan.title }}</h3>
       <h5 class='fw-bold'>{{ request_price.price_string }}</h5>

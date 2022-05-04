@@ -81,7 +81,7 @@ if SENTRY_DSN is not None:
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
         environment=os.getenv("FLY_APP_NAME", None),
-        release=os.getenv("GIT_SHA", None),
+        # release=os.getenv("GIT_SHA", None),
     )
 
 

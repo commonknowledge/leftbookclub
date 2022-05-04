@@ -1,6 +1,8 @@
 {% load static menu_tags %}
-<footer class="pt-4 my-md-5 pt-md-5 border-top">
-  <div class="row">
+<footer class="pt-4 pt-md-5">
+  {% include "app/includes/banner.html" with label="Read. Debate. Organise." class="pt-3 pb-1" %}
+  <div class='tw-border-b-2 pt-2'></div>  
+  <div class="row pt-3 pt-md-5">
     <div class="col-12 col-md">
       <img src="{% static 'images/logo.png' %}" style='width: 60px;'/>
       <small class="d-block mb-3 text-muted">© 2015-{% now "Y" %}</small>

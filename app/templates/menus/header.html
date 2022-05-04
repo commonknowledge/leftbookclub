@@ -26,13 +26,6 @@
       {% comment %} {% endif %} {% endcomment %}
     </ul>
   </nav>
-  <div class='pt-3 pb-1 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7 tw-tracking-widest fw-light tw-opacity-75'>
-  {% comment %} Loop center:N times {% endcomment %}
-  {% with ''|center:50 as range %}
-    {% for _ in range %}
-      Read. Debate. Organise.
-    {% endfor %}
-  {% endwith %}
-  </div>
+  {% include "app/includes/banner.html" with label="Read. Debate. Organise." class="pt-3 pb-1" %}
   <div class='tw-border-b-2 pt-2'></div>  
 </header>

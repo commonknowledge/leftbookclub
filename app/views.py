@@ -126,6 +126,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             membership_context = self.finish_gift_purchase(
                 session, subscription, customer
             )
+            analytics.buy_gift(self.request.user)
         elif session is not None and subscription is not None and customer is not None:
             """
             Resolve a normal membership purchase
@@ -133,6 +134,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             membership_context = self.finish_self_purchase(
                 session, subscription, customer
             )
+            analytics.buy_gift(self.request.user)
         # except Exception as error:
         #     page_context['error'] = str(error)
 

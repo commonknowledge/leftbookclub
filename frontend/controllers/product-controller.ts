@@ -99,11 +99,15 @@ class ProductController extends Controller {
     const cart = await this.client?.checkout.fetch(String(this.checkoutId));
     if (!cart?.webUrl) return;
     const checkoutURL = new URL(cart?.webUrl);
+
     checkoutURL.searchParams.append(
       "return_to",
       new URL("/", window.location.href).toString()
     );
-    console.log(checkoutURL);
+    try {
+      // @ts-ignore
+      posthog.capture("buy book");
+    } catch (e) {}
     window.location.href = checkoutURL.toString();
   }
 }

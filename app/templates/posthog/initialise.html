@@ -26,11 +26,19 @@
     const userId = "{{ user.id }}"
     const email = "{{ user.email }}"
     const name = "{{ user.get_full_name }}"
+    const oldId = "{{ user.old_id }}"
+    const stripeCustomerId = "{% firstof user.stripe_customer.id 'null' %}"
     if (userId) {
       posthog.identify(userId, {
         email: email || undefined,
         name: name || undefined
       })
+      if(!!stripeCustomerId && stripeCustomerId.length > 8) {
+          posthog.alias(stripeCustomerId, userId)
+      }
+      if(!!oldId && oldId.length > 0) {
+          posthog.alias(`old-${oldId}`, userId)
+      }
     }
   })()
 </script>

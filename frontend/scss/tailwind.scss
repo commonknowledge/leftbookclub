@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+  letter-spacing: -0.04em;
+}
+p {
+  letter-spacing: -0.025em;
+}
+.small-text,
+.small-text * {
+  @apply tw-text-sm;
+  letter-spacing: 0.04em;
+}

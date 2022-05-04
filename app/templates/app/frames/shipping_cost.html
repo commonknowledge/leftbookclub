@@ -30,6 +30,14 @@
           <span>{% money_localize final_price %}<small>{{ price.humanised_interval }}</small></span>
         </div>
       </div>
+      <div class='row justify-content-center'>
+        <div class="form-check max-width-card w-100">
+          <input class="form-check-input" type="checkbox" value="" id='gdpr_check' name='gdpr_check'>
+          <label class="form-check-label" for="gdpr_check">
+            <p>I'm happy for Left Book Club to email me about book club news, events and promotions</p>
+          </label>
+        </div>
+      </div>
       {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary my-2' %}
     {% endif %}
   </turbo-frame>

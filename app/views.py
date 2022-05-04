@@ -451,6 +451,7 @@ class SubscriptionCheckoutView(TemplateView):
         price: MembershipPlanPrice,
         zone: ShippingZone,
         gift_mode: bool = False,
+        gdpr_check: bool = False,
     ) -> dict:
         if product is None:
             raise ValueError("product required to create checkout")
@@ -473,6 +474,8 @@ class SubscriptionCheckoutView(TemplateView):
         )
         callback_url_args = {}
 
+        if gdpr_check:
+            checkout_args["metadata"]["gdpr_check"] = True
         if gift_mode:
             callback_url_args["gift_mode"] = True
             checkout_args["metadata"]["gift_mode"] = True
@@ -503,6 +506,7 @@ class SubscriptionCheckoutView(TemplateView):
         **kwargs: Any,
     ):
         country = request.GET.get("country", "GB")
+        gdpr_check = request.GET.get("gdpr_check", False)
         zone = ShippingZone.get_for_country(country)
         gift_mode = request.GET.get("gift_mode", None)
         gift_mode = gift_mode is not None and gift_mode is not False
@@ -510,7 +514,11 @@ class SubscriptionCheckoutView(TemplateView):
         price = MembershipPlanPrice.objects.get(id=price_id, products__id=product_id)
 
         checkout_args = SubscriptionCheckoutView.create_checkout_args(
-            product=product, price=price, zone=zone, gift_mode=gift_mode
+            product=product,
+            price=price,
+            zone=zone,
+            gift_mode=gift_mode,
+            gdpr_check=gdpr_check,
         )
 
         return CreateCheckoutSessionView.as_view(context=checkout_args)(request)

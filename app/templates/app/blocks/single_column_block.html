@@ -1,0 +1,33 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<section class='my-2 {{ value.background_color }}'>
+  <section class='row gx-2'>
+    <div class="
+      col-12
+      {% if value.column_width == 'small' %}
+        col col-md-6 col-lg-5
+      {% elif value.column_width == 'medium' %}
+        col col-md-7 col-lg-6
+      {% else %}
+        col col-md-7
+      {% endif %}
+      {% if value.alignment == "left" %}
+      {% elif value.alignment == "center" %}
+        justify-content-md-center
+      {% elif value.alignment == "right" %}
+        justify-content-md-end
+      {% endif %}
+    ">
+      <div class='{{ value.background_color }} h-100'>
+        {% for row in value.content %}
+            {% if row.block_type == 'image' %}
+                {% image row.value fill-800x800 class='tw-max-w-full tw-h-auto' %}
+            {% elif row.block_type == 'richtext' %}
+                <div class='px-4 py-3'>{% include_block row %}</div>
+            {% else %} 
+                {% include_block row %}
+            {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</section>

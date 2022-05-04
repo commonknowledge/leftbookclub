@@ -7,6 +7,7 @@ import djstripe.models
 import shopify
 import stripe
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models
 from django.http.response import Http404
@@ -20,6 +21,7 @@ from modelcluster.models import ClusterableModel
 from wagtail.admin.edit_handlers import (
     FieldPanel,
     FieldRowPanel,
+    HelpPanel,
     InlinePanel,
     MultiFieldPanel,
     PageChooserPanel,
@@ -533,30 +535,6 @@ class BlogPage(ArticleSeoMixin, Page):
     seo_image_sources = ArticleSeoMixin.seo_image_sources + ["feed_image"]
 
 
-class BookIndexPage(IndexPageSeoMixin, Page):
-    body = ArticleContentStream()
-
-    content_panels = Page.content_panels + [
-        StreamFieldPanel("body", classname="full"),
-    ]
-
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
-        products = [
-            {
-                "page": p,
-                "product": p.shopify_product,
-                "metafields": p.shopify_product_metafields,
-            }
-            for p in BookPage.objects.live()
-            .descendant_of(self)
-            .filter(published_date__isnull=False)
-            .order_by("-published_date")
-        ]
-        context["products"] = products
-        return context
-
-
 def shopify_product_id_key(page):
     return page.shopify_product_id
 
@@ -767,18 +745,20 @@ class ListItemBlock(blocks.StructBlock):
         icon = "fa fa-alphabet"
 
 
-class ColumnsBlock(blocks.StructBlock):
-    column_width = blocks.ChoiceBlock(
-        choices=(
-            ("small", "small"),
-            ("medium", "medium"),
-            ("large", "large"),
-        ),
-        default="small",
-    )
+class ColumnWidthChoiceBlock(blocks.ChoiceBlock):
+    choices = [
+        ("small", "small"),
+        ("medium", "medium"),
+        ("large", "large"),
+    ]
+
+    class Meta:
+        icon = "fa-arrows-alt"
+        default = "small"
 
 
-class ListBlock(ColumnsBlock):
+class ListBlock(blocks.StructBlock):
+    column_width = ColumnWidthChoiceBlock()
     items = blocks.ListBlock(ListItemBlock)
 
     class Meta:
@@ -796,13 +776,19 @@ class FeaturedBookBlock(blocks.StructBlock):
     promotion_label = blocks.CharBlock(
         required=False, help_text="Label that highlights this product"
     )
+    description = blocks.RichTextBlock(
+        required=False,
+        help_text="This will replace the book's default description. You can use this to provide a more contextualised description of the book",
+    )
 
     class Meta:
         template = "app/blocks/featured_book_block.html"
         icon = "fa fa-book"
 
 
-class BookGridBlock(ColumnsBlock):
+class BookGridBlock(blocks.StructBlock):
+    column_width = ColumnWidthChoiceBlock()
+
     class Meta:
         template = "app/blocks/book_grid_block.html"
         icon = "fa fa-book"
@@ -880,6 +866,17 @@ class ColumnBlock(blocks.StructBlock):
     content = blocks.StreamBlock(stream_blocks, required=False)
 
 
+class SingleColumnBlock(ColumnBlock):
+    column_width = ColumnWidthChoiceBlock()
+    alignment = AlignmentChoiceBlock(
+        help_text="Doesn't apply when used inside a column."
+    )
+
+    class Meta:
+        template = "app/blocks/single_column_block.html"
+        icon = "fa fa-th-large"
+
+
 class MultiColumnBlock(blocks.StructBlock):
     background_color = BackgroundColourChoiceBlock(required=False)
     columns = blocks.ListBlock(ColumnBlock, min_num=1, max_num=5)
@@ -901,6 +898,7 @@ def create_streamfield():
             ("heading", blocks.CharBlock(form_classname="full title")),
             ("richtext", ArticleText()),
             ("list_of_heading_image_text", ListBlock()),
+            ("single_column", SingleColumnBlock()),
             ("columns", MultiColumnBlock()),
             ("newsletter_signup", NewsletterSignupBlock()),
         ],
@@ -916,6 +914,12 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
 
 
 class InformationPage(ArticleSeoMixin, Page):
+    show_in_menus_default = True
+    layout = create_streamfield()
+    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+
+class BookIndexPage(IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]

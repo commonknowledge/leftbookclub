@@ -1,6 +1,6 @@
 <article class="{{class}} d-flex flex-col tw-justify-items-stretch">
   <a href="{{book.url}}" title="{{ book.title }}" class='w-100 h-100 bg-white d-block position-relative text-decoration-none'>
-    <img src="{{ book.shopify_product.images.0.src }}" class="d-block w-100 position-relative tw-z-0" />
+    <img src="{{ book.image_url }}" class="d-block w-100 position-relative tw-z-0" />
     <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>
       {{ book.published_date|date:"F Y" }}
     </div>

@@ -26,15 +26,15 @@
         {% with products.0 as product %}
           {% url "plan_shipping" price_id=request_price.id product_id=product.id as url %}
           {% qs_link gift_mode=None as not_gift_qs %}
-          <a class='btn btn-outline-dark' href="{{url}}{{not_gift_qs}}" data-turbo-frame="_top">Select</a>
+          <a data-analytics-action="select_plan" class='btn btn-outline-dark' href="{{url}}{{not_gift_qs}}" data-turbo-frame="_top">Select</a>
           {% qs_link gift_mode=True as gift_qs %}
-          <a class='btn btn-outline-dark' href="{{url}}{{gift_qs}}" data-turbo-frame="_top">Get as a gift</a>
-          <a class='btn btn-outline'href="{{option.plan.url}}{{qs}}" data-turbo-frame="_top">Learn more</a>
+          <a data-analytics-action="select_gift_plan" class='btn btn-outline-dark' href="{{url}}{{gift_qs}}" data-turbo-frame="_top">Get as a gift</a>
+          <a data-analytics-action="select_plan_options" class='btn btn-outline'href="{{option.plan.url}}{{qs}}" data-turbo-frame="_top">Learn more</a>
         {% endwith %}
       {% else %}
-        <a class='btn btn-outline-dark' href="{{option.plan.url}}{{qs}}" data-turbo-frame="_top">See options</a>
+        <a data-analytics-action="select_plan_options" class='btn btn-outline-dark' href="{{option.plan.url}}{{qs}}" data-turbo-frame="_top">See options</a>
         {% qs_link gift_mode=True as gift_qs %}
-        <a class='btn btn-outline-dark' href="{{option.plan.url}}{{gift_qs}}" data-turbo-frame="_top">Get as a gift</a>
+        <a data-analytics-action="select_gift_plan" class='btn btn-outline-dark' href="{{option.plan.url}}{{gift_qs}}" data-turbo-frame="_top">Get as a gift</a>
       {% endif %}
     </div>
   </div>

@@ -11,15 +11,15 @@
       <div class="btn-group my-1" role="group" aria-label="Basic outlined example">
         {% qs_link annual=None as url %}
         {% if not annual %}
-          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Monthly pricing" %}
+          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Monthly pricing" id="pick-monthly" %}
         {% else %}
-          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Monthly pricing" %}
+          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Monthly pricing" id="pick-monthly" %}
         {% endif %}
         {% qs_link annual="true" as url %}
         {% if annual %}
-          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Annual pricing" %}
+          {% bootstrap_button button_class='btn-secondary' size='md' href=url content="Annual pricing" id="pick-annual" %}
         {% else %}
-          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Annual pricing: pay upfront and save!" %}
+          {% bootstrap_button button_class='btn-outline-secondary' size='md' href=url content="Annual pricing: pay upfront and save!" id="pick-annual" %}
         {% endif %}
       </div>
     </div>

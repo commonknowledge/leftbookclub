@@ -1334,6 +1334,36 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "sentry-sdk"
+version = "1.5.11"
+description = "Python client for Sentry (https://sentry.io)"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+certifi = "*"
+urllib3 = ">=1.10.0"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.5)"]
+beam = ["apache-beam (>=2.12)"]
+bottle = ["bottle (>=0.12.13)"]
+celery = ["celery (>=3)"]
+chalice = ["chalice (>=1.16.0)"]
+django = ["django (>=1.8)"]
+falcon = ["falcon (>=1.4)"]
+flask = ["flask (>=0.11)", "blinker (>=1.1)"]
+httpx = ["httpx (>=0.16.0)"]
+pure_eval = ["pure-eval", "executing", "asttokens"]
+pyspark = ["pyspark (>=2.4.4)"]
+quart = ["quart (>=0.16.1)", "blinker (>=1.1)"]
+rq = ["rq (>=0.6)"]
+sanic = ["sanic (>=0.8)"]
+sqlalchemy = ["sqlalchemy (>=1.2)"]
+tornado = ["tornado (>=5)"]
+
+[[package]]
 name = "shopifyapi"
 version = "11.0.0"
 description = "Shopify API for Python"
@@ -1702,7 +1732,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "901ee129945188318e41dbe037765c7b1f68cb68ca41bee432d067ce21c592c7"
+content-hash = "640190fbbf2b9f521234fc241108edbf0677a69c55ec9662546e6a4e05b09422"
 
 [metadata.files]
 anyascii = [
@@ -2343,6 +2373,10 @@ safety = [
 schedule = [
     {file = "schedule-1.1.0-py2.py3-none-any.whl", hash = "sha256:617adce8b4bf38c360b781297d59918fbebfb2878f1671d189f4f4af5d0567a4"},
     {file = "schedule-1.1.0.tar.gz", hash = "sha256:e6ca13585e62c810e13a08682e0a6a8ad245372e376ba2b8679294f377dfc8e4"},
+]
+sentry-sdk = [
+    {file = "sentry-sdk-1.5.11.tar.gz", hash = "sha256:6c01d9d0b65935fd275adc120194737d1df317dce811e642cbf0394d0d37a007"},
+    {file = "sentry_sdk-1.5.11-py2.py3-none-any.whl", hash = "sha256:c17179183cac614e900cbd048dab03f49a48e2820182ec686c25e7ce46f8548f"},
 ]
 shopifyapi = [
     {file = "ShopifyAPI-11.0.0.tar.gz", hash = "sha256:864a4505151859200af210d3add1b9abe9284e59a6e8f97611a8f83e857869ac"},

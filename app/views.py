@@ -22,6 +22,7 @@ from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
+from sentry_sdk import capture_exception, capture_message
 
 from app import analytics
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
@@ -196,7 +197,8 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
                         },
                     ),
                 )
-            except:
+            except Exception as e:
+                capture_exception(e)
                 pass
 
         return page_context
@@ -324,7 +326,8 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
             create_gift_recipient_subscription(
                 gift_giver_subscription, self.request.user
             )
-        except djstripe.models.Subscription.DoesNotExist:
+        except djstripe.models.Subscription.DoesNotExist as e:
+            capture_exception(e)
             raise ValueError(
                 "Couldn't set up your gifted subscription. Please email info@leftbookclub.com and we'll get you started!"
             )

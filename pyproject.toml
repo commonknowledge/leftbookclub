@@ -52,6 +52,7 @@ Django = {extras = ["bcrypt"], version = "^4.0.4"}
 django-import-export = "^2.8.0"
 pycountry = "^22.3.5"
 dj-stripe = {git = "https://github.com/commonknowledge/dj-stripe.git", rev = "fixes"}
+django-shopify-webhook = {git = "https://github.com/discolabs/django-shopify-webhook.git"}
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

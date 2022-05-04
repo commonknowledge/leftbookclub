@@ -549,6 +549,24 @@ exchange = ["certifi"]
 test = ["pytest (>=3.1.0)", "pytest-django", "pytest-pythonpath", "pytest-cov", "mixer"]
 
 [[package]]
+name = "django-shopify-webhook"
+version = "0.5.1"
+description = "A package for the creation of Shopify Apps using the Embedded App SDK."
+category = "main"
+optional = false
+python-versions = "*"
+develop = false
+
+[package.dependencies]
+django = ">=2.2"
+
+[package.source]
+type = "git"
+url = "https://github.com/discolabs/django-shopify-webhook.git"
+reference = "master"
+resolved_reference = "9e875dac38c5c5389c6db7ce6efa0ddcc02898cc"
+
+[[package]]
 name = "django-storages"
 version = "1.12.3"
 description = "Support for many storage backends in Django"
@@ -1648,7 +1666,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "c7a57ff1b7f8f255937f839fa1e8c00ace9ed024e1eaed36802bfeaf71e6c992"
+content-hash = "c51a59ff2ceb5782fcb565084963679b6a2b9d9c201e6ad831aafdb7a9a285e6"
 
 [metadata.files]
 anyascii = [
@@ -1922,6 +1940,7 @@ django-money = [
     {file = "django-money-2.1.1.tar.gz", hash = "sha256:4d06041fac5c565ad049a7f8fb4bc33de5c68047b0693efa18a9931cebffb606"},
     {file = "django_money-2.1.1-py3-none-any.whl", hash = "sha256:60a605d5b999e1756a18008dd7e0c5a860fd64c018a140c7a7675a4209ec3782"},
 ]
+django-shopify-webhook = []
 django-storages = [
     {file = "django-storages-1.12.3.tar.gz", hash = "sha256:a475edb2f0f04c4f7e548919a751ecd50117270833956ed5bd585c0575d2a5e7"},
     {file = "django_storages-1.12.3-py3-none-any.whl", hash = "sha256:204a99f218b747c46edbfeeb1310d357f83f90fa6a6024d8d0a3f422570cee84"},

@@ -12,7 +12,7 @@
         {% endfor %}
       {% endwith %}
     </div>
-    {% include "app/includes/book_card.html" with page=value.book background_color=value.background_color %}
+    {% include "app/includes/book_card.html" with page=value.book background_color=value.background_color description=value.description %}
     <div class='
       {% if not value.promotion_label %}opacity-0{% else %}opacity-50{% endif %}
       py-2 text-uppercase overflow-hidden tw-whitespace-nowrap tw-font-serif fs-7

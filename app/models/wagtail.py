@@ -7,6 +7,7 @@ import djstripe.models
 import shopify
 import stripe
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models
 from django.http.response import Http404
@@ -20,6 +21,7 @@ from modelcluster.models import ClusterableModel
 from wagtail.admin.edit_handlers import (
     FieldPanel,
     FieldRowPanel,
+    HelpPanel,
     InlinePanel,
     MultiFieldPanel,
     PageChooserPanel,
@@ -533,30 +535,6 @@ class BlogPage(ArticleSeoMixin, Page):
     seo_image_sources = ArticleSeoMixin.seo_image_sources + ["feed_image"]
 
 
-class BookIndexPage(IndexPageSeoMixin, Page):
-    body = ArticleContentStream()
-
-    content_panels = Page.content_panels + [
-        StreamFieldPanel("body", classname="full"),
-    ]
-
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
-        products = [
-            {
-                "page": p,
-                "product": p.shopify_product,
-                "metafields": p.shopify_product_metafields,
-            }
-            for p in BookPage.objects.live()
-            .descendant_of(self)
-            .filter(published_date__isnull=False)
-            .order_by("-published_date")
-        ]
-        context["products"] = products
-        return context
-
-
 def shopify_product_id_key(page):
     return page.shopify_product_id
 
@@ -568,59 +546,49 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     # TODO: Autocomplete this in future?
     shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
 
-    content_panels = Page.content_panels + [FieldPanel("shopify_product_id")]
+    # Don't allow editing here because it won't be synced back to Shopify
+    content_panels = [
+        FieldPanel("shopify_product_id"),
+        HelpPanel(
+            heading="You can edit this book's data on Shopify",
+            content=f"""
+          Visit <a href='https://{settings.SHOPIFY_DOMAIN}/admin/products/'>the shopify products list</a> to change this product's name, description and so on. Changes will be automatically reflected in the website, via webhook updates.
+        """,
+        ),
+    ]
 
     @classmethod
-    def get_for_product(cls, id=None, product=None, handle=None):
-        if product is not None:
-            id = product.id
-
-        if id is not None:
-            # Check if it exists by ID
-            page = cls.objects.filter(shopify_product_id=id).first()
-            if page is not None:
-                return page
-
-            if product is None:
-                # Query by ID
-                with shopify.Session.temp(
-                    settings.SHOPIFY_DOMAIN,
-                    "2021-10",
-                    settings.SHOPIFY_PRIVATE_APP_PASSWORD,
-                ):
-                    product = shopify.Product.find(id)
-
-        if product is None and handle is not None:
-            # Query by handle
-            with shopify.Session.temp(
-                settings.SHOPIFY_DOMAIN,
-                "2021-10",
-                settings.SHOPIFY_PRIVATE_APP_PASSWORD,
-            ):
-                product = shopify.Product.find(handle=handle)
-
-        if product is None:
-            return None
-
-        with shopify.Session.temp(
-            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
-        ):
-            metafields = product.metafields()
-            metafields = metafields_to_dict(metafields)
-
-            # Create new page
-            page = cls.create_instance_for_product(product, metafields)
-            BookIndexPage.objects.first().add_child(instance=page)
-
-            return page
-
-    @classmethod
-    def create_instance_for_product(cls, product, metafields):
-        return cls(
+    def get_args_for_page(cls, product, metafields):
+        return dict(
             slug=product.attributes.get("handle"),
             title=product.title,
             shopify_product_id=product.id,
         )
+
+    @classmethod
+    def create_instance_for_product(cls, product, metafields):
+        return cls(**cls.get_args_for_page(product, metafields))
+
+    @classmethod
+    def update_instance_for_product(cls, product, metafields):
+        return cls.objects.get(shopify_product_id=product.id).update(
+            **cls.get_args_for_page(product, metafields)
+        )
+
+    @classmethod
+    def sync_from_shopify_product_id(cls, shopify_product_id):
+        with shopify.Session.temp(
+            settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        ):
+            product = shopify.Product.find(shopify_product_id)
+            metafields = product.metafields()
+            metafields = metafields_to_dict(metafields)
+            if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
+                return cls.objects.filter(shopify_product_id=shopify_product_id).update(
+                    **cls.get_args_for_page(product, metafields)
+                )
+            else:
+                return cls.create_instance_for_product(product, metafields)
 
     @property
     @django_cached("shopify_product", get_key=shopify_product_id_key)
@@ -652,8 +620,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        context["product"] = self.shopify_product
-        context["metafields"] = self.shopify_product_metafields
+        # context["product"] = self.shopify_product
+        # context["metafields"] = self.shopify_product_metafields
         return context
 
     @classmethod
@@ -666,8 +634,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             book_ids = shopify.CollectionListing.find(
                 settings.SHOPIFY_COLLECTION_ID
             ).product_ids()
-            for book in book_ids:
-                BookPage.get_for_product(book)
+            for book_id in book_ids:
+                BookPage.sync_from_shopify_product_id(book_id)
                 # Very simple solution to Shopify 2 calls/second ratelimiting
                 time.sleep(0.5)
 
@@ -679,7 +647,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     @property
     def seo_description(self) -> str:
         try:
-            tags = strip_tags(self.shopify_product.body_html).replace("\n", "")
+            tags = strip_tags(self.description).replace("\n", "")
             return tags
         except:
             return ""
@@ -690,7 +658,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         Middleware for seo_image_sources
         """
         try:
-            image = self.shopify_product.images[0].src
+            image = self.image_url
             return image
         except:
             return ""
@@ -702,12 +670,18 @@ class MerchandisePage(BaseShopifyProductPage):
 
 class BookPage(BaseShopifyProductPage):
     parent_page_types = ["app.BookIndexPage"]
-
+    subtitle = models.CharField(max_length=300, blank=True)
+    authors = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    forward_by = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    original_publisher = models.CharField(max_length=300, blank=True)
     published_date = models.DateField(null=True, blank=True)
-
-    content_panels = BaseShopifyProductPage.content_panels + [
-        FieldPanel("published_date")
-    ]
+    image_url = models.URLField(max_length=500, blank=True)
+    isbn = models.CharField(max_length=50, blank=True)
+    description = RichTextField(null=True, blank=True)
 
     @property
     def common_ancestor(cls):
@@ -715,12 +689,18 @@ class BookPage(BaseShopifyProductPage):
         return book
 
     @classmethod
-    def create_instance_for_product(cls, product, metafields):
-        return cls(
+    def get_args_for_page(cls, product, metafields):
+        return dict(
             slug=product.attributes.get("handle"),
             title=product.title,
+            description=product.body_html,
             shopify_product_id=product.id,
-            published_date=metafields.get("published_date", None),
+            published_date=metafields.get("published_date", ""),
+            authors=metafields.get("author", []),
+            forward_by=metafields.get("forward_by", []),
+            original_publisher=metafields.get("original_publisher", ""),
+            isbn=metafields.get("isbn", ""),
+            image_url=product.images[0].src,
         )
 
     class Meta:
@@ -765,18 +745,20 @@ class ListItemBlock(blocks.StructBlock):
         icon = "fa fa-alphabet"
 
 
-class ColumnsBlock(blocks.StructBlock):
-    column_width = blocks.ChoiceBlock(
-        choices=(
-            ("small", "small"),
-            ("medium", "medium"),
-            ("large", "large"),
-        ),
-        default="small",
-    )
+class ColumnWidthChoiceBlock(blocks.ChoiceBlock):
+    choices = [
+        ("small", "small"),
+        ("medium", "medium"),
+        ("large", "large"),
+    ]
+
+    class Meta:
+        icon = "fa-arrows-alt"
+        default = "small"
 
 
-class ListBlock(ColumnsBlock):
+class ListBlock(blocks.StructBlock):
+    column_width = ColumnWidthChoiceBlock()
     items = blocks.ListBlock(ListItemBlock)
 
     class Meta:
@@ -794,13 +776,19 @@ class FeaturedBookBlock(blocks.StructBlock):
     promotion_label = blocks.CharBlock(
         required=False, help_text="Label that highlights this product"
     )
+    description = blocks.RichTextBlock(
+        required=False,
+        help_text="This will replace the book's default description. You can use this to provide a more contextualised description of the book",
+    )
 
     class Meta:
         template = "app/blocks/featured_book_block.html"
         icon = "fa fa-book"
 
 
-class BookGridBlock(ColumnsBlock):
+class BookGridBlock(blocks.StructBlock):
+    column_width = ColumnWidthChoiceBlock()
+
     class Meta:
         template = "app/blocks/book_grid_block.html"
         icon = "fa fa-book"
@@ -878,6 +866,17 @@ class ColumnBlock(blocks.StructBlock):
     content = blocks.StreamBlock(stream_blocks, required=False)
 
 
+class SingleColumnBlock(ColumnBlock):
+    column_width = ColumnWidthChoiceBlock()
+    alignment = AlignmentChoiceBlock(
+        help_text="Doesn't apply when used inside a column."
+    )
+
+    class Meta:
+        template = "app/blocks/single_column_block.html"
+        icon = "fa fa-th-large"
+
+
 class MultiColumnBlock(blocks.StructBlock):
     background_color = BackgroundColourChoiceBlock(required=False)
     columns = blocks.ListBlock(ColumnBlock, min_num=1, max_num=5)
@@ -899,6 +898,7 @@ def create_streamfield():
             ("heading", blocks.CharBlock(form_classname="full title")),
             ("richtext", ArticleText()),
             ("list_of_heading_image_text", ListBlock()),
+            ("single_column", SingleColumnBlock()),
             ("columns", MultiColumnBlock()),
             ("newsletter_signup", NewsletterSignupBlock()),
         ],
@@ -914,6 +914,12 @@ class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
 
 
 class InformationPage(ArticleSeoMixin, Page):
+    show_in_menus_default = True
+    layout = create_streamfield()
+    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+
+class BookIndexPage(IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]

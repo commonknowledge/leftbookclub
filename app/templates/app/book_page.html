@@ -16,20 +16,20 @@
   {% endif %}
 >
   <div class="row">
-    {% if product.images.0 %}
+    {% if page.image_url %}
     <div class="col-12 col-md-6">
       <div class='sticky sticky-top'>
-        <img src="{{ product.images.0.src }}" class="d-block w-100" />
+        <img src="{{ page.image_url }}" class="d-block w-100" />
       </div>
 
       {% comment %} <div class="social text-center my-3">
-        <a href="https://twitter.com/intent/tweet?text={{ product.title | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&via={{ site.social.twitter }}&hashtags=11ty,shopify" target="_blank">
+        <a href="https://twitter.com/intent/tweet?text={{ page.title | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&via={{ site.social.twitter }}&hashtags=11ty,shopify" target="_blank">
           <i class="fa fa-fw fa-2x fa-twitter text-black-50">Share to Twitter</i>
         </a>
         <a href="https://www.facebook.com/dialog/share?app_id={{ site.social.fb_appid }}&display=popup&href=&href={% setting BASE_URL %}/{{ page.url | urlencode }}" target="_blank">
           <i class="fa fa-fw fa-2x fa-facebook text-black-50">Share to Facebook</i>
         </a>
-        <a href="https://www.pinterest.com/pin/create/button/?description={{ product.description | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&media={{ product.images.0.src }}" target="_blank">
+        <a href="https://www.pinterest.com/pin/create/button/?description={{ page.description | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&media={{ page.image_url }}" target="_blank">
           <i class="fa fa-fw fa-2x fa-pinterest text-black-50">Share to Pinterest</i>
         </a>
       </div> {% endcomment %}
@@ -38,22 +38,22 @@
 
     <div class="col">
       <header class='mb-3 lh-2'>
-        <h1 class='m-0 fs-2'>{{product.title}}</h1>    
-        {% if metafields.subtitle %}
-          <h2 class='m-0 fs-2 text-secondary'>{{metafields.subtitle}}</h2>
+        <h1 class='m-0 fs-2'>{{page.title}}</h1>    
+        {% if page.subtitle %}
+          <h2 class='m-0 fs-2 text-secondary'>{{page.subtitle}}</h2>
         {% endif %}
-        {% if metafields.author %}
-          <div class='h5 fs-2'>By {{ metafields.author|join:", "}}</div>   
+        {% if page.authors %}
+          <div class='h5 fs-2'>By {{ page.authors|join:", "}}</div>   
         {% endif %}
-        {% for forward in metafields.forward_by %}
+        {% for forward in page.forward_by %}
           <div>{{ forward }}</div>
         {% endfor %}
-        {% if metafields.original_publisher %}
-          <div class='text-secondary fs-6'>Originally published by {{  metafields.original_publisher }}</div>
+        {% if page.original_publisher %}
+          <div class='text-secondary fs-6'>Originally published by {{  page.original_publisher }}</div>
         {% endif %}
       </header>
-      {% if metafields.published_date %}
-          <div class='badge rounded-pill bg-primary fw-light fs-6 mb-2'>LBC book of the month: <span class='fw-normal'>{{ metafields.published_date|date:"F Y" }}</span></div>
+      {% if page.published_date %}
+          <div class='badge rounded-pill bg-primary fw-light fs-6 mb-2'>LBC book of the month: <span class='fw-normal'>{{ page.published_date|date:"F Y" }}</span></div>
       {% endif %}
   
       <hr />
@@ -66,16 +66,16 @@
           <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary me-2">Login</a>
       </div>   
       {% endif %}   
-      <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=product.id %}?disabled={{user.is_member|negate}}">
+      <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{user.is_member|negate}}">
         {% comment %} Start with cached information, then load in newer info {% endcomment %}
         {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
       </turbo-frame> 
       <hr />
 
       <section>
-          <div class="product-description">{{ product.body_html | safe }}</div>
-          {% if metafields.isbn %}
-            <span class="badge rounded-pill bg-light text-dark mt-2">ISBN {{ metafields.isbn }}</span>
+          <div class="product-description">{{ page.description | richtext }}</div>
+          {% if page.isbn %}
+            <span class="badge rounded-pill bg-light text-dark mt-2">ISBN {{ page.isbn }}</span>
           {% endif %}
       </section>
     </div>

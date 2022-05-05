@@ -14,7 +14,7 @@
     </div>
   </header>
   <div class='row'>
-    <div class='col col-lg-4'>
+    <div class='col-12 col-lg-4'>
       <section>
         <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
           {% qs_link annual=None as url %}
@@ -45,7 +45,7 @@
         {% endif %}
       </section>
     </div>
-    <section class='col col-lg-8'>
+    <section class='col-12 col-lg-8'>
     {% if products|length == 1 %}
       {% url "plan_shipping" price_id=request_price.id product_id=products.0.id as url %}
       <div class='row g-2 gy-2'>

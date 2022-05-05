@@ -22,6 +22,13 @@ def custom_user_casual_name(user: AbstractUser) -> str:
 
 
 class User(AbstractUser):
+    gdpr_email_consent = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name="Book club emails",
+        help_text="Can we email you with news and updates from the Left Book Club?",
+    )
+
     # Fields imported from the old app
     old_id = models.IntegerField(null=True, blank=True, unique=True)
     tel = models.CharField(max_length=191, null=True, blank=True)

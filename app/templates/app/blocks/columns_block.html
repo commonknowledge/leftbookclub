@@ -20,11 +20,11 @@
         <div class='{{ column.background_color }} h-100'>
           {% for row in column.content %}
               {% if row.block_type == 'button' %}
-                  <div class='px-4 my-4'>{% include_block row %}</div>
+                  <div class='block-{{ row.block_type }} p-3 -tw-mt-3'>{% include_block row %}</div>
               {% elif row.block_type == 'image' %}
-                  {% image row.value fill-800x800 class='tw-max-w-full tw-h-auto' %}
+                  {% image row.value fill-800x800 class='block-{{ row.block_type }} tw-max-w-full tw-h-auto' %}
               {% elif row.block_type == 'richtext' %}
-                  <div class='px-4 my-4'>{% include_block row %}</div>
+                  <div class='block-{{ row.block_type }} p-3'>{% include_block row %}</div>
               {% else %} 
                   {% include_block row %}
               {% endif %}

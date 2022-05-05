@@ -2,7 +2,21 @@
 <section class='my-2 {{ value.background_color }}'>
   <section class='row gx-2'>
     {% for column in value.columns %}
-      <div class='col-12 col-md'>
+      <div class='
+        col-12
+        {% if value.columns|length < 3 %}
+          col-sm
+        {% elif value.columns|length == 3 %}
+          col-sm-6
+          col-md-4
+        {% elif value.columns|length == 4 %}
+          col-sm-6
+          col-lg
+        {% elif value.columns|length > 4 %}
+          col-sm-4
+          col-lg
+        {% endif %}
+      '>
         <div class='{{ column.background_color }} h-100'>
           {% for row in column.content %}
               {% if row.block_type == 'image' %}

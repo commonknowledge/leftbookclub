@@ -46,7 +46,7 @@
         {% include "app/includes/membership_card.html" %}
       </div>
       {% with settings.app.FeaturedContent.current_book as book %}
-        {% if book is not None %}
+        {% if book is not None and book.url is not None %}
           {% include "app/includes/book_card.html" with page=book label="Preparing for delivery" %}
         {% endif %}
       {% endwith%}

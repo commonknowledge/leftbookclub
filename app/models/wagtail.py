@@ -708,7 +708,7 @@ class BookPage(BaseShopifyProductPage):
 
 
 class ButtonBlock(blocks.StructBlock):
-    text = blocks.CharBlock(max_length=15, required=False)
+    text = blocks.CharBlock(max_length=100, required=False)
     page = blocks.PageChooserBlock(
         required=False, help_text="Pick a page or specify a URL"
     )

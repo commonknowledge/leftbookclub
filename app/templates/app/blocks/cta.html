@@ -2,7 +2,7 @@
 {% firstof value.text value.page.title as text %}
 {% firstof value.href value.page.url as url %}
 {% firstof value.size "md" as size %}
-{% firstof value.style "btn-outline-dark" as style %}
+{% firstof value.style "btn-dark" as style %}
 {% if text and url %}
-  {% bootstrap_button href=url content=text size=size button_class=style %}
+  {% bootstrap_button href=url content=text size=size button_class="lbc-btn" %}
 {% endif %}

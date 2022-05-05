@@ -1,5 +1,5 @@
 {% load django_bootstrap5 %}
-{% firstof value.page.title value.text as text %}
+{% firstof value.text value.page.title as text %}
 {% firstof value.href value.page.url as url %}
 {% firstof value.size "md" as size %}
 {% firstof value.style "btn-outline-dark" as style %}

@@ -310,5 +310,5 @@ MJML_BACKEND_MODE = "cmd"
 MJML_EXEC_CMD = "node_modules/.bin/mjml"
 
 # Posthog
-POSTHOG_PUBLIC_TOKEN = os.getenv("POSTHOG_PUBLIC_TOKEN")
+POSTHOG_PUBLIC_TOKEN = os.getenv("POSTHOG_PUBLIC_TOKEN", None)
 POSTHOG_URL = "https://app.posthog.com"

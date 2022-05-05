@@ -62,6 +62,7 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
         session_args["metadata"][
             djstripe_settings.djstripe_settings.SUBSCRIBER_CUSTOMER_KEY
         ] = user.id
+        session_args["metadata"]["gdpr_email_consent"] = user.gdpr_email_consent
 
         try:
             additional_args = {}

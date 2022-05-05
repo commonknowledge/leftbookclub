@@ -12,6 +12,26 @@ from app.utils.stripe import is_real_gift_code, is_redeemable_gift_code
 class MemberSignupForm(SignupForm):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
+    gdpr_email_consent = forms.BooleanField(
+        required=False,
+        label="Can we email you with news and updates from the Left Book Club?",
+    )
+
+    field_order = [
+        "email",
+        "email2",  # ignored when not present
+        "first_name",
+        "last_name",
+        "password1",
+        "password2",  # ignored when not present
+        "gdpr_email_consent",
+    ]
+
+    def save(self, request):
+        user = super().save(request)
+        user.gdpr_email_consent = self.cleaned_data.get("gdpr_email_consent", False)
+        user.save()
+        return user
 
 
 class CountrySelectorForm(forms.Form):

@@ -32,7 +32,7 @@
           {% wagtailuserbar %}
         </div>
         {% main_menu max_levels=1 template="menus/header.html" %}
-        <div class="container py-3">
+        <div class="container-fluid container-xl py-3">
         {% block content %}{% endblock %}
         {% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}
         </div>

@@ -131,7 +131,9 @@ class User(AbstractUser):
 
         customer = djstripe.models.Customer.create(subscriber=self)
         try:
-            customer = customer._api_update(name=str(self))
+            customer = customer._api_update(
+                name=str(self), metadata={"gdpr_email_consent": self.gdpr_email_consent}
+            )
             self.refresh_stripe_data()
         except:
             pass

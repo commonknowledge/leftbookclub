@@ -147,3 +147,26 @@ h3,
 .h3 {
   font-weight: bold;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  letter-spacing: -0.04em;
+}
+p {
+  letter-spacing: -0.025em;
+}
+.small-text,
+.small-text * {
+  @apply tw-text-sm;
+  letter-spacing: 0.04em;
+}
+
+.banner-text {
+  @apply tw-uppercase tw-font-serif tw-text-xs tw-opacity-75 tw-overflow-hidden tw-font-light;
+  letter-spacing: 0.2em;
+  max-height: 3em;
+  line-height: 150%;
+}

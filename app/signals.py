@@ -3,6 +3,7 @@ import stripe
 from django.dispatch import receiver
 from djstripe import webhooks
 from djstripe.models import Customer
+from sentry_sdk import capture_exception
 from shopify_webhook.signals import products_create, products_delete, products_update
 
 from app import analytics
@@ -22,14 +23,22 @@ def cancel_gift_recipient_subscription(event, **kwargs):
         recipient_subscription = gift_recipient_subscription_from_code(promo_code)
         stripe.Subscription.delete(recipient_subscription.id)
         # Analytics
-        customer = Customer.filter(id=object.get("customer")).first()
-        if customer is not None and customer.subscriber is not None:
-            analytics.cancel_gift_card(customer.subscriber)
+        try:
+            customer = Customer.objects.filter(id=object.get("customer")).first()
+            if customer is not None and customer.subscriber is not None:
+                analytics.cancel_gift_card(customer.subscriber)
+        except Exception as e:
+            capture_exception(e)
+            pass
     else:
         # Analytics
-        customer = Customer.filter(id=object.get("customer")).first()
-        if customer is not None and customer.subscriber is not None:
-            analytics.cancel_membership(customer.subscriber)
+        try:
+            customer = Customer.objects.filter(id=object.get("customer")).first()
+            if customer is not None and customer.subscriber is not None:
+                analytics.cancel_membership(customer.subscriber)
+        except Exception as e:
+            capture_exception(e)
+            pass
 
 
 @receiver(products_update)

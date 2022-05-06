@@ -584,11 +584,15 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             metafields = product.metafields()
             metafields = metafields_to_dict(metafields)
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
-                return cls.objects.filter(shopify_product_id=shopify_product_id).update(
+                cls.objects.filter(shopify_product_id=shopify_product_id).update(
                     **cls.get_args_for_page(product, metafields)
                 )
+                return cls.objects.filter(shopify_product_id=shopify_product_id).first()
             else:
-                return cls.create_instance_for_product(product, metafields)
+                instance = cls.create_instance_for_product(product, metafields)
+                BookIndexPage.objects.first().add_child(instance=instance)
+                instance.save()
+                return instance
 
     @property
     @django_cached("shopify_product", get_key=shopify_product_id_key)

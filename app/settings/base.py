@@ -312,3 +312,6 @@ MJML_EXEC_CMD = "node_modules/.bin/mjml"
 # Posthog
 POSTHOG_PUBLIC_TOKEN = os.getenv("POSTHOG_PUBLIC_TOKEN", None)
 POSTHOG_URL = "https://app.posthog.com"
+
+# Google
+GOOGLE_TRACKIND_ID = os.getenv("GOOGLE_TRACKING_ID", None)

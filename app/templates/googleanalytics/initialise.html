@@ -1,0 +1,13 @@
+{% load setting %}
+{% setting 'GOOGLE_TRACKING_ID' as GOOGLE_TRACKING_ID %}
+{% if GOOGLE_TRACKING_ID %}
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={% setting 'GOOGLE_TRACKING_ID' %}"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', '{% setting "GOOGLE_TRACKING_ID" %}');
+    </script>
+{% endif %}

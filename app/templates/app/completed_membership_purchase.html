@@ -8,54 +8,14 @@
     {% endif %}
     <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
       <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
-      <p>You successfully signed up for a membership plan. Thank you for supporting LBC financially.</p>
+      <p>You've successfully started a membership plan</p>
     </header>
     <div class="d-flex flex-column justify-content-center align-items-center mb-4">
       {% include "app/includes/membership_card.html" %}
     </div>
     <div>
       {% if settings.app.MembershipJourney.welcome_content %}
-        {% for block in settings.app.MembershipJourney.welcome_content %}
-            {% if block.block_type == 'heading' %}
-              <h2 class='my-2'>{% include_block block %}</h2>
-            {% elif block.block_type == 'richtext' %}
-              <section class='
-                my-2
-                row gx-0
-                {% if block.value.alignment == "left" %}
-                {% elif block.value.alignment == "center" %}
-                  justify-content-md-center
-                {% elif block.value.alignment == "right" %}
-                  justify-content-md-end
-                {% endif %}
-              '>
-                <div class='col col-12 col-md-7 col-lg-6'>
-                  {% include_block block %}
-                </div>
-              </section>
-            {% elif "one_column" in block.block_type %}
-              <section class='
-                my-2
-                row gx-0
-                {% if block.value.alignment == "left" %}
-                {% elif block.value.alignment == "center" %}
-                  justify-content-md-center
-                {% elif block.value.alignment == "right" %}
-                  justify-content-md-end
-                {% endif %}
-              '>
-                <div class='col col-md-6 col-lg-5 p-3'>
-                  {% include_block block %}
-                </div>
-              </section>
-            {% elif block.block_type == "hero_text" %}
-              {% include_block block with fullwidth=True %}
-            {% elif block.block_type == "columns" %}
-              {% include_block block %}
-            {% else %}
-              <section class='my-2'>{% include_block block %}</section>
-            {% endif %}
-        {% endfor %}
+        {% include "app/includes/layout.html" with streamfield=settings.app.MembershipJourney.welcome_content %}
       {% endif %}
     </div>
 {% endblock %}

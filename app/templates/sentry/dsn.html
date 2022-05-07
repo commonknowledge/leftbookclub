@@ -1,0 +1,5 @@
+{% load setting %}
+{% setting "SENTRY_DSN" as SENTRY_DSN %}
+{% if SENTRY_DSN %}
+<script>window.SENTRY_DSN = "{{SENTRY_DSN}}"</script>
+{% endif %}

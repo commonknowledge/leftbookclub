@@ -5,8 +5,9 @@ from datetime import datetime
 from importlib.metadata import metadata
 from multiprocessing.sharedctypes import Value
 from pipes import Template
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
+import djstripe.enums
 import djstripe.models
 import stripe
 from dateutil.relativedelta import relativedelta
@@ -41,15 +42,15 @@ class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
     login_url = reverse_lazy("account_signup")
 
 
-class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView):
+class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
     template_name = "stripe/checkout.html"
     context = {}
 
     def get_context_data(self, **kwargs):
         """
-        Creates and returns a Stripe Checkout Session
+        Creates and returns a Stripe Checkout Session.
+        - Pass context arg `next` to redirect after StripeCheckoutSuccessView.
         """
-
         # get the id of the Model instance of djstripe_settings.djstripe_settings.get_subscriber_model()
         # here we have assumed it is the Django User model. It could be a Team, Company model too.
         # note that it needs to have an email field.
@@ -57,43 +58,67 @@ class CreateCheckoutSessionView(MemberSignupUserRegistrationMixin, TemplateView)
 
         # example of how to insert the SUBSCRIBER_CUSTOMER_KEY: id in the metadata
         # to add customer.subscriber to the newly created/updated customer.
-        session_args = self.context
-        session_args["metadata"] = self.context.get("metadata", {})
+        session_args = self.context.get("checkout_args", {})
+        session_args["metadata"] = session_args.get("metadata", {})
         session_args["metadata"][
             djstripe_settings.djstripe_settings.SUBSCRIBER_CUSTOMER_KEY
         ] = user.id
         session_args["metadata"]["gdpr_email_consent"] = user.gdpr_email_consent
 
+        # redirect the checkout success to StripeCheckoutSuccessView,
+        # which will then forward to any explicitly defined `success_url` that was passed to this view
+        session_args["success_url"] = urllib.parse.urljoin(
+            settings.BASE_URL,
+            reverse_lazy("stripe_checkout_success")
+            + "?session_id={CHECKOUT_SESSION_ID}"
+            + "&next="
+            + self.context.get("next", reverse_lazy("account_membership")),
+        )
+        session_args["cancel_url"] = urllib.parse.urljoin(
+            base=settings.BASE_URL, url="/"
+        )
+
         try:
-            additional_args = {}
+            if user.primary_email is not None:
+                session_args["customer_email"] = user.primary_email
+
             # retreive the Stripe Customer.
             customer, is_new = user.get_or_create_customer()
             if customer is not None:
-                additional_args["customer"] = customer.id
-            elif user.primary_email is not None:
-                additional_args["customer_email"] = user.primary_email
-
-            # ! Note that Stripe will always create a new Customer Object if customer id not provided
-            # ! even if customer_email is provided!
-            session = stripe.checkout.Session.create(**session_args, **additional_args)
-
+                if session_args.get("customer_email", False):
+                    session_args.pop("customer_email")
+                session_args["customer"] = customer.id
         except djstripe.models.Customer.DoesNotExist:
-            session = stripe.checkout.Session.create(**session_args)
+            pass
+
+        # ! Note that Stripe will always create a new Customer Object if customer id not provided
+        # ! even if customer_email is provided!
+        session = stripe.checkout.Session.create(**session_args)
 
         return {
-            **super().get_context_data(**kwargs),
             "CHECKOUT_SESSION_ID": session.id,
             "STRIPE_PUBLIC_KEY": djstripe.settings.djstripe_settings.STRIPE_PUBLIC_KEY,
         }
 
 
-class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
-    template_name = "app/welcome.html"
+class StripeCheckoutSuccessView(TemplateView):
+    template_name = "stripe/checkout_success.html"
 
-    def get_context_data(self, *args, **kwargs):
-        # Get parent Context
-        page_context = super().get_context_data(**kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         session_id = self.request.GET.get("session_id", None)
+
+        # Construct `next` URL to redirect to
+        # including session_id, so that context can be built up in the view
+        next_url = self.request.GET.get("next", "/")
+        next_parsed = urlparse(next_url)
+        next_params = dict(parse_qsl(next_parsed.query))
+        success_params = {"session_id": session_id}
+        merged_params = urlencode({**next_params, **success_params})
+        next_parsed = next_parsed._replace(query=merged_params)
+        context["next"] = next_parsed.geturl()
+
+        #
         gift_mode = False
         session = None
         customer = None
@@ -101,6 +126,7 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
 
         if session_id is not None:
             session = stripe.checkout.Session.retrieve(session_id)
+            gift_mode = session.metadata.get("gift_mode", None) is not None
             customer_from_stripe = stripe.Customer.retrieve(session.customer)
             (
                 customer,
@@ -108,14 +134,23 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             ) = djstripe.models.Customer._get_or_create_from_stripe_object(
                 customer_from_stripe
             )
-            subscription = stripe.Subscription.retrieve(session.subscription)
-            gift_mode = session.metadata.get("gift_mode", None)
 
-        membership_context = {}
+            if session.subscription is not None:
+                subscription = stripe.Subscription.retrieve(
+                    session.subscription, expand=["latest_invoice"]
+                )
+                context["subscription"] = subscription
+                context["value"] = subscription.latest_invoice.amount_due / 100
+                context["currency"] = subscription.latest_invoice.currency
+            elif session.payment_intent is not None:
+                payment_intent = stripe.PaymentIntent.retrieve(session.payment_intent)
+                context["payment_intent"] = payment_intent
+                context["value"] = payment_intent.amount / 100
+                context["currency"] = payment_intent.currency
 
         # try:
         if (
-            gift_mode is not None
+            gift_mode
             and gift_mode is not False
             and session is not None
             and subscription is not None
@@ -125,28 +160,18 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
             Resolve gift purchase by creating a promo code and relating it to the gift buyer's subscription,
             for future reference.
             """
-            membership_context = self.finish_gift_purchase(
-                session, subscription, customer
-            )
+            self.finish_gift_purchase(session, subscription, customer)
             analytics.buy_gift(self.request.user)
         elif session is not None and subscription is not None and customer is not None:
             """
             Resolve a normal membership purchase
             """
-            membership_context = self.finish_self_purchase(
-                session, subscription, customer
-            )
-            analytics.buy_gift(self.request.user)
-        # except Exception as error:
-        #     page_context['error'] = str(error)
+            self.finish_self_purchase(session, subscription, customer)
+            analytics.buy_membership(self.request.user)
 
-        page_context = {**page_context, **membership_context}
-
-        # Sync Stripe data to Django
-        self.request.user.refresh_stripe_data()
         analytics.signup(self.request.user)
 
-        return page_context
+        return context
 
     def finish_self_purchase(self, session, subscription, customer) -> dict:
         # Relate the django user to this customer
@@ -205,6 +230,32 @@ class MemberSignupCompleteView(MemberSignupUserRegistrationMixin, TemplateView):
         return page_context
 
 
+class CompletedMembershipPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
+    template_name = "app/completed_membership_purchase.html"
+
+
+class CompletedGiftPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
+    template_name = "app/completed_gift_purchase.html"
+
+    def get_context_data(self, *args, **kwargs):
+        page_context = super().get_context_data(**kwargs)
+        session_id = self.request.GET.get("session_id")
+        page_context["session"] = stripe.checkout.Session.retrieve(session_id)
+        page_context["gift_giver_subscription"] = stripe.Subscription.retrieve(
+            page_context["session"].subscription
+        )
+        page_context["promo_code"] = stripe.PromotionCode.retrieve(
+            page_context["gift_giver_subscription"]
+            .get("metadata", {})
+            .get("promo_code")
+        )
+        return page_context
+
+
+class CompletedGiftRedemptionView(MemberSignupUserRegistrationMixin, TemplateView):
+    template_name = "app/completed_gift_redemption.html"
+
+
 class LoginRequiredTemplateView(LoginRequiredMixin, TemplateView):
     pass
 
@@ -253,12 +304,9 @@ class GiftCodeRedeemView(FormView):
         gift_giver_subscription = gift_giver_subscription_from_code(
             form.cleaned_data["code"]
         )
-        if gift_giver_subscription is None:
-            raise ValueError("This is a normal promo code. Select a plan to apply it.")
 
         self.request.session["gift_giver_subscription"] = gift_giver_subscription.id
 
-        analytics.redeem(self.request.user)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -271,7 +319,7 @@ class GiftCodeRedeemView(FormView):
 class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
     template_name = "app/redeem_setup.html"
     form_class = StripeShippingForm
-    success_url = reverse_lazy("member_signup_complete")
+    success_url = reverse_lazy("completed_gift_redemption")
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         if self.request.session.get("gift_giver_subscription", None) is None:
@@ -302,6 +350,8 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         # Create subscription
         # try:
         self.finish_gift_redemption(self.request.session["gift_giver_subscription"])
+
+        # Stop showing a "finish redemption" notice
         self.request.session["gift_giver_subscription"] = None
         # except Exception as error:
         #     print(error)
@@ -312,6 +362,8 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
             self.request.user.stripe_customer.id, shipping=form.to_stripe()
         )
         djstripe.models.Customer.sync_from_stripe_data(customer)
+
+        analytics.redeem(self.request.user)
 
         return super().form_valid(form)
 
@@ -446,7 +498,7 @@ class SubscriptionCheckoutView(TemplateView):
     url_params = "<price_id>/<product_id>/"
 
     @classmethod
-    def create_checkout_args(
+    def create_checkout_context(
         cls,
         product: LBCProduct,
         price: MembershipPlanPrice,
@@ -472,28 +524,18 @@ class SubscriptionCheckoutView(TemplateView):
             },
             metadata={},
         )
-        callback_url_args = {}
 
+        next = "/"
         if gift_mode:
-            callback_url_args["gift_mode"] = True
             checkout_args["metadata"]["gift_mode"] = True
+            next = reverse_lazy("completed_gift_purchase")
         else:
             checkout_args["shipping_address_collection"] = {
                 "allowed_countries": zone.country_codes
             }
+            next = reverse_lazy("completed_membership_purchase")
 
-        checkout_args["success_url"] = urllib.parse.urljoin(
-            settings.BASE_URL,
-            reverse_lazy("member_signup_complete")
-            + "?session_id={CHECKOUT_SESSION_ID}&"
-            + urlencode(callback_url_args),
-        )
-        checkout_args["cancel_url"] = urllib.parse.urljoin(
-            settings.BASE_URL,
-            "?" + urlencode(callback_url_args),
-        )
-
-        return checkout_args
+        return {"checkout_args": checkout_args, "next": next}
 
     def get(
         self,
@@ -510,8 +552,8 @@ class SubscriptionCheckoutView(TemplateView):
         product = LBCProduct.objects.get(id=product_id)
         price = MembershipPlanPrice.objects.get(id=price_id, products__id=product_id)
 
-        checkout_args = SubscriptionCheckoutView.create_checkout_args(
+        checkout_context = SubscriptionCheckoutView.create_checkout_context(
             product=product, price=price, zone=zone, gift_mode=gift_mode
         )
 
-        return CreateCheckoutSessionView.as_view(context=checkout_args)(request)
+        return StripeCheckoutView.as_view(context=checkout_context)(request)

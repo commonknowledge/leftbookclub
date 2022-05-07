@@ -1,33 +1,18 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from wagtail.admin.edit_handlers import StreamFieldPanel
 from wagtail.admin.menu import MenuItem
 from wagtail.contrib.settings.models import BaseSetting, register_setting
 from wagtail.core import hooks
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 
-from app.models.wagtail import BookPage
+from app.models.wagtail import BookPage, create_streamfield
 
 
-@register_setting(icon="pick")
-class FeaturedContent(BaseSetting):
-    class Meta:
-        verbose_name = "Featured Content"
-
-    current_book = models.ForeignKey(
-        BookPage, blank=True, null=True, on_delete=models.DO_NOTHING
-    )
-
-    panels = [AutocompletePanel("current_book")]
-
-
-@hooks.register("register_admin_menu_item")
-def register_frank_menu_item():
-    return MenuItem(
-        "Featured Content",
-        settings_path(FeaturedContent),
-        icon_name="pick",
-        order=10000,
-    )
+@register_setting(icon="users")
+class MembershipJourney(BaseSetting):
+    welcome_content = create_streamfield()
+    panels = [StreamFieldPanel("welcome_content")]
 
 
 def settings_path(custom_settings_cls):

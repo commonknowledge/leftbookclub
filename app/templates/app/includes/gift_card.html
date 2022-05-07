@@ -5,7 +5,9 @@
     {% if subscription.promo_code and not subscription.promo_code.active and subscription.promo_code.times_redeemed > 0 %}
       border-success
     {% elif subscription.promo_code and not subscription.promo_code.active %}
-      border-warning
+      border-danger
+    {% elif subscription.promo_code and subscription.status != "active" %}
+      border-danger
     {% elif subscription.promo_code is None %}
       border-danger
     {% endif %}
@@ -15,8 +17,10 @@
       <div class='fs-7 text-muted'>
         {% if subscription.promo_code and not subscription.promo_code.active and subscription.promo_code.times_redeemed > 0 %}
           <span class='text-success fw-bold'>Redeemed ✅</span>
+        {% elif subscription.promo_code and subscription.status != 'active' %}
+          <span class='text-danger fw-bold'>Cancelled</span>
         {% elif subscription.promo_code and not subscription.promo_code.active %}
-          <span class='text-warning fw-bold'>Cancelled</span>
+          <span class='text-danger fw-bold'>Cancelled</span>
         {% elif subscription.promo_code and subscription.promo_code.times_redeemed > 0 %}
           Used {{ subscription.promo_code.times_redeemed }} of {{ subscription.promo_code.max_redemptions }} times
         {% elif subscription.promo_code %}
@@ -28,7 +32,7 @@
       {% if display_code is not False and subscription.promo_code.code is not None %}
         <div class='p-4 font-monospace h3 pb-0 mb-4' style='
           letter-spacing: 3px;
-          {% if not subscription.promo_code.active %}
+          {% if subscription.status != "active" or not subscription.promo_code.active %}
             text-decoration: line-through;
           {% endif %}
         '>

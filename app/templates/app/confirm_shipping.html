@@ -20,7 +20,7 @@
             data-shipping-price-value="{{ price.id }}"
             data-shipping-product-value="{{ product.id }}"
             data-shipping-target="form"
-            action="{% url "checkout" price_id=price.id product_id=product.id %}{{ qs }}"
+            action="{% url "stripe_checkout" price_id=price.id product_id=product.id %}{{ qs }}"
             method="get"
           >
             <div class='d-none'>

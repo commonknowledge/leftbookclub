@@ -1,12 +1,18 @@
 from typing import Any, Dict, Optional
 
+import stripe
 from allauth.account.views import SignupForm
 from django import forms
 from django.core.exceptions import ValidationError
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
+from djstripe.enums import SubscriptionStatus
 
-from app.utils.stripe import is_real_gift_code, is_redeemable_gift_code
+from app.utils.stripe import (
+    gift_giver_subscription_from_code,
+    is_real_gift_code,
+    is_redeemable_gift_code,
+)
 
 
 class MemberSignupForm(SignupForm):
@@ -46,11 +52,28 @@ class GiftCodeForm(forms.Form):
     def clean(self) -> Optional[Dict[str, Any]]:
         cleaned_data = super().clean()
         code = cleaned_data.get("code")
+        possible_codes = stripe.PromotionCode.list(code=code).data
+        if len(possible_codes) == 0:
+            raise ValidationError("This isn't a real code")
+        if not possible_codes[0].metadata.get("gift_giver_subscription", False):
+            raise ValidationError(
+                "This is a normal promo code, not a gift card code. To use this code, pick a membership plan from the homepage and enter the code in the checkout/payment page."
+            )
         if not is_redeemable_gift_code(code):
             if is_real_gift_code(code):
                 raise ValidationError("This gift code has already been redeemed")
             else:
                 raise ValidationError("This gift code isn't valid")
+        gift_giver_subscription = gift_giver_subscription_from_code(code)
+        if gift_giver_subscription is None:
+            raise ValidationError(
+                "This is a normal promo code. Select a plan to apply it."
+            )
+
+        if gift_giver_subscription.status != SubscriptionStatus.active:
+            raise ValidationError(
+                "This gift card isn't valid anymore because the gift giver stopped paying for it."
+            )
 
 
 class StripeShippingForm(forms.Form):

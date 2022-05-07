@@ -7,9 +7,8 @@
         <meta charset="utf-8" />
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {% include "wagtailseo/meta.html" %}
-
         <title>{% block title %}{{request.site.site_name}}{% endblock %}</title>
+        {% include "wagtailseo/meta.html" %}
 
         {% vite_hmr_client %}
         <script>
@@ -26,17 +25,29 @@
         {% endblock %}
         {% block extra_css %}
         {% endblock %}
+        {% include "facebook/pixel.html" %}
     </head>
 
-    <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }} {% endif %}">
+    <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }} {% endif %} tw-min-h-screen d-flex flex-column">
         <div id='wagtailuserbar-data-turbo-permanent-wrapper' data-turbo-permanent>
           {% wagtailuserbar %}
         </div>
+
+        {% block header %}
         {% main_menu max_levels=1 template="menus/header.html" %}
-        <div class="container-fluid container-xl py-3">
+        {% endblock %}
+
+        <div class="container-fluid container-xl {% block container_class %}py-3{% endblock %}">
         {% block content %}{% endblock %}
+        </div>
+
+        {% block footer %}
+        <div class='mt-auto'>
         {% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}
         </div>
+        {% endblock %}
+
         {% include "wagtailseo/struct_data.html" %}
+        {% block bottom_of_page %}{% endblock %}
     </body>
 </html>

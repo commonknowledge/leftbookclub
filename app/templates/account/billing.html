@@ -36,14 +36,24 @@
             </h4>
             {% for subscription in request.user.gifts_bought %}
               <hr />
-              {% if subscription.status != 'active' %}
-                <h5>Not active / no charge</h3>
-              {% endif %}
               <div class='my-4 w-100 d-flex flex-column align-items-center justify-content-center'>
                 {% include "app/includes/gift_card.html" with subscription=subscription %}
               </div>
+              {% if subscription.status != 'active' %}
+                <h5>Not active / no charge</h3>
+              {% else %}
+                {% for si in subscription.items.all %}
+                <div class='row'>
+                  <div class='col'>{{ si.plan.product.name }}</div><div class='col'>{{ si.plan.human_readable_price }}</div>
+                </div>
+                {% endfor %}
+                {% if subscription.discount.coupon %}
+                <div class='row'>
+                  <div class='col'>Discount</div><div class='col'>{{ subscription.discount.coupon.percent_off }}% off</div>
+                </div>
+                {% endif %}
+              {% endif %}
               <div class='text-center'>
-                <div class='h5 fw-light text-center'>{{ subscription.plan.human_readable_price }}</div>
                 {% if not subscription.cancel_at %}
                   {% url "cancel_membership" subscription_id=subscription.id as cancellation_url %}
                   {% bootstrap_button size='sm' button_class='btn-outline-danger' href=cancellation_url content="Cancel gift card" %}

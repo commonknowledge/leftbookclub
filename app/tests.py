@@ -417,7 +417,7 @@ class GiftTestCase(TestCase):
 
     def test_buying_gift_card_and_applying_it_to_yourself(self):
         # create subscription
-        checkout_args = SubscriptionCheckoutView.create_checkout_args(
+        context = SubscriptionCheckoutView.create_checkout_context(
             product=self.gift_plan.monthly_price.products.first(),
             price=self.gift_plan.monthly_price,
             zone=ShippingZone.default_zone,
@@ -425,7 +425,7 @@ class GiftTestCase(TestCase):
         )
         gift_giver_subscription = stripe.Subscription.create(
             customer=self.gift_giver_user.stripe_customer.id,
-            items=checkout_args["line_items"],
+            items=context["checkout_args"]["line_items"],
             metadata={"automated_test_record": "true"},
             default_payment_method=self.payment_card.id,
         )
@@ -498,9 +498,9 @@ class GiftTestCase(TestCase):
         promo_code = stripe.PromotionCode.retrieve(promo_code.id)
         self.assertFalse(promo_code.active)
 
-    def test_buying_gift_card_and_applying_it_to_yourself(self):
+    def test_buying_gift_card_and_applying_it_to_someone_else(self):
         # create subscription
-        checkout_args = SubscriptionCheckoutView.create_checkout_args(
+        context = SubscriptionCheckoutView.create_checkout_context(
             product=self.gift_plan.monthly_price.products.first(),
             price=self.gift_plan.monthly_price,
             zone=ShippingZone.default_zone,
@@ -508,7 +508,7 @@ class GiftTestCase(TestCase):
         )
         gift_giver_subscription = stripe.Subscription.create(
             customer=self.gift_giver_user.stripe_customer.id,
-            items=checkout_args["line_items"],
+            items=context["checkout_args"]["line_items"],
             metadata={"automated_test_record": "true"},
             default_payment_method=self.payment_card.id,
         )

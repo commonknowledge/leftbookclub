@@ -15,19 +15,21 @@ from app.utils import include_keys
 
 def is_real_gift_code(code):
     possible_codes = stripe.PromotionCode.list(code=code)
-    if len(possible_codes) > 0:
-        return True
-    return False
+    return (
+        len(possible_codes) > 0
+        and possible_codes[0].max_redemptions is not None
+        and possible_codes[0].metadata.get("gift_giver_subscription", False)
+    )
 
 
 def is_redeemable_gift_code(code):
     possible_codes = stripe.PromotionCode.list(code=code).data
-    if (
+    return (
         len(possible_codes) > 0
+        and possible_codes[0].max_redemptions is not None
         and possible_codes[0].max_redemptions > possible_codes[0].times_redeemed
-    ):
-        return True
-    return False
+        and possible_codes[0].metadata.get("gift_giver_subscription", False)
+    )
 
 
 def gift_giver_subscription_from_code(

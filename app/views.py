@@ -78,20 +78,21 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
         )
 
         try:
-            additional_args = {}
+            if user.primary_email is not None:
+                session_args["customer_email"] = user.primary_email
+
             # retreive the Stripe Customer.
             customer, is_new = user.get_or_create_customer()
             if customer is not None:
-                additional_args["customer"] = customer.id
-            elif user.primary_email is not None:
-                additional_args["customer_email"] = user.primary_email
-
-            # ! Note that Stripe will always create a new Customer Object if customer id not provided
-            # ! even if customer_email is provided!
-            session = stripe.checkout.Session.create(**session_args, **additional_args)
-
+                if session_args.get("customer_email", False):
+                    session_args.pop("customer_email")
+                session_args["customer"] = customer.id
         except djstripe.models.Customer.DoesNotExist:
-            session = stripe.checkout.Session.create(**session_args)
+            pass
+
+        # ! Note that Stripe will always create a new Customer Object if customer id not provided
+        # ! even if customer_email is provided!
+        session = stripe.checkout.Session.create(**session_args)
 
         return {
             "CHECKOUT_SESSION_ID": session.id,

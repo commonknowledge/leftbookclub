@@ -50,7 +50,6 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
         Creates and returns a Stripe Checkout Session.
         - Pass context arg `next` to redirect after StripeCheckoutSuccessView.
         """
-
         # get the id of the Model instance of djstripe_settings.djstripe_settings.get_subscriber_model()
         # here we have assumed it is the Django User model. It could be a Team, Company model too.
         # note that it needs to have an email field.
@@ -59,7 +58,7 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
         # example of how to insert the SUBSCRIBER_CUSTOMER_KEY: id in the metadata
         # to add customer.subscriber to the newly created/updated customer.
         session_args = self.context.get("checkout_args", {})
-        session_args["metadata"] = self.context.get("metadata", {})
+        session_args["metadata"] = session_args.get("metadata", {})
         session_args["metadata"][
             djstripe_settings.djstripe_settings.SUBSCRIBER_CUSTOMER_KEY
         ] = user.id
@@ -95,7 +94,6 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
             session = stripe.checkout.Session.create(**session_args)
 
         return {
-            **super().get_context_data(**kwargs),
             "CHECKOUT_SESSION_ID": session.id,
             "STRIPE_PUBLIC_KEY": djstripe.settings.djstripe_settings.STRIPE_PUBLIC_KEY,
         }
@@ -241,7 +239,9 @@ class CompleteGiftPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
         page_context = super().get_context_data(**kwargs)
         session_id = self.request.GET.get("session_id")
         page_context["session"] = stripe.checkout.Session.retrieve(session_id)
-        page_context["gift_giver_subscription"] = page_context["session"].subscription
+        page_context["gift_giver_subscription"] = stripe.Subscription.retrieve(
+            page_context["session"].subscription
+        )
         page_context["promo_code"] = stripe.PromotionCode.retrieve(
             page_context["gift_giver_subscription"]
             .get("metadata", {})
@@ -522,14 +522,17 @@ class SubscriptionCheckoutView(TemplateView):
             metadata={},
         )
 
+        next = "/"
         if gift_mode:
             checkout_args["metadata"]["gift_mode"] = True
+            next = reverse_lazy("complete_gift_purchase")
         else:
             checkout_args["shipping_address_collection"] = {
                 "allowed_countries": zone.country_codes
             }
+            next = reverse_lazy("complete_membership_purchase")
 
-        return checkout_args
+        return {"checkout_args": checkout_args, "next": next}
 
     def get(
         self,
@@ -546,15 +549,8 @@ class SubscriptionCheckoutView(TemplateView):
         product = LBCProduct.objects.get(id=product_id)
         price = MembershipPlanPrice.objects.get(id=price_id, products__id=product_id)
 
-        checkout_args = SubscriptionCheckoutView.create_checkout_args(
+        checkout_context = SubscriptionCheckoutView.create_checkout_args(
             product=product, price=price, zone=zone, gift_mode=gift_mode
         )
 
-        if gift_mode:
-            next = reverse_lazy("complete_gift_purchase")
-        else:
-            next = reverse_lazy("complete_membership_purchase")
-
-        return StripeCheckoutView.as_view(
-            context={"checkout_args": checkout_args, "next": next}
-        )(request)
+        return StripeCheckoutView.as_view(context=checkout_context)(request)

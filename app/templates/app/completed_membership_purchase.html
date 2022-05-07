@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% load wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% block title %}Welcome to the Left Book Club{% endblock %}
 {% block body_class %}tw-bg-background{% endblock %}
 {% block content %}
@@ -14,6 +14,7 @@
       {% include "app/includes/membership_card.html" %}
     </div>
     <div>
+      {% get_settings %}
       {% if settings.app.MembershipJourney.welcome_content %}
         {% include "app/includes/layout.html" with streamfield=settings.app.MembershipJourney.welcome_content %}
       {% endif %}

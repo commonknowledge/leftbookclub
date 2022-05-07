@@ -31,7 +31,7 @@
       Turbo.visit("{{next}}", { action: "replace" })
     } catch(e) {
       fn = function () {
-        document.addEventListener("turbo:load", fn)
+        document.removeEventListener("turbo:load", fn)
         Turbo.visit("{{next}}", { action: "replace" })
       }
       document.addEventListener("turbo:load", fn)

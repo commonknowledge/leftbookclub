@@ -36,10 +36,13 @@
   }
 </script>
 {% endblock %}
+
 {% block header %}{% endblock %}
+
+{% block container_class %}tw-h-screen my-0 text-center d-flex flex-column justify-center align-content-center align-items-center justify-content-center tw-justify-items-center align-middle py-4 h5{% endblock %}
+
 {% block content %}
-<div class='h-100 text-center d-flex justify-center align-content-center align-items-center justify-content-center tw-justify-items-center align-middle py-4 h5'>
-  <span>Redirecting to payment...</span>
-</div>
-{% block footer %}{% endblock %}
+  <span>Redirecting to payment page</span>
 {% endblock %}
+
+{% block footer %}{% endblock %}

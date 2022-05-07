@@ -16,12 +16,15 @@ from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_url
 from app.views import (
     CancellationView,
     CartOptionsView,
+    CompleteGiftPurchaseView,
+    CompleteGiftRedemptionView,
+    CompleteMembershipPurchaseView,
     GiftCodeRedeemView,
     GiftMembershipSetupView,
     LoginRequiredTemplateView,
-    MemberSignupCompleteView,
     ShippingCostView,
     ShippingForProductView,
+    StripeCheckoutSuccessView,
     StripeCustomerPortalView,
     SubscriptionCheckoutView,
 )
@@ -81,13 +84,28 @@ urlpatterns = [
     ),
     path(
         "welcome/",
-        MemberSignupCompleteView.as_view(),
-        name="member_signup_complete",
+        CompleteMembershipPurchaseView.as_view(),
+        name="complete_membership_purchase",
+    ),
+    path(
+        "gift/redeemed/",
+        CompleteGiftRedemptionView.as_view(),
+        name="complete_gift_redemption",
+    ),
+    path(
+        "gift/bought/",
+        CompleteGiftPurchaseView.as_view(),
+        name="complete_gift_purchase",
+    ),
+    path(
+        f"checkout/success/",
+        StripeCheckoutSuccessView.as_view(),
+        name="stripe_checkout_success",
     ),
     path(
         f"checkout/{SubscriptionCheckoutView.url_params}",
         SubscriptionCheckoutView.as_view(),
-        name="checkout",
+        name="stripe_checkout",
     ),
     path(
         f"confirm-shipping/{ShippingForProductView.url_params[0]}",

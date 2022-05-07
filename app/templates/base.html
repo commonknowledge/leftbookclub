@@ -32,10 +32,14 @@
         <div id='wagtailuserbar-data-turbo-permanent-wrapper' data-turbo-permanent>
           {% wagtailuserbar %}
         </div>
+        {% block header %}
         {% main_menu max_levels=1 template="menus/header.html" %}
+        {% endblock %}
         <div class="container-fluid container-xl py-3">
         {% block content %}{% endblock %}
+        {% block footer %}
         {% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}
+        {% endblock %}
         </div>
         {% include "wagtailseo/struct_data.html" %}
     </body>

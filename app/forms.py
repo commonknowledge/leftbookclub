@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional
 
+import stripe
 from allauth.account.views import SignupForm
 from django import forms
 from django.core.exceptions import ValidationError
@@ -51,6 +52,13 @@ class GiftCodeForm(forms.Form):
     def clean(self) -> Optional[Dict[str, Any]]:
         cleaned_data = super().clean()
         code = cleaned_data.get("code")
+        possible_codes = stripe.PromotionCode.list(code=code).data
+        if len(possible_codes) == 0:
+            raise ValidationError("This isn't a real code")
+        if not possible_codes[0].metadata.get("gift_giver_subscription", False):
+            raise ValidationError(
+                "This is a normal promo code, not a gift card code. To use this code, pick a membership plan from the homepage and enter the code in the checkout/payment page."
+            )
         if not is_redeemable_gift_code(code):
             if is_real_gift_code(code):
                 raise ValidationError("This gift code has already been redeemed")

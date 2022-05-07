@@ -9,10 +9,10 @@
 
 {% block content %}
 <span>Payment complete.</span>
-<a class='fs-5 monospace my-4' href='{{next}}'>Click this link if the page doesn't automatically redirect</a>
+<a class='fs-5 monospace my-4' href='{{next}}' data-turbo-action="replace">Click this link if the page doesn't automatically redirect</a>
 {% endblock %}
 
-{% block extra_js %}
+{% block bottom_of_page %}
 <script async src="https://js.stripe.com/v3/"></script>
 <script>
   try {
@@ -27,7 +27,13 @@
   } catch(e) {
 
   } finally {
-    console.log('Turbo.visit("{{next}}", { action: "replace" })')
+    try {
+      Turbo.visit("{{next}}", { action: "replace" })
+    } catch(e) {
+      document.addEventListener("turbo:load", function () {
+        Turbo.visit("{{next}}", { action: "replace" })
+      })
+    }
   }
 </script>
 {% endblock %}

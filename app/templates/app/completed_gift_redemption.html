@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% load wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% block title %}Welcome to the Left Book Club{% endblock %}
 {% block body_class %}tw-bg-background{% endblock %}
 {% block content %}
@@ -8,12 +8,13 @@
     {% endif %}
     <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
       <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
-      <p>You've successfully redeemed a gift card.</p>
+      <p>You've successfully redeemed a gift card for a membership.</p>
     </header>
     <div class="d-flex flex-column justify-content-center align-items-center mb-4">
       {% include "app/includes/membership_card.html" %}
     </div>
     <div>
+      {% get_settings %}
       {% if settings.app.MembershipJourney.welcome_content %}
         {% include "app/includes/layout.html" with streamfield=settings.app.MembershipJourney.welcome_content %}
       {% endif %}

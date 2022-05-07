@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "groundwork.core",
     "groundwork.geo",
     "django_vite",
+    "wagtailseo",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.embeds",
@@ -60,7 +61,6 @@ INSTALLED_APPS = [
     "wagtail.contrib.routable_page",
     "wagtail.contrib.modeladmin",
     "wagtailmenus",
-    "wagtailseo",
     "admin_list_controls",
     "mjml",
     "import_export",
@@ -315,3 +315,6 @@ POSTHOG_URL = "https://app.posthog.com"
 
 # Google
 GOOGLE_TRACKIND_ID = os.getenv("GOOGLE_TRACKING_ID", None)
+
+# Facebook
+FACEBOOK_PIXEL = os.getenv("FACEBOOK_PIXEL", None)

@@ -7,9 +7,8 @@
         <meta charset="utf-8" />
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {% include "wagtailseo/meta.html" %}
-
         <title>{% block title %}{{request.site.site_name}}{% endblock %}</title>
+        {% include "wagtailseo/meta.html" %}
 
         {% vite_hmr_client %}
         <script>
@@ -26,6 +25,7 @@
         {% endblock %}
         {% block extra_css %}
         {% endblock %}
+        {% include "facebook/pixel.html" %}
     </head>
 
     <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }} {% endif %}">

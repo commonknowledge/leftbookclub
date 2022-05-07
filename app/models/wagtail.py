@@ -293,6 +293,26 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         return line_items
 
 
+class PlanTitleBlock(blocks.Block):
+    class Meta:
+        template = "app/blocks/plan_title_block.html"
+
+    # def get_context(self, value, parent_context=None):
+    #     context = super().get_context(value, parent_context)
+    #     context['page'] = parent_context['page']
+    #     return context
+
+
+class PlanPricingBlock(blocks.Block):
+    class Meta:
+        template = "app/blocks/plan_pricing_block.html"
+
+    # def get_context(self, value, parent_context=None):
+    #     context = super().get_context(value, parent_context)
+    #     context['page'] = parent_context['page']
+    #     return context
+
+
 class MembershipPlanPage(ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
 

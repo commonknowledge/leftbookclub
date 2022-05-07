@@ -7,6 +7,7 @@ from multiprocessing.sharedctypes import Value
 from pipes import Template
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
+import djstripe.enums
 import djstripe.models
 import stripe
 from dateutil.relativedelta import relativedelta
@@ -303,12 +304,9 @@ class GiftCodeRedeemView(FormView):
         gift_giver_subscription = gift_giver_subscription_from_code(
             form.cleaned_data["code"]
         )
-        if gift_giver_subscription is None:
-            raise ValueError("This is a normal promo code. Select a plan to apply it.")
 
         self.request.session["gift_giver_subscription"] = gift_giver_subscription.id
 
-        analytics.redeem(self.request.user)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -352,6 +350,8 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         # Create subscription
         # try:
         self.finish_gift_redemption(self.request.session["gift_giver_subscription"])
+
+        # Stop showing a "finish redemption" notice
         self.request.session["gift_giver_subscription"] = None
         # except Exception as error:
         #     print(error)
@@ -362,6 +362,8 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
             self.request.user.stripe_customer.id, shipping=form.to_stripe()
         )
         djstripe.models.Customer.sync_from_stripe_data(customer)
+
+        analytics.redeem(self.request.user)
 
         return super().form_valid(form)
 

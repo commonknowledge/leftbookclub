@@ -230,11 +230,11 @@ class StripeCheckoutSuccessView(TemplateView):
         return page_context
 
 
-class CompleteMembershipPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
+class CompletedMembershipPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
     template_name = "app/completed_membership_purchase.html"
 
 
-class CompleteGiftPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
+class CompletedGiftPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
     template_name = "app/completed_gift_purchase.html"
 
     def get_context_data(self, *args, **kwargs):
@@ -252,8 +252,8 @@ class CompleteGiftPurchaseView(MemberSignupUserRegistrationMixin, TemplateView):
         return page_context
 
 
-class CompleteGiftRedemptionView(MemberSignupUserRegistrationMixin, TemplateView):
-    template_name = "app/complete_gift_redemption.html"
+class CompletedGiftRedemptionView(MemberSignupUserRegistrationMixin, TemplateView):
+    template_name = "app/completed_gift_redemption.html"
 
 
 class LoginRequiredTemplateView(LoginRequiredMixin, TemplateView):
@@ -319,7 +319,7 @@ class GiftCodeRedeemView(FormView):
 class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
     template_name = "app/redeem_setup.html"
     form_class = StripeShippingForm
-    success_url = reverse_lazy("complete_gift_redemption")
+    success_url = reverse_lazy("completed_gift_redemption")
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         if self.request.session.get("gift_giver_subscription", None) is None:
@@ -528,12 +528,12 @@ class SubscriptionCheckoutView(TemplateView):
         next = "/"
         if gift_mode:
             checkout_args["metadata"]["gift_mode"] = True
-            next = reverse_lazy("complete_gift_purchase")
+            next = reverse_lazy("completed_gift_purchase")
         else:
             checkout_args["shipping_address_collection"] = {
                 "allowed_countries": zone.country_codes
             }
-            next = reverse_lazy("complete_membership_purchase")
+            next = reverse_lazy("completed_membership_purchase")
 
         return {"checkout_args": checkout_args, "next": next}
 

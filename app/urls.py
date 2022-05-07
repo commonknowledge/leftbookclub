@@ -16,9 +16,9 @@ from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_url
 from app.views import (
     CancellationView,
     CartOptionsView,
-    CompleteGiftPurchaseView,
-    CompleteGiftRedemptionView,
-    CompleteMembershipPurchaseView,
+    CompletedGiftPurchaseView,
+    CompletedGiftRedemptionView,
+    CompletedMembershipPurchaseView,
     GiftCodeRedeemView,
     GiftMembershipSetupView,
     LoginRequiredTemplateView,
@@ -84,18 +84,18 @@ urlpatterns = [
     ),
     path(
         "welcome/",
-        CompleteMembershipPurchaseView.as_view(),
-        name="complete_membership_purchase",
+        CompletedMembershipPurchaseView.as_view(),
+        name="completed_membership_purchase",
     ),
     path(
         "gift/redeemed/",
-        CompleteGiftRedemptionView.as_view(),
-        name="complete_gift_redemption",
+        CompletedGiftRedemptionView.as_view(),
+        name="completed_gift_redemption",
     ),
     path(
         "gift/bought/",
-        CompleteGiftPurchaseView.as_view(),
-        name="complete_gift_purchase",
+        CompletedGiftPurchaseView.as_view(),
+        name="completed_gift_purchase",
     ),
     path(
         f"checkout/success/",

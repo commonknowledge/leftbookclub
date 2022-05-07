@@ -19,9 +19,9 @@
     {% setting "FACEBOOK_PIXEL" as FACEBOOK_PIXEL %}
     {% if FACEBOOK_PIXEL %}
       {% if subscription %}
-        fbq('track', 'Subscribe', { currency: "{{currency}}", value: "{{value}}" });
+        console.log("fbq('track', 'Subscribe', { currency: '{{currency}}', value: '{{value}}' });")
       {% elif payment_intent %}
-        fbq('track', 'Purchase', { currency: "{{currency}}", value: "{{value}}" });
+        console.log("fbq('track', 'Purchase', { currency: '{{currency}}', value: '{{value}}' });")
       {% endif %}
     {% endif %}
   } catch(e) {
@@ -30,9 +30,11 @@
     try {
       Turbo.visit("{{next}}", { action: "replace" })
     } catch(e) {
-      document.addEventListener("turbo:load", function () {
+      fn = function () {
+        document.addEventListener("turbo:load", fn)
         Turbo.visit("{{next}}", { action: "replace" })
-      })
+      }
+      document.addEventListener("turbo:load", fn)
     }
   }
 </script>

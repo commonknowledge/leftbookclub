@@ -498,7 +498,7 @@ class SubscriptionCheckoutView(TemplateView):
     url_params = "<price_id>/<product_id>/"
 
     @classmethod
-    def create_checkout_args(
+    def create_checkout_context(
         cls,
         product: LBCProduct,
         price: MembershipPlanPrice,
@@ -552,7 +552,7 @@ class SubscriptionCheckoutView(TemplateView):
         product = LBCProduct.objects.get(id=product_id)
         price = MembershipPlanPrice.objects.get(id=price_id, products__id=product_id)
 
-        checkout_context = SubscriptionCheckoutView.create_checkout_args(
+        checkout_context = SubscriptionCheckoutView.create_checkout_context(
             product=product, price=price, zone=zone, gift_mode=gift_mode
         )
 

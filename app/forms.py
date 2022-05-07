@@ -5,8 +5,13 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
+from djstripe.enums import SubscriptionStatus
 
-from app.utils.stripe import is_real_gift_code, is_redeemable_gift_code
+from app.utils.stripe import (
+    gift_giver_subscription_from_code,
+    is_real_gift_code,
+    is_redeemable_gift_code,
+)
 
 
 class MemberSignupForm(SignupForm):
@@ -51,6 +56,16 @@ class GiftCodeForm(forms.Form):
                 raise ValidationError("This gift code has already been redeemed")
             else:
                 raise ValidationError("This gift code isn't valid")
+        gift_giver_subscription = gift_giver_subscription_from_code(code)
+        if gift_giver_subscription is None:
+            raise ValidationError(
+                "This is a normal promo code. Select a plan to apply it."
+            )
+
+        if gift_giver_subscription.status != SubscriptionStatus.active:
+            raise ValidationError(
+                "This gift card isn't valid anymore because the gift giver stopped paying for it."
+            )
 
 
 class StripeShippingForm(forms.Form):

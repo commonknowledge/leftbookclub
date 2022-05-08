@@ -8,7 +8,7 @@
     {% endif %}
     <div class='px-3 pt-1'>
       <h3 class='h1 mb-2 fw-bold'>{{ option.plan.title }}</h3>
-      <h5 class='fw-bold'>{{ request_price.price_string }}</h5>
+      <h5 class='fw-bold'>{{ request_price.price_string }} + postage</h5>
       {% if request_price.interval == 'year' %}
         <h5 class='fw-bold'>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
       {% endif %}

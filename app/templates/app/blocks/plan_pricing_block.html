@@ -19,7 +19,7 @@
           {% bootstrap_button button_class='btn-outline-secondary' size='sm' href=url content="Annual" id="pick-annual" %}
         {% endif %}
       </div>
-      <h5>{{ request_price.price_string }}</h5>
+      <h5>{{ request_price.price_string }} + postage</h5>
       {% if request_price.interval == 'year' %}
         <h5>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
       {% endif %}

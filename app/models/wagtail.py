@@ -837,7 +837,7 @@ class MultiColumnBlock(blocks.StructBlock):
         icon = "fa fa-th-large"
 
 
-def create_streamfield(additional_blocks=None):
+def create_streamfield(additional_blocks=None, **kwargs):
     blcks = [
         ("membership_options", MembershipOptionsBlock()),
         ("image", ImageChooserBlock()),
@@ -856,11 +856,7 @@ def create_streamfield(additional_blocks=None):
     if isinstance(additional_blocks, list):
         blcks += additional_blocks
 
-    return StreamField(
-        blcks,
-        null=True,
-        blank=True,
-    )
+    return StreamField(blcks, null=True, blank=True, **kwargs)
 
 
 class MembershipPlanPage(ArticleSeoMixin, Page):
@@ -882,7 +878,8 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
     )
 
     layout = create_streamfield(
-        [("plan_title", PlanTitleBlock()), ("plan_pricing", PlanPricingBlock())]
+        [("plan_title", PlanTitleBlock()), ("plan_pricing", PlanPricingBlock())],
+        default=(("plan_title", {}), ("plan_pricing", {})),
     )
 
     panels = content_panels = Page.content_panels + [

@@ -619,45 +619,6 @@ class MerchandisePage(BaseShopifyProductPage):
     pass
 
 
-class BookPage(BaseShopifyProductPage):
-    parent_page_types = ["app.BookIndexPage"]
-    subtitle = models.CharField(max_length=300, blank=True)
-    authors = ArrayField(
-        models.CharField(max_length=300, blank=True), blank=True, default=list
-    )
-    forward_by = ArrayField(
-        models.CharField(max_length=300, blank=True), blank=True, default=list
-    )
-    original_publisher = models.CharField(max_length=300, blank=True)
-    published_date = models.DateField(null=True, blank=True)
-    image_url = models.URLField(max_length=500, blank=True)
-    isbn = models.CharField(max_length=50, blank=True)
-    description = RichTextField(null=True, blank=True)
-
-    @property
-    def common_ancestor(cls):
-        book = BookIndexPage.objects.first()
-        return book
-
-    @classmethod
-    def get_args_for_page(cls, product, metafields):
-        return dict(
-            slug=product.attributes.get("handle"),
-            title=product.title,
-            description=product.body_html,
-            shopify_product_id=product.id,
-            published_date=metafields.get("published_date", ""),
-            authors=metafields.get("author", []),
-            forward_by=metafields.get("forward_by", []),
-            original_publisher=metafields.get("original_publisher", ""),
-            isbn=metafields.get("isbn", ""),
-            image_url=product.images[0].src,
-        )
-
-    class Meta:
-        ordering = ["published_date"]
-
-
 class ButtonBlock(blocks.StructBlock):
     text = blocks.CharBlock(max_length=100, required=False)
     page = blocks.PageChooserBlock(
@@ -857,6 +818,50 @@ def create_streamfield(additional_blocks=None, **kwargs):
         blcks += additional_blocks
 
     return StreamField(blcks, null=True, blank=True, **kwargs)
+
+
+class BookPage(BaseShopifyProductPage):
+    parent_page_types = ["app.BookIndexPage"]
+    subtitle = models.CharField(max_length=300, blank=True)
+    authors = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    forward_by = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    original_publisher = models.CharField(max_length=300, blank=True)
+    published_date = models.DateField(null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True)
+    isbn = models.CharField(max_length=50, blank=True)
+    description = RichTextField(null=True, blank=True)
+    layout = create_streamfield()
+
+    content_panels = BaseShopifyProductPage.content_panels + [
+        StreamFieldPanel("layout")
+    ]
+
+    @property
+    def common_ancestor(cls):
+        book = BookIndexPage.objects.first()
+        return book
+
+    @classmethod
+    def get_args_for_page(cls, product, metafields):
+        return dict(
+            slug=product.attributes.get("handle"),
+            title=product.title,
+            description=product.body_html,
+            shopify_product_id=product.id,
+            published_date=metafields.get("published_date", ""),
+            authors=metafields.get("author", []),
+            forward_by=metafields.get("forward_by", []),
+            original_publisher=metafields.get("original_publisher", ""),
+            isbn=metafields.get("isbn", ""),
+            image_url=product.images[0].src,
+        )
+
+    class Meta:
+        ordering = ["published_date"]
 
 
 class MembershipPlanPage(ArticleSeoMixin, Page):

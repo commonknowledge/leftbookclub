@@ -749,6 +749,8 @@ class SingleBookBlock(blocks.StructBlock):
 
 
 class NewsletterSignupBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(required=False, max_length=150)
+
     class Meta:
         template = "app/blocks/newsletter_signup_block.html"
         icon = "fa fa-email"

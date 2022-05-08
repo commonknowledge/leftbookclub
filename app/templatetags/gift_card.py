@@ -31,4 +31,8 @@ def is_redeemable_gift_card(code):
 
 @register.filter
 def with_gift_code(self):
-    return subscription_with_promocode(self)
+    try:
+        new_sub = subscription_with_promocode(self)
+        return new_sub
+    except:
+        return self

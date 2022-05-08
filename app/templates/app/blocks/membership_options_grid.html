@@ -6,8 +6,8 @@
 <section class='bg-white p-2'>
   <header class='row gx-0'>
     <div class='col p-3'>
-      <h2 class='h1 fw-bold'>{{ value.heading }}</h2>
-      <div>{{ value.description|richtext }}</div>
+      {% if value.heading %}<h2 class='h1 fw-bold'>{{ value.heading }}</h2>{% endif %}
+      {% if value.description %}<div>{{ value.description|richtext }}</div>{% endif %}
       <div class="btn-group my-1" role="group" aria-label="Basic outlined example">
         {% qs_link annual=None as url %}
         {% if not annual %}

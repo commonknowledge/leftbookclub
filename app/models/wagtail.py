@@ -393,11 +393,12 @@ class PlanBlock(blocks.StructBlock):
 
 class MembershipOptionsBlock(blocks.StructBlock):
     heading = blocks.CharBlock(
-        form_classname="full title", default="Choose your plan", null=True, blank=True
+        required=False,
+        form_classname="full title",
+        default="Choose your plan",
     )
     description = blocks.RichTextBlock(
-        null=True,
-        blank=True,
+        required=False,
         default="<p>Your subscription will begin with the most recently published book in your chosen collection.</p>",
     )
     plans = blocks.ListBlock(PlanBlock)

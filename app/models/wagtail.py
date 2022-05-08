@@ -293,77 +293,24 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         return line_items
 
 
-class MembershipPlanPage(ArticleSeoMixin, Page):
-    parent_page_types = ["app.HomePage"]
+class PlanTitleBlock(blocks.StructBlock):
+    class Meta:
+        template = "app/blocks/plan_title_block.html"
 
-    deliveries_per_year = models.IntegerField()
-    description = RichTextField(null=True, blank=True)
-    pick_product_title = models.CharField(
-        default="Choose a book series",
-        max_length=150,
-        help_text="Displayed if there are multiple products to pick from",
-        null=True,
-        blank=True,
-    )
-    pick_product_text = RichTextField(
-        help_text="Displayed if there are multiple products to pick from",
-        null=True,
-        blank=True,
-    )
+    # def get_context(self, value, parent_context=None):
+    #     context = super().get_context(value, parent_context)
+    #     context['page'] = parent_context['page']
+    #     return context
 
-    panels = content_panels = Page.content_panels + [
-        FieldPanel("deliveries_per_year"),
-        FieldPanel("description"),
-        InlinePanel("prices", min_num=1, label="Subscription Pricing Options"),
-        FieldPanel("pick_product_title", classname="full title"),
-        FieldPanel("pick_product_text"),
-    ]
 
-    @property
-    def delivery_frequency(self):
-        months_between = self.deliveries_per_year / 12
-        s = "every "
-        if months_between == 1:
-            s += "month"
-        # Could replace this with https://github.com/savoirfairelinux/num2words
-        elif months_between == 1 / 2:
-            s += "two months"
-        elif months_between == 1 / 3:
-            s += "three months"
-        else:
-            s += f"{months_between} months"
-        return s
+class PlanPricingBlock(blocks.StructBlock):
+    class Meta:
+        template = "app/blocks/plan_pricing_block.html"
 
-    @property
-    def basic_price(self) -> MembershipPlanPrice:
-        price = self.monthly_price
-        if price is None:
-            price = self.prices.order_by("price", "interval").first()
-        return price
-
-    @property
-    def monthly_price(self) -> MembershipPlanPrice:
-        return self.prices.filter(interval="month").order_by("interval_count").first()
-
-    @property
-    def annual_price(self) -> MembershipPlanPrice:
-        return self.prices.filter(interval="year").order_by("interval_count").first()
-
-    @property
-    def annual_percent_off_per_month(self) -> str:
-        return (
-            self.annual_price.equivalent_monthly_price - self.basic_price.price
-        ) / self.basic_price.price
-
-    def get_price_for_request(self, request):
-        if request.GET.get("annual", None) is not None:
-            return self.annual_price
-        return self.basic_price
-
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
-        context["request_price"] = self.get_price_for_request(request)
-        return context
+    # def get_context(self, value, parent_context=None):
+    #     context = super().get_context(value, parent_context)
+    #     context['page'] = parent_context['page']
+    #     return context
 
 
 class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
@@ -423,8 +370,8 @@ class BootstrapButtonStyleChoiceBlock(blocks.ChoiceBlock):
 
 class PlanBlock(blocks.StructBlock):
     plan = blocks.PageChooserBlock(
-        page_type=MembershipPlanPage,
-        target_model=MembershipPlanPage,
+        page_type="app.membershipplanpage",
+        target_model="app.membershipplanpage",
         can_choose_root=False,
     )
     background_color = BackgroundColourChoiceBlock(required=False)
@@ -672,45 +619,6 @@ class MerchandisePage(BaseShopifyProductPage):
     pass
 
 
-class BookPage(BaseShopifyProductPage):
-    parent_page_types = ["app.BookIndexPage"]
-    subtitle = models.CharField(max_length=300, blank=True)
-    authors = ArrayField(
-        models.CharField(max_length=300, blank=True), blank=True, default=list
-    )
-    forward_by = ArrayField(
-        models.CharField(max_length=300, blank=True), blank=True, default=list
-    )
-    original_publisher = models.CharField(max_length=300, blank=True)
-    published_date = models.DateField(null=True, blank=True)
-    image_url = models.URLField(max_length=500, blank=True)
-    isbn = models.CharField(max_length=50, blank=True)
-    description = RichTextField(null=True, blank=True)
-
-    @property
-    def common_ancestor(cls):
-        book = BookIndexPage.objects.first()
-        return book
-
-    @classmethod
-    def get_args_for_page(cls, product, metafields):
-        return dict(
-            slug=product.attributes.get("handle"),
-            title=product.title,
-            description=product.body_html,
-            shopify_product_id=product.id,
-            published_date=metafields.get("published_date", ""),
-            authors=metafields.get("author", []),
-            forward_by=metafields.get("forward_by", []),
-            original_publisher=metafields.get("original_publisher", ""),
-            isbn=metafields.get("isbn", ""),
-            image_url=product.images[0].src,
-        )
-
-    class Meta:
-        ordering = ["published_date"]
-
-
 class ButtonBlock(blocks.StructBlock):
     text = blocks.CharBlock(max_length=100, required=False)
     page = blocks.PageChooserBlock(
@@ -772,8 +680,8 @@ class ListBlock(blocks.StructBlock):
 
 class FeaturedBookBlock(blocks.StructBlock):
     book = blocks.PageChooserBlock(
-        page_type=BookPage,
-        target_model=BookPage,
+        page_type="app.bookpage",
+        target_model="app.bookpage",
         can_choose_root=False,
     )
     background_color = BackgroundColourChoiceBlock(required=False)
@@ -801,8 +709,8 @@ class BookGridBlock(blocks.StructBlock):
 class SelectedBooksBlock(BookGridBlock):
     books = blocks.ListBlock(
         blocks.PageChooserBlock(
-            page_type=BookPage,
-            target_model=BookPage,
+            page_type="app.bookpage",
+            target_model="app.bookpage",
             can_choose_root=False,
         )
     )
@@ -830,8 +738,8 @@ class RecentlyPublishedBooks(BookGridBlock):
 
 class SingleBookBlock(blocks.StructBlock):
     book = blocks.PageChooserBlock(
-        page_type=BookPage,
-        target_model=BookPage,
+        page_type="app.bookpage",
+        target_model="app.bookpage",
         can_choose_root=False,
     )
 
@@ -841,6 +749,8 @@ class SingleBookBlock(blocks.StructBlock):
 
 
 class NewsletterSignupBlock(blocks.StructBlock):
+    heading = blocks.CharBlock(required=False, max_length=150)
+
     class Meta:
         template = "app/blocks/newsletter_signup_block.html"
         icon = "fa fa-email"
@@ -890,25 +800,149 @@ class MultiColumnBlock(blocks.StructBlock):
         icon = "fa fa-th-large"
 
 
-def create_streamfield():
-    return StreamField(
-        [
-            ("membership_options", MembershipOptionsBlock()),
-            ("image", ImageChooserBlock()),
-            ("featured_book", FeaturedBookBlock()),
-            ("book_selection", SelectedBooksBlock()),
-            ("recently_published_books", RecentlyPublishedBooks()),
-            ("hero_text", HeroTextBlock()),
-            ("heading", blocks.CharBlock(form_classname="full title")),
-            ("richtext", ArticleText()),
-            ("list_of_heading_image_text", ListBlock()),
-            ("single_column", SingleColumnBlock()),
-            ("columns", MultiColumnBlock()),
-            ("newsletter_signup", NewsletterSignupBlock()),
-        ],
+def create_streamfield(additional_blocks=None, **kwargs):
+    blcks = [
+        ("membership_options", MembershipOptionsBlock()),
+        ("image", ImageChooserBlock()),
+        ("featured_book", FeaturedBookBlock()),
+        ("book_selection", SelectedBooksBlock()),
+        ("recently_published_books", RecentlyPublishedBooks()),
+        ("hero_text", HeroTextBlock()),
+        ("heading", blocks.CharBlock(form_classname="full title")),
+        ("richtext", ArticleText()),
+        ("list_of_heading_image_text", ListBlock()),
+        ("single_column", SingleColumnBlock()),
+        ("columns", MultiColumnBlock()),
+        ("newsletter_signup", NewsletterSignupBlock()),
+    ]
+
+    if isinstance(additional_blocks, list):
+        blcks += additional_blocks
+
+    return StreamField(blcks, null=True, blank=True, **kwargs)
+
+
+class BookPage(BaseShopifyProductPage):
+    parent_page_types = ["app.BookIndexPage"]
+    subtitle = models.CharField(max_length=300, blank=True)
+    authors = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    forward_by = ArrayField(
+        models.CharField(max_length=300, blank=True), blank=True, default=list
+    )
+    original_publisher = models.CharField(max_length=300, blank=True)
+    published_date = models.DateField(null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True)
+    isbn = models.CharField(max_length=50, blank=True)
+    description = RichTextField(null=True, blank=True)
+    layout = create_streamfield()
+
+    content_panels = BaseShopifyProductPage.content_panels + [
+        StreamFieldPanel("layout")
+    ]
+
+    @property
+    def common_ancestor(cls):
+        book = BookIndexPage.objects.first()
+        return book
+
+    @classmethod
+    def get_args_for_page(cls, product, metafields):
+        return dict(
+            slug=product.attributes.get("handle"),
+            title=product.title,
+            description=product.body_html,
+            shopify_product_id=product.id,
+            published_date=metafields.get("published_date", ""),
+            authors=metafields.get("author", []),
+            forward_by=metafields.get("forward_by", []),
+            original_publisher=metafields.get("original_publisher", ""),
+            isbn=metafields.get("isbn", ""),
+            image_url=product.images[0].src,
+        )
+
+    class Meta:
+        ordering = ["published_date"]
+
+
+class MembershipPlanPage(ArticleSeoMixin, Page):
+    parent_page_types = ["app.HomePage"]
+
+    deliveries_per_year = models.IntegerField()
+    description = RichTextField(null=True, blank=True)
+    pick_product_title = models.CharField(
+        default="Choose a book series",
+        max_length=150,
+        help_text="Displayed if there are multiple products to pick from",
         null=True,
         blank=True,
     )
+    pick_product_text = RichTextField(
+        help_text="Displayed if there are multiple products to pick from",
+        null=True,
+        blank=True,
+    )
+
+    layout = create_streamfield(
+        [("plan_title", PlanTitleBlock()), ("plan_pricing", PlanPricingBlock())],
+        default=(("plan_title", {}), ("plan_pricing", {})),
+    )
+
+    panels = content_panels = Page.content_panels + [
+        FieldPanel("deliveries_per_year"),
+        FieldPanel("description"),
+        InlinePanel("prices", min_num=1, label="Subscription Pricing Options"),
+        FieldPanel("pick_product_title", classname="full title"),
+        FieldPanel("pick_product_text"),
+        StreamFieldPanel("layout"),
+    ]
+
+    @property
+    def delivery_frequency(self):
+        months_between = self.deliveries_per_year / 12
+        s = "every "
+        if months_between == 1:
+            s += "month"
+        # Could replace this with https://github.com/savoirfairelinux/num2words
+        elif months_between == 1 / 2:
+            s += "two months"
+        elif months_between == 1 / 3:
+            s += "three months"
+        else:
+            s += f"{months_between} months"
+        return s
+
+    @property
+    def basic_price(self) -> MembershipPlanPrice:
+        price = self.monthly_price
+        if price is None:
+            price = self.prices.order_by("price", "interval").first()
+        return price
+
+    @property
+    def monthly_price(self) -> MembershipPlanPrice:
+        return self.prices.filter(interval="month").order_by("interval_count").first()
+
+    @property
+    def annual_price(self) -> MembershipPlanPrice:
+        return self.prices.filter(interval="year").order_by("interval_count").first()
+
+    @property
+    def annual_percent_off_per_month(self) -> str:
+        return (
+            self.annual_price.equivalent_monthly_price - self.basic_price.price
+        ) / self.basic_price.price
+
+    def get_price_for_request(self, request):
+        if request.GET.get("annual", None) is not None:
+            return self.annual_price
+        return self.basic_price
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["request_price"] = self.get_price_for_request(request)
+        return context
 
 
 class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):

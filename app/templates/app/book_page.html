@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags wagtailimages_tags setting valid_json djmoney date django_bootstrap5 negate %}
 
+{% block body_class %}tw-bg-background{% endblock %}
+
 {% block content%}
 
 <article
@@ -74,13 +76,14 @@
 
       <section>
           <div class="product-description">{{ page.description | richtext }}</div>
-          {% if page.isbn %}
-            <span class="badge rounded-pill bg-light text-dark mt-2">ISBN {{ page.isbn }}</span>
-          {% endif %}
       </section>
     </div>
 
   </div>
 </article>
+
+{% if page.layout %}
+  {% include "app/includes/layout.html" with streamfield=page.layout %}
+{% endif %}
 
 {% endblock %}

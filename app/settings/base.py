@@ -314,7 +314,7 @@ POSTHOG_PUBLIC_TOKEN = os.getenv("POSTHOG_PUBLIC_TOKEN", None)
 POSTHOG_URL = "https://app.posthog.com"
 
 # Google
-GOOGLE_TRACKIND_ID = os.getenv("GOOGLE_TRACKING_ID", None)
+GOOGLE_TRACKING_ID = os.getenv("GOOGLE_TRACKING_ID", None)
 
 # Facebook
 FACEBOOK_PIXEL = os.getenv("FACEBOOK_PIXEL", None)

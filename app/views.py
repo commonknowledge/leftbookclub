@@ -522,7 +522,7 @@ class SubscriptionCheckoutView(TemplateView):
                 "address": "auto",
                 "name": "auto",
             },
-            metadata={},
+            metadata={"primary_product": product.id},
         )
 
         next = "/"

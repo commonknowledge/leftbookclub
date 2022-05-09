@@ -28,17 +28,29 @@ def email_to_hash(email):
 def mailchimp_contact_for_user(user: User):
     if not MAILCHIMP_IS_ACTIVE:
         return False
-    return mailchimp.lists.set_list_member(
-        settings.MAILCHIMP_LIST_ID,
-        email_to_hash(user.primary_email),
-        {
-            "email_address": user.primary_email,
-            "merge_fields": {"FNAME": user.first_name, "LNAME": user.last_name},
-            "status_if_new": "subscribed"
-            if user.gdpr_email_consent
-            else "unsubscribed",
-        },
-    )
+    try:
+        updated = mailchimp.lists.set_list_member(
+            settings.MAILCHIMP_LIST_ID,
+            email_to_hash(user.primary_email),
+            {
+                "email_address": user.primary_email,
+                "merge_fields": {"FNAME": user.first_name, "LNAME": user.last_name},
+                "status_if_new": "subscribed"
+                if user.gdpr_email_consent
+                else "unsubscribed",
+            },
+        )
+        return updated
+    except MailchimpApiClientError:
+        created = mailchimp.lists.add_list_member(
+            settings.MAILCHIMP_LIST_ID,
+            {
+                "email_address": user.primary_email,
+                "merge_fields": {"FNAME": user.first_name, "LNAME": user.last_name},
+                "status": "subscribed" if user.gdpr_email_consent else "unsubscribed",
+            },
+        )
+        return created
 
 
 def tag_user_in_mailchimp(user: User, tags_to_enable=list(), tags_to_disable=list()):

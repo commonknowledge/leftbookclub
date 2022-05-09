@@ -8,10 +8,10 @@
       <div class='col-10'>
         <div class='text-left'>
           <div class='text-muted'>Membership No. #{{ user.stripe_customer.invoice_prefix }}</div>
-          <div class='fw-bold'>{{ user.subscribed_product.name}}</div>
+          <div class='fw-bold'>{{ user.primary_product.name}}</div>
           {% comment %} <div>{{user.subscribed_price.human_readable_price}}</div> {% endcomment %}
-          {% if user.subscribed_product.gift_giver_subscription %}
-            <div>Gifted by {{user.subscribed_product.gift_giver_subscription.customer.subscriber}}</div>
+          {% if user.primary_product.gift_giver_subscription %}
+            <div>Gifted by {{user.gift_giver}}</div>
           {% endif %}
           <div class='text-muted'>Since {{ user.active_subscription.created|date:"d M Y" }}</div>
           {% if user.active_subscription.cancel_at %}

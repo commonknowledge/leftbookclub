@@ -30,6 +30,8 @@ from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
 from app.models.wagtail import MembershipPlanPrice
+from app.utils.mailchimp import tag_user_in_mailchimp
+from app.utils.shopify import create_shopify_order
 from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
     create_gift_recipient_subscription,
@@ -162,12 +164,40 @@ class StripeCheckoutSuccessView(TemplateView):
             """
             self.finish_gift_purchase(session, subscription, customer)
             analytics.buy_gift(self.request.user)
+            tag_user_in_mailchimp(self.request.user, tags_to_enable=["GIFT_GIVER"])
+            prod_id = session.metadata.get("primary_product")
+            prod = djstripe.models.Product.objects.get(id=prod_id)
+            create_shopify_order(
+                self.request.user,
+                line_items=[
+                    {
+                        "title": f"Gift Card Purchase - {prod.name}",
+                        "quantity": 1,
+                        "price": 0,
+                    }
+                ],
+                tags=["Gift Card Purchase"],
+            )
         elif session is not None and subscription is not None and customer is not None:
             """
             Resolve a normal membership purchase
             """
             self.finish_self_purchase(session, subscription, customer)
             analytics.buy_membership(self.request.user)
+            tag_user_in_mailchimp(self.request.user, tags_to_enable=["MEMBER"])
+            prod_id = session.metadata.get("primary_product", None)
+            prod = djstripe.models.Product.objects.get(id=prod_id)
+            create_shopify_order(
+                self.request.user,
+                line_items=[
+                    {
+                        "title": f"Membership Subscription Purchase — {prod.name}",
+                        "quantity": 1,
+                        "price": 0,
+                    }
+                ],
+                tags=["Membership Subscription Purchase"],
+            )
 
         analytics.signup(self.request.user)
 
@@ -364,6 +394,20 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         djstripe.models.Customer.sync_from_stripe_data(customer)
 
         analytics.redeem(self.request.user)
+        tag_user_in_mailchimp(
+            self.request.user, tags_to_enable=["MEMBER", "GIFT_RECIPIENT"]
+        )
+        create_shopify_order(
+            self.request.user,
+            line_items=[
+                {
+                    "title": f"Gift Card Redeemed — {self.request.user.primary_product.name}",
+                    "quantity": 1,
+                    "price": 0,
+                }
+            ],
+            tags=["Membership Subscription Purchase", "Gift Card Redeemed"],
+        )
 
         return super().form_valid(form)
 
@@ -522,6 +566,7 @@ class SubscriptionCheckoutView(TemplateView):
                 "address": "auto",
                 "name": "auto",
             },
+            shipping_address_collection={"allowed_countries": zone.country_codes},
             metadata={"primary_product": product.id},
         )
 
@@ -530,9 +575,6 @@ class SubscriptionCheckoutView(TemplateView):
             checkout_args["metadata"]["gift_mode"] = True
             next = reverse_lazy("completed_gift_purchase")
         else:
-            checkout_args["shipping_address_collection"] = {
-                "allowed_countries": zone.country_codes
-            }
             next = reverse_lazy("completed_membership_purchase")
 
         return {"checkout_args": checkout_args, "next": next}

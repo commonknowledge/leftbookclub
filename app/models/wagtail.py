@@ -249,7 +249,7 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
                 "interval": self.interval,
                 "interval_count": self.interval_count,
             },
-            "metadata": self.metadata,
+            "metadata": {**(self.metadata or {}), "primary": True},
         }
 
     def to_shipping_price_data(self, zone):
@@ -282,14 +282,12 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             {
                 "price_data": self.to_price_data(product),
                 "quantity": 1,
-                "metadata": {"primary": True},
             },
             # Keep the shipping fee in, even if it's 0
             # so that we can upgrade/downgrade shipping prices in the future
             {
                 "price_data": self.to_shipping_price_data(zone),
                 "quantity": 1,
-                "metadata": {"shipping": True},
             },
         ]
         return line_items

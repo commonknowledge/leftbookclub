@@ -141,34 +141,3 @@ class CustomerAdmin(ModelAdmin):
 
 # Now you just need to register your customised ModelAdmin class with Wagtail
 modeladmin_register(CustomerAdmin)
-
-
-def create_shopify_order(self, user, quantity=1, tags=["Membership Shipment"]):
-    o = shopify.Order()
-    o.line_items = [
-        {
-            # "variant_id": variant_id,
-            "title": "New Signup",
-            "requiresShipping": True,
-            "quantity": quantity,
-        }
-    ]
-    o.financial_status = "paid"
-    o.email = user.primary_email
-    c = shopify.Customer.search(email=o.email)
-    shopify.Customer.create(email=o.email)
-    o.customer = {"id": c[0].id}
-    o.send_receipt = False
-    o.send_fulfillment_receipt = False
-    # TODO: convert Shipping address from Stripe to Shopify format
-    o.shipping_address = {
-        "address1": "1 Byers Road",
-        "address2": "Flat 4/2",
-        "city": "Glasgow",
-        "country": "United Kingdom",
-        "zip": "G115RD",
-        "name": "Jan Baykara",
-        "country_code": "GB",
-    }
-    o.tags = tags
-    return o

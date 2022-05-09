@@ -29,7 +29,9 @@ def cancel_gift_recipient_subscription(event, **kwargs):
             if customer is not None and customer.subscriber is not None:
                 analytics.cancel_gift_card(customer.subscriber)
                 tag_user_in_mailchimp(
-                    customer.subscriber, tags_to_enable=["CANCELLED_GIFT_GIVER"]
+                    customer.subscriber,
+                    tags_to_enable=["CANCELLED_GIFT_GIVER"],
+                    tags_to_disable=["GIFT_GIVER"],
                 )
         except Exception as e:
             capture_exception(e)
@@ -38,7 +40,11 @@ def cancel_gift_recipient_subscription(event, **kwargs):
         # Analytics
         try:
             customer = Customer.objects.filter(id=object.get("customer")).first()
-            if customer is not None and customer.subscriber is not None:
+            if (
+                customer is not None
+                and customer.subscriber is not None
+                and customer.subscriber.active_subscription is None
+            ):
                 analytics.cancel_membership(customer.subscriber)
                 tag_user_in_mailchimp(
                     customer.subscriber,

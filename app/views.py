@@ -184,7 +184,11 @@ class StripeCheckoutSuccessView(TemplateView):
             """
             self.finish_self_purchase(session, subscription, customer)
             analytics.buy_membership(self.request.user)
-            tag_user_in_mailchimp(self.request.user, tags_to_enable=["MEMBER"])
+            tag_user_in_mailchimp(
+                self.request.user,
+                tags_to_enable=["MEMBER"],
+                tags_to_disable=["CANCELLED"],
+            )
             prod_id = session.metadata.get("primary_product", None)
             prod = djstripe.models.Product.objects.get(id=prod_id)
             create_shopify_order(
@@ -395,7 +399,9 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
 
         analytics.redeem(self.request.user)
         tag_user_in_mailchimp(
-            self.request.user, tags_to_enable=["MEMBER", "GIFT_RECIPIENT"]
+            self.request.user,
+            tags_to_enable=["MEMBER", "GIFT_RECIPIENT"],
+            tags_to_disable=["CANCELLED"],
         )
         create_shopify_order(
             self.request.user,

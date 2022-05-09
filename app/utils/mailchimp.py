@@ -13,7 +13,12 @@ MAILCHIMP_IS_ACTIVE = (
     and settings.MAILCHIMP_LIST_ID is not None
 )
 if MAILCHIMP_IS_ACTIVE:
-    mailchimp.set_config(settings.MAILCHIMP_API_KEY, settings.MAILCHIMP_SERVER_PREFIX)
+    mailchimp.set_config(
+        {
+            "api_key": settings.MAILCHIMP_API_KEY,
+            "server": settings.MAILCHIMP_SERVER_PREFIX,
+        }
+    )
 
 
 def email_to_hash(email):

@@ -30,6 +30,10 @@
           <span>{% money_localize final_price %}<small>{{ price.humanised_interval }}</small></span>
         </div>
       </div>
+      {% if request.GET.gift_mode %}
+        <p class='form-text text-black mt-1'>On the next page, <u><b>please add your own shipping address</b></u>, in case we need to send you any gift card materials.</p>
+        <p class='form-text'>Your gift recipient will be able to enter their own address when they redeem.</p>
+      {% endif %}
       {% bootstrap_button button_type="submit" content="Continue to payment" button_class='w-100 btn-primary my-2' %}
     {% endif %}
   </turbo-frame>

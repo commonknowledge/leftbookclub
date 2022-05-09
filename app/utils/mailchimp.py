@@ -2,9 +2,7 @@ import hashlib
 
 import mailchimp_marketing as MailchimpMarketing
 from django.conf import settings
-from mailchimp_marketing.api_client import (
-    MailchimpApiClientError as MailchimpApiClientError,
-)
+from mailchimp_marketing.api_client import ApiClientError as MailchimpApiClientError
 
 from app.models import User
 
@@ -39,7 +37,11 @@ def mailchimp_contact_for_user(user: User):
 
 
 def tag_user_in_mailchimp(user: User, tags_to_enable=list(), tags_to_disable=list()):
+    tags = [{"name": tag, "status": "active"} for tag in tags_to_enable] + [
+        {"name": tag, "status": "inactive"} for tag in tags_to_disable
+    ]
     if not MAILCHIMP_IS_ACTIVE:
+        print("tag_user_in_mailchimp", tags)
         return
     contact = mailchimp_contact_for_user(user)
     if contact is None:
@@ -48,10 +50,7 @@ def tag_user_in_mailchimp(user: User, tags_to_enable=list(), tags_to_disable=lis
         response = mailchimp.lists.update_list_member_tags(
             settings.MAILCHIMP_LIST_ID,
             email_to_hash(user.primary_email),
-            {
-                "tags": [{"name": tag, "status": "active"} for tag in tags_to_enable]
-                + [{"name": tag, "status": "inactive"} for tag in tags_to_disable]
-            },
+            {"tags": tags},
         )
         print(f"client.lists.update_list_member_tags() response: {response}")
     except MailchimpApiClientError as error:

@@ -165,7 +165,7 @@ class StripeCheckoutSuccessView(TemplateView):
             self.finish_gift_purchase(session, subscription, customer)
             analytics.buy_gift(self.request.user)
             tag_user_in_mailchimp(self.request.user, tags_to_enable=["GIFT_GIVER"])
-            prod_id = subscription.metadata.get("primary_product")
+            prod_id = session.metadata.get("primary_product")
             prod = djstripe.models.Product.objects.get(id=prod_id)
             create_shopify_order(
                 self.request.user,
@@ -185,7 +185,7 @@ class StripeCheckoutSuccessView(TemplateView):
             self.finish_self_purchase(session, subscription, customer)
             analytics.buy_membership(self.request.user)
             tag_user_in_mailchimp(self.request.user, tags_to_enable=["MEMBER"])
-            prod_id = subscription.metadata.get("primary_product")
+            prod_id = session.metadata.get("primary_product", None)
             prod = djstripe.models.Product.objects.get(id=prod_id)
             create_shopify_order(
                 self.request.user,
@@ -566,6 +566,7 @@ class SubscriptionCheckoutView(TemplateView):
                 "address": "auto",
                 "name": "auto",
             },
+            shipping_address_collection={"allowed_countries": zone.country_codes},
             metadata={"primary_product": product.id},
         )
 
@@ -574,9 +575,6 @@ class SubscriptionCheckoutView(TemplateView):
             checkout_args["metadata"]["gift_mode"] = True
             next = reverse_lazy("completed_gift_purchase")
         else:
-            checkout_args["shipping_address_collection"] = {
-                "allowed_countries": zone.country_codes
-            }
             next = reverse_lazy("completed_membership_purchase")
 
         return {"checkout_args": checkout_args, "next": next}

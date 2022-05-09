@@ -134,7 +134,7 @@ def get_gift_card_coupon(product: djstripe.models.Product) -> djstripe.models.Co
     return coupon
 
 
-def recreate_one_off_stripe_price(price: stripe.Price):
+def recreate_one_off_stripe_price(price: stripe.Price, **kwargs):
     return {
         "unit_amount_decimal": price.unit_amount,
         "currency": price.currency,
@@ -146,6 +146,7 @@ def recreate_one_off_stripe_price(price: stripe.Price):
                 "interval_count",
             ),
         ),
+        **kwargs,
     }
 
 
@@ -245,7 +246,6 @@ def create_gift_recipient_subscription(
                         si.price, zone
                     ),
                     "quantity": si.quantity,
-                    "metadata": {"primary": True},
                 }
             )
         else:
@@ -256,9 +256,10 @@ def create_gift_recipient_subscription(
             items.append(
                 {
                     # Membership
-                    "price_data": recreate_one_off_stripe_price(si.price),
+                    "price_data": recreate_one_off_stripe_price(
+                        si.price, metadata={"primary": True}
+                    ),
                     "quantity": si.quantity,
-                    "metadata": {"shipping": True},
                 }
             )
 

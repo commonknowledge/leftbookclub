@@ -1611,7 +1611,7 @@ python-versions = "*"
 
 [[package]]
 name = "wagtail-autocomplete"
-version = "0.7.0"
+version = "0.8.0"
 description = "An Autocomplete edit handler for Pages, Snippets, and more."
 category = "main"
 optional = false
@@ -1747,7 +1747,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "939aa9ce8e6bb4aa3828c1292a38a545ab47a47392d5494aed6e1c5d4f11fc1f"
+content-hash = "b9e9de63c1a41fec06e01fc091e8691c2399dd2b5b87309364299b6ed56eb5c7"
 
 [metadata.files]
 anyascii = [
@@ -2515,8 +2515,8 @@ wagtail-admin-list-controls = [
     {file = "wagtail_admin_list_controls-0.1.7-py3-none-any.whl", hash = "sha256:7182db306f101fc13a15ae4b8659d91af50bb033b12ebdd71f22e4f4aa221835"},
 ]
 wagtail-autocomplete = [
-    {file = "wagtail-autocomplete-0.7.0.tar.gz", hash = "sha256:69d4b72407532781014c9766a57977eb56f16bb1ad97a0e9133d2c67383e4596"},
-    {file = "wagtail_autocomplete-0.7.0-py3-none-any.whl", hash = "sha256:f8f8b2e2e4d0229946a20fa439af17f252e3865a6cb9b27903c284a0c065edd8"},
+    {file = "wagtail-autocomplete-0.8.0.tar.gz", hash = "sha256:46249944364d80a92980373613f810eb7d74dd61838e1fad02363046bdf1cc2f"},
+    {file = "wagtail_autocomplete-0.8.0-py3-none-any.whl", hash = "sha256:d9ea7526e7c017cd40b61173c6857a0fbc406695b6474d8f45d205461afae324"},
 ]
 wagtail-seo = [
     {file = "wagtail-seo-1.0.0.tar.gz", hash = "sha256:3f2668a1e25d954dc17212af6e17ea8e157cbb4d6a78e7490ea53881a2c4aa77"},

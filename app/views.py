@@ -30,6 +30,7 @@ from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import ShippingZone
 from app.models.wagtail import MembershipPlanPrice
+from app.utils.mailchimp import tag_user_in_mailchimp
 from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
     create_gift_recipient_subscription,
@@ -162,12 +163,14 @@ class StripeCheckoutSuccessView(TemplateView):
             """
             self.finish_gift_purchase(session, subscription, customer)
             analytics.buy_gift(self.request.user)
+            tag_user_in_mailchimp(self.request.user, tags_to_enable=["GIFT_GIVER"])
         elif session is not None and subscription is not None and customer is not None:
             """
             Resolve a normal membership purchase
             """
             self.finish_self_purchase(session, subscription, customer)
             analytics.buy_membership(self.request.user)
+            tag_user_in_mailchimp(self.request.user, tags_to_enable=["MEMBER"])
 
         analytics.signup(self.request.user)
 
@@ -364,6 +367,9 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         djstripe.models.Customer.sync_from_stripe_data(customer)
 
         analytics.redeem(self.request.user)
+        tag_user_in_mailchimp(
+            self.request.user, tags_to_enable=["MEMBER", "GIFT_RECIPIENT"]
+        )
 
         return super().form_valid(form)
 

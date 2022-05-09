@@ -558,7 +558,7 @@ test = ["pytest (>=3.1.0)", "pytest-django", "pytest-pythonpath", "pytest-cov", 
 
 [[package]]
 name = "django-shopify-webhook"
-version = "0.5.1"
+version = "0.6.0"
 description = "A package for the creation of Shopify Apps using the Embedded App SDK."
 category = "main"
 optional = false
@@ -572,7 +572,7 @@ django = ">=2.2"
 type = "git"
 url = "https://github.com/discolabs/django-shopify-webhook.git"
 reference = "master"
-resolved_reference = "9e875dac38c5c5389c6db7ce6efa0ddcc02898cc"
+resolved_reference = "a0ba36119455faf99072f668238d2a9e90e06410"
 
 [[package]]
 name = "django-storages"
@@ -856,6 +856,21 @@ description = "A fast and thorough lazy object proxy."
 category = "dev"
 optional = false
 python-versions = ">=3.6"
+
+[[package]]
+name = "mailchimp-marketing"
+version = "3.0.75"
+description = "Mailchimp Marketing API"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+certifi = ">=2017.4.17"
+python-dateutil = ">=2.1"
+requests = ">=2.23"
+six = ">=1.10"
+urllib3 = ">=1.23"
 
 [[package]]
 name = "markuppy"
@@ -1732,7 +1747,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "640190fbbf2b9f521234fc241108edbf0677a69c55ec9662546e6a4e05b09422"
+content-hash = "939aa9ce8e6bb4aa3828c1292a38a545ab47a47392d5494aed6e1c5d4f11fc1f"
 
 [metadata.files]
 anyascii = [
@@ -2140,6 +2155,9 @@ lazy-object-proxy = [
     {file = "lazy_object_proxy-1.7.1-cp39-cp39-win32.whl", hash = "sha256:2130db8ed69a48a3440103d4a520b89d8a9405f1b06e2cc81640509e8bf6548f"},
     {file = "lazy_object_proxy-1.7.1-cp39-cp39-win_amd64.whl", hash = "sha256:677ea950bef409b47e51e733283544ac3d660b709cfce7b187f5ace137960d61"},
     {file = "lazy_object_proxy-1.7.1-pp37.pp38-none-any.whl", hash = "sha256:d66906d5785da8e0be7360912e99c9188b70f52c422f9fc18223347235691a84"},
+]
+mailchimp-marketing = [
+    {file = "mailchimp_marketing-3.0.75-py3-none-any.whl", hash = "sha256:34ca29268823504ddc873b29724905bab7f8eeb42ddb53f66077a2224cd3f02f"},
 ]
 markuppy = [
     {file = "MarkupPy-1.14.tar.gz", hash = "sha256:1adee2c0a542af378fe84548ff6f6b0168f3cb7f426b46961038a2bcfaad0d5f"},

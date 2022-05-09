@@ -8,6 +8,7 @@ from shopify_webhook.signals import products_create, products_delete, products_u
 
 from app import analytics
 from app.models.wagtail import BookPage
+from app.utils.mailchimp import tag_user_in_mailchimp
 from app.utils.stripe import gift_recipient_subscription_from_code
 
 
@@ -27,6 +28,9 @@ def cancel_gift_recipient_subscription(event, **kwargs):
             customer = Customer.objects.filter(id=object.get("customer")).first()
             if customer is not None and customer.subscriber is not None:
                 analytics.cancel_gift_card(customer.subscriber)
+                tag_user_in_mailchimp(
+                    customer.subscriber, tags_to_enable=["CANCELLED_GIFT_GIVER"]
+                )
         except Exception as e:
             capture_exception(e)
             pass
@@ -36,6 +40,11 @@ def cancel_gift_recipient_subscription(event, **kwargs):
             customer = Customer.objects.filter(id=object.get("customer")).first()
             if customer is not None and customer.subscriber is not None:
                 analytics.cancel_membership(customer.subscriber)
+                tag_user_in_mailchimp(
+                    customer.subscriber,
+                    tags_to_enable=["CANCELLED"],
+                    tags_to_disable=["MEMBER"],
+                )
         except Exception as e:
             capture_exception(e)
             pass

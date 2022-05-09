@@ -245,6 +245,7 @@ def create_gift_recipient_subscription(
                         si.price, zone
                     ),
                     "quantity": si.quantity,
+                    "metadata": {"primary": True},
                 }
             )
         else:
@@ -257,6 +258,7 @@ def create_gift_recipient_subscription(
                     # Membership
                     "price_data": recreate_one_off_stripe_price(si.price),
                     "quantity": si.quantity,
+                    "metadata": {"shipping": True},
                 }
             )
 

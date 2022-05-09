@@ -93,7 +93,7 @@ class User(AbstractUser):
         return None
 
     @property
-    def subscribed_product(self) -> LBCProduct:
+    def primary_product(self) -> LBCProduct:
         try:
             if self.active_subscription is not None:
                 product = get_primary_product_for_djstripe_subscription(
@@ -118,6 +118,16 @@ class User(AbstractUser):
             .all()
             .order_by("-created")
         )
+
+    @property
+    def gift_giver(self):
+        try:
+            gift_giver_subscription = self.active_subscription.gift_giver_subscription
+            sub = djstripe.models.Subscription.objects.get(id=gift_giver_subscription)
+            user = sub.customer.subscriber
+            return user
+        except:
+            return None
 
     def __str__(self) -> str:
         fn = self.get_full_name()

@@ -119,7 +119,7 @@ def create_shopify_order(user, line_items=list(), email=False, tags=list()):
             if not email:
                 o.send_receipt = False
                 o.send_fulfillment_receipt = False
-                o.note = f"For {user} / {user.primary_email}. Email not attached to order to prevent Shopify email notifications going out."
+                o.note = f"Email: {user.primary_email}. Stripe customer: {user.stripe_customer.id}."
             else:
                 o.email = user.primary_email
 

@@ -23,7 +23,7 @@
 {% if user.is_authenticated and settings.posthog_token %}
 <script>
   (function identify() {
-    const userId = "{{ user.id }}"
+    let userId = "{{ user.id }}"
     if (!window.location.hostname.includes("leftbookclub.com")) {
       userId = `${userId}—${window.location.hostname}`
     }

@@ -65,15 +65,43 @@ if os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"):
         "SECRET_KEY": os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"),
     }
 
+### Analytics
+import posthog
+
+if POSTHOG_PUBLIC_TOKEN is not None:
+    posthog.project_api_key = POSTHOG_PUBLIC_TOKEN
+    posthog.host = POSTHOG_URL
+    POSTHOG_DJANGO = {"distinct_id": lambda request: request.user and request.user.id}
+if POSTHOG_PUBLIC_TOKEN is None or DEBUG:
+    posthog.disabled = True
+
+### Error logging
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 SENTRY_DSN = os.getenv("SENTRY_DSN", None)
+SENTRY_ORG_SLUG = os.getenv("SENTRY_ORG_SLUG", None)
+SENTRY_PROJECT_ID = os.getenv("SENTRY_PROJECT_ID", None)
+
 if SENTRY_DSN is not None:
+    integrations = [DjangoIntegration()]
+
+    if POSTHOG_PUBLIC_TOKEN is not None and SENTRY_PROJECT_ID is not None:
+        from posthog.sentry.posthog_integration import (
+            PostHogIntegration as PostHogSentryIntegration,
+        )
+
+        PostHogSentryIntegration.organization = SENTRY_ORG_SLUG
+        integrations += [PostHogSentryIntegration()]
+
+        MIDDLEWARE += [
+            "posthog.sentry.django.PosthogDistinctIdMiddleware",
+        ]
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        integrations=[DjangoIntegration()],
+        integrations=integrations,
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         # We recommend adjusting this value in production.

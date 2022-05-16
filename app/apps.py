@@ -1,5 +1,4 @@
 import djstripe.settings
-import posthog
 import shopify
 import stripe
 from django.apps import AppConfig
@@ -18,9 +17,3 @@ class LeftBookClub(AppConfig):
         )
         # Implicitly connect a signal handlers decorated with @receiver.
         from . import signals
-
-        if settings.POSTHOG_PUBLIC_TOKEN is not None:
-            posthog.project_api_key = settings.POSTHOG_PUBLIC_TOKEN
-            posthog.host = settings.POSTHOG_URL
-        if settings.POSTHOG_PUBLIC_TOKEN is None or settings.DEBUG:
-            posthog.disabled = True

@@ -24,13 +24,17 @@
 <script>
   (function identify() {
     const userId = "{{ user.id }}"
+    if (!window.location.hostname.includes("leftbookclub.com")) {
+      userId = `${userId}—${window.location.hostname}`
+    }
     const email = "{{ user.email }}"
     const name = "{{ user.get_full_name }}"
-    const stripeCustomerId = "{% firstof user.stripe_customer.id 'null' %}"
+    const stripeCustomerId = "{{ user.stripe_customer.id }}"
     if (userId) {
       posthog.identify(userId, {
+        djangoId: userId,
         email: email || undefined,
-        name: name || undefined
+        name: name || undefined,
       })
       if(!!stripeCustomerId && stripeCustomerId.length > 8) {
           posthog.alias(stripeCustomerId, userId)

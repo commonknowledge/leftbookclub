@@ -1,5 +1,18 @@
 {% load setting %}
-{% setting "SENTRY_DSN" as SENTRY_DSN %}
-{% if SENTRY_DSN %}
-<script>window.SENTRY_DSN = "{{SENTRY_DSN}}"</script>
+<script>
+  {% setting "SENTRY_DSN" as SENTRY_DSN %}
+  {% if SENTRY_DSN %}
+  window.SENTRY_DSN = "{{SENTRY_DSN}}"
+  {% endif %}
+
+  {% setting "SENTRY_ORG_SLUG" as SENTRY_ORG_SLUG %}
+  {% if SENTRY_ORG_SLUG %}
+  window.SENTRY_ORG_SLUG = "{{SENTRY_ORG_SLUG}}"
+  {% endif %}
+
+  {% setting "SENTRY_PROJECT_ID" as SENTRY_PROJECT_ID %}
+  {% if SENTRY_PROJECT_ID %}
+  window.SENTRY_PROJECT_ID = "{{SENTRY_PROJECT_ID}}"
+  {% endif %}
+</script>
 {% endif %}

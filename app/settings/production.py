@@ -6,7 +6,7 @@ DEBUG = False
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [os.getenv("BASE_URL", "")]
-SECURE_SSL_REDIRECT = True
+# SECURE_SSL_REDIRECT = True
 
 if os.getenv("AWS_S3_REGION_NAME"):
     DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"

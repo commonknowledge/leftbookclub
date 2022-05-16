@@ -103,7 +103,7 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
         }
 
 
-class StripeCheckoutSuccessView(TemplateView):
+class StripeCheckoutSuccessView(LoginRequiredMixin, TemplateView):
     template_name = "stripe/checkout_success.html"
 
     def get_context_data(self, **kwargs):

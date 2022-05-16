@@ -22,7 +22,7 @@ if (typeof window !== undefined && !!window.SENTRY_DSN) {
     // Set tracesSampleRate to 1.0 to capture 100%
     // of transactions for performance monitoring.
     // We recommend adjusting this value in production
-    tracesSampleRate: 0.333,
+    tracesSampleRate: 0.25,
   });
 }
 

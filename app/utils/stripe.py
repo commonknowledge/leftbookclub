@@ -5,6 +5,8 @@ from datetime import datetime
 import djstripe.models
 import stripe
 from dateutil.relativedelta import relativedelta
+from django.utils.text import format_lazy
+from djstripe.utils import get_friendly_currency_amount
 
 if TYPE_CHECKING:
     # see https://stackoverflow.com/a/39757388/1053937
@@ -318,3 +320,101 @@ def get_shipping_product_for_djstripe_subscription(sub):
                 or si.plan.product.metadata.get("shipping", None) is not None
             ):
                 return si.plan.product
+
+
+def interval_string_for_plan(plan):
+    format_args = {}
+    interval_count = plan.interval_count
+    if interval_count == 1:
+        interval = {
+            "day": _("day"),
+            "week": _("week"),
+            "month": _("month"),
+            "year": _("year"),
+        }[plan.interval]
+        template = _("{interval}")
+        format_args["interval"] = interval
+    else:
+        interval = {
+            "day": _("days"),
+            "week": _("weeks"),
+            "month": _("months"),
+            "year": _("years"),
+        }[plan.interval]
+        template = _("every {interval_count} {interval}")
+        format_args["interval"] = interval
+        format_args["interval_count"] = interval_count
+
+    return format_lazy(template, **format_args)
+
+
+def interval_string_for_plan(plan: djstripe.models.Plan):
+    format_args = {}
+    interval_count = plan.interval_count
+    if interval_count == 1:
+        interval = {
+            "day": _("day"),
+            "week": _("week"),
+            "month": _("month"),
+            "year": _("year"),
+        }[plan.interval]
+        template = _("{interval}")
+        format_args["interval"] = interval
+    else:
+        interval = {
+            "day": _("days"),
+            "week": _("weeks"),
+            "month": _("months"),
+            "year": _("years"),
+        }[plan.interval]
+        template = _("every {interval_count} {interval}")
+        format_args["interval"] = interval
+        format_args["interval_count"] = interval_count
+
+    return format_lazy(template, **format_args)
+
+
+def human_readable_price(plan: djstripe.models.Plan):
+    if plan.billing_scheme == "per_unit":
+        unit_amount = plan.amount
+        amount = get_friendly_currency_amount(unit_amount, plan.currency)
+    else:
+        # tiered billing scheme
+        tier_1 = plan.tiers[0]
+        flat_amount_tier_1 = tier_1["flat_amount"]
+        formatted_unit_amount_tier_1 = get_friendly_currency_amount(
+            tier_1["unit_amount"] / 100, plan.currency
+        )
+        amount = f"Starts at {formatted_unit_amount_tier_1} per unit"
+
+        # stripe shows flat fee even if it is set to 0.00
+        if flat_amount_tier_1 is not None:
+            formatted_flat_amount_tier_1 = get_friendly_currency_amount(
+                flat_amount_tier_1 / 100, plan.currency
+            )
+            amount = f"{amount} + {formatted_flat_amount_tier_1}"
+
+    format_args = {"amount": amount}
+
+    interval_count = plan.interval_count
+    if interval_count == 1:
+        interval = {
+            "day": _("day"),
+            "week": _("week"),
+            "month": _("month"),
+            "year": _("year"),
+        }[plan.interval]
+        template = _("{amount}/{interval}")
+        format_args["interval"] = interval
+    else:
+        interval = {
+            "day": _("days"),
+            "week": _("weeks"),
+            "month": _("months"),
+            "year": _("years"),
+        }[plan.interval]
+        template = _("{amount} / every {interval_count} {interval}")
+        format_args["interval"] = interval
+        format_args["interval_count"] = interval_count
+
+    return format_lazy(template, **format_args)

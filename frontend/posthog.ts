@@ -22,20 +22,30 @@ export default function initialisePosthog() {
         posthog.capture("$pageview");
       });
 
-      if (!window.userData || !window.userData.is_authenticated) return;
-      posthog.identify(window.userData.id, {
-        djangoId: window.userData.id,
-        email: window.userData.email,
-        name: window.userData.name,
-      });
-      if (!!window.userData.email && window.userData.email.length > 5) {
-        posthog.alias(window.userData.email, window.userData.id);
-      }
+      // Identify user
       if (
-        !!window.userData.stripe_customer_id &&
-        window.userData.stripe_customer_id.length > 8
+        !window.userData ||
+        !window.userData.is_authenticated ||
+        !window.userData.set
+      )
+        return;
+
+      posthog.identify(window.userData.set.django_id, window.userData?.set);
+
+      posthog.register(window.userData?.register || {});
+
+      if (!!window.userData.set.email && window.userData.set.email.length > 5) {
+        posthog.alias(window.userData.set.email, window.userData.set.django_id);
+      }
+
+      if (
+        !!window.userData.set.stripe_customer_id &&
+        window.userData.set.stripe_customer_id.length > 8
       ) {
-        posthog.alias(window.userData.stripe_customer_id, window.userData.id);
+        posthog.alias(
+          window.userData.set.stripe_customer_id,
+          window.userData.set.django_id
+        );
       }
     },
   });

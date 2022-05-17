@@ -5,10 +5,11 @@ def identify_user(user):
     if user is None:
         return
 
-    posthog.identify(
-        user.id,
-        {"email": user.email, "name": user.get_full_name(), "staff": user.is_staff},
-    )
+    data = user.get_analytics_data()
+    posthog.identify(user.id, data.set)
+
+    if user.primary_email is not None:
+        posthog.alias(user.primary_email, user.id)
 
     if user.stripe_customer is not None:
         posthog.alias(user.stripe_customer.id, user.id)

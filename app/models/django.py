@@ -2,12 +2,14 @@ import djstripe
 import stripe
 from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from sentry_sdk import capture_exception
 
 from app.utils.stripe import (
     get_primary_product_for_djstripe_subscription,
+    interval_string_for_plan,
     subscription_with_promocode,
 )
 
@@ -216,3 +218,68 @@ class User(AbstractUser):
                 except:
                     pass
         self.refresh_stripe_data()
+
+    @property
+    def subscription_billing_interval(self):
+        try:
+            if self.active_subscription is not None:
+                si = self.active_subscription.items.first()
+                return interval_string_for_plan(si.plan)
+        except:
+            return None
+
+    @property
+    def subscription_price(self):
+        try:
+            if self.active_subscription is not None:
+                si = self.active_subscription.items.first()
+                return si.plan.human_readable_price
+        except:
+            return None
+
+    def get_analytics_data(self):
+        user_data = {
+            "is_authenticated": True,
+            "set": {
+                "django_id": self.id
+                if settings.STRIPE_LIVE_MODE
+                else f"{self.id}-DEBUGGING",
+                "email": self.email
+                if settings.STRIPE_LIVE_MODE
+                else f"DEBUGGING--{self.email}",
+                "name": self.get_full_name(),
+                "stripe_customer_id": self.stripe_customer.id,
+                "staff": self.is_staff,
+            },
+            "register": {},
+        }
+
+        if self.primary_product.name is not None:
+            subscription_data = {
+                "subscription_billing_interval": self.subscription_billing_interval,
+                "subscription_price": self.subscription_price,
+                "primary_stripe_product_name": self.primary_product.name,
+                "primary_stripe_product_id": self.primary_product.id,
+            }
+            user_data["register"].update(subscription_data)
+            user_data["set"].update(
+                {
+                    **subscription_data,
+                    **{
+                        "shipping_city": self.shipping_city,
+                        "shipping_country": self.shipping_country,
+                    },
+                }
+            )
+
+        if self.gifts_bought.count() > 0:
+            data = {"gifts_bought": self.gifts_bought.count()}
+            user_data["register"].update(data)
+            user_data["set"].update(data)
+
+        if self.gift_giver is not None:
+            data = {"gift_recipient": True}
+            user_data["register"].update(data)
+            user_data["set"].update(data)
+
+        return user_data

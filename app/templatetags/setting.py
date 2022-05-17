@@ -26,15 +26,6 @@ def user_data(context):
     }
 
     if request.user.is_authenticated:
-        user_data = {
-            "is_authenticated": True,
-            "id": request.user.id,
-            "email": request.user.email,
-            "name": request.user.get_full_name(),
-            "stripe_customer_id": request.user.stripe_customer.id,
-        }
-
-        if not settings.STRIPE_LIVE_MODE:
-            user_data["id"] = f"{request.user.id}-{request.get_host()}"
+        user_data = request.user.get_analytics_data()
 
     return {"user_data": mark_safe(json.dumps(user_data))}

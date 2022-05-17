@@ -1,7 +1,7 @@
-from wagtail.core import blocks
-from wagtail.core.blocks import RichTextBlock
-from wagtail.core.fields import StreamField
+from wagtail import blocks
+from wagtail.blocks import RichTextBlock
 from wagtail.embeds.blocks import EmbedBlock
+from wagtail.fields import StreamField
 
 
 def ArticleContentStream(block_types=None, **kwargs):
@@ -24,4 +24,6 @@ def ArticleContentStream(block_types=None, **kwargs):
         ("embed", EmbedBlock(template="app/content/embed.html")),
     ]
 
-    return StreamField(common_block_types + (block_types or []), **kwargs)
+    return StreamField(
+        common_block_types + (block_types or []), use_json_field=True, **kwargs
+    )

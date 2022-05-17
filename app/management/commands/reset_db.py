@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from wagtail.core.models import Page, Site
+from wagtail.models import Page, Site
 
 from app.models import BlogIndexPage, HomePage
 from app.models.wagtail import BookIndexPage

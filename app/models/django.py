@@ -248,7 +248,9 @@ class User(AbstractUser):
                 if settings.STRIPE_LIVE_MODE
                 else f"DEBUGGING--{self.email}",
                 "name": self.get_full_name(),
-                "stripe_customer_id": self.stripe_customer.id,
+                "stripe_customer_id": self.stripe_customer.id
+                if self.stripe_customer is not None
+                else None,
                 "staff": self.is_staff,
             },
             "register": {},
@@ -257,7 +259,7 @@ class User(AbstractUser):
         if self.primary_product.name is not None:
             subscription_data = {
                 "subscription_billing_interval": self.subscription_billing_interval,
-                "subscription_price": self.subscription_price,
+                "subscription_price": str(self.subscription_price),
                 "primary_stripe_product_name": self.primary_product.name,
                 "primary_stripe_product_id": self.primary_product.id,
             }
@@ -266,8 +268,8 @@ class User(AbstractUser):
                 {
                     **subscription_data,
                     **{
-                        "shipping_city": self.shipping_city,
-                        "shipping_country": self.shipping_country,
+                        "shipping_city": self.shipping_city(),
+                        "shipping_country": self.shipping_country(),
                     },
                 }
             )

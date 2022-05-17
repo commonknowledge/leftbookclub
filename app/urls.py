@@ -7,8 +7,8 @@ from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from shopify_webhook.views import WebhookView
-from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 from wagtail_transfer import urls as wagtailtransfer_urls
 from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls

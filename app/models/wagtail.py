@@ -19,8 +19,7 @@ from django_countries import countries
 from djmoney.models.fields import Money, MoneyField
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from modelcluster.models import ClusterableModel
-from wagtail import blocks
-from wagtail.admin.panels import (
+from wagtail.admin.edit_handlers import (
     FieldPanel,
     FieldRowPanel,
     HelpPanel,
@@ -30,12 +29,13 @@ from wagtail.admin.panels import (
     StreamFieldPanel,
 )
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
-from wagtail.fields import RichTextField, StreamField
+from wagtail.core import blocks
+from wagtail.core.fields import RichTextField, StreamField
+from wagtail.core.models import Orderable, Page
+from wagtail.core.rich_text import get_text_for_indexing
 from wagtail.images.blocks import ImageChooserBlock
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.images.models import AbstractImage, AbstractRendition
-from wagtail.models import Orderable, Page
-from wagtail.rich_text import get_text_for_indexing
 from wagtail.search import index
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.snippets.models import register_snippet
@@ -834,7 +834,7 @@ def create_streamfield(additional_blocks=None, **kwargs):
     if isinstance(additional_blocks, list):
         blcks += additional_blocks
 
-    return StreamField(blcks, null=True, blank=True, use_json_field=True, **kwargs)
+    return StreamField(blcks, null=True, blank=True, **kwargs)
 
 
 class BookPage(BaseShopifyProductPage):

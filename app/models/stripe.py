@@ -10,7 +10,7 @@ from django_countries import countries as django_countries
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djmoney.models.fields import Money, MoneyField
-from wagtail.admin.panels import FieldPanel
+from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list

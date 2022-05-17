@@ -8,7 +8,7 @@ from functools import partial
 from django.db import migrations
 from django.db.migrations.state import StateApps
 from django.db.models.base import ModelBase
-from wagtail.blocks.stream_block import StreamValue
+from wagtail.core.blocks.stream_block import StreamValue
 
 # From https://gist.github.com/kmohrf/3989eee63243f895396beffc61668e07
 # See also https://github.com/wagtail/wagtail/issues/2110

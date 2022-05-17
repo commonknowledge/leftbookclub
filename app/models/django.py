@@ -278,8 +278,8 @@ class User(AbstractUser):
                 }
             )
 
-        if self.gifts_bought is not None and self.gifts_bought.count() > 0:
-            data = {"gifts_bought": self.gifts_bought.count()}
+        if self.gifts_bought is not None and len(self.gifts_bought):
+            data = {"gifts_bought": len(self.gifts_bought)}
             user_data["register"].update(data)
             user_data["set"].update(data)
 

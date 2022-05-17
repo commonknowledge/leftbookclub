@@ -1,5 +1,6 @@
 import "./scss/main.scss";
-import Turbo from "@hotwired/turbo";
+import "@hotwired/turbo";
+import * as Turbo from "@hotwired/turbo";
 import "bootstrap";
 import initialiseSentry from "./sentry";
 import initialisePosthog from "./posthog";

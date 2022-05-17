@@ -96,6 +96,8 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, RedirectView):
         # ! even if customer_email is provided!
         session = stripe.checkout.Session.create(**session_args)
 
+        analytics.visit_stripe_checkout(user)
+
         return session.url
 
 
@@ -297,6 +299,7 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
             customer=self.request.user.stripe_customer.id,
             return_url=return_url,
         )
+        analytics.visit_stripe_customerportal(self.request.user)
         return session.url
 
 

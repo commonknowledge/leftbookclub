@@ -34,6 +34,16 @@ def buy_gift(user):
     posthog.capture(user.id, event="buy gift")
 
 
+def visit_stripe_checkout(user):
+    identify_user(user)
+    posthog.capture(user.id, event="$pageview stripe checkout")
+
+
+def visit_stripe_customerportal(user):
+    identify_user(user)
+    posthog.capture(user.id, event="$pageview stripe customerportal")
+
+
 def buy_membership(user):
     identify_user(user)
     posthog.capture(user.id, event="buy membership")

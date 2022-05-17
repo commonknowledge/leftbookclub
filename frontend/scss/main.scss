@@ -165,8 +165,27 @@ p {
 }
 
 .banner-text {
-  @apply tw-uppercase tw-font-serif tw-text-xs tw-opacity-75 tw-overflow-hidden tw-font-light;
   letter-spacing: 0.2em;
   max-height: 1.5em;
+  height: 1.5em;
   line-height: 150%;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: visible;
+  pointer-events: none;
+  background-color: transparent;
+  cursor: default;
+  user-select: none;
+
+  &__strings {
+    @apply tw-uppercase tw-font-serif tw-text-xs tw-opacity-75 tw-overflow-hidden tw-font-light;
+    letter-spacing: 0.2em;
+    position: absolute;
+    white-space: nowrap;
+    pointer-events: none;
+    background-color: transparent;
+    cursor: default;
+    user-select: none;
+    margin-left: -25%;
+  }
 }

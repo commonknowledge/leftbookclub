@@ -41,7 +41,8 @@ export default function initialiseSentry() {
       // Set tracesSampleRate to 1.0 to capture 100%
       // of transactions for performance monitoring.
       // We recommend adjusting this value in production
-      tracesSampleRate: 0.25,
+      // @ts-ignore
+      tracesSampleRate: window.STRIPE_LIVE_MODE ? 0.3 : 1,
     });
   }
 }

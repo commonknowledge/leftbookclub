@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.db import models
 from django.http.response import Http404
 from django.shortcuts import redirect
+from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.html import strip_tags
 from django_countries import countries
@@ -39,6 +40,7 @@ from wagtail.search import index
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.snippets.models import register_snippet
 from wagtailautocomplete.edit_handlers import AutocompletePanel
+from wagtailseo import utils
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
@@ -83,6 +85,18 @@ class SeoMetadataMixin(SeoMixin, Page):
     ]
 
     @property
+    def seo_image_url(self) -> str:
+        """
+        Gets the absolute URL for the primary Open Graph image of this page.
+        """
+        if self.seo_image:
+            url = self.seo_image.get_rendition("original").url
+            base_url = utils.get_absolute_media_url(self.get_site())
+            return utils.ensure_absolute_url(url, base_url)
+
+        return static("images/sharecard.png")
+
+    @property
     def seo_description(self) -> str:
         """
         Middleware for seo_description_sources
@@ -101,7 +115,7 @@ class IndexPageSeoMixin(SeoMetadataMixin):
         abstract = True
 
     seo_content_type = SeoType.WEBSITE
-    seo_twitter_card = TwitterCard.SUMMARY
+    seo_twitter_card = TwitterCard.LARGE
     promote_panels = SeoMixin.seo_panels
 
 
@@ -110,7 +124,7 @@ class ArticleSeoMixin(SeoMetadataMixin):
         abstract = True
 
     seo_content_type = SeoType.ARTICLE
-    seo_twitter_card = TwitterCard.LARGE
+    seo_twitter_card = TwitterCard.SUMMARY
     promote_panels = SeoMixin.seo_panels
 
 

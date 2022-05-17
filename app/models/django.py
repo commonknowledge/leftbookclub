@@ -256,7 +256,7 @@ class User(AbstractUser):
             "register": {},
         }
 
-        if self.primary_product.name is not None:
+        if self.primary_product is not None:
             subscription_data = {
                 "subscription_billing_interval": self.subscription_billing_interval,
                 "subscription_price": str(self.subscription_price),

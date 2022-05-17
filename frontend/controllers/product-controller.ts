@@ -34,20 +34,24 @@ class ProductController extends Controller {
   }
 
   get shippingAddress(): Address | undefined {
-    return this.stripeShippingValue
-      ? {
-          address1: this.stripeShippingValue.address.line1,
-          address2: this.stripeShippingValue.address.line1,
-          city: this.stripeShippingValue.address.city,
-          province: this.stripeShippingValue.address.state,
-          zip: this.stripeShippingValue.address.postal_code,
-          country: this.stripeShippingValue.address.country,
-          company: "",
-          firstName: this.stripeShippingValue.name,
-          lastName: this.stripeShippingValue.name,
-          phone: "",
-        }
-      : undefined;
+    try {
+      return this.stripeShippingValue
+        ? {
+            address1: this.stripeShippingValue.address.line1,
+            address2: this.stripeShippingValue.address.line1,
+            city: this.stripeShippingValue.address.city,
+            province: this.stripeShippingValue.address.state,
+            zip: this.stripeShippingValue.address.postal_code,
+            country: this.stripeShippingValue.address.country,
+            company: "",
+            firstName: this.stripeShippingValue.name,
+            lastName: this.stripeShippingValue.name,
+            phone: "",
+          }
+        : undefined;
+    } catch (e) {
+      return undefined;
+    }
   }
 
   ensureCheckout(checkoutId: number | undefined): checkoutId is number {

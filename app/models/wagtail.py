@@ -78,7 +78,7 @@ class SeoMetadataMixin(SeoMixin, Page):
 
     promote_panels = SeoMixin.seo_panels
 
-    seo_image_sources = ["og_image"]  # Explicit sharing image
+    seo_image_sources = ["og_image", "homepage_seo_image"]  # Explicit sharing image
 
     seo_description_sources = [
         "search_description",  # Explicit sharing description
@@ -89,6 +89,11 @@ class SeoMetadataMixin(SeoMixin, Page):
     def homepage_search_description(self):
         home = HomePage.objects.first()
         return home.search_description
+
+    @property
+    def homepage_seo_image(self):
+        home = HomePage.objects.first()
+        return home.og_image
 
     @property
     def seo_image_url(self) -> str:

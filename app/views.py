@@ -44,11 +44,10 @@ class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
     login_url = reverse_lazy("account_signup")
 
 
-class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
-    template_name = "stripe/checkout.html"
+class StripeCheckoutView(MemberSignupUserRegistrationMixin, RedirectView):
     context = {}
 
-    def get_context_data(self, **kwargs):
+    def get_redirect_url(self, **kwargs):
         """
         Creates and returns a Stripe Checkout Session.
         - Pass context arg `next` to redirect after StripeCheckoutSuccessView.
@@ -97,10 +96,7 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, TemplateView):
         # ! even if customer_email is provided!
         session = stripe.checkout.Session.create(**session_args)
 
-        return {
-            "CHECKOUT_SESSION_ID": session.id,
-            "STRIPE_PUBLIC_KEY": djstripe.settings.djstripe_settings.STRIPE_PUBLIC_KEY,
-        }
+        return session.url
 
 
 class StripeCheckoutSuccessView(LoginRequiredMixin, TemplateView):

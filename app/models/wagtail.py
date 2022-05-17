@@ -82,7 +82,13 @@ class SeoMetadataMixin(SeoMixin, Page):
 
     seo_description_sources = [
         "search_description",  # Explicit sharing description
+        "homepage_search_description",
     ]
+
+    @property
+    def homepage_search_description(self):
+        home = HomePage.objects.first()
+        return home.search_description
 
     @property
     def seo_image_url(self) -> str:

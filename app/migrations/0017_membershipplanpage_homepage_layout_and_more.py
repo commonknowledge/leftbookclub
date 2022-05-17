@@ -5,8 +5,8 @@ from decimal import Decimal
 import django.db.models.deletion
 import djmoney.models.fields
 import modelcluster.fields
-import wagtail.core.blocks
-import wagtail.core.fields
+import wagtail.blocks
+import wagtail.fields
 import wagtail.images.blocks
 import wagtail.snippets.blocks
 from django.db import migrations, models
@@ -687,15 +687,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "struct_org_hours",
-                    wagtail.core.fields.StreamField(
+                    wagtail.fields.StreamField(
                         [
                             (
                                 "hours",
-                                wagtail.core.blocks.StructBlock(
+                                wagtail.blocks.StructBlock(
                                     [
                                         (
                                             "days",
-                                            wagtail.core.blocks.MultipleChoiceBlock(
+                                            wagtail.blocks.MultipleChoiceBlock(
                                                 choices=[
                                                     ("Monday", "Monday"),
                                                     ("Tuesday", "Tuesday"),
@@ -711,13 +711,13 @@ class Migration(migrations.Migration):
                                         ),
                                         (
                                             "start_time",
-                                            wagtail.core.blocks.TimeBlock(
+                                            wagtail.blocks.TimeBlock(
                                                 verbose_name="Opening time"
                                             ),
                                         ),
                                         (
                                             "end_time",
-                                            wagtail.core.blocks.TimeBlock(
+                                            wagtail.blocks.TimeBlock(
                                                 verbose_name="Closing time"
                                             ),
                                         ),
@@ -731,15 +731,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "struct_org_actions",
-                    wagtail.core.fields.StreamField(
+                    wagtail.fields.StreamField(
                         [
                             (
                                 "actions",
-                                wagtail.core.blocks.StructBlock(
+                                wagtail.blocks.StructBlock(
                                     [
                                         (
                                             "action_type",
-                                            wagtail.core.blocks.ChoiceBlock(
+                                            wagtail.blocks.ChoiceBlock(
                                                 choices=[
                                                     ("OrderAction", "OrderAction"),
                                                     ("ReserveAction", "ReserveAction"),
@@ -749,13 +749,13 @@ class Migration(migrations.Migration):
                                         ),
                                         (
                                             "target",
-                                            wagtail.core.blocks.URLBlock(
+                                            wagtail.blocks.URLBlock(
                                                 verbose_name="Target URL"
                                             ),
                                         ),
                                         (
                                             "language",
-                                            wagtail.core.blocks.CharBlock(
+                                            wagtail.blocks.CharBlock(
                                                 default="en-US",
                                                 help_text="If the action is offered in multiple languages, create separate actions for each language.",
                                                 verbose_name="Language",
@@ -763,7 +763,7 @@ class Migration(migrations.Migration):
                                         ),
                                         (
                                             "result_type",
-                                            wagtail.core.blocks.ChoiceBlock(
+                                            wagtail.blocks.ChoiceBlock(
                                                 choices=[
                                                     ("Reservation", "Reservation"),
                                                     (
@@ -810,7 +810,7 @@ class Migration(migrations.Migration):
                                         ),
                                         (
                                             "result_name",
-                                            wagtail.core.blocks.CharBlock(
+                                            wagtail.blocks.CharBlock(
                                                 help_text='Example: "Reserve a table", "Book an appointment", etc.',
                                                 required=False,
                                                 verbose_name="Result Name",
@@ -818,7 +818,7 @@ class Migration(migrations.Migration):
                                         ),
                                         (
                                             "extra_json",
-                                            wagtail.core.blocks.RawHTMLBlock(
+                                            wagtail.blocks.RawHTMLBlock(
                                                 form_classname="monospace",
                                                 help_text="Additional JSON-LD inserted into the Action dictionary. Must be properties of https://schema.org/Action.",
                                                 required=False,
@@ -845,11 +845,11 @@ class Migration(migrations.Migration):
                 ("deliveries_per_year", models.IntegerField()),
                 (
                     "description",
-                    wagtail.core.fields.RichTextField(blank=True, null=True),
+                    wagtail.fields.RichTextField(blank=True, null=True),
                 ),
                 (
                     "pick_product_text",
-                    wagtail.core.fields.RichTextField(
+                    wagtail.fields.RichTextField(
                         blank=True,
                         default="<h3>Choose a book series</h3>",
                         help_text="Displayed if there are multiple products to pick from",
@@ -902,20 +902,20 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="homepage",
             name="layout",
-            field=wagtail.core.fields.StreamField(
+            field=wagtail.fields.StreamField(
                 [
                     (
                         "heading",
-                        wagtail.core.blocks.CharBlock(form_classname="full title"),
+                        wagtail.blocks.CharBlock(form_classname="full title"),
                     ),
-                    ("paragraph", wagtail.core.blocks.RichTextBlock()),
+                    ("paragraph", wagtail.blocks.RichTextBlock()),
                     (
                         "membership_options",
-                        wagtail.core.blocks.StructBlock(
+                        wagtail.blocks.StructBlock(
                             [
                                 (
                                     "heading",
-                                    wagtail.core.blocks.CharBlock(
+                                    wagtail.blocks.CharBlock(
                                         blank=True,
                                         default="Choose your plan",
                                         form_classname="full title",
@@ -924,7 +924,7 @@ class Migration(migrations.Migration):
                                 ),
                                 (
                                     "plans",
-                                    wagtail.core.blocks.ListBlock(
+                                    wagtail.blocks.ListBlock(
                                         wagtail.snippets.blocks.SnippetChooserBlock(
                                             app.models.wagtail.MembershipPlanPage
                                         )

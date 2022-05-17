@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     "wagtail.images",
     "wagtail.search",
     "wagtail.admin",
-    "wagtail.core",
+    "wagtail",
     "wagtail.contrib.settings",
     "wagtail_transfer",
     "taggit",
@@ -268,6 +268,7 @@ INTERNAL_IPS = [
 
 WAGTAIL_SITE_NAME = "Left Book Club"
 BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "http://localhost:8000"))
+WAGTAILADMIN_BASE_URL = BASE_URL
 
 WAGTAILIMAGES_IMAGE_MODEL = "app.CustomImage"
 

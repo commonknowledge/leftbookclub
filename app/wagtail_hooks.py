@@ -7,8 +7,8 @@ from admin_list_controls.views import ListControlsIndexView
 from django.db.models import Count, Q
 from django.templatetags.static import static
 from django.utils.html import format_html
+from wagtail import hooks
 from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
-from wagtail.core import hooks
 
 from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone

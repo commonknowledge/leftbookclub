@@ -1,0 +1,7 @@
+{% load setting %}
+{% setting setting as SETTING %}
+{% if SETTING %}
+window["{{setting}}"] = "{{SETTING}}";
+{% else %}
+window["{{setting}}"] = null;
+{% endif %}

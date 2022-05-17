@@ -83,6 +83,8 @@ from sentry_sdk.integrations.django import DjangoIntegration
 SENTRY_DSN = os.getenv("SENTRY_DSN", None)
 SENTRY_ORG_SLUG = os.getenv("SENTRY_ORG_SLUG", None)
 SENTRY_PROJECT_ID = os.getenv("SENTRY_PROJECT_ID", None)
+FLY_APP_NAME = os.getenv("FLY_APP_NAME", None)
+GIT_SHA = os.getenv("GIT_SHA", None)
 
 if SENTRY_DSN is not None:
     integrations = [DjangoIntegration()]
@@ -109,8 +111,8 @@ if SENTRY_DSN is not None:
         # If you wish to associate users to errors (assuming you are using
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
-        environment=os.getenv("FLY_APP_NAME", None),
-        # release=os.getenv("GIT_SHA", None),
+        environment=FLY_APP_NAME,
+        release=GIT_SHA,
     )
 
 

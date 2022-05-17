@@ -27,6 +27,12 @@ export default function initialiseSentry() {
       // @ts-ignore
       dsn: window.SENTRY_DSN,
 
+      // @ts-ignore
+      environment: window.FLY_APP_NAME,
+
+      // @ts-ignore
+      release: window.GIT_SHA,
+
       // Alternatively, use `process.env.npm_package_version` for a dynamic release version
       // if your build tool supports it.
       // release: "my-project-name@2.3.12",

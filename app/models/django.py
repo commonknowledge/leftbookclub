@@ -115,11 +115,15 @@ class User(AbstractUser):
 
     @property
     def gifts_bought(self):
-        return (
-            self.stripe_customer.subscriptions.filter(metadata__gift_mode__isnull=False)
-            .all()
-            .order_by("-created")
-        )
+        if self.stripe_customer is not None:
+            return (
+                self.stripe_customer.subscriptions.filter(
+                    metadata__gift_mode__isnull=False
+                )
+                .all()
+                .order_by("-created")
+            )
+        return list()
 
     @property
     def gift_giver(self):
@@ -274,7 +278,7 @@ class User(AbstractUser):
                 }
             )
 
-        if self.gifts_bought.count() > 0:
+        if self.gifts_bought is not None and self.gifts_bought.count() > 0:
             data = {"gifts_bought": self.gifts_bought.count()}
             user_data["register"].update(data)
             user_data["set"].update(data)

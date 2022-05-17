@@ -8,6 +8,12 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [os.getenv("BASE_URL", "")]
 # SECURE_SSL_REDIRECT = True
 
+
+MIDDLEWARE += [
+    "redirect_to_non_www.middleware.RedirectToNonWww",
+]
+
+
 if os.getenv("AWS_S3_REGION_NAME"):
     DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"
     AWS_S3_ADDRESSING_STYLE = "virtual"

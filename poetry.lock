@@ -557,6 +557,17 @@ exchange = ["certifi"]
 test = ["pytest (>=3.1.0)", "pytest-django", "pytest-pythonpath", "pytest-cov", "mixer"]
 
 [[package]]
+name = "django-redirect-to-non-www"
+version = "0.1.1"
+description = "Redirect www URL addresses to non-www"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+django = "*"
+
+[[package]]
 name = "django-shopify-webhook"
 version = "0.6.0"
 description = "A package for the creation of Shopify Apps using the Embedded App SDK."
@@ -1747,7 +1758,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "939aa9ce8e6bb4aa3828c1292a38a545ab47a47392d5494aed6e1c5d4f11fc1f"
+content-hash = "bdf174f4ed3997ef27d5fdb8a106567e1d17e1930b3276e7c22c7fec43259b2f"
 
 [metadata.files]
 anyascii = [
@@ -2024,6 +2035,9 @@ django-modelcluster = [
 django-money = [
     {file = "django-money-2.1.1.tar.gz", hash = "sha256:4d06041fac5c565ad049a7f8fb4bc33de5c68047b0693efa18a9931cebffb606"},
     {file = "django_money-2.1.1-py3-none-any.whl", hash = "sha256:60a605d5b999e1756a18008dd7e0c5a860fd64c018a140c7a7675a4209ec3782"},
+]
+django-redirect-to-non-www = [
+    {file = "django-redirect-to-non-www-0.1.1.tar.gz", hash = "sha256:a8c3836d16ca21be8bd71a8d0e0326db2651b4f29a0fa19348aafa2d855d8bec"},
 ]
 django-shopify-webhook = []
 django-storages = [

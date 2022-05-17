@@ -2,11 +2,11 @@
 
 import django.db.models.deletion
 import taggit.managers
-import wagtail.core.blocks
-import wagtail.core.fields
-import wagtail.core.models.collections
+import wagtail.blocks
 import wagtail.embeds.blocks
+import wagtail.fields
 import wagtail.images.models
+import wagtail.models.collections
 import wagtail.search.index
 from django.conf import settings
 from django.db import migrations, models
@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                         to="wagtailcore.page",
                     ),
                 ),
-                ("intro", wagtail.core.fields.RichTextField(blank=True)),
+                ("intro", wagtail.fields.RichTextField(blank=True)),
             ],
             options={
                 "abstract": False,
@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
                 (
                     "collection",
                     models.ForeignKey(
-                        default=wagtail.core.models.collections.get_root_collection_id,
+                        default=wagtail.models.collections.get_root_collection_id,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="+",
                         to="wagtailcore.collection",
@@ -153,11 +153,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "body",
-                    wagtail.core.fields.StreamField(
+                    wagtail.fields.StreamField(
                         [
                             (
                                 "text",
-                                wagtail.core.blocks.RichTextBlock(
+                                wagtail.blocks.RichTextBlock(
                                     features=[
                                         "h3",
                                         "h4",
@@ -213,11 +213,11 @@ class Migration(migrations.Migration):
                 ("intro", models.CharField(max_length=250)),
                 (
                     "body",
-                    wagtail.core.fields.StreamField(
+                    wagtail.fields.StreamField(
                         [
                             (
                                 "text",
-                                wagtail.core.blocks.RichTextBlock(
+                                wagtail.blocks.RichTextBlock(
                                     features=[
                                         "h3",
                                         "h4",

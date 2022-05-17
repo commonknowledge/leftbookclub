@@ -1,9 +1,9 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from wagtail.admin.edit_handlers import StreamFieldPanel
+from wagtail import hooks
 from wagtail.admin.menu import MenuItem
+from wagtail.admin.panels import StreamFieldPanel
 from wagtail.contrib.settings.models import BaseSetting, register_setting
-from wagtail.core import hooks
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 
 from app.models.wagtail import BookPage, create_streamfield

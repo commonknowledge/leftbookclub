@@ -95,12 +95,14 @@ class SeoMetadataMixin(SeoMixin, Page):
         """
         Gets the absolute URL for the primary Open Graph image of this page.
         """
+        base_url = utils.get_absolute_media_url(self.get_site())
+
+        url = static("images/sharecard.png")
+
         if self.seo_image:
             url = self.seo_image.get_rendition("original").url
-            base_url = utils.get_absolute_media_url(self.get_site())
-            return utils.ensure_absolute_url(url, base_url)
 
-        return static("images/sharecard.png")
+        return utils.ensure_absolute_url(url, base_url)
 
     @property
     def seo_description(self) -> str:

@@ -1,9 +1,11 @@
-{% load wagtailuserbar django_vite menu_tags %}
+{% load wagtailuserbar django_vite menu_tags setting %}
 
 <!DOCTYPE html>
 <html class="no-js" lang="en">
     <head>
-        {% include "sentry/dsn.html" %}
+        {% user_data %}
+        {% include "sentry/globals.html" %}
+        {% include "posthog/globals.html" %}
         {% include "googleanalytics/initialise.html" %}
         <meta charset="utf-8" />
         <meta name="description" content="" />
@@ -19,7 +21,6 @@
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@300&family=Open+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
         
-        {% include "posthog/initialise.html" %}
         {% vite_asset 'frontend/main.ts' %}
 
         {% block extra_js %}

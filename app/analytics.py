@@ -15,7 +15,7 @@ def identify_user(user):
         return
 
     data = user.get_analytics_data()
-    posthog.identify(user.id, data.set)
+    posthog.identify(user.id, data["set"])
 
     if user.primary_email is not None:
         posthog.alias(user.primary_email, user.id)

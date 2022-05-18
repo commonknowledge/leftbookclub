@@ -8,15 +8,15 @@
       <div class="btn-group my-3" role="group" aria-label="Basic outlined example">
         {% qs_link annual=None as url %}
         {% if not annual %}
-          <a data-turbo="true" id="pick-monthly" class='btn btn-md btn-secondary' href="url">Monthly</a>
+          <a data-turbo="true" id="pick-monthly" class='btn btn-md btn-secondary' href="{{url}}">Monthly</a>
         {% else %}
-          <a data-turbo="true" id="pick-monthly" class='btn btn-md btn-outline-secondary' href="url">Monthly</a>
+          <a data-turbo="true" id="pick-monthly" class='btn btn-md btn-outline-secondary' href="{{url}}">Monthly</a>
         {% endif %}
         {% qs_link annual="true" as url %}
         {% if annual %}
-          <a data-turbo="true" id="pick-annual" class='btn btn-md btn-secondary' href="url">Annual</a>
+          <a data-turbo="true" id="pick-annual" class='btn btn-md btn-secondary' href="{{url}}">Annual</a>
         {% else %}
-          <a data-turbo="true" id="pick-annual" class='btn btn-md btn-outline-secondary' href="url">Annual</a>
+          <a data-turbo="true" id="pick-annual" class='btn btn-md btn-outline-secondary' href="{{url}}">Annual</a>
         {% endif %}
       </div>
       <h5>{{ request_price.price_string }} + postage</h5>

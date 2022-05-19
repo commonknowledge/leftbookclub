@@ -1,6 +1,6 @@
 <div class='banner-text {{class}}'>
   {% comment %} Loop center:N times {% endcomment %}
-  <div class='banner-text__strings'>
+  <div class='banner-text__strings' role="presentation">
     {% with ''|center:50 as range %}
       {% for _ in range %}
         {{ label }}

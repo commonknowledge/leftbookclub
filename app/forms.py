@@ -4,6 +4,7 @@ import stripe
 from allauth.account.views import SignupForm
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
@@ -18,6 +19,12 @@ from app.utils.stripe import (
 class MemberSignupForm(SignupForm):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
+    terms_and_conditions = forms.BooleanField(
+        required=True,
+        label=mark_safe(
+            "You agree to our <a href='/terms-and-conditions/'>terms and conditions</a> and <a href='/privacy-policy/'>privacy policy</a>"
+        ),
+    )
     gdpr_email_consent = forms.BooleanField(
         required=False,
         label="Can we email you with news and updates from the Left Book Club?",
@@ -31,6 +38,7 @@ class MemberSignupForm(SignupForm):
         "password1",
         "password2",  # ignored when not present
         "gdpr_email_consent",
+        "terms_and_conditions",
     ]
 
     def save(self, request):

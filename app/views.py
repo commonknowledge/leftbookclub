@@ -76,7 +76,7 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, RedirectView):
             + self.context.get("next", reverse_lazy("account_membership")),
         )
         session_args["cancel_url"] = urllib.parse.urljoin(
-            base=settings.BASE_URL, url="/"
+            base=settings.BASE_URL, url=self.context.get("cancel_url", "/")
         )
 
         try:
@@ -582,7 +582,17 @@ class SubscriptionCheckoutView(TemplateView):
         else:
             next = reverse_lazy("completed_membership_purchase")
 
-        return {"checkout_args": checkout_args, "next": next}
+        return {
+            "checkout_args": checkout_args,
+            "next": next,
+            "cancel_url": price.plan.url,
+            "breadcrumbs": {
+                "price": price,
+                "product": product,
+                "zone": zone,
+                "gift_mode": gift_mode,
+            },
+        }
 
     def get(
         self,

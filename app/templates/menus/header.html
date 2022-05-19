@@ -1,7 +1,7 @@
 {% load static account menu_tags %}
 
 <header>
-  <nav class='text-uppercase tw-text-sm navbar navbar-expand-lg container'>
+  <nav class='text-uppercase tw-text-sm navbar navbar-expand-lg container-xl'>
     <ul class="nav col-12 col-md tw-justify-center md:tw-justify-start tw-order-3 md:tw-order-1 small-text tw-text-black">
       {% for item in menu_items %}
         <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>

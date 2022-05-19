@@ -19,9 +19,9 @@
     {% setting "FACEBOOK_PIXEL" as FACEBOOK_PIXEL %}
     {% if FACEBOOK_PIXEL %}
       {% if subscription %}
-        console.log("fbq('track', 'Subscribe', { currency: '{{currency}}', value: '{{value}}' });")
+        fbq('track', 'Subscribe', { subscription_id: '{{subscription.id}}', currency: '{{currency}}', value: parseFloat('{{value}}') });
       {% elif payment_intent %}
-        console.log("fbq('track', 'Purchase', { currency: '{{currency}}', value: '{{value}}' });")
+        fbq('track', 'Purchase', { currency: '{{currency}}', value: parseFloat('{{value}}') });
       {% endif %}
     {% endif %}
   } catch(e) {

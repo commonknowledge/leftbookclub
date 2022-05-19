@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 {% load setting %}
 
-{% block title %}Checkout{% endblock %}
+{% block extra_js %}
+<script async src="https://js.stripe.com/v3/"></script>
+{% endblock %}
 
-{% block header %}{% endblock %}
+{% block facebook_pixel_event %}
+{% if subscription %}
+  fbq('track', 'Subscribe', { subscription_id: '{{subscription.id}}', currency: '{{currency}}', value: '{{value}}' });
+{% elif payment_intent %}
+  fbq('track', 'Purchase', { currency: '{{currency}}', value: '{{value}}' });
+{% endif %}
+{% endblock %}
+
+{% block header %}
+  {% comment %} Blank page {% endcomment %}
+{% endblock %}
 
 {% block container_class %}tw-h-screen my-0 text-center d-flex flex-column justify-center align-content-center align-items-center justify-content-center tw-justify-items-center align-middle py-4 h5{% endblock %}
 
@@ -13,31 +25,19 @@
 {% endblock %}
 
 {% block bottom_of_page %}
-<script async src="https://js.stripe.com/v3/"></script>
 <script>
   try {
-    {% setting "FACEBOOK_PIXEL" as FACEBOOK_PIXEL %}
-    {% if FACEBOOK_PIXEL %}
-      {% if subscription %}
-        fbq('track', 'Subscribe', { subscription_id: '{{subscription.id}}', currency: '{{currency}}', value: parseFloat('{{value}}') });
-      {% elif payment_intent %}
-        fbq('track', 'Purchase', { currency: '{{currency}}', value: parseFloat('{{value}}') });
-      {% endif %}
-    {% endif %}
+    Turbo.visit("{{next}}", { action: "replace" })
   } catch(e) {
-
-  } finally {
-    try {
+    fn = function () {
+      document.removeEventListener("turbo:load", fn)
       Turbo.visit("{{next}}", { action: "replace" })
-    } catch(e) {
-      fn = function () {
-        document.removeEventListener("turbo:load", fn)
-        Turbo.visit("{{next}}", { action: "replace" })
-      }
-      document.addEventListener("turbo:load", fn)
     }
+    document.addEventListener("turbo:load", fn)
   }
 </script>
 {% endblock %}
 
-{% block footer %}{% endblock %}
+{% block footer %}
+  {% comment %} Blank page {% endcomment %}
+{% endblock %}

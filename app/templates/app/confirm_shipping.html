@@ -1,5 +1,10 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
+
+{% block facebook_pixel_event %}
+fbq('track', 'InitiateCheckout');
+{% endblock %}
+
 {% block body_class %}tw-bg-background{% endblock %}
 {% block content %}
 {% with request.GET.annual as annual %}

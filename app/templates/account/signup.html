@@ -18,7 +18,7 @@
   {% endif %}
 
   <div>
-    <p class='text-center'>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
+    <p class='text-center'>{% blocktrans %}Or <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
         
     <form data-turbo="false" id="signup_form" method="post" action="{% url 'account_signup' %}{% qs_link %}">
       {% csrf_token %}
@@ -28,7 +28,7 @@
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
       {% endif %}
       <div class="form-actions text-center">
-        {% bootstrap_button size='lg' content="Sign up" %}
+        {% bootstrap_button size='lg' button_class="btn-primary" content="Register and checkout" %}
       </div>
     </form>
   </div>

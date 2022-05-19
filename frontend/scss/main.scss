@@ -189,3 +189,7 @@ p {
     margin-left: -25%;
   }
 }
+
+.btn-primary {
+  @apply tw-bg-yellow tw-border tw-border-black tw-w-full tw-text-black;
+}

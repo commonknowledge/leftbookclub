@@ -18,9 +18,9 @@ export default function initialisePosthog() {
       }
 
       // Capture visits mediated by Turbo
-      // window.addEventListener("turbo:load", () => {
-      //   posthog.capture("$pageview");
-      // });
+      window.addEventListener("turbo:load", () => {
+        posthog.capture("$pageview");
+      });
 
       // Identify user
       if (

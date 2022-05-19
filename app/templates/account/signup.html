@@ -1,8 +1,7 @@
 {% extends "account/modal_base.html" %}
 
 {% load i18n %}
-{% load django_bootstrap5 %}
-{% load account socialaccount %}
+{% load url django_bootstrap5 account socialaccount %}
 
 {% block head_title %}{% trans "Create an account" %}BS{% endblock %}
 
@@ -21,7 +20,7 @@
   <div>
     <p class='text-center'>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
         
-    <form data-turbo="false" id="signup_form" method="post" action="{% url 'account_signup' %}">
+    <form data-turbo="false" id="signup_form" method="post" action="{% url 'account_signup' %}{% qs_link %}">
       {% csrf_token %}
       {% bootstrap_form form show_label=False exclude="gdpr_email_consent" %}
       {% bootstrap_field form.gdpr_email_consent show_label=True %}

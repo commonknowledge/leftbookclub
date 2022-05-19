@@ -1,8 +1,6 @@
 {% extends "account/modal_base.html" %}
 
-{% load i18n %}
-{% load django_bootstrap5 %}
-{% load account socialaccount %}
+{% load url i18n django_bootstrap5 account socialaccount %}
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
@@ -22,7 +20,7 @@
   {% endif %}
 
   <div>
-    <form data-turbo="false" class="login" method="POST" action="{% url 'account_login' %}">
+    <form data-turbo="false" class="login" method="POST" action="{% url 'account_login' %}{% qs_link %}">
       <span class="pull-right">Not yet a member? <a href="{% url 'account_signup' %}">Join</a></span>
       {% csrf_token %}
       {% bootstrap_form form %}

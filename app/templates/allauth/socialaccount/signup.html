@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
-{% load i18n %}
-{% load django_bootstrap5 %}
+{% load url i18n django_bootstrap5 %}
 
 {% block head_title %}{% trans "Signup" %}{% endblock %}
 
@@ -12,7 +11,7 @@
 <p>{% blocktrans with provider_name=account.get_provider.name site_name=site.name %}You are about to use your {{provider_name}} account to login to 
 {{site_name}}. As a final step, please complete the following form:{% endblocktrans %}</p>
     
-<form data-turbo="false" class="signup" id="signup_form" method="post" action="">
+<form data-turbo="false" class="signup" id="signup_form" method="post" action="{% qs_link %}">
   {% csrf_token %}
   {% bootstrap_form form %}
   {% if redirect_field_value %}

@@ -6,6 +6,7 @@
       {% for item in menu_items %}
         <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
       {% endfor %}
+      <li><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark">Redeem gift card</a></li>
     </ul>
     <a href="/" class="text-center col text-dark text-decoration-none md:tw-flex-grow-0 tw-order-1 md:tw-order-2">
       <img src="{% static 'images/logo.png' %}" style='width: 100px; height: 100px;' alt="Left Book Club logo" title="Left Book Club" />
@@ -20,8 +21,8 @@
       {% comment %} {% if user.is_member is None %} {% endcomment %}
         {% if request.session.gift_giver_subscription is not None %}
           <li><a href="{% url 'redeem_setup' %}" class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-magenta">Finish gift set up</a></li>
-        {% else %}
-          <li><a href="{% url 'redeem' %}" class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-yellow">Redeem gift card</a></li>
+        {% elif not user.is_member %}
+          <li><a href="/join" class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-yellow">Join</a></li>
         {% endif %}
       {% comment %} {% endif %} {% endcomment %}
     </ul>

@@ -340,6 +340,17 @@ class PlanPricingBlock(blocks.StructBlock):
     #     return context
 
 
+class BookTypeChoice(blocks.ChoiceBlock):
+    choices = [
+        ("classic", "classic"),
+        ("contemporary", "contemporary"),
+        ("all-books", "all-books"),
+    ]
+
+    class Meta:
+        default = "all-books"
+
+
 class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
     choices = [
         ("bg-black text-white", "black"),
@@ -753,12 +764,16 @@ class RecentlyPublishedBooks(BookGridBlock):
     max_books = blocks.IntegerBlock(
         default=4, help_text="How many books should show up?"
     )
+    type = BookTypeChoice(default="all-books")
 
     def get_context(self, value, parent_context=None):
         context = super().get_context(value, parent_context)
+        filters = {}
+        if value["type"] != None and value["type"] != "all-books":
+            filters["type"] = value["type"]
         context["books"] = (
             BookPage.objects.order_by("-published_date")
-            .filter(published_date__isnull=False)
+            .filter(published_date__isnull=False, **filters)
             .all()[: value["max_books"]]
         )
         return context
@@ -893,7 +908,7 @@ class BookPage(BaseShopifyProductPage):
         )
 
     class Meta:
-        ordering = ["published_date"]
+        ordering = ["-published_date"]
 
 
 class MembershipPlanPage(ArticleSeoMixin, Page):

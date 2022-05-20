@@ -13,7 +13,9 @@
           <span>
             Shipping
             {% if price.interval == 'month' and price.plan.deliveries_per_year < 12 %}
-              (costs spread monthly)
+              {% if shipping_zone.rate.amount > 0 or shipping_price.amount > 0 %}
+                (costs spread monthly)
+              {% endif %}
             {% elif price.interval == 'year' %}
               ({{ price.plan.deliveries_per_year }} deliveries/year)
             {% endif %}
@@ -30,14 +32,26 @@
           <span>{% money_localize final_price %}<small>{{ price.humanised_interval }}</small></span>
         </div>
       </div>
+      {% bootstrap_alert "This subscription will automatically renew, and you can cancel at any time." dismissible=False alert_type="success" extra_classes='mb-2' %}
       {% if request.GET.gift_mode %}
         <p class='form-text text-black mt-1'>On the next page, <u><b>please add your own shipping address</b></u>, in case we need to send you any gift card materials.</p>
         <p class='form-text'>Your gift recipient will be able to enter their own address when they redeem.</p>
+      {% endif %}
+      {% if user.is_member and not gift_mode %}
+        <div class='justify-content-center'>
+          <div class="form-check max-width-card w-100">
+            <input required class="form-check-input" type="checkbox" value="" id='confirm_cancel_current_subscriptions' name='confirm_cancel_current_subscriptions'>
+            <label class="form-check-label" for="confirm_cancel_current_subscriptions">
+              <p>I understand that my existing subscription(s) will be <u>immediately cancelled</u> and replaced with this new subscription: <i>{{ user.primary_product.name }}</i></p>
+            </label>
+          </div>
+        </div>
       {% endif %}
       {% if user.is_authenticated %}
         {% bootstrap_button size='lg' button_type="submit" button_class='w-100 btn-primary my-2' content="Checkout" %}
       {% else %}
         {% bootstrap_button size='lg' button_type="submit" button_class='w-100 btn-primary my-2' content="Continue" %}
       {% endif %}
+      <p class='text-muted text-center my-0'>(Got a promo code? Add it at the next step)</p>
     {% endif %}
   </turbo-frame>

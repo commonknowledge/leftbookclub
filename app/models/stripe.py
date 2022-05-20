@@ -124,6 +124,19 @@ class LBCProduct(djstripe.models.Product):
         if related_subscription_id:
             return djstripe.models.Subscription.get(id=related_subscription_id)
 
+    def next_book(self):
+        from app.models.wagtail import BookPage
+
+        book_types = self.metadata.get("book_types", None)
+        if book_types is not None:
+            book_types = book_types.split(",")
+            return (
+                BookPage.objects.filter(type__in=book_types)
+                .order_by("-published_date")
+                .first()
+            )
+        return BookPage.objects.order_by("-published_date").first()
+
 
 alphanumeric = RegexValidator(
     r"^[0-9a-zA-Z]*$", "Only alphanumeric characters are allowed."

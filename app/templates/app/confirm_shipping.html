@@ -22,7 +22,7 @@ fbq('track', 'InitiateCheckout');
     <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
       <ol class="breadcrumb justify-content-center">
         <li class="breadcrumb-item"><a class='text-black' href="/join">Select plan</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Confirm shipping</li>
+        <li class="breadcrumb-item active" aria-current="page">Select shipping</li>
         {% if not user.is_authenticated %}
         <li class="breadcrumb-item">Create account</li>
         {% endif %}
@@ -32,7 +32,7 @@ fbq('track', 'InitiateCheckout');
     </header>
     <div class="row justify-content-center">
       {% comment %} Shipping form {% endcomment %}
-      <section class='col-12 col-md-6 col-lg-4'>
+      <section class='col-12 col-md-6 col-lg-4 mb-5'>
         <div class='max-width-card mx-auto'>
           <form
             data-turbo="false"
@@ -76,45 +76,47 @@ fbq('track', 'InitiateCheckout');
       </section>
 
       {% comment %} Product preview {% endcomment %}
-      <section class='d-none d-md-block col-md-6 col-lg-4'>
-        <label class="form-label" for="id_country">
-          {% if gift_mode %}
-            Gift card details
-          {% else %}
-            Membership details
-          {% endif %}
-        </label>
-        <article class='mb-3'>
-          <h4 class='mb-0'>
-            {% if price.products.all|length > 1 %}
-              {{ product.name }}
+      <section class='col-12 col-md-6 col-lg-4'>
+        <div class='max-width-card mx-auto'>
+          <label class="form-label" for="id_country">
+            {% if gift_mode %}
+              Gift card details
             {% else %}
-              {{ price.plan.title }}
+              Membership details
             {% endif %}
-          </h4>
-        </article>
-        <article class='mb-3 bg-white'>
-          <header class='p-3'>
-            <h5 class='mb-0'>
-              {% if gift_mode %}
-                This month's book
+          </label>
+          <article class='mb-3'>
+            <h4 class='mb-0 fw-bold'>
+              {% if price.products.all|length > 1 %}
+                {{ product.name }}
               {% else %}
-                What you'll get this month
+                {{ price.plan.title }}
               {% endif %}
-            </h5>
-            <p class='mb-0 text-muted'>Then a new book <b>{{ price.plan.delivery_frequency }}</b>.</p>
-          </header>
-          {% include "app/includes/simple_book_card.html" with book=next_book %}
-        </article>
-        <article class='mb-3 bg-white p-3'>
-          <h5>More about your membership</h5>
-          <div class='mb-2 fs-6'>{{ price.plan.description|richtext }}</div>
-          {% if price.description %}
-            <div class='mb-2 fs-6'>
-              {{ price.description|richtext }}
-            </div>
-          {% endif %}
+            </h4>
           </article>
+          <article class='mb-3 bg-white'>
+            <header class='p-3'>
+              <h5 class='mb-0'>
+                {% if gift_mode %}
+                  This month's book
+                {% else %}
+                  What you'll get this month
+                {% endif %}
+              </h5>
+              <p class='mb-0 text-muted'>Then a new book <b>{{ price.plan.delivery_frequency }}</b>.</p>
+            </header>
+            {% include "app/includes/simple_book_card.html" with book=next_book %}
+          </article>
+          <article class='mb-3 bg-white p-3'>
+            <h5>More about your membership</h5>
+            <div class='mb-2 fs-6'>{{ price.plan.description|richtext }}</div>
+            {% if price.description %}
+              <div class='mb-2 fs-6'>
+                {{ price.description|richtext }}
+              </div>
+            {% endif %}
+          </article>
+        </div>
       </section>
 
     </div>

@@ -21,7 +21,7 @@
 
   <div>
     <form data-turbo="false" class="login" method="POST" action="{% url 'account_login' %}{% qs_link %}">
-      <span class="pull-right">Not yet a member? <a href="{% url 'account_signup' %}">Join</a></span>
+      <p class="text-center">Not yet a member? <a href="/join">Join</a></p>
       {% csrf_token %}
       {% bootstrap_form form %}
       {% if redirect_field_value %}

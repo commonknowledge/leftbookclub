@@ -23,3 +23,12 @@ def qs_link(context, **kwargs):
             params[key] = value
 
     return "?" + parse.urlencode(params)
+
+
+@register.simple_tag(takes_context=True)
+def url_test(context, includes, **kwargs):
+    request: HttpRequest = context.get("request", None)
+    if request is None:
+        return
+    url = request.get_full_path()
+    return includes in url

@@ -19,12 +19,6 @@ from app.utils.stripe import (
 class MemberSignupForm(SignupForm):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
-    terms_and_conditions = forms.BooleanField(
-        required=True,
-        label=mark_safe(
-            "You agree to our <a href='/terms-and-conditions/'>terms and conditions</a> and <a href='/privacy-policy/'>privacy policy</a>"
-        ),
-    )
     gdpr_email_consent = forms.BooleanField(
         required=False,
         label="Can we email you with news and updates from the Left Book Club?",

@@ -864,6 +864,7 @@ class BookPage(BaseShopifyProductPage):
     image_url = models.URLField(max_length=500, blank=True)
     isbn = models.CharField(max_length=50, blank=True)
     description = RichTextField(null=True, blank=True)
+    type = models.CharField(max_length=300, blank=True)
     layout = create_streamfield()
 
     content_panels = BaseShopifyProductPage.content_panels + [
@@ -887,6 +888,7 @@ class BookPage(BaseShopifyProductPage):
             forward_by=metafields.get("forward_by", []),
             original_publisher=metafields.get("original_publisher", ""),
             isbn=metafields.get("isbn", ""),
+            type=metafields.get("type", ""),
             image_url=product.images[0].src,
         )
 

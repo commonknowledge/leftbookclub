@@ -22,6 +22,22 @@
     <div class="col-12 col-md-6">
       <div class='sticky sticky-top'>
         <img src="{{ page.image_url }}" class="d-block w-100" />
+        <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>
+          {{ page.published_date|date:"F Y" }}
+        </div>
+        {% if page.type %}
+        <div class='position-absolute tw-bottom-2 tw-right-2 fs-7 tw-z-50 text-capitalize
+          {% if page.type == "classic" %}
+            tw-bg-black tw-text-white tw-px-1
+          {% elif page.type == "contemporary" %}
+            tw-bg-yellow tw-text-black tw-px-1
+          {% else %}
+            text-dark
+          {% endif %}
+        '>
+          {{ page.type }}
+        </div>
+        {% endif %}
       </div>
 
       {% comment %} <div class="social text-center my-3">
@@ -54,16 +70,13 @@
           <div class='text-secondary fs-6'>Originally published by {{  page.original_publisher }}</div>
         {% endif %}
       </header>
-      {% if page.published_date %}
-          <div class='badge rounded-pill bg-primary fw-light fs-6 mb-2'>LBC book of the month: <span class='fw-normal'>{{ page.published_date|date:"F Y" }}</span></div>
-      {% endif %}
   
       <hr />
       {% if not user.is_member %}
       <div class='rounded-3 border-1 border-primary p-3 my-3'>
           <h5>Become a member to buy this book</h5>
           <p>Our books are exclusively re-published for Left Book Club members. Sign up today and stock up on what thousands of fellow readers have been discussing together.</p>
-          {% bootstrap_button href="/" content="Become a member" button_class='btn-primary my-2' %}
+          {% bootstrap_button href="/join" content="Become a member" button_class='btn-primary my-2' %}
           or
           <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary me-2">Login</a>
       </div>   

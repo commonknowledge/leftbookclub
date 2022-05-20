@@ -4,5 +4,18 @@
     <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>
       {{ book.published_date|date:"F Y" }}
     </div>
+    {% if book.type %}
+    <div class='position-absolute tw-bottom-2 tw-right-2 fs-7 tw-z-50 text-capitalize
+      {% if book.type == "classic" %}
+        tw-bg-black tw-text-white tw-px-1
+      {% elif book.type == "contemporary" %}
+        tw-bg-yellow tw-text-black tw-px-1
+      {% else %}
+        text-dark
+      {% endif %}
+    '>
+      {{ book.type }}
+    </div>
+    {% endif %}
   </a>
 </article>

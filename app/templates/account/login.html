@@ -8,8 +8,7 @@
 {% block modal_content %}
 {% get_providers as socialaccount_providers %}
 
-<h1 class="text-center">Log In</h1>
-<hr>
+<h1 class="text-center h2">Log In</h1>
 
 <div class="row">
 
@@ -23,12 +22,14 @@
     <form data-turbo="false" class="login" method="POST" action="{% url 'account_login' %}{% qs_link %}">
       <p class="text-center">Not yet a member? <a href="/join">Join</a></p>
       {% csrf_token %}
-      {% bootstrap_form form %}
+      {% bootstrap_field form.login show_label=False %}
+      {% bootstrap_field form.password show_label=False %}
+      {% bootstrap_form form exclude="login,password" %}
       {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
       {% endif %}
       <div class="form-actions">
-        <button class="btn btn-primary pull-right" type="submit">{% trans "Sign In" %}</button>
+        <button class="btn btn-primary pull-right !tw-w-auto" type="submit">{% trans "Sign In" %}</button>
         <a class="btn" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
       </div>
     </form>

@@ -893,7 +893,7 @@ class BookPage(BaseShopifyProductPage):
         )
 
     class Meta:
-        ordering = ["published_date"]
+        ordering = ["-published_date"]
 
 
 class MembershipPlanPage(ArticleSeoMixin, Page):

@@ -13,7 +13,9 @@
           <span>
             Shipping
             {% if price.interval == 'month' and price.plan.deliveries_per_year < 12 %}
-              (costs spread monthly)
+              {% if shipping_zone.rate.amount > 0 or shipping_price.amount > 0 %}
+                (costs spread monthly)
+              {% endif %}
             {% elif price.interval == 'year' %}
               ({{ price.plan.deliveries_per_year }} deliveries/year)
             {% endif %}

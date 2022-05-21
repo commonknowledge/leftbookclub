@@ -34,8 +34,7 @@
       </div>
       {% bootstrap_alert "This subscription will automatically renew, and you can cancel at any time." dismissible=False alert_type="success" extra_classes='mb-2' %}
       {% if request.GET.gift_mode %}
-        <p class='form-text text-black mt-1'>On the next page, <u><b>please add your own shipping address</b></u>, in case we need to send you any gift card materials.</p>
-        <p class='form-text'>Your gift recipient will be able to enter their own address when they redeem.</p>
+        {% bootstrap_alert "At checkout, please add your own shipping address, in case we need to send you any gift card materials. Your gift recipient will be able to enter their own address when they redeem." dismissible=False alert_type="warning" extra_classes='mb-2' %}
       {% endif %}
       {% if user.is_member and not gift_mode %}
         <div class='justify-content-center'>

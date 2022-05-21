@@ -161,6 +161,8 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_DISPLAY = "app.models.django.custom_user_casual_name"
+ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 
 ACCOUNT_FORMS = {
     # 'login': 'allauth.account.forms.LoginForm',

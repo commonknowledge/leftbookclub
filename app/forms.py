@@ -26,11 +26,11 @@ class MemberSignupForm(SignupForm):
 
     field_order = [
         "email",
-        "email2",  # ignored when not present
+        # "email2",  # ignored when not present
         "first_name",
         "last_name",
         "password1",
-        "password2",  # ignored when not present
+        # "password2",  # ignored when not present
         "gdpr_email_consent",
         "terms_and_conditions",
     ]

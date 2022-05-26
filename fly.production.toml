@@ -39,11 +39,11 @@ kill_timeout = 5
     
   [[services.http_checks]]
     interval = 10000
-    grace_period = "10s"
+    grace_period = "90s"
     method = "get"
     path = "/"
     protocol = "https"
-    restart_limit = 4
+    restart_limit = 10
     timeout = 3000
     tls_skip_verify = false
     [services.http_checks.headers]

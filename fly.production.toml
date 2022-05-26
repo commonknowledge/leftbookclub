@@ -36,6 +36,18 @@ kill_timeout = 5
   [[services.ports]]
     handlers = ["tls", "http"]
     port = "443"
+    
+  [[services.http_checks]]
+    interval = 10000
+    grace_period = "10s"
+    method = "get"
+    path = "/"
+    protocol = "https"
+    restart_limit = 4
+    timeout = 3000
+    tls_skip_verify = false
+    [services.http_checks.headers]
+
 
 [[statics]]
   guest_path = "/app/static"

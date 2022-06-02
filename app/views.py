@@ -479,6 +479,7 @@ class CancellationView(LoginRequiredTemplateView):
                     id=subscription_id
                 ).exists()
             ):
+                analytics.cancel_membership(request.user.stripe_customer.subscriber)
                 stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
                 return HttpResponseRedirect(reverse("account_membership"))
         raise Http404

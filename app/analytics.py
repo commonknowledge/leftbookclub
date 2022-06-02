@@ -83,6 +83,13 @@ def cancel_membership(user):
     )
 
 
+def expire_membership(user):
+    identify_user(user)
+    posthog.capture(
+        user.id, event="expired membership", properties=posthog_event_properties()
+    )
+
+
 def cancel_gift_card(user):
     identify_user(user)
     posthog.capture(user.id, event="cancel gift", properties=posthog_event_properties())

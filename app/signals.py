@@ -45,7 +45,7 @@ def cancel_gift_recipient_subscription(event, **kwargs):
                 and customer.subscriber is not None
                 and customer.subscriber.active_subscription is None
             ):
-                analytics.cancel_membership(customer.subscriber)
+                analytics.expire_membership(customer.subscriber)
                 tag_user_in_mailchimp(
                     customer.subscriber,
                     tags_to_enable=["CANCELLED"],

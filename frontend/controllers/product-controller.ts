@@ -73,7 +73,7 @@ class ProductController extends Controller {
       .create({
         email: this.userEmailValue,
         lineItems: [],
-        shippingAddress: this.shippingAddress,
+        // shippingAddress: this.shippingAddress,
       })
       .then((checkout) => {
         this.checkoutId = checkout.id;

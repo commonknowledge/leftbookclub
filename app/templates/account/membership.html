@@ -9,6 +9,7 @@
       <br /><br />
       {% if not user.active_subscription.cancel_at %}
         {% url "cancel_membership" as cancellation_url %}
+        <br />
         {% bootstrap_button size='sm' button_class='btn-outline-danger' href=cancellation_url content="Cancel membership" %}
       {% endif %}
     </div>

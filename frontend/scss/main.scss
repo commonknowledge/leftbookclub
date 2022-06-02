@@ -152,6 +152,10 @@ h3,
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  @apply tw-bg-background;
+}
 * {
   letter-spacing: -0.04em;
 }

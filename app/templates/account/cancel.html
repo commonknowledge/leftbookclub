@@ -31,14 +31,11 @@
         <div class='row text-center my-4'>
           <h3>Books we've read together</h3>
         </div>
-        <div class='row justify-content-center align-items-center text-center'>
+        <div class='row justify-content-center align-items-center text-center g-1'>
         {% for book in books %}
           {% date_is_later_than book.page.published_date user.active_subscription.created as published_since_subscription_started %}
           {% if published_since_subscription_started %}
-            <a href="{% pageurl book.page %}" class='col col-md-6 text-decoration-none text-center'>
-                <img src="{{ book.product.images.0.src }}" style="width: 100%" />
-                <div class="text-center text-dark my-2">{{ book.metafields.published_date|date:"F Y" }}</div>
-            </a>
+            {% include "app/includes/simple_book_card.html" with book=book class='col-12 col-md-6' %}
           {% endif %}
         {% endfor %}
         </div>

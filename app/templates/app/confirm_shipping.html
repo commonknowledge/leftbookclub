@@ -5,112 +5,110 @@
 fbq('track', 'InitiateCheckout');
 {% endblock %}
 
-{% block body_class %}tw-bg-background{% endblock %}
+
 {% block content %}
 {% with request.GET.annual as annual %}
 {% with request.GET.gift_mode as gift_mode %}
   {% qs_link as qs %}
-  <main>
-    <header class="pricing-header my-4 my-lg-5 text-center">
-      <h1 class="h2 fw-bold text-center">
-        {% if gift_mode %}
-          You're buying a membership gift card
-        {% else %}
-          You're joining the Left Book Club
+  <header class="pricing-header my-4 my-lg-5 text-center">
+    <h1 class="h2 fw-bold text-center">
+      {% if gift_mode %}
+        You're buying a membership gift card
+      {% else %}
+        You're joining the Left Book Club
+      {% endif %}
+    </h1>
+    <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
+      <ol class="breadcrumb justify-content-center">
+        <li class="breadcrumb-item"><a class='text-muted tw-no-underline' href="/join">Select plan</a></li>
+        <li class="breadcrumb-item active text-black tw-underline" aria-current="page">Shipping</li>
+        {% if not user.is_authenticated %}
+        <li class="breadcrumb-item">Create account</li>
         {% endif %}
-      </h1>
-      <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
-        <ol class="breadcrumb justify-content-center">
-          <li class="breadcrumb-item"><a class='text-muted tw-no-underline' href="/join">Select plan</a></li>
-          <li class="breadcrumb-item active text-black tw-underline" aria-current="page">Shipping</li>
-          {% if not user.is_authenticated %}
-          <li class="breadcrumb-item">Create account</li>
-          {% endif %}
-          <li class="breadcrumb-item">Checkout</li>
-        </ol>
-      </nav>
-    </header>
-    <div class="row justify-content-center">
-      {% comment %} Shipping form {% endcomment %}
-      <section class='col-12 col-md-6 col-lg-4 mb-5'>
-        <div class='max-width-card mx-auto'>
-          <form
-            data-turbo="false"
-            data-controller="shipping"
-            data-shipping-url-value="{{ url_pattern }}{{ qs }}"
-            data-shipping-price-value="{{ price.id }}"
-            data-shipping-product-value="{{ product.id }}"
-            data-shipping-target="form"
-            action="{% url "stripe_checkout" price_id=price.id product_id=product.id %}{{ qs }}"
-            method="get"
-          >
-            <div class='d-none'>
-              {% if gift_mode %}
-                <input type='hidden' name='gift_mode' value="{{gift_mode}}" />
-              {% endif %}
-            </div>
-            {% csrf_token %}
-            <div class='position-relative'>
-              {% bootstrap_field country_selector_form.country %}
-            </div>
-            <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" price_id=price.id product_id=product.id country_id=default_country_code %}{{ qs }}">
-              <div class='p-3 bg-light rounded-3 my-2'>
-                <div class="text-muted mb-1 text-center">
-                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  <span>Loading shipping options...</span>
-                </div>
-              </div>
-            </turbo-frame>
-          </form>
-        </div>
-      </section>
-
-      {% comment %} Product preview {% endcomment %}
-      <section class='col-12 col-md-6 col-lg-4'>
-        <div class='max-width-card mx-auto'>
-          <label class="form-label" for="id_country">
+        <li class="breadcrumb-item">Checkout</li>
+      </ol>
+    </nav>
+  </header>
+  <div class="row justify-content-center">
+    {% comment %} Shipping form {% endcomment %}
+    <section class='col-12 col-md-6 col-lg-4 mb-5'>
+      <div class='max-width-card mx-auto'>
+        <form
+          data-turbo="false"
+          data-controller="shipping"
+          data-shipping-url-value="{{ url_pattern }}{{ qs }}"
+          data-shipping-price-value="{{ price.id }}"
+          data-shipping-product-value="{{ product.id }}"
+          data-shipping-target="form"
+          action="{% url "stripe_checkout" price_id=price.id product_id=product.id %}{{ qs }}"
+          method="get"
+        >
+          <div class='d-none'>
             {% if gift_mode %}
-              Gift card details
-            {% else %}
-              Membership details
+              <input type='hidden' name='gift_mode' value="{{gift_mode}}" />
             {% endif %}
-          </label>
-          <article class='mb-3'>
-            <a href="{% pageurl price.plan %}" class='h4 mb-0 fw-bold tw-no-underline text-black'>
-              {% if price.products.all|length > 1 %}
-                {{ product.name }}
-              {% else %}
-                {{ price.plan.title }}
-              {% endif %}
-            </a>
-          </article>
-          <article class='mb-3 bg-white'>
-            <header class='p-3'>
-              <h5 class='mb-0'>
-                {% if gift_mode %}
-                  This month's book
-                {% else %}
-                  Your book this month
-                {% endif %}
-              </h5>
-              <p class='mb-0 text-muted'>And a new book <b>{{ price.plan.delivery_frequency }}</b></p>
-            </header>
-          {% include "app/includes/simple_book_card.html" with book=current_book %}
-          </article>
-          {% comment %} <article class='mb-3 bg-white p-3'>
-            <h5>More about your membership</h5>
-            <div class='mb-2 fs-6'>{{ price.plan.description|richtext }}</div>
-            {% if price.description %}
-              <div class='mb-2 fs-6'>
-                {{ price.description|richtext }}
+          </div>
+          {% csrf_token %}
+          <div class='position-relative'>
+            {% bootstrap_field country_selector_form.country %}
+          </div>
+          <turbo-frame data-shipping-target="frame" id='shipping-costs' src="{% url "shippingcosts" price_id=price.id product_id=product.id country_id=default_country_code %}{{ qs }}">
+            <div class='p-3 bg-light rounded-3 my-2'>
+              <div class="text-muted mb-1 text-center">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span>Loading shipping options...</span>
               </div>
-            {% endif %}
-          </article> {% endcomment %}
-        </div>
-      </section>
+            </div>
+          </turbo-frame>
+        </form>
+      </div>
+    </section>
 
-    </div>
-  </main>
+    {% comment %} Product preview {% endcomment %}
+    <section class='col-12 col-md-6 col-lg-4'>
+      <div class='max-width-card mx-auto'>
+        <label class="form-label" for="id_country">
+          {% if gift_mode %}
+            Gift card details
+          {% else %}
+            Membership details
+          {% endif %}
+        </label>
+        <article class='mb-3'>
+          <a href="{% pageurl price.plan %}" class='h4 mb-0 fw-bold tw-no-underline text-black'>
+            {% if price.products.all|length > 1 %}
+              {{ product.name }}
+            {% else %}
+              {{ price.plan.title }}
+            {% endif %}
+          </a>
+        </article>
+        <article class='mb-3 bg-white'>
+          <header class='p-3'>
+            <h5 class='mb-0'>
+              {% if gift_mode %}
+                This month's book
+              {% else %}
+                Your book this month
+              {% endif %}
+            </h5>
+            <p class='mb-0 text-muted'>And a new book <b>{{ price.plan.delivery_frequency }}</b></p>
+          </header>
+          {% include "app/includes/simple_book_card.html" with book=current_book %}
+        </article>
+        {% comment %} <article class='mb-3 bg-white p-3'>
+          <h5>More about your membership</h5>
+          <div class='mb-2 fs-6'>{{ price.plan.description|richtext }}</div>
+          {% if price.description %}
+            <div class='mb-2 fs-6'>
+              {{ price.description|richtext }}
+            </div>
+          {% endif %}
+        </article> {% endcomment %}
+      </div>
+    </section>
+
+  </div>
 {% endwith %}
 {% endwith %}
 {% endblock %}

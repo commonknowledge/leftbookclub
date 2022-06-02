@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% load django_bootstrap5 gift_card static %}
 {% block title %}Redeem a gift code | Left Book Club{% endblock %}
+
+{% block content_padding %}p-5{% endblock %}
+
+{% block content_width %}container-fluid{% endblock %}
+
+{% block content_extra_classes %}tw-bg-yellow{% endblock %}
+
 {% block content%}
 {% url "redeem" as redeem_url %}
-<main class='tw-bg-yellow p-5'>
   <header class='text-center my-4'>
     <img src='{% static "images/gift.png" %}' class='my-4' />
     <h1>Someone bought you a gift!</h1>
@@ -23,12 +29,12 @@
       <div class='max-width-card w-100'>
         {% if code %}
           <div class='d-none'>
-            {% bootstrap_form form %}
+            {% bootstrap_form form field_class="text-center fs-4" size="lg" %}
           </div>
         {% elif code and not code|is_redeemable_gift_card and code|is_real_gift_card %}
           {% bootstrap_alert "This code has already been redeemed" %}
         {% else %}
-          {% bootstrap_form form show_label=False %}
+          {% bootstrap_form form show_label=False field_class="text-center fs-4" size="lg" %}
         {% endif %}
       </div>
     </div>
@@ -56,6 +62,4 @@
       </div>
     </div>
   </form>
-</main>
-
 {% endblock %}

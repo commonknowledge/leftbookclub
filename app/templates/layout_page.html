@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
-{% block body_class %}tw-bg-background{% endblock %}
+
 {% block content %}
   {% if page.layout %}
     {% include "app/includes/layout.html" with streamfield=page.layout %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% block title %}Welcome to the Left Book Club{% endblock %}
-{% block body_class %}tw-bg-background{% endblock %}
+
 {% block content %}
     {% if error %}
         {% bootstrap_alert error alert_type='danger' %}

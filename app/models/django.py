@@ -247,22 +247,22 @@ class User(AbstractUser):
             return ""
 
     def shipping_line_1(self):
-        return self.shipping_address.get("line1", "")
+        return self.customer_shipping_address.get("line1", None)
 
     def shipping_line_2(self):
-        return self.shipping_address.get("line2", None)
-
-    def shipping_line_2(self):
-        return self.shipping_address.get("line2", None)
+        return self.customer_shipping_address.get("line2", None)
 
     def shipping_city(self):
-        return self.shipping_address.get("city", None)
+        return self.customer_shipping_address.get("city", None)
+
+    def shipping_state(self):
+        return self.customer_shipping_address.get("state", None)
 
     def shipping_country(self):
-        return self.shipping_address.get("country", None)
+        return self.customer_shipping_address.get("country", None)
 
-    def shipping_zip(self):
-        return self.shipping_address.get("zip", None)
+    def shipping_postcode(self):
+        return self.customer_shipping_address.get("postal_code", None)
 
     def cleanup_membership_subscriptions(self, keep=[]):
         for sub in self.stripe_customer.subscriptions.all():

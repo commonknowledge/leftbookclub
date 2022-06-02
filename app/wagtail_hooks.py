@@ -67,16 +67,6 @@ class IndexView(ListControlsIndexView):
             Panel()(
                 Columns()(
                     ChoiceFilter(
-                        name="status",
-                        label="Subscription Status",
-                        multiple=True,
-                        choices=tuple((s[0], s[0]) for s in statuses),
-                        default_value="active",
-                        apply_to_queryset=lambda queryset, values: queryset.filter(
-                            status__in=values
-                        ),
-                    ),
-                    ChoiceFilter(
                         name="product",
                         label="Product",
                         multiple=True,
@@ -109,21 +99,26 @@ class CustomerAdmin(ModelAdmin):
         False  # or True to exclude pages of this type from Wagtail's explorer view
     )
     list_display = (
-        "id",
+        "recipient_name",
         "primary_product_name",
         "status",
-        "recipient_name",
-        "customer_id",
-        "metadata",
+        "is_gift_receiver",
     )
     list_export = (
         "recipient_name",
-        "shipping_line_1",
+        "recipient_email",
+        "primary_product_name",
+        "primary_product_id",
+        "is_gift_receiver",
+        "status",
+        "created",
+        "ended_at",
         "shipping_line_1",
         "shipping_line_2",
         "shipping_city",
+        "shipping_state",
         "shipping_country",
-        "shipping_zip",
+        "shipping_postcode",
     )
     export_filename = "lbc_members"
 
@@ -131,10 +126,9 @@ class CustomerAdmin(ModelAdmin):
         qs = super().get_queryset(request)
         return (
             qs.filter(
-                customer__shipping__address__isnull=False,
                 metadata__gift_mode__isnull=True,
             )
-            .select_related("plan__product")
+            .select_related("plan__product", "subscriber")
             .distinct()
         )
 

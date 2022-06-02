@@ -41,13 +41,31 @@ class LBCSubscription(djstripe.models.Subscription):
                 return f"{primary_product.name} + {shipping_product.name}"
             return primary_product.name
 
+    def primary_product_id(self):
+        primary_product = get_primary_product_for_djstripe_subscription(self)
+        if primary_product:
+            return primary_product.id
+
     def customer_id(self):
         return self.customer.id
+
+    def is_gift_giver(self):
+        self.metadata.get("gift_mode", None) is not None
+
+    def is_gift_receiver(self):
+        self.metadata.get("gift_giver_subscription", None) is not None
 
     def recipient_name(self):
         try:
             user = self.customer.subscriber
             return user.shipping_name()
+        except:
+            return None
+
+    def recipient_email(self):
+        try:
+            user = self.customer.subscriber
+            return user.primary_email
         except:
             return None
 
@@ -61,22 +79,22 @@ class LBCSubscription(djstripe.models.Subscription):
             return {}
 
     def shipping_line_1(self):
-        return self.customer_shipping_address.get("line_1", None)
+        return self.customer_shipping_address.get("line1", None)
 
     def shipping_line_2(self):
-        return self.customer_shipping_address.get("line_2", None)
-
-    def shipping_line_2(self):
-        return self.customer_shipping_address.get("line_2", None)
+        return self.customer_shipping_address.get("line2", None)
 
     def shipping_city(self):
         return self.customer_shipping_address.get("city", None)
 
+    def shipping_state(self):
+        return self.customer_shipping_address.get("state", None)
+
     def shipping_country(self):
         return self.customer_shipping_address.get("country", None)
 
-    def shipping_zip(self):
-        return self.customer_shipping_address.get("zip", None)
+    def shipping_postcode(self):
+        return self.customer_shipping_address.get("postal_code", None)
 
 
 add_proxy_method(djstripe.models.Subscription, LBCSubscription, "lbc")

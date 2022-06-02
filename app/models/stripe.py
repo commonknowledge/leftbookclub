@@ -14,6 +14,7 @@ from wagtail.admin.panels import FieldPanel
 from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list
+from app.utils.django import add_proxy_method
 from app.utils.stripe import (
     get_primary_product_for_djstripe_subscription,
     get_shipping_product_for_djstripe_subscription,
@@ -23,6 +24,9 @@ from app.utils.stripe import (
 class LBCCustomer(djstripe.models.Customer):
     class Meta:
         proxy = True
+
+
+add_proxy_method(djstripe.models.Customer, LBCCustomer, "lbc")
 
 
 class LBCSubscription(djstripe.models.Subscription):
@@ -75,6 +79,9 @@ class LBCSubscription(djstripe.models.Subscription):
         return self.customer_shipping_address.get("zip", None)
 
 
+add_proxy_method(djstripe.models.Subscription, LBCSubscription, "lbc")
+
+
 @register_snippet
 class LBCProduct(djstripe.models.Product):
     class Meta:
@@ -124,7 +131,7 @@ class LBCProduct(djstripe.models.Product):
         if related_subscription_id:
             return djstripe.models.Subscription.get(id=related_subscription_id)
 
-    def next_book(self):
+    def current_book(self):
         from app.models.wagtail import BookPage
 
         book_types = self.metadata.get("book_types", None)
@@ -136,6 +143,9 @@ class LBCProduct(djstripe.models.Product):
                 .first()
             )
         return BookPage.objects.order_by("-published_date").first()
+
+
+add_proxy_method(djstripe.models.Product, LBCProduct, "lbc")
 
 
 alphanumeric = RegexValidator(

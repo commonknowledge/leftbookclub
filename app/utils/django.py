@@ -69,3 +69,11 @@ def migrate_streamfield_name(
         code=partial(migrate, old_name=old_name, new_name=new_name),
         reverse_code=partial(migrate, old_name=new_name, new_name=old_name),
     )
+
+
+def add_proxy_method(base_model, proxy_model, property_name):
+    def accessor(self):
+        self.__class__ = proxy_model
+        return self
+
+    base_model.add_to_class(property_name, accessor)

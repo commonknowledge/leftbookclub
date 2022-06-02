@@ -510,7 +510,7 @@ class ShippingForProductView(TemplateView):
                     initial={"country": country_id}
                 ),
                 "url_pattern": ShippingCostView.url_pattern,
-                "next_book": product.next_book(),
+                "current_book": product.current_book(),
             }
         )
 

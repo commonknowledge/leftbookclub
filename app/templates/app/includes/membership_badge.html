@@ -1,0 +1,15 @@
+
+  {% comment %} Member subscription banner {% endcomment %}
+  {% if user.has_never_subscribed %}
+    <a href="/join" class='badge rounded-pill bg-warning fs-7 tw-tracking-normal text-black tw-no-underline'>
+        Finish signup
+    </a>
+  {% elif user.is_expired_member %}
+      <a href="/join" class='badge rounded-pill bg-warning fs-7 tw-tracking-normal text-black tw-no-underline'>
+          Renew
+      </a>
+  {% elif user.is_member %}
+      <span class='badge rounded-pill bg-success text-white fs-7 tw-tracking-normal'>
+          Member
+      </span>
+  {% endif %}

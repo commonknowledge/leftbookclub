@@ -1,0 +1,31 @@
+{% load wagtailcore_tags %}
+{% if user.has_never_subscribed %}
+    <div class='bg-warning'>
+      <div class='container-xl py-2 text-center'>
+        Looks like you didn't finish signing up. <a href='/join'>Pick a membership</a>
+      </div>
+    </div>
+  {% elif user.is_expired_member %}
+    <div class='bg-warning'>
+      <div class='container-xl py-2 text-center'>
+        You're no longer a member. <a href='/join'>Renew today</a>
+      </div>
+    </div>
+  {% elif user.has_overdue_payment %}
+    <div class='bg-warning'>
+      <div class='container-xl py-2 text-center'>
+        Your payment is overdue. <a href='{% url "customerportal" %}'>Update your payment details</a>
+      </div>
+    </div>
+  {% elif user.is_member %}
+    <div class='bg-success text-white'>
+      <div class='container-xl py-2 text-center'>
+        Your membership is active.
+        {% with user.primary_product.lbc.current_book as current_book %}
+        {% if current_book %}
+          Current book: <a class='text-white' href="{% pageurl current_book %}">{{current_book.title}}</a>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  {% endif %}

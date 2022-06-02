@@ -79,19 +79,39 @@ class User(AbstractUser):
     @property
     def active_subscription(self) -> djstripe.models.Subscription:
         try:
-            sub = self.stripe_customer.subscriptions.filter(
-                # Was started + wasn't cancelled
-                status__in=[
-                    djstripe.enums.SubscriptionStatus.active,
-                    djstripe.enums.SubscriptionStatus.trialing,
-                    djstripe.enums.SubscriptionStatus.past_due,
-                    djstripe.enums.SubscriptionStatus.unpaid,
-                ],
-                # Is in period
-                current_period_end__gt=timezone.now(),
-                # Isn't a gift card
-                metadata__gift_mode__isnull=True,
-            ).first()
+            sub = (
+                self.stripe_customer.subscriptions.filter(
+                    # Was started + wasn't cancelled
+                    status__in=[
+                        djstripe.enums.SubscriptionStatus.active,
+                        djstripe.enums.SubscriptionStatus.trialing,
+                        djstripe.enums.SubscriptionStatus.past_due,
+                        djstripe.enums.SubscriptionStatus.unpaid,
+                    ],
+                    # Is in period
+                    current_period_end__gt=timezone.now(),
+                    # Isn't a gift card
+                    metadata__gift_mode__isnull=True,
+                )
+                .order_by("-created")
+                .first()
+            )
+            return sub
+        except:
+            return None
+
+    @property
+    def old_subscription(self) -> djstripe.models.Subscription:
+        try:
+            sub = (
+                self.stripe_customer.subscriptions.filter(
+                    ended_at__isnull=False,
+                    # Isn't a gift card
+                    metadata__gift_mode__isnull=True,
+                )
+                .order_by("-ended_at")
+                .first()
+            )
             return sub
         except:
             return None
@@ -99,6 +119,25 @@ class User(AbstractUser):
     @property
     def is_member(self):
         return self.active_subscription is not None
+
+    @property
+    def has_overdue_payment(self):
+        return (
+            self.is_member
+            and self.active_subscription.status
+            == djstripe.enums.SubscriptionStatus.past_due
+        )
+
+    @property
+    def is_expired_member(self):
+        return not self.is_member and self.old_subscription is not None
+
+    @property
+    def has_never_subscribed(self):
+        return (
+            self.stripe_customer is None
+            or self.stripe_customer.subscriptions.count() == 0
+        )
 
     def subscription_status(self):
         if self.is_member:

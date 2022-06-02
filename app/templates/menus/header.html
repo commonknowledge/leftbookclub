@@ -1,4 +1,4 @@
-{% load static account menu_tags %}
+{% load static account menu_tags wagtailcore_tags %}
 
 <header>
   <nav class='text-uppercase tw-text-sm navbar navbar-expand-lg container-xl'>
@@ -13,7 +13,10 @@
     </a>
     <ul class="nav col-12 col-md tw-justify-center md:tw-justify-end tw-order-2 md:tw-order-3 tw-items-center small-text tw-text-black">
       {% if user.is_authenticated %}
-        <li><a href="{% url 'account_membership' %}" class="nav-link px-2 link-dark">{% user_display request.user %}</a></li>
+        <li>
+          <a href="{% url 'account_membership' %}" class="nav-link pl-2 link-dark tw-align-middle !tw-inline-block !tw-pr-0">{% user_display request.user %}</a>
+          {% include "app/includes/membership_badge.html" with user=user %}
+        </li>
         <li><a href="{% url 'account_logout' %}" class="nav-link btn-sm px-2 link-dark">Sign out</a></li>
       {% else %}
         <li><a href="{% url 'account_login' %}" class="nav-link btn-sm px-2 link-dark">Login</a></li>
@@ -28,5 +31,9 @@
     </ul>
   </nav>
   {% include "app/includes/banner.html" with label="Read. Debate. Organise." class="mt-3 mb-1" %}
-  <div class='tw-border-b-2 pt-2'></div>  
+  <div class='tw-border-b-2'></div>  
+
+  {% comment %} Member subscription banner {% endcomment %}
+  {% include "app/includes/membership_banner.html" with user=user %}
+
 </header>

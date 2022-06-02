@@ -5,6 +5,7 @@ from allauth.account.utils import user_display
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 from sentry_sdk import capture_exception
 
 from app.utils.stripe import (
@@ -78,8 +79,18 @@ class User(AbstractUser):
     @property
     def active_subscription(self) -> djstripe.models.Subscription:
         try:
-            sub = self.stripe_customer.active_subscriptions.filter(
-                metadata__gift_mode__isnull=True
+            sub = self.stripe_customer.subscriptions.filter(
+                # Was started + wasn't cancelled
+                status__in=[
+                    djstripe.enums.SubscriptionStatus.active,
+                    djstripe.enums.SubscriptionStatus.trialing,
+                    djstripe.enums.SubscriptionStatus.past_due,
+                    djstripe.enums.SubscriptionStatus.unpaid,
+                ],
+                # Is in period
+                current_period_end__gt=timezone.now(),
+                # Isn't a gift card
+                metadata__gift_mode__isnull=True,
             ).first()
             return sub
         except:

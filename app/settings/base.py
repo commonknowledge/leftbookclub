@@ -382,3 +382,14 @@ if SENTRY_DSN is not None:
         environment=FLY_APP_NAME,
         release=GIT_SHA,
     )
+
+USE_SILK = os.getenv("USE_SILK", False) in (True, "True", "true", "t", 1)
+
+if USE_SILK:
+    MIDDLEWARE += [
+        "silk.middleware.SilkyMiddleware",
+    ]
+
+    INSTALLED_APPS += [
+        "silk",
+    ]

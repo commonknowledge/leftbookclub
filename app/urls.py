@@ -127,8 +127,10 @@ urlpatterns = [
     path(CartOptionsView.url_pattern, CartOptionsView.as_view(), name="cartoptions"),
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism
-    re_path(r"", include(wagtail_urls)),
 ]
+
+if settings.USE_SILK:
+    urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
 
 if settings.DEBUG:
     if settings.USE_DEBUG_TOOLBAR:
@@ -138,3 +140,7 @@ if settings.DEBUG:
     # Serve static and media files from development server
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
+    re_path(r"", include(wagtail_urls)),
+]

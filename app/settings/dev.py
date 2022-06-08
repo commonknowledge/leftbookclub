@@ -28,6 +28,17 @@ if USE_DEBUG_TOOLBAR:
         "debug_toolbar.middleware.DebugToolbarMiddleware",
     ]
 
+USE_SILK = True
+
+if USE_SILK:
+    MIDDLEWARE += [
+        "silk.middleware.SilkyMiddleware",
+    ]
+
+    INSTALLED_APPS += [
+        "silk",
+    ]
+
 try:
     from .local import *
 except ImportError:

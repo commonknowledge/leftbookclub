@@ -57,6 +57,7 @@ posthog = "^1.4.7"
 sentry-sdk = "^1.5.11"
 mailchimp-marketing = "^3.0.75"
 django-redirect-to-non-www = "^0.1.1"
+django-silk = "^4.3.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

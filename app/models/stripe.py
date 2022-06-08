@@ -15,10 +15,7 @@ from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list
 from app.utils.django import add_proxy_method
-from app.utils.stripe import (
-    get_primary_product_for_djstripe_subscription,
-    get_shipping_product_for_djstripe_subscription,
-)
+from app.utils.stripe import get_primary_product_for_djstripe_subscription
 
 
 class LBCCustomer(djstripe.models.Customer):
@@ -35,10 +32,7 @@ class LBCSubscription(djstripe.models.Subscription):
 
     def primary_product_name(self):
         primary_product = get_primary_product_for_djstripe_subscription(self)
-        shipping_product = get_shipping_product_for_djstripe_subscription(self)
         if primary_product:
-            if shipping_product:
-                return f"{primary_product.name} + {shipping_product.name}"
             return primary_product.name
 
     def primary_product_id(self):

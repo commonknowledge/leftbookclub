@@ -129,8 +129,8 @@ class CustomerAdmin(ModelAdmin):
             qs.filter(
                 metadata__gift_mode__isnull=True,
             )
-            .select_related("plan__product", "customer__subscriber")
             .distinct()
+            .select_related("plan__product", "customer__subscriber")
         )
 
 

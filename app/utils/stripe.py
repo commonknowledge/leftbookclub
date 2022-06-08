@@ -1,10 +1,7 @@
 from typing import TYPE_CHECKING, Tuple, Union
 
-from datetime import datetime
-
 import djstripe.models
 import stripe
-from dateutil.relativedelta import relativedelta
 from django.utils.text import format_lazy
 from djstripe.utils import get_friendly_currency_amount
 
@@ -84,19 +81,21 @@ def subscription_with_promocode(
     return sub
 
 
+shipping_product_name = "Shipping"
+
+
 def get_shipping_product() -> djstripe.models.Product:
     shipping_product = None
-    product_name = "Shipping"
     metadata_key = "shipping"
     metadata_value = "True"
     shipping_products = stripe.Product.search(
-        query=f'active:"true" AND name:"{product_name}" AND metadata["{metadata_key}"]:"{metadata_value}"',
+        query=f'active:"true" AND name:"{shipping_product_name}" AND metadata["{metadata_key}"]:"{metadata_value}"',
     ).data
     if len(shipping_products) > 0:
         shipping_product = shipping_products[0]
     else:
         shipping_product = stripe.Product.create(
-            name=product_name,
+            name=shipping_product_name,
             unit_label="delivery",
             metadata={metadata_key: metadata_value},
         )
@@ -296,30 +295,16 @@ def get_primary_product_for_djstripe_subscription(
 ) -> djstripe.models.Product:
     if sub.plan is not None and sub.plan.product is not None:
         return sub.plan.product
-    sis = []
-    if sub.plan is not None and sub.plan.subscription_items.count() > 0:
-        sis = sub.plan.subscription_items.all()
-    elif sub.items.count() > 0:
-        sis = sub.items.all()
-    if sis is not None and len(sis) > 0:
-        for si in sis:
-            if "shipping" not in si.plan.product.name.lower():
-                return si.plan.product
+    return (
+        sub.items.exclude(plan__product__name=shipping_product_name)
+        .select_related("plan__product")
+        .first()
+        .plan.product
+    )
 
 
-def get_shipping_product_for_djstripe_subscription(sub):
-    sis = []
-    if sub.plan is not None and sub.plan.subscription_items.count() > 0:
-        sis = sub.plan.subscription_items.all()
-    elif sub.items.count() > 0:
-        sis = sub.items.all()
-    if sis is not None and len(sis) > 0:
-        for si in sis:
-            if si.plan.product is not None and (
-                "shipping" in si.plan.product.name.lower()
-                or si.plan.product.metadata.get("shipping", None) is not None
-            ):
-                return si.plan.product
+def get_shipping_product_for_djstripe_subscription():
+    return get_shipping_product()
 
 
 def interval_string_for_plan(plan):

@@ -110,6 +110,7 @@ class CustomerAdmin(ModelAdmin):
         "primary_product_name",
         "primary_product_id",
         "is_gift_receiver",
+        "is_active_member",
         "status",
         "created",
         "ended_at",

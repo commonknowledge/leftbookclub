@@ -69,6 +69,13 @@ class LBCSubscription(djstripe.models.Subscription):
         except:
             return None
 
+    def is_active_member(self):
+        try:
+            user = self.customer.subscriber
+            return user.is_member
+        except:
+            return None
+
     @property
     def customer_shipping_address(self):
         try:

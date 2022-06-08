@@ -76,18 +76,20 @@ class User(AbstractUser):
             return customer.id
         return None
 
+    valid_subscription_statuses = [
+        djstripe.enums.SubscriptionStatus.active,
+        djstripe.enums.SubscriptionStatus.trialing,
+        djstripe.enums.SubscriptionStatus.past_due,
+        djstripe.enums.SubscriptionStatus.unpaid,
+    ]
+
     @property
     def active_subscription(self) -> djstripe.models.Subscription:
         try:
             sub = (
                 self.stripe_customer.subscriptions.filter(
                     # Was started + wasn't cancelled
-                    status__in=[
-                        djstripe.enums.SubscriptionStatus.active,
-                        djstripe.enums.SubscriptionStatus.trialing,
-                        djstripe.enums.SubscriptionStatus.past_due,
-                        djstripe.enums.SubscriptionStatus.unpaid,
-                    ],
+                    status__in=self.valid_subscription_statuses,
                     # Is in period
                     current_period_end__gt=timezone.now(),
                     # Isn't a gift card

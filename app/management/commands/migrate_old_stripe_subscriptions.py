@@ -106,6 +106,7 @@ class Command(BaseCommand):
             if (
                 sub.status.lower() not in invalid_statuses
                 and sub.id not in excluded_subs
+                and sub.items.count() == 1
             ):
                 # legacy subscriptions only had single products
                 si = sub.items.exclude(plan__product__in=valid_products).first()
@@ -118,11 +119,17 @@ class Command(BaseCommand):
 
                     if new_plan is None:
                         print(
-                            sub.id, "| old_si ->", si.id, "| new_plan -> NO CHANGE !!!"
+                            "🔵",
+                            sub.id,
+                            "| old_si ->",
+                            si.id,
+                            "| new_plan -> NO CHANGE !!!",
                         )
                         continue
 
-                    print(sub.id, "| old_si ->", si.id, "| new_plan ->", new_plan.id)
+                    print(
+                        "🟢", sub.id, "| old_si ->", si.id, "| new_plan ->", new_plan.id
+                    )
 
                     stripe.Subscription.modify(
                         sub.id,
@@ -159,12 +166,17 @@ def get_replacement_plan_for_old_plan(plan: djstripe.models.Plan) -> str:
     #### Identify product ID
     ####
     # Historical LBC products were defined on the price name, not product name
-    if plan.product.id == "prod_DctmmNsQ5TOdQC":
+    is_product_named_in_price = (
+        plan.product.id == "prod_DctmmNsQ5TOdQC"
+        or plan.product.name == "Left Book Club Subscription"
+    )
+
+    if is_product_named_in_price:
         product_name = plan.nickname
 
     print("Migrating product:", product_name)
 
-    is_legacy = "_" in product_name
+    is_legacy = "_" in product_name or is_product_named_in_price
     is_contemporary = "contemporary" in product_name
     is_classic = "classic" in product_name
     is_both = "both" in product_name
@@ -174,6 +186,17 @@ def get_replacement_plan_for_old_plan(plan: djstripe.models.Plan) -> str:
     is_annual = plan.interval == "year"
 
     product_id = None
+
+    print(
+        {
+            "is_legacy": is_legacy,
+            "is_contemporary": is_contemporary,
+            "is_classic": is_classic,
+            "is_both": is_both,
+            "is_solidarity": is_solidarity,
+            "is_annual": is_annual,
+        }
+    )
 
     if is_legacy:
         if is_solidarity:
@@ -224,11 +247,11 @@ def get_replacement_plan_for_old_plan(plan: djstripe.models.Plan) -> str:
                 "legacy_stripe_product_name": plan.product.name,
                 "legacy_stripe_plan_id": plan.id,
                 "legacy_stripe_plan_name": plan.nickname,
-                "is_contemporary": is_contemporary,
-                "is_classic": is_classic,
-                "is_both": is_both,
-                "is_solidarity": is_solidarity,
-                "is_annual": is_annual,
+                "legacy_is_contemporary": is_contemporary,
+                "legacy_is_classic": is_classic,
+                "legacy_is_both": is_both,
+                "legacy_is_solidarity": is_solidarity,
+                "legacy_is_annual": is_annual,
             },
         )
 

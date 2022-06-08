@@ -58,8 +58,7 @@ class LBCSubscription(djstripe.models.Subscription):
 
     def recipient_email(self):
         try:
-            user = self.customer.subscriber
-            return user.primary_email
+            return self.customer.email
         except:
             return None
 

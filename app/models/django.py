@@ -209,15 +209,17 @@ class User(AbstractUser):
 
     @property
     def primary_email(self):
-        primary = EmailAddress.objects.get_primary(self)
-        if primary is not None:
-            return primary.email
-        allauth_emails = EmailAddress.objects.filter(user=self).order_by(
-            "primary", "verified"
-        )
-        if len(allauth_emails) > 0:
-            return allauth_emails[0].email
         return self.email
+
+        # primary = EmailAddress.objects.get_primary(self)
+        # if primary is not None:
+        #     return primary.email
+        # allauth_emails = EmailAddress.objects.filter(user=self).order_by(
+        #     "primary", "verified"
+        # )
+        # if len(allauth_emails) > 0:
+        #     return allauth_emails[0].email
+        # return self.email
 
     @property
     def shipping_address(self):

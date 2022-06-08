@@ -89,7 +89,7 @@ class IndexView(ListControlsIndexView):
 
 
 class CustomerAdmin(ModelAdmin):
-    index_view_class = IndexView
+    # index_view_class = IndexView
     model = LBCSubscription
     menu_label = "Members"  # ditch this to use verbose_name_plural from model
     menu_icon = "fa-users"  # change as required

@@ -1731,14 +1731,14 @@ test = ["tox", "pytest (>=3.5)", "pytest-django (>=3.2)", "beautifulsoup4 (>=4.8
 
 [[package]]
 name = "wagtail-seo"
-version = "1.0.0"
+version = "2.0.0"
 description = "Search engine and social media optimization for Wagtail."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-wagtail = ">=2.9"
+wagtail = ">=3.0,<4.0"
 
 [[package]]
 name = "wagtail-transfer"
@@ -1845,7 +1845,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "9083830d24a9cee69a3a9145f58849f00a8ee8df9c9ac4d29dc5ff8e275b33fd"
+content-hash = "d1300e985b73398a3d355d4a1379cca5c759d6aa532629ccb6e395b1513764cd"
 
 [metadata.files]
 anyascii = [
@@ -2689,8 +2689,8 @@ wagtail-autocomplete = [
     {file = "wagtail_autocomplete-0.8.1-py3-none-any.whl", hash = "sha256:14d3de24247c9e8e3710fad7aac5f8aae38e78624cb348fe45b149cacc8af5f8"},
 ]
 wagtail-seo = [
-    {file = "wagtail-seo-1.0.0.tar.gz", hash = "sha256:3f2668a1e25d954dc17212af6e17ea8e157cbb4d6a78e7490ea53881a2c4aa77"},
-    {file = "wagtail_seo-1.0.0-py3-none-any.whl", hash = "sha256:ca548817f426decec000fa18bbfbcf6de228760c9a621061275158a86fc20b7a"},
+    {file = "wagtail-seo-2.0.0.tar.gz", hash = "sha256:ddf219221a628fcb2448c1dc15968386246957052c15efaff8e2e7a527f2fabc"},
+    {file = "wagtail_seo-2.0.0-py3-none-any.whl", hash = "sha256:a7fd7a2b821a3dc0da4949ba00399adf6fa6fa5d64309510e4c479da407d6a58"},
 ]
 wagtail-transfer = [
     {file = "wagtail-transfer-0.8.3.tar.gz", hash = "sha256:623a27be356cb0e8c28da3ed5a29ea42ff6a046ab84015c4efbd17c5dbce9118"},

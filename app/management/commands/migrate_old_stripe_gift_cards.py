@@ -81,9 +81,7 @@ class Command(BaseCommand):
                         f"🟠 Migrating legacy gift {sub.primary_product.name} [{sub.id}] to new product: {new_price.product.name}"
                     )
                     subscription = stripe.Subscription.retrieve(sub.id)
-                    sub = djstripe.models.Subscription.sync_from_stripe_data(
-                        subscription
-                    )
+                    sub = LBCSubscription.sync_from_stripe_data(subscription)
 
                 # Migrate all old gift cards to their matching product gift card
                 # As this wasn't managed in the migrate_old_stripe_subscriptions script
@@ -94,7 +92,7 @@ class Command(BaseCommand):
                     )
                 else:
                     new_sub = stripe.Subscription.modify(sub.id, coupon=coupon.id)
-                    djstripe.models.Subscription.sync_from_stripe_data(new_sub)
+                    sub = LBCSubscription.sync_from_stripe_data(new_sub)
                     print(
                         f"🟢 Updated subscription to use new coupon: {sub.primary_product.name} [{sub.id}] -- {old_coupon_name} [{old_coupon_id}] -> {coupon.name} [{coupon.id}]"
                     )

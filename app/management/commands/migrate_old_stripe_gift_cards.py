@@ -55,17 +55,18 @@ class Command(BaseCommand):
                     gift_giver_subscription = LBCSubscription.objects.get(
                         id=sub.metadata.get("gift_giver_subscription")
                     )
-                    stripe_price = stripe.Price.retrieve(
-                        gift_giver_subscription.items.first().plan.id
+                    old_price = stripe.Price.retrieve(
+                        gift_giver_subscription.items.first().plan.id,
+                        expand=["product"],
                     )
-                    new_plan = stripe.Price.create(
-                        recreate_one_off_stripe_price(stripe_price)
+                    new_price = stripe.Price.create(
+                        recreate_one_off_stripe_price(old_price)
                     )
 
                     # add the new si to the subscription
                     stripe.SubscriptionItem.create(
                         subscription=sub.id,
-                        price=new_plan.id,
+                        price=new_price.id,
                         quantity=1,
                     )
 
@@ -73,6 +74,9 @@ class Command(BaseCommand):
                     stripe.SubscriptionItem.delete(old_si.id)
 
                     # update
+                    print(
+                        f"🟠 Migrating legacy gift {sub.primary_product.name} [{sub.id}] to new product: {new_price.product.name}"
+                    )
                     subscription = stripe.Subscription.retrieve(sub.id)
                     sub = djstripe.models.Subscription.sync_from_stripe_data(
                         subscription

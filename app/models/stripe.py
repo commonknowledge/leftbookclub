@@ -30,15 +30,17 @@ class LBCSubscription(djstripe.models.Subscription):
     class Meta:
         proxy = True
 
+    @property
+    def primary_product(self):
+        return get_primary_product_for_djstripe_subscription(self)
+
     def primary_product_name(self):
-        primary_product = get_primary_product_for_djstripe_subscription(self)
-        if primary_product:
-            return primary_product.name
+        if self.primary_product:
+            return self.primary_product.name
 
     def primary_product_id(self):
-        primary_product = get_primary_product_for_djstripe_subscription(self)
-        if primary_product:
-            return primary_product.id
+        if self.primary_product:
+            return self.primary_product.id
 
     def customer_id(self):
         return self.customer.id

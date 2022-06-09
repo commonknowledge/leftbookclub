@@ -91,3 +91,14 @@ class Command(BaseCommand):
                     print(
                         f"🟢 Updated subscription to use new coupon: {sub.primary_product.name} [{sub.id}] -- {old_coupon_name} [{old_coupon_id}] -> {coupon.name} [{coupon.id}]"
                     )
+
+                # Ensure there's no non-£0 invoice coming up
+                invoice = stripe.Invoice.upcoming(
+                    customer=sub.customer.id,
+                )
+                if invoice.amount_remaining > 0:
+                    stripe.Customer.create_balance_transaction(
+                        sub.customer.id,
+                        amount=invoice.amount_remaining,
+                        currency=invoice.currency,
+                    )

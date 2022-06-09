@@ -1,7 +1,7 @@
 name: Regular Server Restart
 on:
   schedule:
-    - cron:  '0 3 * * *'
+    - cron: "0 3 * * *"
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 jobs:

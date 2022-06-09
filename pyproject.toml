@@ -47,7 +47,6 @@ django-mjml = "^0.12.0"
 wagtail-seo = "^1.0.0"
 ShopifyAPI = "^11.0.0"
 python-dateutil = "^2.8.2"
-wagtail-admin-list-controls = "^0.1.7"
 Django = {extras = ["bcrypt"], version = "^4.0.4"}
 django-import-export = "^2.8.0"
 pycountry = "^22.3.5"
@@ -58,6 +57,7 @@ sentry-sdk = "^1.5.11"
 mailchimp-marketing = "^3.0.75"
 django-redirect-to-non-www = "^0.1.1"
 django-silk = "^4.3.0"
+wagtail-admin-list-controls = "^0.1.7"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

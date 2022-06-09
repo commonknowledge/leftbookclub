@@ -1,3 +1,5 @@
+from re import I
+
 import djstripe.models
 import shopify
 from admin_list_controls.actions import SubmitForm
@@ -7,12 +9,14 @@ from admin_list_controls.views import ListControlsIndexView
 from django.db.models import Count, Q
 from django.templatetags.static import static
 from django.utils.html import format_html
+from djstripe.enums import SubscriptionStatus
 from wagtail import hooks
 from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
 
 from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
 from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice
+from app.utils import ensure_list
 
 
 @hooks.register("insert_global_admin_css")
@@ -51,33 +55,46 @@ class ShippingAdmin(ModelAdmin):
 modeladmin_register(ShippingAdmin)
 
 
+class MultipleChoiceFilter(ChoiceFilter):
+    def clean(self, request):
+        if self.multiple:
+            whitelisted_values = [choice[0] for choice in self.choices]
+            values = request.GET.getlist(self.name)
+            cleaned_values = [value for value in values if value in whitelisted_values]
+            if cleaned_values:
+                return cleaned_values
+            elif self.default_value:
+                # Overwritten part of function
+                return ensure_list(self.default_value)
+            else:
+                return []
+        return super().clean(request)
+
+
+def filter_member_statuses(queryset, values):
+    if "active" in values and "expired" in values:
+        return queryset
+    if "active" in values:
+        return queryset.filter(status__in=User.valid_subscription_statuses)
+    if "expired" in values:
+        return queryset.exclude(status__in=User.valid_subscription_statuses)
+
+
 class IndexView(ListControlsIndexView):
     def build_list_controls(self):
-        products = list(
-            djstripe.models.Plan.objects.filter(active=True)
-            .order_by()
-            .values_list("product__id", "product__name")
-            .annotate(frequency=Count("product__id"))
-            .order_by("-frequency")
-        )
-        statuses = list(
-            LBCSubscription.objects.all().values_list("status").order_by().distinct()
-        )
         config = [
             Panel()(
                 Columns()(
-                    ChoiceFilter(
-                        name="product",
-                        label="Product",
+                    MultipleChoiceFilter(
+                        name="status",
+                        label="Member Statuses",
                         multiple=True,
-                        choices=tuple((p[0], p[1]) for p in products),
-                        apply_to_queryset=lambda queryset, values: queryset.filter(
-                            # Single-plan subscriptions
-                            # Q(plan__product__in=values) |
-                            # Multi-plan subscriptions
-                            Q(plan__subscription_items__plan__product__in=values)
-                            | Q(items__plan__product__in=values)
-                        ),
+                        choices=[
+                            ("active", "Active Members"),
+                            ("expired", "Expired Members"),
+                        ],
+                        default_value="active",
+                        apply_to_queryset=filter_member_statuses,
                     ),
                 ),
                 Button(action=SubmitForm())(
@@ -89,7 +106,7 @@ class IndexView(ListControlsIndexView):
 
 
 class CustomerAdmin(ModelAdmin):
-    # index_view_class = IndexView
+    index_view_class = IndexView
     model = LBCSubscription
     menu_label = "Members"  # ditch this to use verbose_name_plural from model
     menu_icon = "fa-users"  # change as required
@@ -101,14 +118,12 @@ class CustomerAdmin(ModelAdmin):
     list_display = (
         "recipient_name",
         "primary_product_name",
-        "status",
-        "is_gift_receiver",
+        "is_active_member",
     )
     list_export = (
         "recipient_name",
         "recipient_email",
         "primary_product_name",
-        "primary_product_id",
         "is_gift_receiver",
         "is_active_member",
         "status",

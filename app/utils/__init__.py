@@ -5,6 +5,12 @@ def flatten_list(the_list):
     return [item for sublist in the_list for item in sublist]
 
 
+def ensure_list(list_or_item):
+    if isinstance(list_or_item, list):
+        return list_or_item
+    return [list_or_item]
+
+
 from collections.abc import MutableMapping
 
 

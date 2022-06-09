@@ -4,5 +4,5 @@
 {% firstof value.size "md" as size %}
 {% firstof value.style "btn-dark" as style %}
 {% if text and url %}
-  {% bootstrap_button href=url content=text size=size button_class="lbc-btn" %}
+  {% bootstrap_button href=url content=text size=size button_class="lbc-btn" extra_classes=class %}
 {% endif %}

@@ -104,6 +104,6 @@ class Command(BaseCommand):
                 if invoice.amount_remaining > 0:
                     stripe.Customer.create_balance_transaction(
                         sub.customer.id,
-                        amount=invoice.amount_remaining,
+                        amount=-invoice.amount_remaining,
                         currency=invoice.currency,
                     )

@@ -12,6 +12,7 @@ from app.models import *
 from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
     create_gift_recipient_subscription,
+    get_shipping_product_for_djstripe_subscription,
 )
 from app.views import SubscriptionCheckoutView
 

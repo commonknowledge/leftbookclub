@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 # For gift recipients with no named price
                 # (as this wasn't managed in the migrate_old_stripe_subscriptions script)
                 old_si = sub.items.first()
-                if old_si.plan.nickname is None:
+                if sub.primary_product.name == "Left Book Club Subscription":
                     # use their gift_giver_subscription primary product as a guide to what product to move them to
                     gift_giver_subscription = LBCSubscription.objects.get(
                         id=sub.metadata.get("gift_giver_subscription")

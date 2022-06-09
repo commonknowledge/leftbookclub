@@ -55,12 +55,15 @@ class Command(BaseCommand):
                     gift_giver_subscription = LBCSubscription.objects.get(
                         id=sub.metadata.get("gift_giver_subscription")
                     )
+
                     old_price = stripe.Price.retrieve(
                         gift_giver_subscription.items.first().plan.id,
                         expand=["product"],
                     )
+
                     new_price = stripe.Price.create(
-                        **recreate_one_off_stripe_price(old_price)
+                        **recreate_one_off_stripe_price(old_price),
+                        expand=["product"],
                     )
 
                     # add the new si to the subscription

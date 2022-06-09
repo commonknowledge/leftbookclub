@@ -60,7 +60,7 @@ class Command(BaseCommand):
                         expand=["product"],
                     )
                     new_price = stripe.Price.create(
-                        recreate_one_off_stripe_price(old_price)
+                        **recreate_one_off_stripe_price(old_price)
                     )
 
                     # add the new si to the subscription

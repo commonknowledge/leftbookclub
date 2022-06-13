@@ -42,7 +42,7 @@ django-extensions = "^3.1.5"
 wagtailfontawesome = "^1.2.1"
 django-gravatar2 = "^1.4.4"
 django-active-link = "^0.1.8"
-wagtailmenus = { git = "https://github.com/jazzband/wagtailmenus.git", rev = "44ba8f1c1986b474737bf9f5aacbb0045b692a85" }
+wagtailmenus = { git = "https://github.com/commonknowledge/wagtailmenus", rev = "master" }
 django-mjml = "^0.12.0"
 wagtail-seo = "^2.0.0"
 ShopifyAPI = "^11.0.0"

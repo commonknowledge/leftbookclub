@@ -29,7 +29,7 @@ if USE_DEBUG_TOOLBAR:
         "debug_toolbar.middleware.DebugToolbarMiddleware",
     ]
 
-USE_SILK = True
+USE_SILK = False
 
 if USE_SILK:
     MIDDLEWARE += [

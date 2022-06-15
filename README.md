@@ -86,6 +86,57 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 - Deploy the app via `flyctl deploy` or the github workflows configured in this repo
 - Then use `flyctl ssh console` to enter the app and run set up commands, etc.
 
+## OAuth 2.0 provider details
+
+The LBC app can be configured as an OAuth 2.0 provider, to provide authentication to third party systems like Circle.so.
+
+How to get this going:
+
+- Go to the Django admin panel and create an OAuth2 application with credentials like this:
+
+  ```
+  {
+    "id" : 1,
+    "client_type" : "public",
+    "updated" : "2022-06-15 19:32:04.045699+00",
+    "user_id" : null,
+    "redirect_uris" : "http:\/\/localhost:3000\/api\/auth\/callback http:\/\/localhost:3000\/api\/auth\/callback\/lbc http:\/\/localhost:3000\/api\/auth\/lbc\/callback",
+    "created" : "2022-06-15 18:44:48.781143+00",
+    "client_id" : "4AGN48TesXUV3I1pYnQY3t4rwrnFK7ZpazMN70oy",
+    "client_secret" : "bcrypt_sha256$$2b$12$8T92Eh3RkEIjQxig7rf4jebRiIPKfmuzEpxefBFSEP9cNg2\/bpk5S",
+    "skip_authorization" : false,
+    "algorithm" : "RS256",
+    "name" : "AuthCode",
+    "authorization_grant_type" : "authorization-code"
+  }
+  ```
+
+- Configure the client to use this provider application:
+  ```
+  {
+    id: "lbc",
+    name: "Left Book Club",
+    type: "oauth",
+    checks: ["pkce"],
+    // idToken: true,
+    wellKnown: "http://localhost:8000/o/.well-known/openid-configuration/",
+    // authorization: "http://localhost:8000/o/authorize/",
+    // token: "http://localhost:8000/o/token/",
+    // userinfo: "http://localhost:8000/o/user/me/",
+    clientId: "4AGN48TesXUV3I1pYnQY3t4rwrnFK7ZpazMN70oy",
+    clientSecret: "...",
+    profile(profile) {
+      return {
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+      }
+    },
+  }
+  ```
+
+We used https://github.com/nextauthjs/next-auth-example/ to test this implementation.
+
 ### Secrets
 
 ```js

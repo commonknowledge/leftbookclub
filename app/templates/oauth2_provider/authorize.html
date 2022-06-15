@@ -1,0 +1,40 @@
+{% extends "account/modal_base.html" %}
+
+{% load i18n %}
+{% block modal_content %}
+    <div class="block-center">
+        {% if not error %}
+            <form id="authorizationForm" method="post">
+                <h3 class="block-center-heading">{% trans "Authorize" %} {{ application.name }}?</h3>
+                {% csrf_token %}
+
+                {% for field in form %}
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% endif %}
+                {% endfor %}
+
+                <p>{% trans "Application requires the following permissions" %}</p>
+                <ul>
+                    {% for scope in scopes_descriptions %}
+                        <li>{{ scope }}</li>
+                    {% endfor %}
+                </ul>
+
+                {{ form.errors }}
+                {{ form.non_field_errors }}
+
+                <div class="control-group">
+                    <div class="form-actions">
+                        <input type="submit" class="btn btn-primary pull-right !tw-w-auto" name="allow" value="{% trans 'Authorize' %}"/>
+                        <input type="submit" class="btn" value="{% trans 'Cancel' %}"/>
+                    </div>
+                </div>
+            </form>
+
+        {% else %}
+            <h2>Error: {{ error.error }}</h2>
+            <p>{{ error.description }}</p>
+        {% endif %}
+    </div>
+{% endblock %}

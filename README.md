@@ -92,7 +92,7 @@ The LBC app can be configured as an OAuth 2.0 provider, to provide authenticatio
 
 How to get this going:
 
-- Go to the Django admin panel and create an OAuth2 application with credentials like this:
+- From the Django admin panel, [create an OAuth2 application](http://localhost:8000/django/oauth2_provider/application) with credentials like this:
 
   ```
   {

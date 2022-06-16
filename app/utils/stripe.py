@@ -303,10 +303,6 @@ def get_primary_product_for_djstripe_subscription(
     )
 
 
-def get_shipping_product_for_djstripe_subscription():
-    return get_shipping_product()
-
-
 def interval_string_for_plan(plan):
     format_args = {}
     interval_count = plan.interval_count

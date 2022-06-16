@@ -137,7 +137,6 @@ def get_gift_card_coupon(product: djstripe.models.Product) -> djstripe.models.Co
 
 def recreate_one_off_stripe_price(price: stripe.Price, **kwargs):
     return {
-        "nickname": price.nickname,
         "unit_amount_decimal": price.unit_amount,
         "currency": price.currency,
         "product": price.product.id,

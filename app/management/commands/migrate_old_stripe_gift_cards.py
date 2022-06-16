@@ -63,6 +63,7 @@ class Command(BaseCommand):
 
                     new_price = stripe.Price.create(
                         **recreate_one_off_stripe_price(old_price),
+                        nickname=old_price.nickname,
                         expand=["product"],
                     )
 

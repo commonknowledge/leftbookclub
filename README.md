@@ -92,6 +92,15 @@ The LBC app can be configured as an OAuth 2.0 provider, to provide authenticatio
 
 How to get this going:
 
+- You must generate an RSA private key and add it to base.py where `OIDC_RSA_PRIVATE_KEY` is specified.
+
+  In production, set `OIDC_RSA_PRIVATE_KEY` like so:
+
+  ```
+  export PRIVATE_KEY=`cat oidc.key`
+  fly secrets set -a lbc-production OIDC_RSA_PRIVATE_KEY=PRIVATE_KEY
+  ```
+
 - From the Django admin panel, [create an OAuth2 application](http://localhost:8000/django/oauth2_provider/application) with credentials like this:
 
   ```

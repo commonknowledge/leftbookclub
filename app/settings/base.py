@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "admin_list_controls",
     "mjml",
     "import_export",
+    "oauth2_provider",
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -393,3 +394,16 @@ if USE_SILK:
     INSTALLED_APPS += [
         "silk",
     ]
+
+OAUTH2_PROVIDER = {
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": os.getenv("OIDC_RSA_PRIVATE_KEY", None),
+    "SCOPES": {
+        "openid": "OpenID Connect scope",
+        # ... any other scopes that you use
+    },
+    "OAUTH2_VALIDATOR_CLASS": "app.oauth.CustomOAuth2Validator",
+    # ... any other settings you want
+}
+
+# OAUTH2_PROVIDER_APPLICATION_MODEL='app.CustomOAuth2Application'

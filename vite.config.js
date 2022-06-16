@@ -26,6 +26,10 @@ export default defineConfig(({ command }) => {
         input: BUNDLE_ENTRYPOINTS,
       },
     },
+    server: {
+      port: 3001,
+      strictPort: true,
+    },
     css:
       command === "build"
         ? {

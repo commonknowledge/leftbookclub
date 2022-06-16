@@ -58,7 +58,7 @@
       "label": "Django",
       "onAutoForward": "silent"
     },
-    "3000": {
+    "3001": {
       "label": "ViteStaticFiles",
       "onAutoForward": "silent"
     },

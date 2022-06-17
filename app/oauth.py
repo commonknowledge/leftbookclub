@@ -14,7 +14,7 @@ class CustomOAuth2Validator(OAuth2Validator):
     # otherwise the OIDC standard scopes are used.
 
     def get_additional_claims(self, request):
-        return {
+        args = {
             "id": request.user.id,
             "_id": request.user.id,
             "given_name": request.user.first_name,
@@ -25,8 +25,12 @@ class CustomOAuth2Validator(OAuth2Validator):
             "email": request.user.email,
             "is_member": request.user.is_member,
             "is_expired_member": request.user.is_expired_member,
-            "stripe_product_name": request.user.primary_product_name,
-            "stripe_product_id": request.user.primary_product_id,
             "stripe_customer_id": request.user.stripe_customer.id,
             "shipping_address": request.user.shipping_address,
         }
+        if request.user.primary_product != None:
+            args.update({
+                "stripe_product_name": request.user.primary_product.name,
+                "stripe_product_id": request.user.primary_product.id,
+            })
+        return args

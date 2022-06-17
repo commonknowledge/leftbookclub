@@ -402,6 +402,7 @@ OAUTH2_PROVIDER = {
         "openid": "OpenID Connect scope",
         # ... any other scopes that you use
     },
+    "PKCE_REQUIRED": os.getenv("PKCE_REQUIRED", True) in (True, "True", "t", 1),
     "OAUTH2_VALIDATOR_CLASS": "app.oauth.CustomOAuth2Validator",
     "OIDC_ISS_ENDPOINT": os.getenv("OIDC_ISS_ENDPOINT", "")
     # ... any other settings you want

@@ -16,6 +16,7 @@ class CustomOAuth2Validator(OAuth2Validator):
     def get_additional_claims(self, request):
         return {
             "id": request.user.id,
+            "_id": request.user.id,
             "given_name": request.user.first_name,
             "first_name": request.user.first_name,
             "family_name": request.user.last_name,
@@ -24,7 +25,8 @@ class CustomOAuth2Validator(OAuth2Validator):
             "email": request.user.email,
             "is_member": request.user.is_member,
             "is_expired_member": request.user.is_expired_member,
-            "stripe_product": request.user.primary_product,
+            "stripe_product_name": request.user.primary_product_name,
+            "stripe_product_id": request.user.primary_product_id,
             "stripe_customer_id": request.user.stripe_customer.id,
             "shipping_address": request.user.shipping_address,
         }

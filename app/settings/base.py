@@ -403,6 +403,7 @@ OAUTH2_PROVIDER = {
         # ... any other scopes that you use
     },
     "OAUTH2_VALIDATOR_CLASS": "app.oauth.CustomOAuth2Validator",
+    "OIDC_ISS_ENDPOINT": os.getenv("OIDC_ISS_ENDPOINT", "")
     # ... any other settings you want
 }
 

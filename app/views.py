@@ -458,10 +458,11 @@ class CancellationView(LoginRequiredTemplateView):
                 context["subscription"] = subscription
                 if subscription.metadata.get("gift_mode", None) is not None:
                     context["gift_mode"] = True
-                    promo_code_id = subscription.metadata.get("promo_code")
-                    context[
-                        "gift_recipient_subscription"
-                    ] = gift_recipient_subscription_from_code(promo_code_id)
+                    promo_code_id = subscription.metadata.get("promo_code", None)
+                    if promo_code_id is not None:
+                        context[
+                            "gift_recipient_subscription"
+                        ] = gift_recipient_subscription_from_code(promo_code_id)
                 return context
             except djstripe.models.Subscription.DoesNotExist:
                 raise Http404

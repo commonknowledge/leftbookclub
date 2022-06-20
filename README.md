@@ -97,8 +97,8 @@ How to get this going:
   In production, set `OIDC_RSA_PRIVATE_KEY` like so:
 
   ```
-  export PRIVATE_KEY=`cat oidc.key`
-  fly secrets set -a lbc-production OIDC_RSA_PRIVATE_KEY=PRIVATE_KEY
+  PRIVATE_KEY=$(openssl genrsa 4096)
+  fly secrets set -a lbc-production OIDC_RSA_PRIVATE_KEY=$PRIVATE_KEY
   ```
 
 - From the Django admin panel, [create an OAuth2 application](http://localhost:8000/django/oauth2_provider/application) with credentials like this:

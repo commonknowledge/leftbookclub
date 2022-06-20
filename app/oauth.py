@@ -29,8 +29,10 @@ class CustomOAuth2Validator(OAuth2Validator):
             "shipping_address": request.user.shipping_address,
         }
         if request.user.primary_product != None:
-            args.update({
-                "stripe_product_name": request.user.primary_product.name,
-                "stripe_product_id": request.user.primary_product.id,
-            })
+            args.update(
+                {
+                    "stripe_product_name": request.user.primary_product.name,
+                    "stripe_product_id": request.user.primary_product.id,
+                }
+            )
         return args

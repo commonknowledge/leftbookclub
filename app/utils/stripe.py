@@ -25,6 +25,7 @@ def is_redeemable_gift_code(code):
     possible_codes = stripe.PromotionCode.list(code=code).data
     return (
         len(possible_codes) > 0
+        and possible_codes[0].active
         and possible_codes[0].max_redemptions is not None
         and possible_codes[0].max_redemptions > possible_codes[0].times_redeemed
         and possible_codes[0].metadata.get("gift_giver_subscription", False)
@@ -105,7 +106,12 @@ def get_shipping_product() -> djstripe.models.Product:
     return dj_shipping_product
 
 
-def get_gift_card_coupon(product: djstripe.models.Product) -> djstripe.models.Coupon:
+def get_gift_card_coupon(
+    product: Union[djstripe.models.Product, str]
+) -> djstripe.models.Coupon:
+    if isinstance(product, str):
+        product = djstripe.models.Product.objects.get(id=product)
+
     coupon_name = f"Gift Card: {product.name}"[:40]
 
     coupon = djstripe.models.Coupon.objects.filter(
@@ -135,7 +141,19 @@ def get_gift_card_coupon(product: djstripe.models.Product) -> djstripe.models.Co
     return coupon
 
 
-def recreate_one_off_stripe_price(price: stripe.Price, **kwargs):
+def recreate_one_off_stripe_price(
+    price: Union[str, stripe.Price, djstripe.models.Plan, djstripe.models.Price],
+    **kwargs,
+):
+    if isinstance(price, str):
+        price = stripe.Price.retrieve(price, expand=["product"])
+    if (
+        isinstance(price.product, str)
+        or isinstance(price, djstripe.models.Plan)
+        or isinstance(price, djstripe.models.Price)
+    ):
+        price = stripe.Price.retrieve(price.id, expand=["product"])
+
     return {
         "unit_amount_decimal": price.unit_amount,
         "currency": price.currency,
@@ -230,10 +248,7 @@ def create_gift_recipient_subscription(
         fresh_sub
     )
 
-    # Get number of months from gift_giver_subscription.metadata.get('promo_code_id') -> pc.coupon.duration_in_months
-    promo_code_id = gift_giver_subscription.metadata.get("promo_code")
-    # promo_code = stripe.PromotionCode.retrieve(promo_code_id)
-
+    product_price = None
     items = []
     for si in gift_giver_subscription.items.all():
         if si.price.metadata.get("shipping_zone", None) is not None:
@@ -254,20 +269,48 @@ def create_gift_recipient_subscription(
             # Yes, if we knew the (wagtail) price.id and product.id
             # Product ID comes from the si.price
             # Wagtail Price ID... we could potentially put on the metadata?
-            items.append(
-                {
-                    # Membership
-                    "price_data": recreate_one_off_stripe_price(
-                        si.price, metadata={"primary": True}
-                    ),
-                    "quantity": si.quantity,
-                }
-            )
+            product_price = {
+                # Membership
+                "price_data": recreate_one_off_stripe_price(
+                    si.price, metadata={"primary": True}
+                ),
+                "quantity": si.quantity,
+            }
+            items.append(product_price)
+
+    if product_price is None:
+        raise ValueError("Couldn't recognise this gift card's subscription type")
+
+    discount_args = {}
+    promo_code_id = gift_giver_subscription.metadata.get("promo_code")
+
+    ####
+    #### Handle the unlikely case that the gift giver has had their product migrated
+    #### since the coupon changed
+    ####
+
+    product_id = product_price["price_data"]["product"]
+    promo_code = stripe.PromotionCode.retrieve(
+        promo_code_id, expand=["coupon.applies_to"]
+    )
+    if product_id in promo_code.coupon.applies_to.products:
+        # the gift card is fit for purpose
+        discount_args = {"promotion_code": promo_code_id}
+    else:
+        # if they're in this situation of the gift card being for an old product
+        # get the right coupon for the target product
+        coupon = get_gift_card_coupon(product_id)
+
+        # invalidate the gift card's promo code so it can't be used again
+        promo_code = stripe.PromotionCode.modify(promo_code_id, active=False)
+
+        discount_args = {"coupon": coupon.id}
+        pass
 
     args = dict(
         customer=user.stripe_customer.id,
         items=items,
-        promotion_code=promo_code_id,
+        **discount_args,
         payment_behavior="allow_incomplete",
         off_session=True,
         metadata={
@@ -276,6 +319,7 @@ def create_gift_recipient_subscription(
             **metadata,
         },
     )
+
     subscription = stripe.Subscription.create(**args)
 
     # For easy forward access

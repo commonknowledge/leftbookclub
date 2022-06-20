@@ -21,21 +21,22 @@ def cancel_gift_recipient_subscription(event, **kwargs):
         and object.get("metadata", {}).get("gift_mode", None) is not None
     ):
         promo_code = object.get("metadata", {}).get("promo_code", None)
-        recipient_subscription = gift_recipient_subscription_from_code(promo_code)
-        stripe.Subscription.delete(recipient_subscription.id)
-        # Analytics
-        try:
-            customer = Customer.objects.filter(id=object.get("customer")).first()
-            if customer is not None and customer.subscriber is not None:
-                analytics.cancel_gift_card(customer.subscriber)
-                tag_user_in_mailchimp(
-                    customer.subscriber,
-                    tags_to_enable=["CANCELLED_GIFT_GIVER"],
-                    tags_to_disable=["GIFT_GIVER"],
-                )
-        except Exception as e:
-            capture_exception(e)
-            pass
+        if promo_code is not None:
+            recipient_subscription = gift_recipient_subscription_from_code(promo_code)
+            stripe.Subscription.delete(recipient_subscription.id)
+            # Analytics
+            try:
+                customer = Customer.objects.filter(id=object.get("customer")).first()
+                if customer is not None and customer.subscriber is not None:
+                    analytics.cancel_gift_card(customer.subscriber)
+                    tag_user_in_mailchimp(
+                        customer.subscriber,
+                        tags_to_enable=["CANCELLED_GIFT_GIVER"],
+                        tags_to_disable=["GIFT_GIVER"],
+                    )
+            except Exception as e:
+                capture_exception(e)
+                pass
     else:
         # Analytics
         try:

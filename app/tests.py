@@ -12,6 +12,7 @@ from app.models import *
 from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
     create_gift_recipient_subscription,
+    recreate_one_off_stripe_price,
 )
 from app.views import SubscriptionCheckoutView
 
@@ -573,10 +574,95 @@ class GiftTestCase(TestCase):
         promo_code = stripe.PromotionCode.retrieve(promo_code.id)
         self.assertFalse(promo_code.active)
 
-    # def test_gift_subscription_ends(self):
-    #     self.assertTrue(True)
-    #     # TODO: listen for "customer.subscription.deleted" webhook
-    #     # with dummy data saying that it is self.gift_giver_user's subscriptions
-    #     self.gift_recipient_user.gift_recipient_user.refresh_stripe_data()
-    #     self.assertIsNone(self.gift_recipient_user.active_subscription)
-    #     pass
+    def test_gift_card_redemption_for_migrated_product(self):
+        """
+        In this scenario, a gift giver purchases a gift subscription, and then the gift subscription's product is migrated
+        but the associated coupon is still applying only to the original product.
+
+        1. The gift giver purchases a gift subscription
+        2. The gift subscription's product is migrated
+        3. TEST: The gift is redeemed successfully
+        """
+
+        # create subscription
+        context = SubscriptionCheckoutView.create_checkout_context(
+            product=self.gift_plan.monthly_price.products.first(),
+            price=self.gift_plan.monthly_price,
+            zone=ShippingZone.default_zone,
+            gift_mode=True,
+        )
+        gift_giver_subscription = stripe.Subscription.create(
+            customer=self.gift_giver_user.stripe_customer.id,
+            items=context["checkout_args"]["line_items"],
+            metadata={"automated_test_record": "true"},
+            default_payment_method=self.payment_card.id,
+        )
+
+        ####
+        #### 1. Create the gift giver subscription
+        ####
+
+        (
+            promo_code,
+            gift_giver_subscription,
+        ) = configure_gift_giver_subscription_and_code(
+            gift_giver_subscription.id,
+            self.gift_giver_user.id,
+            metadata={"automated_test_record": "true"},
+        )
+
+        ####
+        #### 2. Migrate the product
+        ####
+        primary = get_primary_product_for_djstripe_subscription(gift_giver_subscription)
+        si = gift_giver_subscription.items.get(plan__product=primary)
+
+        # add new product price
+        another_product = djstripe.models.Product.objects.filter(
+            active=True, metadata__shipping__isnull=True
+        )[2]
+        # ensure we're actually shifting them to a new product
+        self.assertNotEqual(primary.id, another_product.id)
+        # new product price
+        price_args = recreate_one_off_stripe_price(si.plan)
+        price_args["product"] = another_product.id
+        new_price = stripe.Price.create(**price_args)
+
+        # add the new product price
+        stripe.SubscriptionItem.create(
+            subscription=gift_giver_subscription.id,
+            price=new_price.id,
+            quantity=1,
+        )
+
+        # delete the old product price
+        stripe.SubscriptionItem.delete(si.id)
+
+        # sync this down for further testing
+        subscription = stripe.Subscription.retrieve(gift_giver_subscription.id)
+        gift_giver_subscription = djstripe.models.Subscription.sync_from_stripe_data(
+            subscription
+        )
+
+        ####
+        #### Test redemption
+        ####
+
+        # Test redemption on self
+        recipient_subscription = create_gift_recipient_subscription(
+            gift_giver_subscription, self.gift_recipient_user
+        )
+
+        # Assert that the recipient subscription is correctly set up in Stripe
+        self.assertEqual(
+            recipient_subscription.status, djstripe.enums.SubscriptionStatus.active
+        )
+        self.assertNotEqual(recipient_subscription.discount, None)
+        self.assertEqual(
+            get_primary_product_for_djstripe_subscription(gift_giver_subscription),
+            get_primary_product_for_djstripe_subscription(recipient_subscription),
+        )
+
+        # Assert that the promo code can't be used anymore, because it's been redeemed
+        promo_code = stripe.PromotionCode.retrieve(promo_code.id)
+        self.assertFalse(promo_code.active)

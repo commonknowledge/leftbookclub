@@ -1581,7 +1581,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
 name = "stripe"
-version = "2.76.0"
+version = "3.4.0"
 description = "Python bindings for the Stripe API"
 category = "main"
 optional = false
@@ -1885,7 +1885,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "3c8f6d5b40348a87632eb9c87db945917621597c806fb3f4089d2cd9962f5225"
+content-hash = "8e852a55851513d2d4c73b49a3c99d0c8505afc95ffa95a81dd033f2c5ac3419"
 
 [metadata.files]
 anyascii = [
@@ -2641,8 +2641,8 @@ stevedore = [
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
 stripe = [
-    {file = "stripe-2.76.0-py2.py3-none-any.whl", hash = "sha256:756bf6c1206f438d1fa23bb90cdf1233c9383478f854f2720a8a3e1eaf1f715b"},
-    {file = "stripe-2.76.0.tar.gz", hash = "sha256:fd3fc6935c3b6189967191607b6f38ebe490005a590b4d0d43fbe3aba45deca8"},
+    {file = "stripe-3.4.0-py2.py3-none-any.whl", hash = "sha256:baead81078913f170df57b2c5ffb05f0b6a1c6eaea8dd9a25922c7025916768d"},
+    {file = "stripe-3.4.0.tar.gz", hash = "sha256:5dc37defd9d65e053022dabcb659e7362b058a7af74047ee58518a2907a761f2"},
 ]
 tablib = [
     {file = "tablib-3.2.1-py3-none-any.whl", hash = "sha256:870d7e688f738531a14937a055e8bba404fbc388e77d4d500b2c904075d1019c"},

@@ -6,13 +6,23 @@ from wagtail.admin.panels import StreamFieldPanel
 from wagtail.contrib.settings.models import BaseSetting, register_setting
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 
-from app.models.wagtail import BookPage, create_streamfield
+from app.models.wagtail import BookPage, YourBooks, create_streamfield
 
 
 @register_setting(icon="users")
 class MembershipJourney(BaseSetting):
     welcome_content = create_streamfield()
     panels = [StreamFieldPanel("welcome_content")]
+
+
+@register_setting(icon="users")
+class MemberProfilePage(BaseSetting):
+    profile_page_content = create_streamfield(
+        [
+            ("your_book_list", YourBooks()),
+        ]
+    )
+    panels = [StreamFieldPanel("profile_page_content")]
 
 
 def settings_path(custom_settings_cls):

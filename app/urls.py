@@ -49,11 +49,6 @@ urlpatterns = [
         name="account_membership",
     ),
     path(
-        "accounts/billing-and-shipping/",
-        LoginRequiredTemplateView.as_view(template_name="account/billing.html"),
-        name="billing_shipping",
-    ),
-    path(
         "accounts/gift-cards/",
         LoginRequiredTemplateView.as_view(template_name="account/gifts.html"),
         name="gift_cards",

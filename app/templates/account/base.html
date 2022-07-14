@@ -24,9 +24,6 @@
       <li class="{% block account_nav_profile %}{% endblock %}">
         <a class='nav-link {% active_link "account_membership" %}' href="{% url 'account_membership' %}">{% trans 'Membership' %}</a>
       </li>
-      <li class="{% block account_nav_billing_shipping %}{% endblock %}">
-        <a class='nav-link {% active_link "billing_shipping" %}' href="{% url 'billing_shipping' %}">{% trans 'Billing/Shipping' %}</a>
-      </li>
       <li class="{% block account_nav_gift_cards %}{% endblock %}">
         <a class='nav-link {% active_link "gift_cards" %}' href="{% url 'gift_cards' %}">{% trans 'Gift Cards' %}</a>
       </li>

@@ -1,0 +1,14 @@
+{% load books %}
+{% get_books since=user.active_subscription.created types=user.primary_product.book_types as books %}
+{% if books|length > 0 %}
+  <section class='my-4'>
+    <div class='row my-4'>
+      <h3>Books you've received</h3>
+    </div>
+    <div class='row align-items-center g-1'>
+    {% for book in books %}
+      {% include "app/includes/simple_book_card.html" with book=book class='col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2' %}
+    {% endfor %}
+    </div>
+  </section>
+{% endif %}

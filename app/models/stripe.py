@@ -151,14 +151,20 @@ class LBCProduct(djstripe.models.Product):
         if related_subscription_id:
             return djstripe.models.Subscription.get(id=related_subscription_id)
 
-    def current_book(self):
-        from app.models.wagtail import BookPage
-
+    @property
+    def book_types(self):
         book_types = self.metadata.get("book_types", None)
         if book_types is not None:
             book_types = book_types.split(",")
+            return book_types
+        return list()
+
+    def current_book(self):
+        from app.models.wagtail import BookPage
+
+        if self.book_types is not None and len(self.book_types) > 0:
             return (
-                BookPage.objects.filter(type__in=book_types)
+                BookPage.objects.filter(type__in=self.book_types)
                 .order_by("-published_date")
                 .first()
             )

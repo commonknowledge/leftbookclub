@@ -25,7 +25,7 @@
     <div class='d-flex flex-column justify-content-center align-items-center my-4'>
       {% include "app/includes/membership_card.html" %}
     </div>
-    {% get_books since=user.active_subscription.created as books %}
+    {% get_books since=user.active_subscription.created types=user.primary_product.book_types as books %}
     {% if books|length > 0 %}
       <section class='container my-5'>
         <div class='row text-center my-4'>

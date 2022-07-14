@@ -1,5 +1,6 @@
 {% load django_bootstrap5 wagtailimages_tags %}
 <article class='{{class}}'>
+  {{background_color}}
   <div class='p-3 {% firstof background_color "bg-white" %} h-100 d-flex flex-column'>
     <h5 class='fw-bold'>{{ value.title }}</h5>
     <div class='text-center my-3'>

@@ -87,12 +87,12 @@ fbq('track', 'InitiateCheckout');
           <header class='p-3'>
             <h5 class='mb-0'>
               {% if gift_mode %}
-                This month's book
+                Your next book delivery
               {% else %}
-                Your book this month
+                Your next book delivery
               {% endif %}
             </h5>
-            <p class='mb-0 text-muted'>And a new book <b>{{ price.plan.delivery_frequency }}</b></p>
+            <p class='mb-0 text-muted'>And then every <b>{{ price.plan.delivery_frequency }}</b></p>
           </header>
           {% include "app/includes/simple_book_card.html" with book=current_book %}
         </article>

@@ -779,6 +779,12 @@ class RecentlyPublishedBooks(BookGridBlock):
         return context
 
 
+class YourBooks(BookGridBlock):
+    class Meta:
+        template = "app/blocks/your_books_grid_block.html"
+        icon = "fa fa-book"
+
+
 class SingleBookBlock(blocks.StructBlock):
     book = blocks.PageChooserBlock(
         page_type="app.bookpage",

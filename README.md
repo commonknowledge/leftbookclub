@@ -6,6 +6,7 @@ A starter repository for [Groundwork](https://groundwork.commonknowledge.coop) p
 
 ### Using vscode development containers:
 
+0. (Check that VSCode has the right python interpreter selected, by comparing it to the path in `poetry run python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"`. You can see this in the bottom bar of editor UI)
 1. [Generate a repository](https://github.com/commonknowledge/groundwork-starter-template/generate) from this template
 2. In VSCode, run the command 'Clone Repository in Remote Container Volume' and select your new repository.
 3. Wait for dependencies to install

@@ -36,9 +36,13 @@ def oauth_application_from_query(takes_context=True):
     try:
         request = context["request"]
         next = request.GET.get('next', None)
-        if next:
-            client_id = urllib.parse.urlparse(next).query.get('client_id', None)
-            if client_id:
+        if next is not None:
+            print("next", next)
+            next_url_parts = urllib.parse.urlparse(next)
+            print("next_url_parts", next_url_parts)
+            print("next_url_parts.query", next_url_parts.query)
+            client_id = next_url_parts.query.get('client_id', None)
+            if client_id is not None:
                 app = OAuthApp.filter(client_id=client_id).first()
                 return app
     except:

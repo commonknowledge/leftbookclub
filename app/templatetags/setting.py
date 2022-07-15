@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 
 from django import template
 from django.conf import settings
@@ -29,3 +30,16 @@ def user_data(context):
         user_data = request.user.get_analytics_data()
 
     return {"user_data": mark_safe(json.dumps(user_data))}
+
+@register.simple_tag
+def oauth_application_from_query(takes_context=True):
+    try:
+        request = context["request"]
+        next = request.GET.get('next', None)
+        if next:
+            client_id = urllib.parse.urlparse(next).query.get('client_id', None)
+            if client_id:
+                app = OAuthApp.filter(client_id=client_id).first()
+                return app
+    except:
+        return None

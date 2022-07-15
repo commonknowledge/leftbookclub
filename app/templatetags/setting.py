@@ -31,13 +31,14 @@ def user_data(context):
 
     return {"user_data": mark_safe(json.dumps(user_data))}
 
-@register.simple_tag
-def oauth_application_from_query(takes_context=True):
+@register.simple_tag(takes_context=True)
+def oauth_application_from_query(context):
     try:
         request = context["request"]
+        print("request.GET", request.GET)
         next = request.GET.get('next', None)
+        print("next", next)
         if next is not None:
-            print("next", next)
             next_url_parts = urllib.parse.urlparse(next)
             print("next_url_parts", next_url_parts)
             print("next_url_parts.query", next_url_parts.query)

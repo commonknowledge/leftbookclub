@@ -10,7 +10,7 @@
 
 {% oauth_application_from_query as app %}
 {% if app %}
-  <h1 class="text-center h2">Log in to {% app.name %}</h1>
+  <h1 class="text-center h2">Log in to {{ app.name }}</h1>
 {% else %}
   <h1 class="text-center h2">Log In</h1>
 {% endif %}

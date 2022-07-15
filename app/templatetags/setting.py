@@ -38,13 +38,10 @@ def oauth_application_from_query(context):
         next = request.GET.get('next', None)
         if next is not None:
             url_parts = urllib.parse.urlparse(next)
-            print("url_parts", url_parts)
             params = urllib.parse.parse_qs(url_parts.query)
-            print("params", params)
             client_id = params.get('client_id', None)
-            print("client_id", client_id)
-            if client_id is not None:
-                app = OAuthApp.filter(client_id=client_id).first()
+            if client_id is not None and len(client_id) > 0:
+                app = OAuthApp.filter(client_id__in=client_id).first()
                 return app
     except:
         return None

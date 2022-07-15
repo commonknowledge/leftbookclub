@@ -5,6 +5,7 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from oauth2_provider.models import Application
 
 register = template.Library()
 
@@ -41,7 +42,7 @@ def oauth_application_from_query(context):
             params = urllib.parse.parse_qs(url_parts.query)
             client_id = params.get('client_id', None)
             if client_id is not None and len(client_id) > 0:
-                app = OAuthApp.filter(client_id__in=client_id).first()
+                app = Application.objects.filter(client_id__in=client_id).first()
                 return app
     except:
         return None

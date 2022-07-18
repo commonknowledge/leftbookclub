@@ -67,7 +67,7 @@ darglint = "^1.8.0"
 django-debug-toolbar = "*"
 isort = {extras = ["colors"], version = "^5.9.3"}
 pre-commit = "^2.14.0"
-pylint = "^2.10.2"
+pylint = "^2.14.5"
 pydocstyle = "^6.1.1"
 pytest = "^6.2.4"
 pytest-django = "^4.4.0"

@@ -1,9 +1,9 @@
 module.exports = {
   prefix: "tw-",
   content: [
-    "./app/**/*.{py,html,js,ts}",
-    "./frontend/**/*.{html,js,ts}",
-    "./static/**/*.{html,js,ts}",
+    "./app/**/*.{py,html,js,ts,tsx}",
+    "./frontend/**/*.{html,js,ts,tsx}",
+    "./static/**/*.{html,js,ts,tsx}",
   ],
   theme: {
     extend: {

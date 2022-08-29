@@ -1,5 +1,6 @@
 import time
 import urllib.parse
+from datetime import datetime
 from importlib.metadata import metadata
 from urllib.parse import urlencode
 
@@ -1012,3 +1013,68 @@ class BookIndexPage(IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+
+class MapPage(Page):
+    def get_context(self, request, *args, **kwargs):
+        from app.models.circle import circle_events
+
+        context = super().get_context(request, *args, **kwargs)
+        context["events"] = [event for event in circle_events.list()]
+        event_features = [
+            event.as_geojson_feature
+            for event in context["events"]
+            if event.as_geojson_feature is not None
+            and event.starts_at >= datetime.now(event.starts_at.tzinfo)
+        ]
+        event_features.sort(key=lambda e: e["properties"]["starts_at"])
+        context["sources"] = {
+            "events": {
+                "type": "geojson",
+                "data": {"type": "FeatureCollection", "features": event_features},
+            }
+        }
+        context["layers"] = {
+            "event-icon-border": {
+                "source": "events",
+                "id": "event-icon-border",
+                "type": "circle",
+                "paint": {"circle-color": "#000000", "circle-radius": 10},
+            },
+            "event-icons": {
+                "source": "events",
+                "id": "event-icons",
+                "type": "circle",
+                "paint": {"circle-color": "#F8F251", "circle-radius": 8},
+            },
+            "event-dates": {
+                "source": "events",
+                "id": "event-dates",
+                "type": "symbol",
+                "paint": {"text-color": "black", "text-opacity": 1},
+                "layout": {
+                    "text-field": ["get", "human_readable_date"],
+                    "text-offset": [0, 0.85],
+                    "text-anchor": "top",
+                    "text-allow-overlap": True,
+                    "text-transform": "uppercase",
+                    "text-size": 15,
+                    "text-font": ["Inter Regular"],
+                },
+            },
+            "event-names": {
+                "source": "events",
+                "id": "event-names",
+                "type": "symbol",
+                "layout": {
+                    "text-field": ["get", "name"],
+                    "text-offset": [0, 2.5],
+                    "text-anchor": "top",
+                    "text-allow-overlap": False,
+                    "text-size": 12,
+                    "text-font": ["Inter Regular"],
+                },
+            },
+        }
+
+        return context

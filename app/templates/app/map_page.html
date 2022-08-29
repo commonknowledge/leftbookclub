@@ -59,12 +59,12 @@ For the items:
           data-action="click->list-filter#selectForAttr" 
           class="tw-cursor-pointer tw-text-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400">Online</a>
       </div>
-      <ol class="tw-relative tw-list-none tw-pl-0">
+      <ol class="tw-relative tw-list-none tw-p-3">
       {% for event in events %}
         <li
           data-list-filter-target="item"
           data-location-type="{{ event.location_type }}"
-          class="tw-border-t tw-border-t-black tw-px-3 tw-py-3">
+          class="{% brand_background_by_index forloop.counter "light" %} tw-px-3 tw-py-3 tw-mb-3">
             <div class='tw-space-x-1'>
               <time class="tw-mb-1 tw-text-sm tw-font-normal tw-leading-none tw-text-gray-600">{{ event.starts_at|date:"l d F Y" }}</time>
               <span>&middot;</span>
@@ -73,23 +73,8 @@ For the items:
             <h3 class="tw-text-lg tw-font-semibold tw-text-gray-900">{{ event.name }}</h3>
             {% if event.body.body %}
               {{ event.body.body|safe }}
-              {% comment %} <div
-                data-controller="read-more"
-                data-read-more-more-text-value="Read more"
-                data-read-more-less-text-value="Read less"
-                class="tw-mb-4 tw-text-sm tw-font-normal tw-text-gray-700"
-              >
-                <div data-read-more-target="content">
-                  {{ event.body.body|safe|truncatewords_html:18 }}
-                </div>
-              
-                <a data-action="click->read-more#toggle" class='tw-underline mt-2 tw-font-semibold'>Read more</a>
-              
-                <template data-read-more-target="full">
-                  {{ event.body.body|safe }}
-                </template>
-              </div> {% endcomment %}
             {% endif %}
+            <br />
             {% bootstrap_button href=event.url content="Learn more" %}
         </li>
       {% endfor %}

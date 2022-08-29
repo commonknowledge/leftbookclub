@@ -3,32 +3,47 @@ from django import template
 register = template.Library()
 from random import choice
 
-backgrounds = [
-    "tw-bg-coral",
+light_backgrounds = [
     "tw-bg-lightgreen",
-    "tw-bg-magenta",
     "tw-bg-pink",
-    "tw-bg-darkgreen",
-    "tw-bg-yellow",
-    "tw-bg-purple",
     "tw-bg-lilacgrey",
-    "tw-bg-teal",
+    "tw-bg-coral",
+    "tw-bg-magenta",
+    "tw-bg-purple",
 ]
 
 
-@register.simple_tag
-def random_brand_background():
-    return choice(backgrounds)
+dark_backgrounds = [
+    "tw-bg-darkgreen",
+    "tw-bg-yellow",
+    "tw-bg-teal",
+]
+
+backgrounds = light_backgrounds + dark_backgrounds
 
 
-@register.simple_tag
-def brand_background_by_index(index):
-    return backgrounds[index]
-
-
-@register.simple_tag
-def brand_backgrounds():
+def get_color_set(variant=None):
+    if variant == "light":
+        return light_backgrounds
+    if variant == "dark":
+        return dark_backgrounds
     return backgrounds
+
+
+@register.simple_tag
+def random_brand_background(variant=None):
+    return choice(get_color_set(variant))
+
+
+@register.simple_tag
+def brand_background_by_index(index, variant=None):
+    color_set = get_color_set(variant)
+    return color_set[(index % len(color_set)) - 1]
+
+
+@register.simple_tag
+def brand_backgrounds(variant=None):
+    return get_color_set(variant)
 
 
 ###

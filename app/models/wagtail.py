@@ -46,6 +46,7 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
+from app.models.django import User
 from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
@@ -1017,9 +1018,12 @@ class BookIndexPage(IndexPageSeoMixin, Page):
 
 class MapPage(Page):
     def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["sources"] = {}
+
+        # Events
         from app.models.circle import circle_events
 
-        context = super().get_context(request, *args, **kwargs)
         context["events"] = [event for event in circle_events.list()]
         event_features = [
             event.as_geojson_feature
@@ -1028,13 +1032,32 @@ class MapPage(Page):
             and event.starts_at >= datetime.now(event.starts_at.tzinfo)
         ]
         event_features.sort(key=lambda e: e["properties"]["starts_at"])
-        context["sources"] = {
-            "events": {
-                "type": "geojson",
-                "data": {"type": "FeatureCollection", "features": event_features},
-            }
+        context["sources"]["events"] = {
+            "type": "geojson",
+            "data": {"type": "FeatureCollection", "features": event_features},
         }
+
+        # Members
+        members = User.objects.filter(coordinates__isnull=False)
+        member_features = [member.as_geojson_feature for member in members]
+        context["sources"]["members"] = {
+            "type": "geojson",
+            "data": {"type": "FeatureCollection", "features": member_features},
+        }
+
         context["layers"] = {
+            "member-postcodes-borders": {
+                "source": "members",
+                "id": "member-postcodes-borders",
+                "type": "circle",
+                "paint": {"circle-color": "#000000", "circle-radius": 6.5},
+            },
+            "member-postcodes": {
+                "source": "members",
+                "id": "member-postcodes",
+                "type": "circle",
+                "paint": {"circle-color": "#FF55B4", "circle-radius": 5},
+            },
             "event-icon-border": {
                 "source": "events",
                 "id": "event-icon-border",

@@ -1,8 +1,11 @@
+import json
+
 import djstripe
 import stripe
 from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.conf import settings
+from django.contrib import gis
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -45,6 +48,13 @@ class User(AbstractUser):
     birthday = models.DateField(null=True, blank=True)
     occupation = models.CharField(max_length=191, null=True, blank=True)
     stripe_id = models.CharField(max_length=191, null=True, blank=True)
+
+    # Cached representative of the postcode, most likely
+    coordinates = gis.db.models.PointField(null=True, blank=True)
+
+    @property
+    def as_geojson_feature(self):
+        return {"type": "Feature", "geometry": json.loads(self.coordinates.json)}
 
     @property
     def display_name(self):

@@ -10,6 +10,7 @@ from io import BytesIO
 import humanize
 from django.conf import settings
 from django.db import models
+
 from groundwork.core.datasources import RestDatasource, SyncConfig, SyncedModel
 
 ResourceT = typing.TypeVar("ResourceT")
@@ -140,7 +141,11 @@ class CircleEvent:
             }
             return geojson
         except:
-            return None
+            geojson = {
+                "type": "Feature",
+                "properties": {**asdict(self)},
+            }
+            return geojson
 
 
 @dataclass

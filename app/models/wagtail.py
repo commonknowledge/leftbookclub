@@ -1025,7 +1025,7 @@ class MapPage(Page):
         # Events
         from app.models.circle import circle_events
 
-        context["events"] = sorted(
+        events = sorted(
             (
                 event
                 for event in circle_events.list()
@@ -1033,16 +1033,11 @@ class MapPage(Page):
             ),
             key=lambda event: event.starts_at,
         )
-
-        event_features = [
-            event.as_geojson_feature
-            for event in context["events"]
-            if event.as_geojson_feature is not None
-        ]
+        context["events"] = [event.as_geojson_feature for event in events]
 
         context["sources"]["events"] = {
             "type": "geojson",
-            "data": {"type": "FeatureCollection", "features": event_features},
+            "data": {"type": "FeatureCollection", "features": context["events"]},
         }
 
         # Members

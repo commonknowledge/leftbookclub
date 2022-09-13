@@ -8,11 +8,13 @@ export default class MapHtmlBridgeController extends MapConfigController {
 
   static values = {
     mapLayer: String,
+    htmlScrollQuery: String,
     mapEvent: { type: String, default: "click" },
     mapLayerIdProperty: { type: String, default: "id" },
     htmlIdPrefix: { type: String, default: "mapLayer-" },
     flyToZoom: { type: Number, default: 12 },
   };
+  private htmlScrollQueryValue?: string;
   private mapLayerValue!: string;
   private mapEventValue!: keyof MapLayerEventType;
   private mapLayerIdPropertyValue!: string;
@@ -20,7 +22,11 @@ export default class MapHtmlBridgeController extends MapConfigController {
   private flyToZoomValue!: number;
 
   get scrollElement() {
-    return this.hasScrollTarget ? this.scrollTarget! : this.element;
+    return this.hasScrollTarget
+      ? this.scrollTarget!
+      : this.htmlScrollQueryValue
+      ? document.querySelector(this.htmlScrollQueryValue)
+      : this.element;
   }
 
   connectMap(map: Map) {
@@ -36,8 +42,8 @@ export default class MapHtmlBridgeController extends MapConfigController {
   }
 
   scrollTo(element: HTMLElement) {
-    this.scrollElement.scroll({
-      top: element.offsetTop,
+    this.scrollElement?.scroll({
+      top: element.offsetTop + element.offsetHeight / 2,
       left: 0,
       behavior: "smooth",
     });

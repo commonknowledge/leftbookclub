@@ -1772,10 +1772,10 @@ graceful-fs@^4.2.9:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
-groundwork-ui@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/groundwork-ui/-/groundwork-ui-0.1.1.tgz#47170bb1762c68c69e9e5dee44b356873a3a3cc3"
-  integrity sha512-hw0i/+5CtIKwR90iYy56MrTjo3pWyZP6APO2K9XclH9WftiHhMwsGBp0D8p6wvZbs7wUEqLHP8sHzB8gQSPK8A==
+groundwork-django@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/groundwork-django/-/groundwork-django-0.1.4.tgz#78cb33351ccc87ac61b58427dfa576d3934ad526"
+  integrity sha512-csvPX8Ov6iQWUn0GvWuh7iO9eT30riPhXBR4l+EescSlKQh7G4gkYLtrYTqUDaXG41ykWjGHCceJ74TXz/1zHA==
 
 has-flag@^3.0.0:
   version "3.0.0"

@@ -45,9 +45,29 @@ class LBCSubscription(djstripe.models.Subscription):
     def customer_id(self):
         return self.customer.id
 
+    @property
+    def gift_giver_subscription(self):
+        """
+        If this subscription was created as a result of a neighbouring gift subscription
+        """
+        related_subscription_id = self.metadata.get("gift_giver_subscription", None)
+        if related_subscription_id:
+            return LBCSubscription.objects.filter(id=related_subscription_id).first()
+
+    @property
+    def gift_recipient_subscription(self):
+        """
+        If this subscription was created as a result of a neighbouring gift subscription
+        """
+        related_subscription_id = self.metadata.get("gift_recipient_subscription", None)
+        if related_subscription_id:
+            return LBCSubscription.objects.filter(id=related_subscription_id).first()
+
+    @property
     def is_gift_giver(self):
         self.metadata.get("gift_mode", None) is not None
 
+    @property
     def is_gift_receiver(self):
         self.metadata.get("gift_giver_subscription", None) is not None
 
@@ -143,14 +163,6 @@ class LBCProduct(djstripe.models.Product):
             product=self.id, active=True, metadata__shipping=zone.code, **kwargs
         ).order_by("unit_amount")
 
-    def gift_giver_subscription(self):
-        """
-        If this subscription was created as a result of a neighbouring gift subscription
-        """
-        related_subscription_id = self.metadata.get("gift_giver_subscription", None)
-        if related_subscription_id:
-            return djstripe.models.Subscription.get(id=related_subscription_id)
-
     @property
     def book_types(self):
         book_types = self.metadata.get("book_types", None)
@@ -159,6 +171,7 @@ class LBCProduct(djstripe.models.Product):
             return book_types
         return list()
 
+    @property
     def current_book(self):
         from app.models.wagtail import BookPage
 

@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load url django_bootstrap5 account socialaccount %}
 
-{% block head_title %}{% trans "Create an account" %}BS{% endblock %}
+{% block head_title %}{% trans "Create an account" %}{% endblock %}
 
 {% block modal_content %}
 {% get_providers as socialaccount_providers %}
@@ -43,8 +43,9 @@
           {% bootstrap_field form.last_name show_label=False %}
         </div>
       </div>
-      {% bootstrap_form form show_label=False exclude="email,first_name,last_name,gdpr_email_consent,password2" %}
+      {% bootstrap_form form show_label=False exclude="email,first_name,last_name,gdpr_email_consent,promotional_consent,password2" %}
       {% bootstrap_field form.gdpr_email_consent show_label=True %}
+      {% comment %} {% bootstrap_field form.promotional_consent show_label=True %} {% endcomment %}
       {% if redirect_field_value %}
       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
       {% endif %}

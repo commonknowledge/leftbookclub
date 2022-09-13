@@ -4,7 +4,7 @@ import * as Turbo from "@hotwired/turbo";
 import "bootstrap";
 import initialiseSentry from "./sentry";
 import initialisePosthog from "./posthog";
-import { startApp } from "groundwork-ui";
+import { startApp } from "groundwork-django";
 const controllers = import.meta.glob("./controllers/*-controller.ts");
 Turbo.session.drive = false;
 console.log(Turbo);

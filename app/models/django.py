@@ -14,7 +14,7 @@ from app.utils.stripe import (
     subscription_with_promocode,
 )
 
-from .stripe import LBCProduct
+from .stripe import LBCProduct, LBCSubscription
 
 
 def custom_user_casual_name(user: AbstractUser) -> str:
@@ -84,10 +84,11 @@ class User(AbstractUser):
     ]
 
     @property
-    def active_subscription(self) -> djstripe.models.Subscription:
+    def active_subscription(self) -> LBCSubscription:
         try:
             sub = (
-                self.stripe_customer.subscriptions.filter(
+                LBCSubscription.objects.filter(
+                    customer=self.stripe_customer,
                     # Was started + wasn't cancelled
                     status__in=self.valid_subscription_statuses,
                     # Is in period
@@ -103,7 +104,7 @@ class User(AbstractUser):
             return None
 
     @property
-    def old_subscription(self) -> djstripe.models.Subscription:
+    def old_subscription(self) -> LBCSubscription:
         try:
             sub = (
                 self.stripe_customer.subscriptions.filter(
@@ -131,6 +132,10 @@ class User(AbstractUser):
         )
 
     @property
+    def is_cancelling_member(self):
+        return self.is_member and self.active_subscription.cancel_at is not None
+
+    @property
     def is_expired_member(self):
         return not self.is_member and self.old_subscription is not None
 
@@ -151,7 +156,7 @@ class User(AbstractUser):
         try:
             if self.active_subscription is not None:
                 product = get_primary_product_for_djstripe_subscription(
-                    self.active_subscription
+                    self.active_subscription.lbc
                 )
                 return product
         except:
@@ -180,9 +185,7 @@ class User(AbstractUser):
     @property
     def gift_giver(self):
         try:
-            gift_giver_subscription = self.active_subscription.gift_giver_subscription
-            sub = djstripe.models.Subscription.objects.get(id=gift_giver_subscription)
-            user = sub.customer.subscriber
+            user = self.active_subscription.gift_giver_subscription.customer.subscriber
             return user
         except:
             return None

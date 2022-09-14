@@ -60,7 +60,7 @@
           data-action="click->list-filter#selectForAttr" 
           class="tw-cursor-pointer tw-text-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400">Online</a>
       </div>
-      <ol class="tw-relative tw-list-none tw-p-3">
+      <ol class="tw-relative tw-list-none tw-p-0">
       {% for event in events %}
         <li
           data-map-html-bridge-zoom="12"
@@ -70,20 +70,37 @@
           id="event-{{event.properties.id}}"
           data-list-filter-target="item"
           data-location-type="{{ event.properties.location_type }}"
-          class="{% brand_background_by_index forloop.counter "light" %} tw-px-3 tw-py-3 tw-mb-3">
-            <div class='tw-space-x-1'>
-              <span class="tw-mb-1 tw-text-sm tw-font-normal tw-leading-none tw-text-gray-800">{{event.properties.starts_at|naturaltime}}</span>
-              <span>&middot;</span>
-              <time class="tw-mb-1 tw-text-sm tw-font-normal tw-leading-none tw-text-gray-800">{{ event.properties.starts_at|date:"P l jS M" }}</time>
-              <span>&middot;</span>
-              <span class="tw-mb-1 tw-text-sm tw-font-normal tw-leading-none tw-text-gray-800 tw-capitalize">{{ event.properties.location_type|replace:"_| " }}</span>
+          class="tw-border-t tw-border-t-black">
+            <div class='tw-space-x-1 tw-flex tw-flex-row'>
+              <div class="{% brand_background_by_index forloop.counter "light" %} tw-w-[70px] tw-text-center tw-relative tw-flex-shrink-0">
+                <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden'>
+                  <div class='tw-font-bold'>{{ event.properties.starts_at|date:"D j" }}</div>
+                  <div class='tw-uppercase tw-font-bold'>{{ event.properties.starts_at|date:"M" }}</div>
+                </div>
+              </div>
+              <div class="tw-p-3 tw-mb-1">
+                <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.properties.name }}</h3>
+                <div class='tw-text-sm tw-font-normal tw-leading-none tw-my-3 tw-text-gray-700'>
+                  <div class="tw-mb-2">
+                    <span class="tw-capitalize">{{ event.properties.location_type|replace:"_| " }}</span>
+                    <span>&middot;</span>
+                    <span>Starts at {{event.properties.starts_at|date:"P"}}</span>
+                    <span>&middot;</span>
+                    <span>{{event.properties.starts_at|naturaltime}}</span>
+                  </div>
+                  {% if event.properties.physical_address.formatted_address %}
+                  <div>
+                    {{ event.properties.physical_address.formatted_address }}
+                  </div>
+                  {% endif %}
+                </div>
+                {% if event.properties.body.body %}
+                  {{ event.properties.body.body|safe }}
+                {% endif %}
+                <br />
+                {% bootstrap_button href=event.properties.url content="Learn more" %}
+              </div>
             </div>
-            <h3 class="tw-text-lg tw-font-semibold tw-text-gray-900">{{ event.properties.name }}</h3>
-            {% if event.properties.body.body %}
-              {{ event.properties.body.body|safe }}
-            {% endif %}
-            <br />
-            {% bootstrap_button href=event.properties.url content="Learn more" %}
         </li>
       {% endfor %}
       </ol>

@@ -13,6 +13,7 @@
     "@sentry/browser": "^6.19.7",
     "@sentry/tracing": "^6.19.7",
     "@stripe/stripe-js": "^1.27.0",
+    "@turf/bbox": "^6.5.0",
     "@types/mapbox-gl": "^2.7.5",
     "@types/shopify-buy": "npm:@brandboostinggmbh/shopify-buy-types",
     "autoprefixer": "^10.4.5",

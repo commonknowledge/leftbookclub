@@ -7,7 +7,6 @@ import initialisePosthog from "./posthog";
 import { startApp } from "groundwork-django";
 const controllers = import.meta.glob("./controllers/*-controller.ts");
 Turbo.session.drive = false;
-console.log(Turbo);
 
 initialisePosthog();
 initialiseSentry();

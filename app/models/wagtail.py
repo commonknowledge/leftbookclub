@@ -1037,7 +1037,14 @@ class MapPage(Page):
 
         context["sources"]["events"] = {
             "type": "geojson",
-            "data": {"type": "FeatureCollection", "features": context["events"]},
+            "data": {
+                "type": "FeatureCollection",
+                "features": [
+                    event
+                    for event in context["events"]
+                    if event.get("geometry", None) is not None
+                ],
+            },
         }
 
         # Members
@@ -1107,6 +1114,20 @@ class MapPage(Page):
                         "text-allow-overlap": False,
                         "text-size": 12,
                         "text-font": ["Inter Regular"],
+                    },
+                    "paint": {
+                        "text-opacity": [
+                            "interpolate",
+                            # Set the exponential rate of change to 0.5
+                            ["exponential", 0.5],
+                            ["zoom"],
+                            # When zoom is 8, buildings will be 100% transparent.
+                            8,
+                            0,
+                            # When zoom is 11 or higher, buildings will be 100% opaque.
+                            11,
+                            1,
+                        ]
                     },
                 },
             }

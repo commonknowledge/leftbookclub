@@ -21,8 +21,9 @@ djangorestframework = '>=3.12.4'
 django-taggit = "*"
 django-vite = "^1.2.1"
 dj-database-url = '>=0.5.0'
+groundwork-django = ">=0.1.5"
+# groundwork-django = { path = "./groundwork", develop = true }
 django-storages = "*"
-groundwork-django = '^0.1.3'
 gunicorn = '>=20.1.0'
 wagtail = "3"
 psycopg2 = '>=2.8.6'

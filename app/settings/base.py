@@ -340,6 +340,9 @@ GIT_SHA = os.getenv("GIT_SHA", None)
 # Fly
 FLY_APP_NAME = os.getenv("FLY_APP_NAME", None)
 
+# Circle
+CIRCLE_API_KEY = os.getenv("CIRCLE_API_KEY", None)
+
 ### Analytics
 
 import posthog

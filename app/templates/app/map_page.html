@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load app humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% load menu_tags app humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 
 {% block content_padding %}p-0{% endblock %}
 
@@ -16,7 +16,7 @@
     data-zoom-to-source-features-max-zoom-value="12"
   >
     <section
-      class='tw-col-span-2 tw-order-last md:tw-order-first tw-border-t md:tw-border-t-0 md:tw-border-r tw-border-black'
+      class='tw-col-span-2 tw-order-last md:tw-order-first'
       data-controller="list-filter map-html-bridge"
       data-map-html-bridge-html-scroll-query-value="html"
       data-map-html-bridge-map-layer-value="event-icons"
@@ -28,39 +28,39 @@
       data-list-filter-option-active-classes-value="tw-bg-yellow"
       data-list-filter-option-passive-classes-value="tw-bg-slate-300"
     >
-      <article class="px-3 py-3">
-        <h2>Find a reading group</h2>
-        <p>
+      <article class="px-4 my-3">
+        <h1 class='tw-text-4xl'>Find a reading group</h1>
+        <p class='tw-text-lg'>
           Left Book Club isn’t just about the books. We're building a network of reading groups, and we can help you get your own group off the ground.
         </p>
         {% if not user.is_member %}
           {% bootstrap_button href="/join" content="Join LBC and come along" %}
         {% endif %}
       </article>
-      <div class="tw-space-x-1 px-3 pb-3 tw-text-sm">
-        <span>
-          <span data-list-filter-target="count">0</span> events
-        </span>
+      <div class="tw-space-x-1 px-4 tw-text-sm my-3">
         <a
           data-list-filter-target="option"
           data-list-filter-value-param="__ALL__"
           data-list-filter-attr-param="locationType"
           data-action="click->list-filter#selectForAttr" 
-          class="tw-cursor-pointer tw-text-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400">All</a>
+          class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400 hover:tw-text-black">All</a>
         <a
           data-list-filter-target="option"
           data-list-filter-value-param="in_person"
           data-list-filter-attr-param="locationType"
           data-action="click->list-filter#selectForAttr" 
-          class="tw-cursor-pointer tw-text-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400">In Person</a>
+          class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400 hover:tw-text-black">In Person</a>
         <a
           data-list-filter-target="option"
           data-list-filter-value-param="virtual"
           data-list-filter-attr-param="locationType"
           data-action="click->list-filter#selectForAttr" 
-          class="tw-cursor-pointer tw-text-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400">Online</a>
+          class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400 hover:tw-text-black">Online</a>
+        <span class='tw-rounded-lg tw-bg-slate-100'>
+          <span data-list-filter-target="count">0</span> events
+        </span>
       </div>
-      <ol class="tw-relative tw-list-none tw-p-0">
+      <ol class="tw-relative tw-list-none tw-p-0 tw-m-0 tw-space-y-2 tw-mb-2">
       {% for event in events %}
         <li
           data-map-html-bridge-zoom="12"
@@ -70,15 +70,15 @@
           id="event-{{event.properties.id}}"
           data-list-filter-target="item"
           data-location-type="{{ event.properties.location_type }}"
-          class="tw-border-t tw-border-t-black">
-            <div class='tw-space-x-1 tw-flex tw-flex-row'>
-              <div class="{% brand_background_by_index forloop.counter "light" %} tw-w-[70px] tw-text-center tw-relative tw-flex-shrink-0">
-                <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden'>
-                  <div class='tw-font-bold'>{{ event.properties.starts_at|date:"D j" }}</div>
-                  <div class='tw-uppercase tw-font-bold'>{{ event.properties.starts_at|date:"M" }}</div>
+          class="tw-px-2">
+            <div class='tw-flex tw-flex-row tw-bg-white'>
+              <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
+                <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
+                  <div class='tw-text-lg'>{{ event.properties.starts_at|date:"j" }}</div>
+                  <div class='tw-uppercase '>{{ event.properties.starts_at|date:"M" }}</div>
                 </div>
               </div>
-              <div class="tw-p-3 tw-mb-1">
+              <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all">
                 <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.properties.name }}</h3>
                 <div class='tw-text-sm tw-font-normal tw-leading-none tw-my-3 tw-text-gray-700'>
                   <div class="tw-mb-2">
@@ -114,8 +114,10 @@
           {% map_layer id=id layer=layer %}
         {% endfor %}
 
-        <div data-map-target="canvas" class='tw-h-full tw-w-full tw-absolute tw-top-0 tw-left-0'></div>
+        <div data-controller="scroll-into-view-on-event" data-map-target="canvas" class='tw-h-full tw-w-full tw-absolute tw-top-0 tw-left-0'></div>
     </section>
   </main>
   {% endmap %}
 {% endblock %}
+
+{% block footer %}{% endblock %}

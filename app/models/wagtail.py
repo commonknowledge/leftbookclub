@@ -851,6 +851,31 @@ class MultiColumnBlock(blocks.StructBlock):
         template = "app/blocks/columns_block.html"
         icon = "fa fa-th-large"
 
+class EventsListBlock(blocks.StructBlock):
+    number_of_events = blocks.IntegerBlock(required=True, default=3)
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context.update(MapPage.get_map_context())
+        return context
+
+    class Meta:
+        template = "app/blocks/event_list_block.html"
+        icon = "fa fa-calendar"
+
+class EventsListAndMap(blocks.StructBlock):
+    title = blocks.CharBlock(required=False)
+    intro = blocks.RichTextBlock(required=False)
+    number_of_events = blocks.IntegerBlock(required=True, default=3)
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context.update(MapPage.get_map_context())
+        return context
+
+    class Meta:
+        template = "app/blocks/event_list_and_map_block.html"
+        icon = "fa fa-map"
 
 def create_streamfield(additional_blocks=None, **kwargs):
     blcks = [
@@ -866,6 +891,8 @@ def create_streamfield(additional_blocks=None, **kwargs):
         ("single_column", SingleColumnBlock()),
         ("columns", MultiColumnBlock()),
         ("newsletter_signup", NewsletterSignupBlock()),
+        ("events_list_and_map", EventsListAndMap()),
+        ("events_list_block", EventsListBlock())
     ]
 
     if isinstance(additional_blocks, list):

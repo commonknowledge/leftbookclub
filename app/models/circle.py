@@ -1,19 +1,15 @@
-import typing
 from typing import Any, Dict, Iterable, List, Optional, TypedDict, TypeVar
 
-import dataclasses
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from io import BytesIO
 
 import humanize
 from django.conf import settings
-from django.db import models
 
-from groundwork.core.datasources import RestDatasource, SyncConfig, SyncedModel
+from groundwork.core.datasources import RestDatasource
 
-ResourceT = typing.TypeVar("ResourceT")
+ResourceT = TypeVar("ResourceT")
 
 
 class CircleAPIResource(RestDatasource[ResourceT]):

@@ -1,10 +1,9 @@
-from typing import Any, Dict
-
 import urllib.parse
 from datetime import datetime
 from importlib.metadata import metadata
 from multiprocessing.sharedctypes import Value
 from pipes import Template
+from typing import Any, Dict
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
 import djstripe.enums

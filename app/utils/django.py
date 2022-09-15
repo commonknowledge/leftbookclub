@@ -1,9 +1,8 @@
 __license__ = "MIT"
 __copyright__ = "Copyright 2020, Konrad Mohrfeldt"
 
-from typing import Callable, Iterable, Union
-
 from functools import partial
+from typing import Callable, Iterable, Union
 
 from django.db import migrations
 from django.db.migrations.state import StateApps

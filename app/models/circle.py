@@ -1,11 +1,11 @@
+from typing import Any, Dict, Iterable, List, Optional, TypedDict, TypeVar
+
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Optional, TypedDict, TypeVar
 
 import humanize
 from django.conf import settings
-
 from groundwork.core.datasources import RestDatasource
 
 ResourceT = TypeVar("ResourceT")

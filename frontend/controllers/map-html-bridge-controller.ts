@@ -1,5 +1,6 @@
 import type { Map, MapLayerEventType } from "mapbox-gl";
 import { MapConfigController, getReferencedData } from "groundwork-django";
+import mapboxgl from "mapbox-gl";
 
 export default class MapHtmlBridgeController extends MapConfigController {
   static targets = ["scroll"];
@@ -25,15 +26,27 @@ export default class MapHtmlBridgeController extends MapConfigController {
     return this.hasScrollTarget
       ? this.scrollTarget!
       : this.htmlScrollQueryValue
-      ? document.querySelector(this.htmlScrollQueryValue)
-      : this.element;
+        ? document.querySelector(this.htmlScrollQueryValue)
+        : this.element;
   }
 
   connectMap(map: Map) {
+    map?.addControl(
+      new mapboxgl.GeolocateControl({
+        fitBoundsOptions: {
+          maxZoom: 11,
+        },
+        positionOptions: {
+          enableHighAccuracy: false,
+        },
+        trackUserLocation: false,
+        showUserHeading: false,
+      })
+    );
+
     map?.on(this.mapEventValue, this.mapLayerValue, (e) => {
-      const id = `${this.htmlIdPrefixValue}${
-        (e.features?.[0]?.properties as any)[this.mapLayerIdPropertyValue]
-      }`;
+      const id = `${this.htmlIdPrefixValue}${(e.features?.[0]?.properties as any)[this.mapLayerIdPropertyValue]
+        }`;
       const element = document.getElementById(id);
       if (element) {
         this.scrollTo(element);

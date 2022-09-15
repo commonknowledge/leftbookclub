@@ -1017,6 +1017,10 @@ class BookIndexPage(IndexPageSeoMixin, Page):
 
 
 class MapPage(Page):
+    intro = RichTextField()
+
+    content_panels = Page.content_panels + [FieldPanel("intro")]
+
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context["sources"] = {}

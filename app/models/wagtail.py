@@ -1022,8 +1022,9 @@ class MapPage(Page):
 
     content_panels = Page.content_panels + [FieldPanel("intro")]
 
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
+    @classmethod
+    def get_map_context(cls, show_members=False):
+        context = {}
         context["sources"] = {}
         context["layers"] = {}
 
@@ -1051,7 +1052,7 @@ class MapPage(Page):
         }
 
         # Members
-        if request.GET.get("show-members", None) is not None:
+        if show_members:
             members = User.objects.filter(coordinates__isnull=False)
             member_features = [member.as_geojson_feature for member in members]
 
@@ -1136,4 +1137,13 @@ class MapPage(Page):
             }
         )
 
+        return context
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context.update(
+          MapPage.get_map_context(
+            show_members=bool(request.GET.get("show-members", None) is not None)
+          )
+        )
         return context

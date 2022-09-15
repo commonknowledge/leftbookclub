@@ -343,6 +343,9 @@ FLY_APP_NAME = os.getenv("FLY_APP_NAME", None)
 # Circle
 CIRCLE_API_KEY = os.getenv("CIRCLE_API_KEY", None)
 
+# Mapbox
+MAPBOX_PUBLIC_API_KEY = os.getenv("MAPBOX_PUBLIC_API_KEY", None)
+
 ### Analytics
 
 import posthog

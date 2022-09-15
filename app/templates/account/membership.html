@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load active_link_tags wagtailsettings_tags account django_bootstrap5 gravatar setting gift_card date i18n %}
+{% load active_link_tags wagtailsettings_tags account django_bootstrap5 gravatar setting gift_card i18n %}
 
 {% block content_padding %}py-5{% endblock %}
 
@@ -21,8 +21,6 @@
           <a href="/join" class='d-inline-block badge rounded-pill bg-warning fs-7 tw-tracking-normal text-black tw-no-underline'>
               Finish signup
           </a>
-        {% elif user.is_cancelling_member %}
-            <div class='text-secondary'>Membership cancelling {{ user.active_subscription.cancel_at|to_date|date:"d M Y" }}</div>
         {% elif user.is_expired_member %}
             <div class='text-secondary'>Expired member</div>
         {% elif user.is_member %}
@@ -59,20 +57,18 @@
   {% endif %}
 
   {% if request.user.is_member or request.user.gifts_bought|length > 0 %}
-    <div class='row mt-4'>
+    <div class='row'>
       {% if request.user.is_member %}
         <div class='col-md-6'>
           <section>
             <h3>
               Shipping
             </h3>
-            <div>
             {% for key, line in request.user.shipping_address.items %}
               {% if line %}
                 {{ line }}<br />
               {% endif %}
             {% endfor %}
-            </div>
             <div class='my-4'>
               {% url "customerportal" as portal_url %}
               {% bootstrap_button button_class='btn-secondary' href=portal_url content="Update shipping" %}
@@ -86,16 +82,6 @@
           <h3>
             Billing
           </h3>
-          {% if user.gift_giver %}
-            <div class="alert alert-info" role="alert">
-              Your membership is being paid for by {{ user.gift_giver }}
-            </div>
-          {% endif %}
-          {% if user.is_cancelling_member %}
-            <div class="alert alert-warning" role="alert">
-              Membership is cancelling {{ user.active_subscription.cancel_at|to_date|date:"d M Y" }}
-            </div>
-          {% endif %}
           {% for si in user.active_subscription.items.all %}
             <div class='row'>
               <div class='col'>{{ si.plan.product.name }}</div><div class='col'>{{ si.plan.human_readable_price }}</div>

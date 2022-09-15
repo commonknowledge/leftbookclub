@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "mjml",
     "import_export",
     "oauth2_provider",
+    "django.contrib.humanize",
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -339,6 +340,9 @@ GIT_SHA = os.getenv("GIT_SHA", None)
 # Fly
 FLY_APP_NAME = os.getenv("FLY_APP_NAME", None)
 
+# Circle
+CIRCLE_API_KEY = os.getenv("CIRCLE_API_KEY", None)
+
 ### Analytics
 
 import posthog
@@ -355,7 +359,9 @@ if POSTHOG_PUBLIC_TOKEN is None:
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-STRIPE_TRACE_SAMPLE_RATE = float(os.getenv("STRIPE_TRACE_SAMPLE_RATE", 0.3 if STRIPE_LIVE_MODE else 1.0))
+STRIPE_TRACE_SAMPLE_RATE = float(
+    os.getenv("STRIPE_TRACE_SAMPLE_RATE", 0.3 if STRIPE_LIVE_MODE else 1.0)
+)
 
 if SENTRY_DSN is not None:
     integrations = [DjangoIntegration()]

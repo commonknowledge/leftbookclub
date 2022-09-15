@@ -7,8 +7,12 @@ import initialisePosthog from "./posthog";
 import { startApp } from "groundwork-django";
 const controllers = import.meta.glob("./controllers/*-controller.ts");
 Turbo.session.drive = false;
-console.log(Turbo);
 
 initialisePosthog();
 initialiseSentry();
 startApp(controllers);
+
+import { Application } from "@hotwired/stimulus";
+import ReadMore from "stimulus-read-more";
+const application = Application.start();
+application.register("read-more", ReadMore);

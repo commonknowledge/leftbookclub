@@ -20,13 +20,9 @@ class MemberSignupForm(SignupForm):
     first_name = forms.CharField(max_length=150)
     last_name = forms.CharField(max_length=150)
     gdpr_email_consent = forms.BooleanField(
-        required=True,
-        label="LBC can email me about my books and membership (required)",
+        required=False,
+        label="Can we email you with news and updates from the Left Book Club?",
     )
-    # promotional_consent = forms.BooleanField(
-    #     required=False,
-    #     label="LBC can email me about special offers and promotions",
-    # )
 
     field_order = [
         "email",
@@ -36,7 +32,7 @@ class MemberSignupForm(SignupForm):
         "password1",
         # "password2",  # ignored when not present
         "gdpr_email_consent",
-        # "promotional_consent",
+        "terms_and_conditions",
     ]
 
     def save(self, request):

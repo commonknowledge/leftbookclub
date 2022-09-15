@@ -1,6 +1,6 @@
 {% extends "account/modal_base.html" %}
 
-{% load url i18n django_bootstrap5 account socialaccount setting %}
+{% load url i18n django_bootstrap5 account socialaccount %}
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
@@ -8,12 +8,7 @@
 {% block modal_content %}
 {% get_providers as socialaccount_providers %}
 
-{% oauth_application_from_query as app %}
-{% if app %}
-  <h1 class="text-center h2">Log in to {{ app.name }}</h1>
-{% else %}
-  <h1 class="text-center h2">Log In</h1>
-{% endif %}
+<h1 class="text-center h2">Log In</h1>
 
 <div class="row">
 

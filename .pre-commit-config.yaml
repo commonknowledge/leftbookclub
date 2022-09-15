@@ -29,7 +29,7 @@ repos:
       # Sort ordering of python imports
       - id: isort
         name: isort
-        entry: isort --settings-path pyproject.toml
+        entry: isort --settings-path ./pyproject.toml
         types: [python]
         language: python
 

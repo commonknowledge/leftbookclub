@@ -1,8 +1,11 @@
+import json
+
 import djstripe
 import stripe
 from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.conf import settings
+from django.contrib import gis
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -14,7 +17,7 @@ from app.utils.stripe import (
     subscription_with_promocode,
 )
 
-from .stripe import LBCProduct, LBCSubscription
+from .stripe import LBCProduct
 
 
 def custom_user_casual_name(user: AbstractUser) -> str:
@@ -45,6 +48,13 @@ class User(AbstractUser):
     birthday = models.DateField(null=True, blank=True)
     occupation = models.CharField(max_length=191, null=True, blank=True)
     stripe_id = models.CharField(max_length=191, null=True, blank=True)
+
+    # Cached representative of the postcode, most likely
+    coordinates = gis.db.models.PointField(null=True, blank=True)
+
+    @property
+    def as_geojson_feature(self):
+        return {"type": "Feature", "geometry": json.loads(self.coordinates.json)}
 
     @property
     def display_name(self):
@@ -84,11 +94,10 @@ class User(AbstractUser):
     ]
 
     @property
-    def active_subscription(self) -> LBCSubscription:
+    def active_subscription(self) -> djstripe.models.Subscription:
         try:
             sub = (
-                LBCSubscription.objects.filter(
-                    customer=self.stripe_customer,
+                self.stripe_customer.subscriptions.filter(
                     # Was started + wasn't cancelled
                     status__in=self.valid_subscription_statuses,
                     # Is in period
@@ -104,7 +113,7 @@ class User(AbstractUser):
             return None
 
     @property
-    def old_subscription(self) -> LBCSubscription:
+    def old_subscription(self) -> djstripe.models.Subscription:
         try:
             sub = (
                 self.stripe_customer.subscriptions.filter(
@@ -132,10 +141,6 @@ class User(AbstractUser):
         )
 
     @property
-    def is_cancelling_member(self):
-        return self.is_member and self.active_subscription.cancel_at is not None
-
-    @property
     def is_expired_member(self):
         return not self.is_member and self.old_subscription is not None
 
@@ -156,7 +161,7 @@ class User(AbstractUser):
         try:
             if self.active_subscription is not None:
                 product = get_primary_product_for_djstripe_subscription(
-                    self.active_subscription.lbc
+                    self.active_subscription
                 )
                 return product
         except:
@@ -185,7 +190,9 @@ class User(AbstractUser):
     @property
     def gift_giver(self):
         try:
-            user = self.active_subscription.gift_giver_subscription.customer.subscriber
+            gift_giver_subscription = self.active_subscription.gift_giver_subscription
+            sub = djstripe.models.Subscription.objects.get(id=gift_giver_subscription)
+            user = sub.customer.subscriber
             return user
         except:
             return None

@@ -1,5 +1,6 @@
 import time
 import urllib.parse
+from datetime import datetime
 from importlib.metadata import metadata
 from urllib.parse import urlencode
 
@@ -45,6 +46,7 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
+from app.models.django import User
 from app.utils import include_keys
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
@@ -1012,3 +1014,133 @@ class BookIndexPage(IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+
+class MapPage(Page):
+    intro = RichTextField()
+
+    content_panels = Page.content_panels + [FieldPanel("intro")]
+
+    @property
+    def circle_events():
+        from app.models.circle import CircleAPIResource, CircleEvent
+
+        return CircleAPIResource(
+            path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
+        )
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["sources"] = {}
+        context["layers"] = {}
+
+        # Events
+        events = sorted(
+            (
+                event
+                for event in self.circle_events.list()
+                if event.starts_at >= datetime.now(event.starts_at.tzinfo)
+            ),
+            key=lambda event: event.starts_at,
+        )
+        context["events"] = [event.as_geojson_feature for event in events]
+
+        context["sources"]["events"] = {
+            "type": "geojson",
+            "data": {
+                "type": "FeatureCollection",
+                "features": [
+                    event
+                    for event in context["events"]
+                    if event.get("geometry", None) is not None
+                ],
+            },
+        }
+
+        # Members
+        if request.GET.get("show-members", None) is not None:
+            members = User.objects.filter(coordinates__isnull=False)
+            member_features = [member.as_geojson_feature for member in members]
+
+            context["sources"]["members"] = {
+                "type": "geojson",
+                "data": {"type": "FeatureCollection", "features": member_features},
+            }
+
+            context["layers"].update(
+                {
+                    "member-postcodes-borders": {
+                        "source": "members",
+                        "id": "member-postcodes-borders",
+                        "type": "circle",
+                        "paint": {"circle-color": "#000000", "circle-radius": 6.5},
+                    },
+                    "member-postcodes": {
+                        "source": "members",
+                        "id": "member-postcodes",
+                        "type": "circle",
+                        "paint": {"circle-color": "#FF55B4", "circle-radius": 5},
+                    },
+                }
+            )
+
+        context["layers"].update(
+            {
+                "event-icon-border": {
+                    "source": "events",
+                    "id": "event-icon-border",
+                    "type": "circle",
+                    "paint": {"circle-color": "#000000", "circle-radius": 10},
+                },
+                "event-icons": {
+                    "source": "events",
+                    "id": "event-icons",
+                    "type": "circle",
+                    "paint": {"circle-color": "#F8F251", "circle-radius": 8},
+                },
+                "event-dates": {
+                    "source": "events",
+                    "id": "event-dates",
+                    "type": "symbol",
+                    "paint": {"text-color": "black", "text-opacity": 1},
+                    "layout": {
+                        "text-field": ["get", "human_readable_date"],
+                        "text-offset": [0, 0.85],
+                        "text-anchor": "top",
+                        "text-allow-overlap": True,
+                        "text-transform": "uppercase",
+                        "text-size": 15,
+                        "text-font": ["Inter Regular"],
+                    },
+                },
+                "event-names": {
+                    "source": "events",
+                    "id": "event-names",
+                    "type": "symbol",
+                    "layout": {
+                        "text-field": ["get", "name"],
+                        "text-offset": [0, 2.5],
+                        "text-anchor": "top",
+                        "text-allow-overlap": False,
+                        "text-size": 12,
+                        "text-font": ["Inter Regular"],
+                    },
+                    "paint": {
+                        "text-opacity": [
+                            "interpolate",
+                            # Set the exponential rate of change to 0.5
+                            ["exponential", 0.5],
+                            ["zoom"],
+                            # When zoom is 8, buildings will be 100% transparent.
+                            8,
+                            0,
+                            # When zoom is 11 or higher, buildings will be 100% opaque.
+                            11,
+                            1,
+                        ]
+                    },
+                },
+            }
+        )
+
+        return context

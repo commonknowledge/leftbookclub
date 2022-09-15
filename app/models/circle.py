@@ -154,10 +154,6 @@ class CircleCommunity:
 #     api_key=settings.CIRCLE_API_KEY
 # )
 
-circle_events = CircleAPIResource(
-    path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
-)
-
 
 # class CircleEvent(SyncedModel):
 #     # This is where we specify the datasource, along with other options

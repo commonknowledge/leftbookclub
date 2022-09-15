@@ -1021,18 +1021,24 @@ class MapPage(Page):
 
     content_panels = Page.content_panels + [FieldPanel("intro")]
 
+    @property
+    def circle_events():
+        from app.models.circle import CircleAPIResource, CircleEvent
+
+        return CircleAPIResource(
+            path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
+        )
+
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context["sources"] = {}
         context["layers"] = {}
 
         # Events
-        from app.models.circle import circle_events
-
         events = sorted(
             (
                 event
-                for event in circle_events.list()
+                for event in self.circle_events.list()
                 if event.starts_at >= datetime.now(event.starts_at.tzinfo)
             ),
             key=lambda event: event.starts_at,

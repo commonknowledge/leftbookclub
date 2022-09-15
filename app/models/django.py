@@ -6,10 +6,10 @@ from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.utils import timezone
 from sentry_sdk import capture_exception
-from django.contrib.gis.db import models as gis_models
 
 from app.utils.stripe import (
     get_primary_product_for_djstripe_subscription,

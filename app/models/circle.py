@@ -155,6 +155,7 @@ def circle_events():
         path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
     )
 
+
 # circle_communities = CircleAPIResource(
 #     path="/communities",
 #     resource_type=CircleCommunity,

@@ -23,14 +23,15 @@ export default class MapScrollToHtmlController extends MapConfigController {
     return this.hasScrollTarget
       ? this.scrollTarget!
       : this.scrollElementQueryValue
-        ? document.querySelector(this.scrollElementQueryValue)
-        : this.element;
+      ? document.querySelector(this.scrollElementQueryValue)
+      : this.element;
   }
 
   connectMap(map: Map) {
     map?.on(this.mapEventValue, this.mapLayerValue, (e) => {
-      const id = `${this.relatedIdPrefixValue}${(e.features?.[0]?.properties as any)[this.mapLayerIdPropertyValue]
-        }`;
+      const id = `${this.relatedIdPrefixValue}${
+        (e.features?.[0]?.properties as any)[this.mapLayerIdPropertyValue]
+      }`;
       const element = document.getElementById(id);
       if (element) {
         this.scrollTo(element);

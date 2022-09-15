@@ -851,6 +851,7 @@ class MultiColumnBlock(blocks.StructBlock):
         template = "app/blocks/columns_block.html"
         icon = "fa fa-th-large"
 
+
 class EventsListBlock(blocks.StructBlock):
     number_of_events = blocks.IntegerBlock(required=True, default=3)
 
@@ -862,6 +863,7 @@ class EventsListBlock(blocks.StructBlock):
     class Meta:
         template = "app/blocks/event_list_block.html"
         icon = "fa fa-calendar"
+
 
 class EventsListAndMap(blocks.StructBlock):
     title = blocks.CharBlock(required=False)
@@ -876,6 +878,7 @@ class EventsListAndMap(blocks.StructBlock):
     class Meta:
         template = "app/blocks/event_list_and_map_block.html"
         icon = "fa fa-map"
+
 
 def create_streamfield(additional_blocks=None, **kwargs):
     blcks = [
@@ -892,7 +895,7 @@ def create_streamfield(additional_blocks=None, **kwargs):
         ("columns", MultiColumnBlock()),
         ("newsletter_signup", NewsletterSignupBlock()),
         ("events_list_and_map", EventsListAndMap()),
-        ("events_list_block", EventsListBlock())
+        ("events_list_block", EventsListBlock()),
     ]
 
     if isinstance(additional_blocks, list):
@@ -1169,8 +1172,8 @@ class MapPage(Page):
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context.update(
-          MapPage.get_map_context(
-            show_members=bool(request.GET.get("show-members", None) is not None)
-          )
+            MapPage.get_map_context(
+                show_members=bool(request.GET.get("show-members", None) is not None)
+            )
         )
         return context

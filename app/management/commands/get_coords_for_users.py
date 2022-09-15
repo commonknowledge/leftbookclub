@@ -31,11 +31,12 @@ class Command(BaseCommand):
         for postcode_payload in postcode_data:
             # print("Searching", postcode_payload['query'])
             for user in users_with_postcodes:
+                result = postcode_payload.get("result", None)
                 # print("Against user", user.postcode)
                 if normalise_postcode(user.postcode) == normalise_postcode(
                     postcode_payload["query"]
-                ):
+                ) and result is not None:
                     # print("--> MATCH", user, postcode_payload)
-                    point = point_from_postcode_result(postcode_payload["result"])
+                    point = point_from_postcode_result(result)
                     user.coordinates = point
                     user.save()

@@ -17,6 +17,8 @@ def cache_key(postcode):
 
 
 def point_from_postcode_result(postcode_result):
+    if postcode_result is None:
+        return None
     return Point(postcode_result["longitude"], postcode_result["latitude"])
 
 

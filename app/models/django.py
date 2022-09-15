@@ -5,8 +5,8 @@ import stripe
 from allauth.account.models import EmailAddress
 from allauth.account.utils import user_display
 from django.conf import settings
-from django.contrib import gis
 from django.contrib.auth.models import AbstractUser
+from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.utils import timezone
 from sentry_sdk import capture_exception
@@ -50,7 +50,7 @@ class User(AbstractUser):
     stripe_id = models.CharField(max_length=191, null=True, blank=True)
 
     # Cached representative of the postcode, most likely
-    coordinates = gis.db.models.PointField(null=True, blank=True)
+    coordinates = gis_models.PointField(null=True, blank=True)
 
     @property
     def as_geojson_feature(self):

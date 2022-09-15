@@ -46,6 +46,7 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
+from app.models.circle import circle_events
 from app.models.django import User
 from app.utils import include_keys
 from app.utils.cache import django_cached
@@ -851,6 +852,34 @@ class MultiColumnBlock(blocks.StructBlock):
         icon = "fa fa-th-large"
 
 
+class EventsListBlock(blocks.StructBlock):
+    number_of_events = blocks.IntegerBlock(required=True, default=3)
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context.update(MapPage.get_map_context())
+        return context
+
+    class Meta:
+        template = "app/blocks/event_list_block.html"
+        icon = "fa fa-calendar"
+
+
+class EventsListAndMap(blocks.StructBlock):
+    title = blocks.CharBlock(required=False)
+    intro = blocks.RichTextBlock(required=False)
+    number_of_events = blocks.IntegerBlock(required=True, default=3)
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context.update(MapPage.get_map_context())
+        return context
+
+    class Meta:
+        template = "app/blocks/event_list_and_map_block.html"
+        icon = "fa fa-map"
+
+
 def create_streamfield(additional_blocks=None, **kwargs):
     blcks = [
         ("membership_options", MembershipOptionsBlock()),
@@ -865,6 +894,8 @@ def create_streamfield(additional_blocks=None, **kwargs):
         ("single_column", SingleColumnBlock()),
         ("columns", MultiColumnBlock()),
         ("newsletter_signup", NewsletterSignupBlock()),
+        ("events_list_and_map", EventsListAndMap()),
+        ("events_list_block", EventsListBlock()),
     ]
 
     if isinstance(additional_blocks, list):
@@ -1021,16 +1052,9 @@ class MapPage(Page):
 
     content_panels = Page.content_panels + [FieldPanel("intro")]
 
-    @property
-    def circle_events():
-        from app.models.circle import CircleAPIResource, CircleEvent
-
-        return CircleAPIResource(
-            path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
-        )
-
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
+    @classmethod
+    def get_map_context(cls, show_members=False):
+        context = {}
         context["sources"] = {}
         context["layers"] = {}
 
@@ -1038,7 +1062,7 @@ class MapPage(Page):
         events = sorted(
             (
                 event
-                for event in self.circle_events.list()
+                for event in circle_events().list()
                 if event.starts_at >= datetime.now(event.starts_at.tzinfo)
             ),
             key=lambda event: event.starts_at,
@@ -1058,7 +1082,7 @@ class MapPage(Page):
         }
 
         # Members
-        if request.GET.get("show-members", None) is not None:
+        if show_members:
             members = User.objects.filter(coordinates__isnull=False)
             member_features = [member.as_geojson_feature for member in members]
 
@@ -1143,4 +1167,13 @@ class MapPage(Page):
             }
         )
 
+        return context
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context.update(
+            MapPage.get_map_context(
+                show_members=bool(request.GET.get("show-members", None) is not None)
+            )
+        )
         return context

@@ -46,7 +46,7 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
-from app.models.circle import circle_events
+from app.models.circle import CircleEvent
 from app.models.django import User
 from app.utils import include_keys
 from app.utils.cache import django_cached
@@ -1059,14 +1059,7 @@ class MapPage(Page):
         context["layers"] = {}
 
         # Events
-        events = sorted(
-            (
-                event
-                for event in circle_events().list()
-                if event.starts_at >= datetime.now(event.starts_at.tzinfo)
-            ),
-            key=lambda event: event.starts_at,
-        )
+        events = list(CircleEvent.objects.filter(starts_at__gte=datetime.now()).order_by('-starts_at').all())
         context["events"] = [event.as_geojson_feature for event in events]
 
         context["sources"]["events"] = {

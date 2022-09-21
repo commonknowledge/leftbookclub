@@ -5,10 +5,26 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 
 import humanize
+from django.core.serializers.json import DjangoJSONEncoder 
 from django.conf import settings
-from groundwork.core.datasources import RestDatasource
+from django.db import models
+from wagtail.fields import RichTextField
+from groundwork.core.datasources import RestDatasource, SyncedModel, SyncConfig
 
 ResourceT = TypeVar("ResourceT")
+
+import json
+from datetime import datetime
+
+
+class DTEncoder(json.JSONEncoder):
+    def default(self, obj):
+        # 👇️ if passed in object is datetime object
+        # convert it to a string
+        if isinstance(obj, datetime):
+            return str(obj)
+        # 👇️ otherwise use the default behavior
+        return json.JSONEncoder.default(self, obj)
 
 
 class CircleAPIResource(RestDatasource[ResourceT]):
@@ -21,10 +37,6 @@ class CircleAPIResource(RestDatasource[ResourceT]):
 
         if not hasattr(self, "api_key"):
             self.api_key = getattr(settings, "CIRCLE_API_TOKEN", None)
-
-        if self.community_id is None:
-            communities = self.fetch_url(f"{self.base_url}/communities", query={})
-            self.community_id = communities[0]["id"]
 
     def get_headers(self) -> Dict[str, str]:
         return {"Authorization": f"Token {self.api_key}"}
@@ -51,28 +63,34 @@ class CircleAPIResource(RestDatasource[ResourceT]):
 
     def fetch_url(self, *args, **kwargs):
         kwargs["query"] = kwargs.get("query", {})
+
+        if self.community_id is None:
+            communities = super().fetch_url(f"{self.base_url}/communities", query={})
+            self.community_id = communities[0]["id"]
         kwargs["query"]["community_id"] = self.community_id
+
         return super().fetch_url(*args, **kwargs)
-
-
-# {
-#   "formatted_address": "5 Caledonian Rd, London N1 9DY, UK",
-#   "geometry": {
-#     "location": {
-#       "lat": 51.5312223,
-#       "lng": -0.1211209
-#     }
-#   },
-#   "name": "Housmans Bookshop",
-#   "place_id": "ChIJD6SY9z8bdkgRuHax27_5fwg",
-#   "url": "https://maps.google.com/?cid=612482676765587128",
-#   "website": "http://www.housmans.com/",
-#   "html_attributions": []
-# }
 
 
 @dataclass
 class CircleAddress:
+    '''
+    # Example: 
+    {
+      "formatted_address": "5 Caledonian Rd, London N1 9DY, UK",
+      "geometry": {
+        "location": {
+          "lat": 51.5312223,
+          "lng": -0.1211209
+        }
+      },
+      "name": "Housmans Bookshop",
+      "place_id": "ChIJD6SY9z8bdkgRuHax27_5fwg",
+      "url": "https://maps.google.com/?cid=612482676765587128",
+      "website": "http://www.housmans.com/",
+      "html_attributions": []
+    }
+    '''
     formatted_address: str
     name: Optional[str]
     place_id: Optional[str]
@@ -148,36 +166,51 @@ class CircleCommunity:
     id: int
 
 
-def circle_events():
-    from app.models.circle import CircleAPIResource, CircleEvent
 
-    return CircleAPIResource(
-        path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
+class DataclassJSONEncoder(DjangoJSONEncoder):
+    """
+    JSONEncoder subclass that knows how to encode date/time, decimal types, and
+    UUIDs.
+    """
+
+    def default(self, o):
+        if isinstance(o, (CircleEventBody, CircleAddress, CircleEventBody, CircleEvent, CircleCommunity, )):
+            # it's a dataclass
+            return asdict(o)
+        else:
+            return super().default(o)
+
+
+circle_events = CircleAPIResource(
+    path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
+)
+
+
+circle_communities = CircleAPIResource(
+    path="/communities",
+    resource_type=CircleCommunity,
+    api_key=settings.CIRCLE_API_KEY
+)
+
+
+class CircleEvent(SyncedModel):
+    # This is where we specify the datasource, along with other options
+    # for customizing how synchronization happens.
+    sync_config = SyncConfig(
+      datasource=circle_events,
     )
 
+    # This is used to join data returned from the remote API against
+    # our local data.
+    external_id = models.CharField(max_length=100)
 
-# circle_communities = CircleAPIResource(
-#     path="/communities",
-#     resource_type=CircleCommunity,
-#     api_key=settings.CIRCLE_API_KEY
-# )
-
-
-# class CircleEvent(SyncedModel):
-#     # This is where we specify the datasource, along with other options
-#     # for customizing how synchronization happens.
-#     sync_config = SyncConfig(
-#       datasource=circle_events,
-#     )
-
-#     # This is used to join data returned from the remote API against
-#     # our local data.
-#     external_id = models.IntegerField()
-
-#     # This will be populated from the remote data.
-#     name = models.CharField(max_length=300)
-#     starts_at = models.DateField()
-#     location_type = models.CharField(max_length=300)
-#     name = models.CharField(max_length=300)
-#     body = RichTextField()
-#     url = models.URLField()
+    # This will be populated from the remote data.
+    name = models.CharField(max_length=500)
+    starts_at = models.DateTimeField()
+    location_type = models.CharField(max_length=300)
+    in_person_location = models.JSONField(blank=True, null=True, encoder=DjangoJSONEncoder)
+    virtual_location_url = models.URLField(max_length=1024, blank=False, null=False)
+    as_geojson_feature = models.JSONField(blank=True, null=True, encoder=DjangoJSONEncoder)
+    name = models.CharField(max_length=300)
+    body = models.JSONField(blank=True, null=True, encoder=DataclassJSONEncoder)
+    url = models.URLField(max_length=1024, blank=False, null=False)

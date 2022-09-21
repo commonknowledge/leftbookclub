@@ -1067,9 +1067,9 @@ class MapPage(Page):
             "data": {
                 "type": "FeatureCollection",
                 "features": [
-                    event
+                    event.as_geojson_feature
                     for event in context["events"]
-                    if event.get("geometry", None) is not None
+                    if event.as_geojson_feature.get("geometry", None) is not None
                 ],
             },
         }

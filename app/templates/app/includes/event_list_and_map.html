@@ -63,46 +63,7 @@
     </div>
     <ol class="tw-relative tw-list-none tw-p-0 tw-m-0 tw-space-y-2 tw-mb-2">
     {% for event in events %}
-      <li
-        data-fly-to-map-zoom-param="12"
-        data-fly-to-map-lng-param="{{ event.geometry.coordinates.0 }}"
-        data-fly-to-map-lat-param="{{ event.geometry.coordinates.1 }}"
-        data-action="mouseenter->fly-to-map#flyTo"
-        id="event-{{event.properties.id}}"
-        data-list-filter-target="item"
-        data-location-type="{{ event.properties.location_type }}"
-        class="tw-w-full tw-px-2">
-          <div class='tw-flex tw-flex-row tw-bg-white'>
-            <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
-              <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
-                <div class='tw-text-lg'>{{ event.properties.starts_at|date:"j" }}</div>
-                <div class='tw-uppercase '>{{ event.properties.starts_at|date:"M" }}</div>
-              </div>
-            </div>
-            <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
-              <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.properties.name }}</h3>
-              <div class='tw-text-sm tw-font-normal tw-leading-none tw-my-3 tw-text-gray-700'>
-                <div>
-                  <span class="tw-capitalize">{{ event.properties.location_type|replace:"_| " }}</span>
-                  <span>&middot;</span>
-                  <span>Starts at {{event.properties.starts_at|date:"P"}}</span>
-                  <span>&middot;</span>
-                  <span>{{event.properties.starts_at|naturaltime}}</span>
-                </div>
-                {% if event.properties.physical_address.formatted_address %}
-                <div class='tw-mt-2'>
-                  {{ event.properties.physical_address.formatted_address }}
-                </div>
-                {% endif %}
-              </div>
-              {% if event.properties.body.body %}
-                {{ event.properties.body.body|safe }}
-              {% endif %}
-              <br />
-              {% bootstrap_button href=event.properties.url content="Learn more" %}
-            </div>
-          </div>
-      </li>
+      {% include "app/includes/event_card.html" with event=event %}
     {% endfor %}
     </ol>
   </section>

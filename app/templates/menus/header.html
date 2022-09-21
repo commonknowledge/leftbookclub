@@ -1,39 +1,63 @@
 {% load static account menu_tags wagtailcore_tags %}
 
-<header>
-  <nav class='text-uppercase tw-text-sm navbar navbar-expand-lg container-xl'>
-    <ul class="nav col-12 col-md tw-justify-center md:tw-justify-start tw-order-3 md:tw-order-1 small-text tw-text-black">
-      {% for item in menu_items %}
-        <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
-      {% endfor %}
-      <li><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark">Redeem gift card</a></li>
-    </ul>
-    <a href="/" class="text-center col text-dark text-decoration-none md:tw-flex-grow-0 tw-order-1 md:tw-order-2">
-      <img src="{% static 'images/logo.png' %}" style='width: 100px; height: 100px;' alt="Left Book Club logo" title="Left Book Club" />
+<header class="navbar navbar-expand-md navbar-light bg-light" role="navigation">
+  <div class="container-fluid">
+    <a href="/" class="text-center text-dark text-decoration-none md:tw-hidden">
+      <img src="{% static 'images/logo.png' %}" class='tw-h-[50px] tw-w-[50px] md:tw-h-[100px] md:tw-w-[100px]' alt="Left Book Club logo" title="Left Book Club" />
     </a>
-    <ul class="nav col-12 col-md tw-justify-center md:tw-justify-end tw-order-2 md:tw-order-3 tw-items-center small-text tw-text-black">
-      {% if user.is_authenticated %}
-        <li>
-          <a href="{% url 'account_membership' %}" class="nav-link pl-2 link-dark tw-align-middle !tw-inline-block !tw-pr-0">{% user_display request.user %}</a>
-          {% include "app/includes/membership_badge.html" with user=user %}
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+
+      <ul class="navbar-nav tw-justify-center">
+        {% for item in menu_items %}
+          <li class='nav-item'><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
+        {% endfor %}
+        <li class='nav-item'><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark">Redeem gift card</a></li>
+        {% comment %}  {% endcomment %}
+        <li class='nav-item'>
+          <a href="/" class="nav-link text-center text-dark text-decoration-none tw-hidden md:tw-block">
+            <img src="{% static 'images/logo.png' %}" class='md:tw-h-[100px] md:tw-w-[100px]' alt="Left Book Club logo" title="Left Book Club" />
+          </a>
         </li>
-        <li><a href="{% url 'account_logout' %}" class="nav-link btn-sm px-2 link-dark">Sign out</a></li>
-      {% else %}
-        <li><a href="{% url 'account_login' %}" class="nav-link btn-sm px-2 link-dark">Login</a></li>
-      {% endif %}
-      {% comment %} {% if user.is_member is None %} {% endcomment %}
-        {% if request.session.gift_giver_subscription is not None %}
-          <li><a href="{% url 'redeem_setup' %}" class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-magenta">Finish gift set up</a></li>
-        {% elif not user.is_member %}
-          <li><a href="/join" class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-yellow">Join</a></li>
+      </ul>
+      <a href="/" class="text-center text-dark text-decoration-none md:tw-hidden">
+        <img src="{% static 'images/logo.png' %}" class='tw-h-[50px] tw-w-[50px] md:tw-h-[100px] md:tw-w-[100px]' alt="Left Book Club logo" title="Left Book Club" />
+      </a>
+      <ul class="navbar-nav">
+        {% for item in menu_items %}
+          <li class='nav-item'><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
+        {% endfor %}
+        <li class='nav-item'><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark">Redeem gift card</a></li>
+        {% comment %}  {% endcomment %}
+        <li class='nav-item'>
+          <a href="/" class="nav-link text-center text-dark text-decoration-none tw-hidden md:tw-block">
+            <img src="{% static 'images/logo.png' %}" class='md:tw-h-[100px] md:tw-w-[100px]' alt="Left Book Club logo" title="Left Book Club" />
+          </a>
+        </li>
+        {% comment %}  {% endcomment %}
+        {% if user.is_authenticated %}
+          <li class='nav-item'>
+            <a href="{% url 'account_membership' %}" class="nav-link link-dark tw-align-middle !tw-inline-block tw-space-x-1">
+              {% user_display request.user %}
+              {% include "app/includes/membership_badge.html" with user=user %}
+            </a>
+          </li>
+          <li class='nav-item'><a href="{% url 'account_logout' %}" class="nav-link btn-sm px-2 link-dark">Sign out</a></li>
+        {% else %}
+          <li class='nav-item'><a href="{% url 'account_login' %}" class="nav-link btn-sm px-2 link-dark">Login</a></li>
         {% endif %}
-      {% comment %} {% endif %} {% endcomment %}
-    </ul>
-  </nav>
+        {% if request.session.gift_giver_subscription is not None %}
+          <li class='nav-item'><a href="{% url 'redeem_setup' %}" class="nav-link btn btn-outline-dark btn-sm px-2 link-dark tw-bg-magenta">Finish gift set up</a></li>
+        {% elif not user.is_member %}
+          <li class='nav-item'><a href="/join" class="nav-link btn btn-outline-dark btn-sm px-2 link-dark tw-bg-yellow">Join</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
   {% include "app/includes/banner.html" with label="Read. Debate. Organise." class="mt-3 mb-1" %}
   <div class='tw-border-b-2 tw-border-black'></div>  
 
-  {% comment %} Member subscription banner {% endcomment %}
   {% include "app/includes/membership_banner.html" with user=user %}
-
 </header>

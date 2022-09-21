@@ -94,24 +94,24 @@ class CircleAddress:
     }
     '''
     formatted_address: str
-    name: Optional[str]
-    place_id: Optional[str]
-    url: Optional[str]
-    website: Optional[str]
-    html_attributions: Optional[List[str]]
+    name: Optional[str] = None
+    place_id: Optional[str] = None
+    url: Optional[str] = None
+    website: Optional[str] = None
+    html_attributions: Optional[List[str]] = None
     geometry: Optional[
         TypedDict(
             "location",
             {"location": TypedDict("coordinates", {"lat": float, "lng": float})},
         )
-    ]
+    ] = None
 
 
 @dataclass
 class CircleEventBody:
     id: int
     name: str
-    body: Optional[str]
+    body: Optional[str] = None
 
 
 @dataclass
@@ -122,9 +122,9 @@ class CircleEvent:
     starts_at: datetime
     url: str
     location_type: str
-    in_person_location: Optional[str]
-    virtual_location_url: Optional[str]
-    body: Optional[CircleEventBody]
+    in_person_location: Optional[str] = None
+    virtual_location_url: Optional[str] = None
+    body: Optional[CircleEventBody] = None
     human_readable_date: Optional[str] = None
 
     def __post_init__(self, *args, **kwargs):

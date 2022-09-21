@@ -8,6 +8,8 @@ import humanize
 from django.core.serializers.json import DjangoJSONEncoder 
 from django.conf import settings
 from django.db import models
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db import models as gis_models
 from wagtail.fields import RichTextField
 from groundwork.core.datasources import RestDatasource, SyncedModel, SyncConfig
 
@@ -129,6 +131,25 @@ class CircleEvent:
         self.human_readable_date = humanize.naturalday(self.starts_at)
 
     @property
+    def body_html(self):
+        try:
+            html = self.body.body
+            return html
+        except:
+            return None
+
+    @property
+    def coordinates(self):
+        try:
+            point = Point(
+                self.physical_address.geometry["location"]["lng"],
+                self.physical_address.geometry["location"]["lat"],
+            )
+            return point
+        except:
+            return None
+
+    @property
     def physical_address(self):
         if self.in_person_location is not None and isinstance(
             self.in_person_location, str
@@ -214,3 +235,5 @@ class CircleEvent(SyncedModel):
     name = models.CharField(max_length=300)
     body = models.JSONField(blank=True, null=True, encoder=DataclassJSONEncoder)
     url = models.URLField(max_length=1024, blank=False, null=False)
+    coordinates = gis_models.PointField(null=True, blank=True)
+    body_html = RichTextField(blank=True, null=True)

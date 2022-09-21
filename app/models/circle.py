@@ -2,7 +2,7 @@ from typing import Any, Dict, Iterable, List, Optional, TypedDict, TypeVar
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import humanize
 from django.core.serializers.json import DjangoJSONEncoder 
@@ -219,6 +219,7 @@ class CircleEvent(SyncedModel):
     # for customizing how synchronization happens.
     sync_config = SyncConfig(
       datasource=circle_events,
+      sync_interval=timedelta(minutes=15)
     )
 
     # This is used to join data returned from the remote API against

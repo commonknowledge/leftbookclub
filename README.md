@@ -149,6 +149,8 @@ We used https://github.com/nextauthjs/next-auth-example/ to test this implementa
 
 ### Secrets
 
+Contact jan@commonknowledge.coop for an up to date list of env variables.
+
 ```js
 DJANGO_SETTINGS_MODULE: "app.settings.production",
 // From https://cloud.digitalocean.com/account/api/tokens?i=e4951b

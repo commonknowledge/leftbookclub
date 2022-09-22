@@ -80,12 +80,19 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 
 ## Fly.io, our web host
 
-- `fly launch` to set up the app, ignoring Django detection
-- If a database hasn't been automatically created through the above, `flyctl postgres create`
-- `flyctl postgres attach --app <app-name> --postgres-app <postgres-app-name>` to link the two
+- Github actions auto trigger deploys to fly. To enable deployments, manually create the required apps:
+  - Create the web app: `fly apps create --name lbc-production`
+  - Create the web worker: `fly apps create --name lbc-worker-production`
+  - Create the database: `flyctl postgres create --name lbc-pg-production`
+  - Link the database to the web app: `flyctl postgres attach lbc-pg-production --app lbc-production --postgres-app --database-name lbc-production --database-user lbc-production`
+  - Link the database to the worker: `flyctl postgres attach lbc-pg-production --app lbc-worker-production --postgres-app --database-name lbc-production --database-user lbc-worker-production`
+  - You can optionally also do this for a staging environment with `lbc-staging` and `lbc-pg-staging`
 - Set environment secrets with `flyctl secrets set KEY="VALUE" KEY2="VALUE2" ...`
-- Deploy the app via `flyctl deploy` or the github workflows configured in this repo
-- Then use `flyctl ssh console` to enter the app and run set up commands, etc.
+  - Contact jan@commonknowledge.coop for all required env variables for the Left Book Club's instance, or see below for a general outline
+- After the first deploy has completed, you can run `flyctl ssh console --app lbc-production` to enter the app and run set up commands, etc.
+  - Run `cd app` to enter the project root
+  - Use `poetry run ...` to access the python environment
+    - E.g. `poetry run python manage.py createsuperuser`
 
 ## OAuth 2.0 provider details
 

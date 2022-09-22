@@ -6,6 +6,17 @@ module.exports = {
     "./static/**/*.{html,js,ts,tsx}",
   ],
   theme: {
+    /*
+    // Match to bootstrap 5
+    // https://getbootstrap.com/docs/5.0/layout/breakpoints/
+    */
+    screens: {
+      sm: "576px",
+      md: "768px",
+      lg: "992px",
+      xl: "1200px",
+      xxl: "1400px",
+    },
     extend: {
       spacing: {
         1: "5px",

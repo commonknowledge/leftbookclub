@@ -13,4 +13,5 @@ jobs:
     steps:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl restart lbc-production
+      - run: flyctl restart lbc-worker-production
       - run: flyctl restart lbc-pg-production

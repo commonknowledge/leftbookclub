@@ -39,10 +39,8 @@
     </a>
     <div class='tw-space-x-1 small-text tw-flex-grow-1 tw-flex-shrink-0 tw-text-center'>
       {% comment %} Just show the first three items on mobile, leave the rest to the dropdown {% endcomment %}
-      {% for item in menu_items %}
-        {% if forloop.counter <= 3 %}
-          <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
-        {% endif %}
+      {% for item in menu_items|slice:":3" %}
+        <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
       {% endfor %}
     </div>
     <div class='tw-pl-1 tw-ml-auto tw-text-right'>

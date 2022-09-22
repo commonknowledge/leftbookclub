@@ -46,7 +46,7 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
 from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
-from app.models.circle import circle_events
+from app.models.circle import CircleEvent
 from app.models.django import User
 from app.utils import include_keys
 from app.utils.cache import django_cached
@@ -1053,60 +1053,29 @@ class MapPage(Page):
     content_panels = Page.content_panels + [FieldPanel("intro")]
 
     @classmethod
-    def get_map_context(cls, show_members=False):
+    def get_map_context(cls):
         context = {}
         context["sources"] = {}
         context["layers"] = {}
 
         # Events
-        events = sorted(
-            (
-                event
-                for event in circle_events().list()
-                if event.starts_at >= datetime.now(event.starts_at.tzinfo)
-            ),
-            key=lambda event: event.starts_at,
+        context["events"] = list(
+            CircleEvent.objects.filter(starts_at__gte=datetime.now())
+            .order_by("starts_at")
+            .all()
         )
-        context["events"] = [event.as_geojson_feature for event in events]
 
         context["sources"]["events"] = {
             "type": "geojson",
             "data": {
                 "type": "FeatureCollection",
                 "features": [
-                    event
+                    event.as_geojson_feature
                     for event in context["events"]
-                    if event.get("geometry", None) is not None
+                    if event.as_geojson_feature.get("geometry", None) is not None
                 ],
             },
         }
-
-        # Members
-        if show_members:
-            members = User.objects.filter(coordinates__isnull=False)
-            member_features = [member.as_geojson_feature for member in members]
-
-            context["sources"]["members"] = {
-                "type": "geojson",
-                "data": {"type": "FeatureCollection", "features": member_features},
-            }
-
-            context["layers"].update(
-                {
-                    "member-postcodes-borders": {
-                        "source": "members",
-                        "id": "member-postcodes-borders",
-                        "type": "circle",
-                        "paint": {"circle-color": "#000000", "circle-radius": 6.5},
-                    },
-                    "member-postcodes": {
-                        "source": "members",
-                        "id": "member-postcodes",
-                        "type": "circle",
-                        "paint": {"circle-color": "#FF55B4", "circle-radius": 5},
-                    },
-                }
-            )
 
         context["layers"].update(
             {
@@ -1171,9 +1140,5 @@ class MapPage(Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        context.update(
-            MapPage.get_map_context(
-                show_members=bool(request.GET.get("show-members", None) is not None)
-            )
-        )
+        context.update(MapPage.get_map_context())
         return context

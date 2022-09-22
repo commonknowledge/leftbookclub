@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import timedelta
 
 import dj_database_url
 
@@ -269,15 +270,16 @@ INTERNAL_IPS = [
 ]
 
 # Wagtail
-
 WAGTAIL_SITE_NAME = "Left Book Club"
 BASE_URL = re.sub(r"/$", "", os.getenv("BASE_URL", "http://localhost:8000"))
 WAGTAILADMIN_BASE_URL = BASE_URL
 
 WAGTAILIMAGES_IMAGE_MODEL = "app.CustomImage"
 
-# dj-stripe
+# Groundwork
+SYNC_INTERVAL_DEFAULT_MINUTES = int(os.getenv("SYNC_INTERVAL_DEFAULT_MINUTES", 30))
 
+# dj-stripe
 STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "sk_live_")
 STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", "sk_test_")
 STRIPE_LIVE_PUBLIC_KEY = os.environ.get("STRIPE_LIVE_PUBLIC_KEY", "pk_live_")
@@ -307,7 +309,6 @@ SHOPIFY_APP_API_SECRET = os.environ.get("SHOPIFY_APP_API_SECRET", "")
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # menus
-
 WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)
 
 # MJML
@@ -342,6 +343,9 @@ FLY_APP_NAME = os.getenv("FLY_APP_NAME", None)
 
 # Circle
 CIRCLE_API_KEY = os.getenv("CIRCLE_API_KEY", None)
+SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS = int(
+    os.getenv("SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS", SYNC_INTERVAL_DEFAULT_MINUTES)
+)
 
 # Mapbox
 MAPBOX_PUBLIC_API_KEY = os.getenv("MAPBOX_PUBLIC_API_KEY", None)

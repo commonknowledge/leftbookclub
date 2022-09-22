@@ -9,6 +9,10 @@ kill_timeout = 5
   release_command = "make release"
   strategy = "rolling"
 
+[processes]
+  web = "poetry run gunicorn -b 0.0.0.0:80 app.wsgi"
+  cron = "poetry run python manage.py run_cron_tasks"
+
 [env]
   PORT = "8080"
 

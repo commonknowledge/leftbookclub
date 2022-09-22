@@ -36,41 +36,7 @@
         <ol class="tw-relative tw-list-none tw-p-0 tw-m-0 tw-space-y-2">
         {% for event in events %}
           {% if forloop.counter <= value.number_of_events %}
-            <li
-              data-action="mouseenter->fly-to-map#flyTo"
-              data-fly-to-map-zoom="12"
-              data-fly-to-map-lng-param="{{ event.geometry.coordinates.0 }}"
-              data-fly-to-map-lat-param="{{ event.geometry.coordinates.1 }}"
-              id="event-{{event.properties.id}}"
-              data-location-type="{{ event.properties.location_type }}"
-              class="">
-                <div class='tw-flex tw-flex-row tw-bg-white'>
-                  <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
-                    <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
-                      <div class=''>{{ event.properties.starts_at|date:"j" }}</div>
-                      <div class='tw-uppercase '>{{ event.properties.starts_at|date:"M" }}</div>
-                    </div>
-                  </div>
-                  <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
-                    <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.properties.name }}</h3>
-                    <div class='tw-text-sm tw-font-normal tw-leading-none tw-mt-2 tw-text-gray-700'>
-                      <div class="tw-mb-1">
-                        <span class="tw-capitalize">{{ event.properties.location_type|replace:"_| " }}</span>
-                        <span>&middot;</span>
-                        <span>Starts at {{event.properties.starts_at|date:"P"}}</span>
-                        <span>&middot;</span>
-                        <span>{{event.properties.starts_at|naturaltime}}</span>
-                      </div>
-                      {% if event.properties.physical_address.formatted_address %}
-                      <div>
-                        {{ event.properties.physical_address.formatted_address }}
-                      </div>
-                      {% endif %}
-                    </div>
-                    {% comment %} {% bootstrap_button href=event.properties.url content="Learn more" %} {% endcomment %}
-                  </div>
-                </div>
-            </li>
+            {% include "app/includes/event_card.html" with event=event show_event=False show_button=False class="tw-w-full" %}
           {% endif %}
         {% endfor %}
         {% bootstrap_button href="/events" content="All upcoming events" %}

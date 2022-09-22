@@ -34,16 +34,19 @@
 
   {% comment %} Mobile nav {% endcomment %}
   <nav class='md:tw-hidden text-uppercase tw-text-sm navbar navbar-light container-xl'>
-    <a href="/" class="text-dark text-decoration-none tw-pr-2">
+    <a href="/" class="text-dark text-decoration-none tw-pr-1">
       <img src="{% static 'images/logo.png' %}" style='width: 60px; height: 60px;' alt="Left Book Club logo" title="Left Book Club" />
     </a>
-    <div class='tw-space-x-1 small-text'>
+    <div class='tw-space-x-1 small-text tw-flex-grow-1 tw-flex-shrink-0 tw-text-center'>
+      {% comment %} Just show the first three items on mobile, leave the rest to the dropdown {% endcomment %}
       {% for item in menu_items %}
-        <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
+        {% if forloop.counter <= 3 %}
+          <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
+        {% endif %}
       {% endfor %}
     </div>
-    <div class='tw-pl-2 tw-ml-auto tw-text-right'>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <div class='tw-pl-1 tw-ml-auto tw-text-right'>
+      <button class="navbar-toggler !tw-py-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
     </div>

@@ -219,7 +219,7 @@ class CircleEvent(SyncedModel):
     # for customizing how synchronization happens.
     sync_config = SyncConfig(
       datasource=circle_events,
-      sync_interval=timedelta(minutes=15)
+      sync_interval=timedelta(minutes=settings.SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS)
     )
 
     # This is used to join data returned from the remote API against

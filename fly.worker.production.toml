@@ -3,18 +3,10 @@ app = "lbc-worker-production"
 kill_signal = "SIGINT"
 kill_timeout = 5
 
-[deploy]
-  release_command = "make release"
-  strategy = "rolling"
-
 [[services]]
   [services.concurrency]
     hard_limit = 1
     soft_limit = 1
-
-[[statics]]
-  guest_path = "/app/static"
-  url_prefix = "/static"
 
 [experimental]
 cmd = ["poetry", "run", "python", "manage.py", "run_cron_tasks"]

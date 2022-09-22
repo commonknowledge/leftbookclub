@@ -10,7 +10,7 @@ kill_timeout = 5
   strategy = "rolling"
 
 [processes]
-  web = "poetry run gunicorn -b 0.0.0.0:80 app.wsgi"
+  web = "poetry run gunicorn -b 0.0.0.0:8080 app.wsgi"
   cron = "poetry run python manage.py run_cron_tasks"
 
 [env]
@@ -42,5 +42,6 @@ kill_timeout = 5
     port = "443"
 
 [[statics]]
+  processes = ["web"]
   guest_path = "/app/static"
   url_prefix = "/static"

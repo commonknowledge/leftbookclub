@@ -11,17 +11,6 @@ kill_timeout = 5
   [services.concurrency]
     hard_limit = 1
     soft_limit = 1
-    
-  [[services.http_checks]]
-    grace_period = "30s"
-    interval = 10000
-    method = "get"
-    path = "/"
-    protocol = "http"
-    timeout = 3000
-    restart_limit = 6
-    tls_skip_verify = true
-    [services.http_checks.headers]
 
 [[statics]]
   guest_path = "/app/static"

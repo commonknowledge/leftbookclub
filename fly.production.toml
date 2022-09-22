@@ -11,7 +11,6 @@ kill_timeout = 5
   PORT = "8080"
 
 [[services]]
-  processes = ["web"]
   internal_port = 8080
   protocol = "tcp"
 
@@ -42,6 +41,3 @@ kill_timeout = 5
 [[statics]]
   guest_path = "/app/static"
   url_prefix = "/static"
-
-[experimental]
-  cmd = ["poetry", "run", "gunicorn", "-b", "0.0.0.0:8080", "app.wsgi"]

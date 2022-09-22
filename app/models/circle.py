@@ -5,13 +5,13 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 
 import humanize
-from django.core.serializers.json import DjangoJSONEncoder 
 from django.conf import settings
-from django.db import models
-from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.geos import Point
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import models
+from groundwork.core.datasources import RestDatasource, SyncConfig, SyncedModel
 from wagtail.fields import RichTextField
-from groundwork.core.datasources import RestDatasource, SyncedModel, SyncConfig
 
 ResourceT = TypeVar("ResourceT")
 
@@ -76,8 +76,8 @@ class CircleAPIResource(RestDatasource[ResourceT]):
 
 @dataclass
 class CircleAddress:
-    '''
-    # Example: 
+    """
+    # Example:
     {
       "formatted_address": "5 Caledonian Rd, London N1 9DY, UK",
       "geometry": {
@@ -92,7 +92,8 @@ class CircleAddress:
       "website": "http://www.housmans.com/",
       "html_attributions": []
     }
-    '''
+    """
+
     formatted_address: str
     name: Optional[str] = None
     place_id: Optional[str] = None
@@ -187,7 +188,6 @@ class CircleCommunity:
     id: int
 
 
-
 class DataclassJSONEncoder(DjangoJSONEncoder):
     """
     JSONEncoder subclass that knows how to encode date/time, decimal types, and
@@ -195,7 +195,16 @@ class DataclassJSONEncoder(DjangoJSONEncoder):
     """
 
     def default(self, o):
-        if isinstance(o, (CircleEventBody, CircleAddress, CircleEventBody, CircleEvent, CircleCommunity, )):
+        if isinstance(
+            o,
+            (
+                CircleEventBody,
+                CircleAddress,
+                CircleEventBody,
+                CircleEvent,
+                CircleCommunity,
+            ),
+        ):
             # it's a dataclass
             return asdict(o)
         else:
@@ -208,9 +217,7 @@ circle_events = CircleAPIResource(
 
 
 circle_communities = CircleAPIResource(
-    path="/communities",
-    resource_type=CircleCommunity,
-    api_key=settings.CIRCLE_API_KEY
+    path="/communities", resource_type=CircleCommunity, api_key=settings.CIRCLE_API_KEY
 )
 
 
@@ -218,8 +225,8 @@ class CircleEvent(SyncedModel):
     # This is where we specify the datasource, along with other options
     # for customizing how synchronization happens.
     sync_config = SyncConfig(
-      datasource=circle_events,
-      sync_interval=timedelta(minutes=settings.SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS)
+        datasource=circle_events,
+        sync_interval=timedelta(minutes=settings.SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS),
     )
 
     # This is used to join data returned from the remote API against
@@ -230,9 +237,13 @@ class CircleEvent(SyncedModel):
     name = models.CharField(max_length=500)
     starts_at = models.DateTimeField()
     location_type = models.CharField(max_length=300)
-    in_person_location = models.JSONField(blank=True, null=True, encoder=DjangoJSONEncoder)
+    in_person_location = models.JSONField(
+        blank=True, null=True, encoder=DjangoJSONEncoder
+    )
     virtual_location_url = models.URLField(max_length=1024, blank=False, null=False)
-    as_geojson_feature = models.JSONField(blank=True, null=True, encoder=DjangoJSONEncoder)
+    as_geojson_feature = models.JSONField(
+        blank=True, null=True, encoder=DjangoJSONEncoder
+    )
     name = models.CharField(max_length=300)
     body = models.JSONField(blank=True, null=True, encoder=DataclassJSONEncoder)
     url = models.URLField(max_length=1024, blank=False, null=False)

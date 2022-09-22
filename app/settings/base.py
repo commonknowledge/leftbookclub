@@ -1,6 +1,6 @@
-from datetime import timedelta
 import os
 import re
+from datetime import timedelta
 
 import dj_database_url
 
@@ -343,7 +343,9 @@ FLY_APP_NAME = os.getenv("FLY_APP_NAME", None)
 
 # Circle
 CIRCLE_API_KEY = os.getenv("CIRCLE_API_KEY", None)
-SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS = int(os.getenv("SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS", SYNC_INTERVAL_DEFAULT_MINUTES))
+SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS = int(
+    os.getenv("SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS", SYNC_INTERVAL_DEFAULT_MINUTES)
+)
 
 # Mapbox
 MAPBOX_PUBLIC_API_KEY = os.getenv("MAPBOX_PUBLIC_API_KEY", None)

@@ -1059,7 +1059,11 @@ class MapPage(Page):
         context["layers"] = {}
 
         # Events
-        context["events"] = list(CircleEvent.objects.filter(starts_at__gte=datetime.now()).order_by('starts_at').all())
+        context["events"] = list(
+            CircleEvent.objects.filter(starts_at__gte=datetime.now())
+            .order_by("starts_at")
+            .all()
+        )
 
         context["sources"]["events"] = {
             "type": "geojson",
@@ -1136,7 +1140,5 @@ class MapPage(Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        context.update(
-            MapPage.get_map_context()
-        )
+        context.update(MapPage.get_map_context())
         return context

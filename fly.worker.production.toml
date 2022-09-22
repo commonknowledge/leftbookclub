@@ -7,26 +7,10 @@ kill_timeout = 5
   release_command = "make release"
   strategy = "rolling"
 
-[env]
-  PORT = "8080"
-
 [[services]]
-  processes = ["web"]
-  internal_port = 8080
-  protocol = "tcp"
-
   [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-
-  [[services.ports]]
-    handlers = ["http"]
-    port = "80"
-    force_https = true
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = "443"
+    hard_limit = 1
+    soft_limit = 1
     
   [[services.http_checks]]
     grace_period = "30s"

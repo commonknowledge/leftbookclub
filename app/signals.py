@@ -81,4 +81,4 @@ def sync(*args, data: shopify.Product, **kwargs):
 
     product_id = data.get("id")
     print("Product", product_id, "was deleted")
-    BookPage.objects.filter(shopify_product_id=product_id).unpublish()
+    BookPage.objects.filter(shopify_product_id=product_id).delete()

@@ -8,6 +8,7 @@ import djstripe.models
 import shopify
 import stripe
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models
@@ -35,7 +36,7 @@ from wagtail.fields import RichTextField, StreamField
 from wagtail.images.blocks import ImageChooserBlock
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.images.models import AbstractImage, AbstractRendition
-from wagtail.models import Orderable, Page
+from wagtail.models import Orderable, Page, Site
 from wagtail.rich_text import get_text_for_indexing
 from wagtail.search import index
 from wagtail.snippets.blocks import SnippetChooserBlock
@@ -534,6 +535,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
     # TODO: Autocomplete this in future?
     shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
+    description = RichTextField(null=True, blank=True)
 
     # Don't allow editing here because it won't be synced back to Shopify
     content_panels = [
@@ -550,19 +552,49 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     def get_args_for_page(cls, product, metafields):
         return dict(
             slug=product.attributes.get("handle"),
-            title=product.title,
+            title=product.attributes.get("title"),
             shopify_product_id=product.id,
         )
 
     @classmethod
+    def get_root_page(cls):
+        """
+        Default parent page for product pages
+        """
+        site = Site.objects.get(
+            root_page__content_type=ContentType.objects.get_for_model(HomePage)
+        )
+        home = site.root_page
+        return home
+
+    @classmethod
     def create_instance_for_product(cls, product, metafields):
-        return cls(**cls.get_args_for_page(product, metafields))
+        instance = cls(**cls.get_args_for_page(product, metafields))
+        cls.get_root_page().add_child(instance=instance)
+        if product.attributes.get("status", "draft") == "draft":
+            instance.save()
+            instance.unpublish()
+        else:
+            instance.save_revision().publish()
+        return instance
 
     @classmethod
     def update_instance_for_product(cls, product, metafields):
-        return cls.objects.get(shopify_product_id=product.id).update(
-            **cls.get_args_for_page(product, metafields)
+        cls.objects.filter(shopify_product_id=product.id).update(
+            **{
+                key: value
+                for key, value in cls.get_args_for_page(product, metafields).items()
+                # Keep the originally published page slug for SEO reasons
+                if key != "slug"
+            }
         )
+        instance = cls.objects.filter(shopify_product_id=product.id).first()
+        if instance is not None:
+            if product.attributes.get("status", "draft") == "draft":
+                instance.unpublish()
+            else:
+                instance.save_revision().publish()
+        return instance
 
     @classmethod
     def sync_from_shopify_product_id(cls, shopify_product_id):
@@ -573,23 +605,17 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             metafields = product.metafields()
             metafields = metafields_to_dict(metafields)
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
-                cls.objects.filter(shopify_product_id=shopify_product_id).update(
-                    **cls.get_args_for_page(product, metafields)
-                )
-                return cls.objects.filter(shopify_product_id=shopify_product_id).first()
+                return cls.update_instance_for_product(product, metafields)
             else:
-                instance = cls.create_instance_for_product(product, metafields)
-                BookIndexPage.objects.first().add_child(instance=instance)
-                instance.save()
-                return instance
+                return cls.create_instance_for_product(product, metafields)
 
     @property
     @django_cached("shopify_product", get_key=shopify_product_id_key)
     def shopify_product(self):
-        return self.latest_shopify_product
+        return self.nocache_shopify_product
 
     @property
-    def latest_shopify_product(self) -> shopify.ShopifyResource:
+    def nocache_shopify_product(self) -> shopify.ShopifyResource:
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
@@ -611,31 +637,20 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             except:
                 return {}
 
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
-        # context["product"] = self.shopify_product
-        # context["metafields"] = self.shopify_product_metafields
-        return context
-
     @classmethod
-    def sync_shopify_products_to_pages(cls):
-        print("sync_shopify_products_to_pages")
+    def sync_shopify_products_to_pages(cls, collection_id=None):
+        if collection_id is None:
+            collection_id = cls.shopify_collection_id
+        print("sync_shopify_products_to_pages", collection_id)
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
             cache.clear()
-            book_ids = shopify.CollectionListing.find(
-                settings.SHOPIFY_COLLECTION_ID
-            ).product_ids()
-            for book_id in book_ids:
-                BookPage.sync_from_shopify_product_id(book_id)
+            product_ids = shopify.CollectionListing.find(collection_id).product_ids()
+            for product_id in product_ids:
+                cls.sync_from_shopify_product_id(product_id)
                 # Very simple solution to Shopify 2 calls/second ratelimiting
                 time.sleep(0.5)
-
-            # TODO: also list merch
-            # products = shopify.Product.find(collection=settings.SHOPIFY_COLLECTION_ID)
-            # for product in products:
-            #     ShopifyProductPage.get_for_product(id=product.id)
 
     @property
     def seo_description(self) -> str:
@@ -905,6 +920,8 @@ def create_streamfield(additional_blocks=None, **kwargs):
 
 
 class BookPage(BaseShopifyProductPage):
+    shopify_collection_id = settings.SHOPIFY_COLLECTION_ID
+
     parent_page_types = ["app.BookIndexPage"]
     subtitle = models.CharField(max_length=300, blank=True)
     authors = ArrayField(
@@ -917,7 +934,6 @@ class BookPage(BaseShopifyProductPage):
     published_date = models.DateField(null=True, blank=True)
     image_url = models.URLField(max_length=500, blank=True)
     isbn = models.CharField(max_length=50, blank=True)
-    description = RichTextField(null=True, blank=True)
     type = models.CharField(max_length=300, blank=True)
     layout = create_streamfield()
 
@@ -925,17 +941,17 @@ class BookPage(BaseShopifyProductPage):
         StreamFieldPanel("layout")
     ]
 
-    @property
-    def common_ancestor(cls):
-        book = BookIndexPage.objects.first()
-        return book
+    @classmethod
+    def get_root_page(cls):
+        return BookIndexPage.objects.first()
 
     @classmethod
     def get_args_for_page(cls, product, metafields):
+        images = product.attributes.get("images", [])
         return dict(
             slug=product.attributes.get("handle"),
-            title=product.title,
-            description=product.body_html,
+            title=product.attributes.get("title"),
+            description=product.attributes.get("body_html"),
             shopify_product_id=product.id,
             published_date=metafields.get("published_date", ""),
             authors=metafields.get("author", []),
@@ -943,7 +959,7 @@ class BookPage(BaseShopifyProductPage):
             original_publisher=metafields.get("original_publisher", ""),
             isbn=metafields.get("isbn", ""),
             type=metafields.get("type", ""),
-            image_url=product.images[0].src,
+            image_url=images[0].src if len(images) > 0 else "",
         )
 
     class Meta:

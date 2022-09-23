@@ -321,7 +321,7 @@ class CartOptionsView(TemplateView):
         product = BookPage.objects.get(shopify_product_id=product_id)
         context = {
             **context,
-            "product": product.latest_shopify_product,
+            "product": product.nocache_shopify_product,
             "disabled": self.request.GET.get("disabled") == "True",
         }
 

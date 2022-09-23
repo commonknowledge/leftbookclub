@@ -536,6 +536,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     # TODO: Autocomplete this in future?
     shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
     description = RichTextField(null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True)
 
     # Don't allow editing here because it won't be synced back to Shopify
     content_panels = [
@@ -550,10 +551,13 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
     @classmethod
     def get_args_for_page(cls, product, metafields):
+        images = product.attributes.get("images", [])
         return dict(
+            shopify_product_id=product.id,
             slug=product.attributes.get("handle"),
             title=product.attributes.get("title"),
-            shopify_product_id=product.id,
+            description=product.attributes.get("body_html"),
+            image_url=images[0].src if len(images) > 0 else "",
         )
 
     @classmethod
@@ -932,7 +936,6 @@ class BookPage(BaseShopifyProductPage):
     )
     original_publisher = models.CharField(max_length=300, blank=True)
     published_date = models.DateField(null=True, blank=True)
-    image_url = models.URLField(max_length=500, blank=True)
     isbn = models.CharField(max_length=50, blank=True)
     type = models.CharField(max_length=300, blank=True)
     layout = create_streamfield()
@@ -947,20 +950,18 @@ class BookPage(BaseShopifyProductPage):
 
     @classmethod
     def get_args_for_page(cls, product, metafields):
-        images = product.attributes.get("images", [])
-        return dict(
-            slug=product.attributes.get("handle"),
-            title=product.attributes.get("title"),
-            description=product.attributes.get("body_html"),
-            shopify_product_id=product.id,
-            published_date=metafields.get("published_date", ""),
-            authors=metafields.get("author", []),
-            forward_by=metafields.get("forward_by", []),
-            original_publisher=metafields.get("original_publisher", ""),
-            isbn=metafields.get("isbn", ""),
-            type=metafields.get("type", ""),
-            image_url=images[0].src if len(images) > 0 else "",
+        args = super().get_args_for_page(product, metafields)
+        args.update(
+            dict(
+                published_date=metafields.get("published_date", ""),
+                authors=metafields.get("author", []),
+                forward_by=metafields.get("forward_by", []),
+                original_publisher=metafields.get("original_publisher", ""),
+                isbn=metafields.get("isbn", ""),
+                type=metafields.get("type", ""),
+            )
         )
+        return args
 
     class Meta:
         ordering = ["-published_date"]

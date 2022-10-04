@@ -1,5 +1,6 @@
-{% load wagtailuserbar django_vite menu_tags setting %}
+{% load wagtailuserbar django_vite menu_tags setting tz %}
 
+{% timezone "Europe/London" %}
 <!DOCTYPE html>
 <html class="no-js" lang="en">
     <head>
@@ -73,3 +74,4 @@
         {% block bottom_of_page %}{% endblock %}
     </body>
 </html>
+{% endtimezone %}

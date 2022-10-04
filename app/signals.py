@@ -61,6 +61,8 @@ def cancel_gift_recipient_subscription(event, **kwargs):
 def sync(*args, data: shopify.Product, **kwargs):
     from app.models.wagtail import BaseShopifyProductPage
 
+    print("products_updated", data)
+
     product_id = data.get("id")
     print("Product", product_id, "was updated")
     BookPage.sync_from_shopify_product_id(product_id)
@@ -70,6 +72,8 @@ def sync(*args, data: shopify.Product, **kwargs):
 def sync(*args, data: shopify.Product, **kwargs):
     from app.models.wagtail import BaseShopifyProductPage
 
+    print("products_create", data)
+
     product_id = data.get("id")
     print("Product", product_id, "was created")
     BookPage.sync_from_shopify_product_id(product_id)
@@ -78,6 +82,8 @@ def sync(*args, data: shopify.Product, **kwargs):
 @receiver(products_delete)
 def sync(*args, data: shopify.Product, **kwargs):
     from app.models.wagtail import BaseShopifyProductPage
+
+    print("products_delete", data)
 
     product_id = data.get("id")
     print("Product", product_id, "was deleted")

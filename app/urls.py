@@ -1,9 +1,13 @@
+import logging
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.templatetags.static import static as get_static_path
 from django.urls import include, path, re_path
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from shopify_webhook.views import WebhookView
@@ -30,6 +34,16 @@ from app.views import (
 )
 
 # from wagtail_transfer import urls as wagtailtransfer_urls
+
+
+class ModifiedWebhookView(WebhookView):
+    @method_decorator(csrf_exempt)
+    def post(self, request, *args, **kwargs):
+        logging.debug("Shopify request", request)
+        logging.debug(
+            [request.webhook_domain, request.webhook_topic, request.webhook_data]
+        )
+        return super().post(request, *args, **kwargs)
 
 
 urlpatterns = [
@@ -116,7 +130,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
     path("customer_portal/", StripeCustomerPortalView.as_view(), name="customerportal"),
-    path("shopify/webhook/", WebhookView.as_view(), name="shopify_webhook"),
+    path("shopify/webhook/", ModifiedWebhookView.as_view(), name="shopify_webhook"),
     path(
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),

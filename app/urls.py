@@ -33,19 +33,6 @@ from app.views import (
     SubscriptionCheckoutView,
 )
 
-# from wagtail_transfer import urls as wagtailtransfer_urls
-
-
-class ModifiedWebhookView(WebhookView):
-    @method_decorator(csrf_exempt)
-    def post(self, request, *args, **kwargs):
-        logging.debug("Shopify request", request)
-        logging.debug(
-            [request.webhook_domain, request.webhook_topic, request.webhook_data]
-        )
-        return super().post(request, *args, **kwargs)
-
-
 urlpatterns = [
     path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
     path("django/", admin.site.urls),
@@ -130,7 +117,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
     path("customer_portal/", StripeCustomerPortalView.as_view(), name="customerportal"),
-    path("shopify/webhook/", ModifiedWebhookView.as_view(), name="shopify_webhook"),
+    path("shopify/webhooks/", WebhookView.as_view(), name="shopify_webhook"),
     path(
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),

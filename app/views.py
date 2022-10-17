@@ -28,7 +28,7 @@ from sentry_sdk import capture_exception, capture_message
 from app import analytics
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
-from app.models.stripe import ShippingZone
+from app.models.stripe import LBCSubscription, ShippingZone
 from app.models.wagtail import MembershipPlanPrice
 from app.utils.mailchimp import tag_user_in_mailchimp
 from app.utils.shopify import create_shopify_order
@@ -449,20 +449,14 @@ class CancellationView(LoginRequiredTemplateView):
 
     def get_context_data(self, subscription_id=None, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        if subscription_id and self.request.user.stripe_customer is not None:
+        if (
+            subscription_id is not None
+            and self.request.user.stripe_customer is not None
+        ):
             try:
-                subscription_id = subscription_id
-                subscription = self.request.user.stripe_customer.subscriptions.get(
-                    id=subscription_id
-                )
-                context["subscription"] = subscription
-                if subscription.metadata.get("gift_mode", None) is not None:
-                    context["gift_mode"] = True
-                    promo_code_id = subscription.metadata.get("promo_code", None)
-                    if promo_code_id is not None:
-                        context[
-                            "gift_recipient_subscription"
-                        ] = gift_recipient_subscription_from_code(promo_code_id)
+                context["subscription"] = LBCSubscription.objects.filter(
+                    customer=self.request.user.stripe_customer, id=subscription_id
+                ).first()
                 return context
             except djstripe.models.Subscription.DoesNotExist:
                 raise Http404
@@ -474,15 +468,25 @@ class CancellationView(LoginRequiredTemplateView):
         if request.method == "POST":
             if subscription_id is None:
                 subscription_id = request.user.active_subscription.id
-            if (
-                request.user.stripe_customer is not None
-                and request.user.stripe_customer.subscriptions.filter(
-                    id=subscription_id
-                ).exists()
-            ):
-                analytics.cancel_membership(request.user.stripe_customer.subscriber)
-                stripe.Subscription.modify(subscription_id, cancel_at_period_end=True)
-                return HttpResponseRedirect(reverse("account_membership"))
+            if request.user.stripe_customer is not None:
+                sub = LBCSubscription.objects.filter(
+                    customer=request.user.stripe_customer, id=subscription_id
+                ).first()
+                if sub is not None:
+                    analytics.cancel_membership(request.user.stripe_customer.subscriber)
+                    stripe.Subscription.modify(
+                        subscription_id, cancel_at_period_end=True
+                    )
+                    if sub.gift_giver_subscription is not None:
+                        stripe.Subscription.modify(
+                            sub.gift_giver_subscription.id, cancel_at_period_end=True
+                        )
+                    if sub.gift_recipient_subscription is not None:
+                        stripe.Subscription.modify(
+                            sub.gift_recipient_subscription.id,
+                            cancel_at_period_end=True,
+                        )
+                    return HttpResponseRedirect(reverse("account_membership"))
         raise Http404
 
 
@@ -512,7 +516,7 @@ class ShippingForProductView(TemplateView):
                     initial={"country": country_id}
                 ),
                 "url_pattern": ShippingCostView.url_pattern,
-                "current_book": product.current_book(),
+                "current_book": product.current_book,
             }
         )
 

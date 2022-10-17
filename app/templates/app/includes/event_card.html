@@ -1,4 +1,4 @@
-{% load menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 
 <li
   data-fly-to-map-zoom-param="12"
@@ -22,7 +22,7 @@
           <div>
             <span class="tw-capitalize">{{ event.location_type|replace:"_| " }}</span>
             <span>&middot;</span>
-            <span>Starts at {{event.starts_at|date:"P"}}</span>
+            <span>Starts at {{event.starts_at|date:"P T"}}</span>
             <span>&middot;</span>
             <span>{{event.starts_at|naturaltime}}</span>
           </div>

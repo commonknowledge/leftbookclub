@@ -1,17 +1,22 @@
 <div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">
   <div class="offcanvas-header">
-    <h3 id="cartLabel" data-product-target="cartTitle">Your cart</h3>
+    <h3 id="cartLabel">
+      Your cart
+    </h3>
+    <template data-product-target="template" data-target="#cartLabel">
+      Your cart has (( checkout.lineItems|length )) (( checkout.lineItems|length|pluralize:'item' )) totalling (( checkout.totalPriceV2|currency ))
+    </template>
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body">
-    <div data-product-target="cart">
+    <div id="cart-body">
       <div class="row gx-2">
         <div class="col-12">
           <p>No items in cart</p>
         </div>
       </div>
     </div>
-    <template class='tw-hidden tw-my-2' data-product-target="cartTemplate">
+    <template data-product-target="template" data-target="#cart-body">
       ((#loading))
         <div>
           <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

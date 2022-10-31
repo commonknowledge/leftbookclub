@@ -8,10 +8,8 @@ Wax(Mustache, { currency, pluralize, length, shopifyId, stringify });
 
 export default class ShopifyBuyControllerBase extends Controller {
   // Targets
-  static targets = ["cart", "cartTitle", "cartTemplate"];
-  public cartTarget?: HTMLElement;
-  public cartTitleTarget?: HTMLElement;
-  public cartTemplateTarget?: HTMLElement;
+  static targets = ["template"];
+  public templateTargets?: HTMLElement[];
 
   // Values
   static values = {
@@ -21,11 +19,6 @@ export default class ShopifyBuyControllerBase extends Controller {
     userEmail: String,
     stripeShipping: Object,
     checkout: Object,
-    cartTitleTemplate: {
-      type: String,
-      default:
-        "Your cart has {{ lineItems|length }} {{ lineItems|length|pluralize:'item' }} totalling {{ totalPriceV2|currency }}",
-    },
     templateTags: { default: ["((", "))"], type: Array },
     mustacheView: Object,
   };
@@ -201,26 +194,17 @@ export default class ShopifyBuyControllerBase extends Controller {
   // }
 
   renderCart() {
-    if (!this.cartTarget || !this.cartTitleTarget || !this.cartTemplateTarget) {
-      console.error(
-        !this.cartTarget,
-        !this.cartTitleTarget,
-        !this.cartTemplateTarget
-      );
-      return;
+    for (const template of this.templateTargets || []) {
+      const el = document.querySelector(template.dataset?.target || "");
+      if (el) {
+        el.innerHTML = Mustache.render(
+          template.innerHTML,
+          this.mustacheViewValue,
+          {},
+          this.templateTagsValue
+        );
+      }
     }
-
-    this.cartTitleTarget.innerHTML = Mustache.render(
-      this.cartTitleTemplateValue,
-      this.checkoutValue
-    );
-
-    this.cartTarget.innerHTML = Mustache.render(
-      this.cartTemplateTarget.innerHTML,
-      this.mustacheViewValue,
-      {},
-      this.templateTagsValue
-    );
   }
 
   async redirectToCheckout() {

@@ -1,0 +1,3 @@
+{% load books %}
+{% get_books as books %}
+{% include "app/blocks/book_grid_block.html" with books=books column_width="small" %}

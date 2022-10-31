@@ -122,6 +122,11 @@ urlpatterns = [
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),
     path(CartOptionsView.url_pattern, CartOptionsView.as_view(), name="cartoptions"),
+    path(
+        "frames/all_books/",
+        TemplateView.as_view(template_name="app/frames/all_books.html"),
+        name="all_books",
+    ),
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism
 ]

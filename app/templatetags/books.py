@@ -9,6 +9,7 @@ register = template.Library()
 def get_books(since=None, types=None):
     qs = (
         BookPage.objects.live()
+        .public()
         .order_by("-published_date")
         .filter(published_date__isnull=False)
     )

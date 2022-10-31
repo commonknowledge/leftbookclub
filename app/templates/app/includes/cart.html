@@ -1,0 +1,67 @@
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">
+  <div class="offcanvas-header">
+    <h3 id="cartLabel" data-product-target="cartTitle">Your cart</h3>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div data-product-target="cart">
+      <div class="row gx-2">
+        <div class="col-12">
+          <p>No items in cart</p>
+        </div>
+      </div>
+    </div>
+    <template class='tw-hidden tw-my-2' data-product-target="cartTemplate">
+      ((#loading))
+        <div>
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Refreshing cart...
+        </div>
+      ((/loading))
+      <div class="((#loading))tw-relative after:tw-w-full after:tw-h-full after:tw-absolute after:tw-top-0 after:tw-left-0 after:tw-bg-white after:tw-opacity-50 after:tw-block after:tw-text-transparent after:tw-content-['.']((/loading))">
+        ((#hasLineItems))
+          <div class='tw-my-3'>
+            <button class='btn btn-primary' data-action="click->product#redirectToCheckout">Checkout: ((checkout.totalPriceV2|currency)) + shipping</button>
+          </div>
+          <div class="row gx-3 gy-3">
+            <div class='col-12 gy-3'>
+              <div class='tw-border tw-border-gray-600'></div>
+            </div>
+            ((#lineItems))
+              <a class="col-5 tw-block" href="/books/product/(( variant.product.id|shopifyId ))">
+                <img src="(( variant.image.src ))" alt="(( title ))" class="tw-w-full" />
+              </a>
+              <div class="col-7">
+                <a class='tw-no-underline' href="/books/product/(( variant.product.id|shopifyId ))">
+                  <h5 class='tw-font-bold tw-text-black'>(( title ))</h5>
+                </a>
+                <div>(( variant.priceV2|currency )) ((#compareAtPrice))<s>((compareAtPrice|currency))</s>((/compareAtPrice))</div>
+                <div>((quantity)) (( quantity | pluralize : "copy" : "copies" ))</div>
+                <div class='tw-mt-1'>
+                  ((#canDecreaseQuantity))
+                  <button class='btn btn-outline-secondary' data-action="click->product#decrement" data-product-line-item-param='(( lineItem|stringify ))'>-1</button>
+                  ((/canDecreaseQuantity))
+                  <button class='btn btn-outline-secondary' data-action='click->product#increment' data-product-line-item-param='(( lineItem|stringify ))'>+1</button>
+                  <button class='btn btn-outline-secondary' data-action='click->product#remove' data-product-line-item-param='(( lineItem|stringify ))'>Remove</button>
+                </div>
+              </div>
+            ((/lineItems))
+            <div class='col-12 gy-3'>
+              <div class='tw-border tw-border-gray-600'></div>
+            </div>
+          </div>
+          <div class='tw-my-3'>
+            <button class='btn btn-primary' data-action="click->product#redirectToCheckout">Checkout: ((checkout.totalPriceV2|currency)) + shipping</button>
+          </div>
+        ((/hasLineItems))
+        ((^lineItems))
+          <div class="row gx-2">
+            <div class="col-12">
+              <p>No items in cart</p>
+            </div>
+          </div>
+        ((/lineItems))
+        </div>
+    </template>
+  </div>
+</div>

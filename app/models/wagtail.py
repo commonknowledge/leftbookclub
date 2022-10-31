@@ -13,7 +13,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models
 from django.http.response import Http404
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.html import strip_tags
@@ -1058,10 +1058,15 @@ class InformationPage(ArticleSeoMixin, Page):
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class BookIndexPage(IndexPageSeoMixin, Page):
+class BookIndexPage(IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+    @route(r"^product/(?P<product_id>[\w-]+)", name="product")
+    def product(self, request, product_id):
+        product = get_object_or_404(BookPage, shopify_product_id=product_id)
+        return redirect(product.url)
 
 
 class MapPage(Page):

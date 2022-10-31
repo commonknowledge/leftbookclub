@@ -12,6 +12,11 @@
       <img src="{% static 'images/logo.png' %}" style='width: 100px; height: 100px;' alt="Left Book Club logo" title="Left Book Club" />
     </a>
     <ul class="nav col-12 col-md tw-justify-center md:tw-justify-end tw-order-2 md:tw-order-3 tw-items-center small-text tw-text-black">
+      {% if user.is_member %}
+        <span data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart">
+          Cart
+        </span>
+      {% endif %}
       {% if user.is_authenticated %}
         <li>
           <a href="{% url 'account_membership' %}" class="nav-link pl-2 link-dark tw-align-middle !tw-inline-block !tw-pr-0">{% user_display request.user %}</a>
@@ -39,9 +44,18 @@
     </a>
     <div class='tw-space-x-1 small-text tw-flex-grow-1 tw-flex-shrink-0 tw-text-center'>
       {% comment %} Just show the first three items on mobile, leave the rest to the dropdown {% endcomment %}
-      {% for item in menu_items|slice:":3" %}
-        <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
-      {% endfor %}
+      {% if user.is_member %}
+        {% for item in menu_items|slice:":2" %}
+          <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
+        {% endfor %}
+        <span data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart">
+          Cart
+        </span>
+      {% else %}
+        {% for item in menu_items|slice:":3" %}
+          <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
+        {% endfor %}
+      {% endif %}
     </div>
     <div class='tw-pl-1 tw-text-right'>
       <button class="navbar-toggler !tw-py-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

@@ -520,6 +520,11 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@jvitela/mustache-wax@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@jvitela/mustache-wax/-/mustache-wax-1.0.4.tgz#18c54e8dc9793e01515674beadf80bd1dfb1dd29"
+  integrity sha512-cGugVYp0WO7w89KQlyyt2rQyCO5MbrKeqtIAkG8oBfOaiHoeGeKG7WYdBFHftvoZUuK4WFbWyn3hgFipdetC+Q==
+
 "@mapbox/geojson-rewind@^0.5.1":
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/@mapbox/geojson-rewind/-/geojson-rewind-0.5.2.tgz#591a5d71a9cd1da1a0bf3420b3bea31b0fc7946a"
@@ -595,6 +600,11 @@
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.0.tgz#6734f8ebc106a0860dff7f92bf90df193f0935d7"
   integrity sha512-zrsUxjLOKAzdewIDRWy9nsV1GQsKBCWaGwsZQlCgr6/q+vjyZhFgqedLfFBuI9anTPEUT4APq9Mu0SZBTzIcGQ==
+
+"@popperjs/core@^2.9.2":
+  version "2.11.6"
+  resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.6.tgz#cee20bd55e68a1720bdab363ecf0c821ded4cd45"
+  integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
 
 "@sentry/browser@^6.19.7":
   version "6.19.7"
@@ -736,6 +746,13 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/bootstrap@^5.2.5":
+  version "5.2.5"
+  resolved "https://registry.yarnpkg.com/@types/bootstrap/-/bootstrap-5.2.5.tgz#0bb5dea7720611b2bb7ba16bd8a64fafd86fb658"
+  integrity sha512-VnalUJ3E/oaV3DYrauEc/sSPpaEPxTV09twSEzY4KFRvyuGlrZUSqG95XZ6ReAi0YMZIs7rXxdngDK2X1YONQA==
+  dependencies:
+    "@popperjs/core" "^2.9.2"
+
 "@types/geojson@*":
   version "7946.0.10"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.10.tgz#6dfbf5ea17142f7f9a043809f1cd4c448cb68249"
@@ -773,6 +790,11 @@
   integrity sha512-T8gACm3oGKMlBo2l/9vnKEAxgCc0g2mr8g6dI1d3ZO6EzRe7JALBONlWRmc7SOHV79kiarkcdLdDVEnfd+jilA==
   dependencies:
     "@types/geojson" "*"
+
+"@types/mustache@^4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@types/mustache/-/mustache-4.2.1.tgz#724a2fca5763117dee626aa4ca3e3f6e546e7434"
+  integrity sha512-gFAlWL9Ik21nJioqjlGCnNYbf9zHi0sVbaZ/1hQEBcCEuxfLJDvz4bVJSV6v6CUaoLOz0XEIoP7mSrhJ6o237w==
 
 "@types/node@*":
   version "17.0.23"
@@ -3203,6 +3225,11 @@ murmurhash-js@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/murmurhash-js/-/murmurhash-js-1.0.0.tgz#b06278e21fc6c37fa5313732b0412bcb6ae15f51"
   integrity sha512-TvmkNhkv8yct0SVBSy+o8wYzXjE4Zz3PCesbfs8HiCXXdcTuocApFv11UWlNFWKYsP2okqrhb7JNlSm9InBhIw==
+
+mustache@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/mustache/-/mustache-4.2.0.tgz#e5892324d60a12ec9c2a73359edca52972bf6f64"
+  integrity sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==
 
 nanoid@^3.3.1:
   version "3.3.1"

@@ -1,22 +1,10 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags setting valid_json djmoney date django_bootstrap5 negate %}
+{% load wagtailcore_tags wagtailimages_tags setting djmoney date django_bootstrap5 negate books %}
 
 
 
 {% block content%}
-
-<article
-  {% if user.is_member %}
-      {% comment %} Entirely disable Shopify Checkout functionality to be safe {% endcomment %}
-      data-controller="product"
-      data-product-shopify-domain-value="{% setting 'SHOPIFY_DOMAIN' %}"
-      data-product-shopify-storefront-access-token-value="{% setting 'SHOPIFY_STOREFRONT_ACCESS_TOKEN' %}"
-      data-product-shopify-collection-id-value="{% setting 'SHOPIFY_COLLECTION_ID' %}"
-      data-product-shopify-product-id-value="gid://shopify/Product/{{ page.shopify_product_id }}"
-      data-product-user-email-value="{{ user.primary_email }}"
-      data-product-stripe-shipping-value='{{ user.stripe_customer.shipping|valid_json }}'
-  {% endif %}
->
+<article>
   <div class="row">
     {% if page.image_url %}
     <div class="col-12 col-md-6">
@@ -97,6 +85,14 @@
 
 {% if page.layout %}
   {% include "app/includes/layout.html" with streamfield=page.layout %}
+{% else %}
+  <h2 class='tw-mt-5'>More books from LBC</h2>
+  <turbo-frame id='all-books' src="{% url 'all_books' %}" loading="lazy" target="_top">
+    <div class='my-3'>
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <span>Loading...</span>
+    </div>
+  </turbo-frame>
 {% endif %}
 
 {% endblock %}

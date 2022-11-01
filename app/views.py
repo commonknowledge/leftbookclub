@@ -19,6 +19,7 @@ from django.http.response import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import include, path, re_path, reverse, reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import RedirectView, TemplateView, View
 from django.views.generic.edit import FormView
@@ -646,7 +647,7 @@ class ProductRedirectView(RedirectView):
 
 
 class SyncShopifyWebhookEndpoint(View):
-    @csrf_exempt
+    @method_decorator(csrf_exempt)
     def put(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.
@@ -656,7 +657,7 @@ class SyncShopifyWebhookEndpoint(View):
         management.call_command("sync_shopify_products")
         return HttpResponse(status=200)
 
-    @csrf_exempt
+    @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.
@@ -666,7 +667,7 @@ class SyncShopifyWebhookEndpoint(View):
         management.call_command("sync_shopify_products")
         return HttpResponse(status=200)
 
-    @csrf_exempt
+    @method_decorator(csrf_exempt)
     def get(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.

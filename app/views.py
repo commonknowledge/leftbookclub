@@ -645,6 +645,24 @@ class ProductRedirectView(RedirectView):
 
 
 class SyncShopifyWebhookEndpoint(View):
+    def put(self, request, *args, **kwargs):
+        """
+        Trigger the sync_shopify_products command.
+        """
+        from django.core import management
+
+        management.call_command("sync_shopify_products")
+        return HttpResponse(status=200)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Trigger the sync_shopify_products command.
+        """
+        from django.core import management
+
+        management.call_command("sync_shopify_products")
+        return HttpResponse(status=200)
+
     def get(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.

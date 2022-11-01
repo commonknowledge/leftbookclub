@@ -646,8 +646,8 @@ class ProductRedirectView(RedirectView):
         return product.url
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class SyncShopifyWebhookEndpoint(View):
-    @method_decorator(csrf_exempt)
     def put(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.
@@ -657,7 +657,6 @@ class SyncShopifyWebhookEndpoint(View):
         management.call_command("sync_shopify_products")
         return HttpResponse(status=200)
 
-    @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.
@@ -667,7 +666,6 @@ class SyncShopifyWebhookEndpoint(View):
         management.call_command("sync_shopify_products")
         return HttpResponse(status=200)
 
-    @method_decorator(csrf_exempt)
     def get(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.

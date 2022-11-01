@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "import_export",
     "oauth2_provider",
     "django.contrib.humanize",
+    "django_dbq",
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -433,3 +434,9 @@ OAUTH2_PROVIDER = {
 }
 
 # OAUTH2_PROVIDER_APPLICATION_MODEL='app.CustomOAuth2Application'
+
+JOBS = {
+    "sync_shopify_products": {
+        "tasks": ["app.management.commands.sync_shopify_products.run"],
+    },
+}

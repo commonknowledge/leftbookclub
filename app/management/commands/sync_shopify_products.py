@@ -13,5 +13,9 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        BookPage.sync_shopify_products_to_pages()
-        MerchandisePage.sync_shopify_products_to_pages()
+        run()
+
+
+def run(*args, **kwargs):
+    BookPage.sync_shopify_products_to_pages()
+    MerchandisePage.sync_shopify_products_to_pages()

@@ -646,31 +646,36 @@ class ProductRedirectView(RedirectView):
         return product.url
 
 
+from django_dbq.models import Job
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class SyncShopifyWebhookEndpoint(View):
     def put(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.
         """
-        from django.core import management
-
-        management.call_command("sync_shopify_products")
+        self.create_job()
         return HttpResponse(status=200)
 
     def post(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.
         """
-        from django.core import management
-
-        management.call_command("sync_shopify_products")
+        self.create_job()
         return HttpResponse(status=200)
 
     def get(self, request, *args, **kwargs):
         """
         Trigger the sync_shopify_products command.
         """
-        from django.core import management
-
-        management.call_command("sync_shopify_products")
+        self.create_job()
         return HttpResponse(status=200)
+
+    def create_job(self):
+        already_queued = Job.objects.filter(
+            name="sync_shopify_products", state__in=[Job.STATES.READY, Job.STATES.NEW]
+        ).exists()
+        if already_queued:
+            return
+        Job.objects.create(name="sync_shopify_products")

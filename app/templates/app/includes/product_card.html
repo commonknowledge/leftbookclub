@@ -14,15 +14,12 @@
         {% if page.subtitle %}
           <h3 class='m-0 h4'>{{page.subtitle}}</h3>
         {% endif %}
-        {% if page.authors %}
-          <div class='h4'>By {{ page.authors|join:", "}}</div>   
-        {% endif %}
-        {% for forward in page.forward_by %}
-          <div>{{ forward }}</div>
-        {% endfor %}
         <p class="card-text">{% firstof description page.description|richtext|truncatewords_html:60 %}</p>
         {% pageurl page as url %}
-        {% bootstrap_button button_class="btn-outline-dark" href=url content="Read more" %}
+        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}">
+          {% comment %} Start with cached information, then load in newer info {% endcomment %}
+          {% include "app/includes/cart_options.html" with loading=True %}
+        </turbo-frame> 
       </div>
     </div>
   </div>

@@ -24,12 +24,13 @@ from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 from sentry_sdk import capture_exception, capture_message
+from wagtail.core.models import Page
 
 from app import analytics
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import LBCSubscription, ShippingZone
-from app.models.wagtail import MembershipPlanPrice
+from app.models.wagtail import BaseShopifyProductPage, MembershipPlanPrice
 from app.utils.mailchimp import tag_user_in_mailchimp
 from app.utils.shopify import create_shopify_order
 from app.utils.stripe import (
@@ -318,7 +319,7 @@ class CartOptionsView(TemplateView):
         from .models import BookPage
 
         context = super().get_context_data(**kwargs)
-        product = BookPage.objects.get(shopify_product_id=product_id)
+        product = BaseShopifyProductPage.get_specific_product_by_shopify_id(product_id)
         context = {
             **context,
             "product": product.nocache_shopify_product,
@@ -628,3 +629,16 @@ class SubscriptionCheckoutView(TemplateView):
         )
 
         return StripeCheckoutView.as_view(context=checkout_context)(request)
+
+
+from django.shortcuts import get_object_or_404
+
+
+class ProductRedirectView(RedirectView):
+    def get_redirect_url(self, id, **kwargs):
+        product = BaseShopifyProductPage.get_specific_product_by_shopify_id(id)
+
+        if product is None:
+            raise Http404
+
+        return product.url

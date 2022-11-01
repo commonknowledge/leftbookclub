@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags setting djmoney date django_bootstrap5 negate books %}
+
+{% block content%}
+<article>
+  <div class="row">
+    {% if page.primary_image_url %}
+    <div class="col-12 col-md-6">
+      <div class='sticky sticky-top'>
+        <img src="{{ page.primary_image_url }}" class="d-block w-100" />
+        {% comment %} TODO: {% for image_url in page.image_urls %} {% endcomment %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="col">
+      <header class='mb-3 lh-2'>
+        <h1 class='m-0 fs-2'>{{page.title}}</h1>   
+      </header>
+  
+      <hr />  
+      <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}">
+        {% comment %} Start with cached information, then load in newer info {% endcomment %}
+        {% include "app/includes/cart_options.html" with product=product loading=True %}
+      </turbo-frame> 
+      <hr />
+
+      <section>
+          <div class="product-description">{{ page.description | richtext }}</div>
+      </section>
+    </div>
+
+  </div>
+</article>
+
+{% if page.layout %}
+  {% include "app/includes/layout.html" with streamfield=page.layout %}
+{% else %}
+  <h2 class='tw-mt-5'>More merchandise</h2>
+  <turbo-frame id='all-merch' src="{% url 'all_merch' %}" loading="lazy" target="_top">
+    <div class='my-3'>
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <span>Loading...</span>
+    </div>
+  </turbo-frame>
+  <h2 class='tw-mt-5'>Books from LBC</h2>
+  <turbo-frame id='all-books' src="{% url 'all_books' %}" loading="lazy" target="_top">
+    <div class='my-3'>
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <span>Loading...</span>
+    </div>
+  </turbo-frame>
+{% endif %}
+
+{% endblock %}

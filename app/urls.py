@@ -26,6 +26,7 @@ from app.views import (
     GiftCodeRedeemView,
     GiftMembershipSetupView,
     LoginRequiredTemplateView,
+    ProductRedirectView,
     ShippingCostView,
     ShippingForProductView,
     StripeCheckoutSuccessView,
@@ -122,6 +123,12 @@ urlpatterns = [
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),
     path(CartOptionsView.url_pattern, CartOptionsView.as_view(), name="cartoptions"),
+    path("product/<int:id>/", ProductRedirectView.as_view(), name="product"),
+    path(
+        "frames/all_merch/",
+        TemplateView.as_view(template_name="app/frames/all_merch.html"),
+        name="all_merch",
+    ),
     path(
         "frames/all_books/",
         TemplateView.as_view(template_name="app/frames/all_books.html"),

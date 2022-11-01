@@ -70,7 +70,7 @@ export default class ShopifyBuyControllerBase extends Controller {
     if (!this.checkoutId || checkoutIsExpired) {
       // @ts-ignore
       this.checkoutValue = await this.client.checkout.create({
-        email: this.userEmailValue,
+        email: this.userEmailValue || undefined,
         lineItems: [],
         shippingAddress: this.shippingAddress,
       });

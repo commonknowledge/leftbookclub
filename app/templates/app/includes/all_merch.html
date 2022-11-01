@@ -1,0 +1,3 @@
+{% load books %}
+{% get_merch as products %}
+{% include "app/blocks/product_grid_block.html" with products=products column_width="small" %}

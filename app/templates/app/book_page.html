@@ -6,10 +6,10 @@
 {% block content%}
 <article>
   <div class="row">
-    {% if page.image_url %}
+    {% if page.primary_image_url %}
     <div class="col-12 col-md-6">
       <div class='sticky sticky-top'>
-        <img src="{{ page.image_url }}" class="d-block w-100" />
+        <img src="{{ page.primary_image_url }}" class="d-block w-100" />
         <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>
           {{ page.published_date|date:"F Y" }}
         </div>
@@ -35,7 +35,7 @@
         <a href="https://www.facebook.com/dialog/share?app_id={{ site.social.fb_appid }}&display=popup&href=&href={% setting BASE_URL %}/{{ page.url | urlencode }}" target="_blank">
           <i class="fa fa-fw fa-2x fa-facebook text-black-50">Share to Facebook</i>
         </a>
-        <a href="https://www.pinterest.com/pin/create/button/?description={{ page.description | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&media={{ page.image_url }}" target="_blank">
+        <a href="https://www.pinterest.com/pin/create/button/?description={{ page.description | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&media={{ page.primary_image_url }}" target="_blank">
           <i class="fa fa-fw fa-2x fa-pinterest text-black-50">Share to Pinterest</i>
         </a>
       </div> {% endcomment %}
@@ -68,11 +68,12 @@
           or
           <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary me-2">Login</a>
       </div>   
-      {% endif %}   
-      <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{user.is_member|negate}}">
-        {% comment %} Start with cached information, then load in newer info {% endcomment %}
-        {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
-      </turbo-frame> 
+      {% else %}   
+        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{user.is_member|negate}}">
+          {% comment %} Start with cached information, then load in newer info {% endcomment %}
+          {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
+        </turbo-frame> 
+      {% endif %}
       <hr />
 
       <section>
@@ -88,6 +89,13 @@
 {% else %}
   <h2 class='tw-mt-5'>More books from LBC</h2>
   <turbo-frame id='all-books' src="{% url 'all_books' %}" loading="lazy" target="_top">
+    <div class='my-3'>
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <span>Loading...</span>
+    </div>
+  </turbo-frame>
+  <h2 class='tw-mt-5'>Get LBC merchandise</h2>
+  <turbo-frame id='all-merch' src="{% url 'all_merch' %}" loading="lazy" target="_top">
     <div class='my-3'>
       <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
       <span>Loading...</span>

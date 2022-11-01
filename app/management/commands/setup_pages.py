@@ -7,7 +7,7 @@ from django.db import transaction
 from wagtail.models import Page, Site
 
 from app.models import BlogIndexPage, HomePage
-from app.models.wagtail import BookIndexPage
+from app.models.wagtail import BookIndexPage, MerchandiseIndexPage
 
 
 class Command(BaseCommand):
@@ -64,3 +64,4 @@ class Command(BaseCommand):
 
         ensure_child_page(BlogIndexPage(slug="blog", title="Blog"))
         ensure_child_page(BookIndexPage(slug="books", title="Books"))
+        ensure_child_page(MerchandiseIndexPage(slug="merchandise", title="Merchandise"))

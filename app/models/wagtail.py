@@ -50,6 +50,7 @@ from app.models.blocks import ArticleContentStream
 from app.models.circle import CircleEvent
 from app.models.django import User
 from app.utils import include_keys
+from app.utils.abstract_model_querying import abstract_page_query_filter
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
@@ -537,6 +538,17 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
     description = RichTextField(null=True, blank=True)
     image_url = models.URLField(max_length=500, blank=True)
+    image_urls = ArrayField(
+        models.URLField(max_length=500, blank=True), blank=True, null=True
+    )
+
+    @property
+    def primary_image_url(self):
+        return (
+            self.image_urls[0]
+            if self.image_urls is not None and len(self.image_urls) > 0
+            else self.image_url
+        )
 
     # Don't allow editing here because it won't be synced back to Shopify
     content_panels = [
@@ -558,6 +570,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             title=product.attributes.get("title"),
             description=product.attributes.get("body_html"),
             image_url=images[0].src if len(images) > 0 else "",
+            image_urls=[image.src for image in images] if len(images) > 0 else [],
         )
 
     @classmethod
@@ -675,9 +688,20 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         except:
             return ""
 
-
-class MerchandisePage(BaseShopifyProductPage):
-    pass
+    @classmethod
+    def get_specific_product_by_shopify_id(cls, shopify_product_id):
+        return (
+            Page.objects.filter(
+                abstract_page_query_filter(
+                    BaseShopifyProductPage, dict(shopify_product_id=shopify_product_id)
+                )
+            )
+            .distinct()
+            .live()
+            .specific()
+            .order_by("title")
+            .first()
+        )
 
 
 class ButtonBlock(blocks.StructBlock):
@@ -759,12 +783,40 @@ class FeaturedBookBlock(blocks.StructBlock):
         icon = "fa fa-book"
 
 
+class FeaturedProductBlock(blocks.StructBlock):
+    product = blocks.PageChooserBlock(
+        page_type="app.merchandisepage",
+        target_model="app.merchandisepage",
+        can_choose_root=False,
+    )
+    background_color = BackgroundColourChoiceBlock(required=False)
+    promotion_label = blocks.CharBlock(
+        required=False, help_text="Label that highlights this product"
+    )
+    description = blocks.RichTextBlock(
+        required=False,
+        help_text="This will replace the product's default description. You can use this to provide a more contextualised description of the product",
+    )
+
+    class Meta:
+        template = "app/blocks/featured_product_block.html"
+        icon = "fa fa-shopping-cart"
+
+
 class BookGridBlock(blocks.StructBlock):
     column_width = ColumnWidthChoiceBlock()
 
     class Meta:
         template = "app/blocks/book_grid_block.html"
         icon = "fa fa-book"
+
+
+class ProductGridBlock(blocks.StructBlock):
+    column_width = ColumnWidthChoiceBlock()
+
+    class Meta:
+        template = "app/blocks/product_grid_block.html"
+        icon = "fa fa-shopping-cart"
 
 
 class SelectedBooksBlock(BookGridBlock):
@@ -782,6 +834,21 @@ class SelectedBooksBlock(BookGridBlock):
         return context
 
 
+class SelectedProductsBlock(ProductGridBlock):
+    products = blocks.ListBlock(
+        blocks.PageChooserBlock(
+            page_type="app.merchandisepage",
+            target_model="app.merchandisepage",
+            can_choose_root=False,
+        )
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["products"] = list(value["products"])
+        return context
+
+
 class RecentlyPublishedBooks(BookGridBlock):
     max_books = blocks.IntegerBlock(
         default=4, help_text="How many books should show up?"
@@ -795,8 +862,23 @@ class RecentlyPublishedBooks(BookGridBlock):
             filters["type"] = value["type"]
         context["books"] = (
             BookPage.objects.order_by("-published_date")
+            .live()
+            .public()
             .filter(published_date__isnull=False, **filters)
             .all()[: value["max_books"]]
+        )
+        return context
+
+
+class FullProductList(ProductGridBlock):
+    max_products = blocks.IntegerBlock(
+        default=10, help_text="How many products should show up?"
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["products"] = list(
+            MerchandisePage.objects.live().public().all()[: value["max_products"]]
         )
         return context
 
@@ -906,6 +988,9 @@ def create_streamfield(additional_blocks=None, **kwargs):
         ("featured_book", FeaturedBookBlock()),
         ("book_selection", SelectedBooksBlock()),
         ("recently_published_books", RecentlyPublishedBooks()),
+        ("featured_product", FeaturedProductBlock()),
+        ("product_selection", SelectedProductsBlock()),
+        ("full_product_list", FullProductList()),
         ("hero_text", HeroTextBlock()),
         ("heading", blocks.CharBlock(form_classname="full title")),
         ("richtext", ArticleText()),
@@ -923,8 +1008,22 @@ def create_streamfield(additional_blocks=None, **kwargs):
     return StreamField(blcks, null=True, blank=True, use_json_field=True, **kwargs)
 
 
+class MerchandiseIndexPage(IndexPageSeoMixin, Page):
+    show_in_menus_default = True
+    layout = create_streamfield()
+    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+
+class MerchandisePage(BaseShopifyProductPage):
+    shopify_collection_id = settings.SHOPIFY_MERCH_COLLECTION_ID
+
+    @classmethod
+    def get_root_page(cls):
+        return MerchandiseIndexPage.objects.first()
+
+
 class BookPage(BaseShopifyProductPage):
-    shopify_collection_id = settings.SHOPIFY_COLLECTION_ID
+    shopify_collection_id = settings.SHOPIFY_BOOKS_COLLECTION_ID
 
     parent_page_types = ["app.BookIndexPage"]
     subtitle = models.CharField(max_length=300, blank=True)
@@ -1058,15 +1157,10 @@ class InformationPage(ArticleSeoMixin, Page):
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class BookIndexPage(IndexPageSeoMixin, RoutablePageMixin, Page):
+class BookIndexPage(IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
-
-    @route(r"^product/(?P<product_id>[\w-]+)", name="product")
-    def product(self, request, product_id):
-        product = get_object_or_404(BookPage, shopify_product_id=product_id)
-        return redirect(product.url)
 
 
 class MapPage(Page):

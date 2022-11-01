@@ -15,11 +15,11 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.http import HttpRequest, HttpResponseRedirect
-from django.http.response import Http404
+from django.http.response import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import include, path, re_path, reverse, reverse_lazy
-from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.base import RedirectView, TemplateView, View
 from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
@@ -642,3 +642,14 @@ class ProductRedirectView(RedirectView):
             raise Http404
 
         return product.url
+
+
+class SyncShopifyWebhookEndpoint(View):
+    def get(self, request, *args, **kwargs):
+        """
+        Trigger the sync_shopify_products command.
+        """
+        from django.core import management
+
+        management.call_command("sync_shopify_products")
+        return HttpResponse(status=200)

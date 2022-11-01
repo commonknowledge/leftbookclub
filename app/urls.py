@@ -32,6 +32,7 @@ from app.views import (
     StripeCheckoutSuccessView,
     StripeCustomerPortalView,
     SubscriptionCheckoutView,
+    SyncShopifyWebhookEndpoint,
 )
 
 urlpatterns = [
@@ -124,6 +125,7 @@ urlpatterns = [
     ),
     path(CartOptionsView.url_pattern, CartOptionsView.as_view(), name="cartoptions"),
     path("product/<int:id>/", ProductRedirectView.as_view(), name="product"),
+    path(settings.SYNC_SHOPIFY_WEBHOOK_ENDPOINT, SyncShopifyWebhookEndpoint.as_view()),
     path(
         "frames/all_merch/",
         TemplateView.as_view(template_name="app/frames/all_merch.html"),

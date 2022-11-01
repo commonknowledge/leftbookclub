@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags wagtailimages_tags setting djmoney date django_bootstrap5 negate books %}
 
-
+{% block content_width %}container-fluid{% endblock %}
 
 {% block content%}
 <article>
@@ -43,42 +43,52 @@
     {% endif %}
 
     <div class="col">
-      <header class='mb-3 lh-2'>
-        <h1 class='m-0 fs-2'>{{page.title}}</h1>    
-        {% if page.subtitle %}
-          <h2 class='m-0 fs-2 text-secondary'>{{page.subtitle}}</h2>
+      <div class='md:tw-max-w-lg lg:tw-py-5 xl:tw-py-6 mx-auto'>
+        <header class='mb-3 lh-2'>
+          <h1 class='m-0 display-3 tw-font-bold'>{{page.title}}</h1>    
+          {% if page.subtitle %}
+            <h2 class='m-0 fs-2 text-secondary'>{{page.subtitle}}</h2>
+          {% endif %}
+          {% if page.authors %}
+            <div class='h5 fs-2'>By {{ page.authors|join:", "}}</div>   
+          {% endif %}
+          {% for forward in page.forward_by %}
+            <div class='fs-6'>{{ forward }}</div>
+          {% endfor %}
+        </header>
+    
+        {% if not user.is_member %}
+        <div class='my-4'>
+            {% bootstrap_button href="/join" content="Become a member to buy" button_class='btn-primary my-2' %}
+            {% if not user.is_authenticated %}
+              <p>Already a member? <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class='tw-underline'>Login</a>.
+            {% endif %}
+        </div>
+        {% else %}  
+          <hr />
+          <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{user.is_member|negate}}">
+            {% comment %} Start with cached information, then load in newer info {% endcomment %}
+            {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
+          </turbo-frame> 
+          <hr />
         {% endif %}
-        {% if page.authors %}
-          <div class='h5 fs-2'>By {{ page.authors|join:", "}}</div>   
-        {% endif %}
-        {% for forward in page.forward_by %}
-          <div>{{ forward }}</div>
-        {% endfor %}
-        {% if page.original_publisher %}
-          <div class='text-secondary fs-6'>Originally published by {{  page.original_publisher }}</div>
-        {% endif %}
-      </header>
-  
-      <hr />
-      {% if not user.is_member %}
-      <div class='rounded-3 border-1 border-primary p-3 my-3'>
-          <h5>Become a member to buy this book</h5>
-          <p>Our books are exclusively re-published for Left Book Club members. Sign up today and stock up on what thousands of fellow readers have been discussing together.</p>
-          {% bootstrap_button href="/join" content="Become a member" button_class='btn-primary my-2' %}
-          or
-          <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary me-2">Login</a>
-      </div>   
-      {% else %}   
-        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{user.is_member|negate}}">
-          {% comment %} Start with cached information, then load in newer info {% endcomment %}
-          {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
-        </turbo-frame> 
-      {% endif %}
-      <hr />
 
-      <section>
-          <div class="product-description">{{ page.description | richtext }}</div>
-      </section>
+        <section class='my-4'>
+            <div class="product-description">{{ page.description | richtext }}</div>
+        </section>
+
+        <section>
+            <h5>Details</h5>
+            <p>
+              {% if page.isbn %}
+                <span>{{ page.isbn }}</span><br />
+              {% endif %}
+              {% if page.original_publisher %}
+                <span>Originally published by {{  page.original_publisher }}</span>
+              {% endif %}
+            </p>
+        </section>
+      </div>
     </div>
 
   </div>

@@ -16,20 +16,20 @@
     {% endif %}
 
     <div class="col">
-      <header class='mb-3 lh-2'>
-        <h1 class='m-0 fs-2'>{{page.title}}</h1>   
-      </header>
-  
-      <hr />  
-      <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}">
-        {% comment %} Start with cached information, then load in newer info {% endcomment %}
-        {% include "app/includes/cart_options.html" with product=product loading=True %}
-      </turbo-frame> 
-      <hr />
+      <div class='md:tw-max-w-lg lg:tw-py-5 xl:tw-py-6 mx-auto'>
+        <header class='mb-4 lh-2'>
+          <h1 class='m-0 fs-2'>{{page.title}}</h1>   
+        </header>
+    
+        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}">
+          {% comment %} Start with cached information, then load in newer info {% endcomment %}
+          {% include "app/includes/cart_options.html" with product=product loading=True %}
+        </turbo-frame> 
 
-      <section>
-          <div class="product-description">{{ page.description | richtext }}</div>
-      </section>
+        <section class='mt-4'>
+            <div class="product-description">{{ page.description | richtext }}</div>
+        </section>
+      </div>
     </div>
 
   </div>

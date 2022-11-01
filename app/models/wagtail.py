@@ -658,7 +658,6 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     def sync_shopify_products_to_pages(cls, collection_id=None):
         if collection_id is None:
             collection_id = cls.shopify_collection_id
-        print("sync_shopify_products_to_pages", collection_id)
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):

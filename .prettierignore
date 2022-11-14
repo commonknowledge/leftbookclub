@@ -10,3 +10,4 @@ vite/
 media/
 static/
 .venv/
+.env/

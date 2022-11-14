@@ -195,14 +195,18 @@ export default class ShopifyBuyControllerBase extends Controller {
 
   renderCart() {
     for (const template of this.templateTargets || []) {
-      const el = document.querySelector(template.dataset?.target || "");
-      if (el) {
-        el.innerHTML = Mustache.render(
-          template.innerHTML,
-          this.mustacheViewValue,
-          {},
-          this.templateTagsValue
-        );
+      const els = Array.from(
+        document.querySelectorAll(template.dataset?.target || "")
+      );
+      if (els.length) {
+        for (const el of els) {
+          el.innerHTML = Mustache.render(
+            template.innerHTML,
+            this.mustacheViewValue,
+            {},
+            this.templateTagsValue
+          );
+        }
       }
     }
   }
@@ -260,7 +264,6 @@ function stringToVariantURI(variantId: any) {
 }
 
 function stringify(x: any) {
-  console.log(x);
   try {
     return JSON.stringify(x);
   } catch (e) {

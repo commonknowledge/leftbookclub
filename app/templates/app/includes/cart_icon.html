@@ -1,0 +1,9 @@
+<span data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart">
+  <span class='cart-icon-count tw-relative tw-cursor-pointer tw-mr-2'></span>
+  <template data-product-target="template" data-target=".cart-icon-count">
+    ((#hasLineItems))
+      <svg class="tw-w-4 tw-h-4 tw-text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+      <span class='tw-absolute -tw-top-1 -tw-right-2 tw-rounded-full tw-bg-yellow tw-tracking-normal text-black tw-no-underline tw-px-[0.25rem] !tw-text-xs tw-font-bold'>(( checkout.lineItems|length ))</span>
+    ((/hasLineItems))
+  </template>
+</span>

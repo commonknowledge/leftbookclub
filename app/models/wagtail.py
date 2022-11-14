@@ -541,6 +541,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     image_urls = ArrayField(
         models.URLField(max_length=500, blank=True), blank=True, null=True
     )
+    cached_price = models.FloatField(blank=True, null=True)
 
     @property
     def primary_image_url(self):
@@ -562,6 +563,10 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     ]
 
     @classmethod
+    def get_lowest_price(cls, product):
+        return min(variant.price for variant in product.variants)
+
+    @classmethod
     def get_args_for_page(cls, product, metafields):
         images = product.attributes.get("images", [])
         return dict(
@@ -571,6 +576,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             description=product.attributes.get("body_html"),
             image_url=images[0].src if len(images) > 0 else "",
             image_urls=[image.src for image in images] if len(images) > 0 else [],
+            cached_price=cls.get_lowest_price(product),
         )
 
     @classmethod

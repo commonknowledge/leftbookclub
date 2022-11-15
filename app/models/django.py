@@ -66,11 +66,6 @@ class User(AbstractUser):
                 djstripe.models.Customer.sync_from_stripe_data(customer)
                 # Update subscriptions
                 self.stripe_customer._sync_subscriptions()
-            if self.active_subscription is not None:
-                try:
-                    self.request.session["gift_giver_subscription"] = None
-                except:
-                    pass
         except Exception as e:
             capture_exception(e)
             pass

@@ -343,26 +343,20 @@ Django = ">3.2"
 
 [[package]]
 name = "dj-stripe"
-version = "2.6.1"
+version = "2.7.2"
 description = "Django + Stripe made easy"
 category = "main"
 optional = false
-python-versions = "^3.7.12"
-develop = false
+python-versions = ">=3.7.12,<4.0.0"
 
 [package.dependencies]
-django = ">=3.2.5"
+django = ">=3.2"
 jsonfield = ">=3.0"
 stripe = ">=2.48.0"
 
 [package.extras]
-docs = ["mike (>=1.1.2,<2.0.0)", "mkdocs (>=1.1.2,<2.0.0)", "mkdocs-autorefs (>=0.3.0,<0.4.0)", "mkdocs-material (>=7.2.8,<8.0.0)", "mkdocstrings (>=0.16.0,<0.17.0)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/commonknowledge/dj-stripe.git"
-reference = "fixes"
-resolved_reference = "af821664d1d3ab69438eef97d322ca4d11561213"
+mysql = ["mysqlclient (>=1.4.0)"]
+postgres = ["psycopg2 (>=2.8.5,<3.0.0)"]
 
 [[package]]
 name = "Django"
@@ -1938,7 +1932,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "d400effdeb32946a66674878537421f3d3f8d4a26b678b38a56be72c0c12d2a0"
+content-hash = "a95080ab125f00dcb169c41d3e47c0332a272db07d1eca24def1b0e1c383a831"
 
 [metadata.files]
 anyascii = [
@@ -2174,7 +2168,10 @@ dj-database-url = [
     {file = "dj-database-url-1.0.0.tar.gz", hash = "sha256:ccf3e8718f75ddd147a1e212fca88eecdaa721759ee48e38b485481c77bca3dc"},
     {file = "dj_database_url-1.0.0-py3-none-any.whl", hash = "sha256:cd354a3b7a9136d78d64c17b2aec369e2ae5616fbca6bfbe435ef15bb372ce39"},
 ]
-dj-stripe = []
+dj-stripe = [
+    {file = "dj_stripe-2.7.2-py3-none-any.whl", hash = "sha256:5e75d9210211472358a5dc2fc054d5103b03f9ba068eb3820aa8f3b5da001675"},
+    {file = "dj_stripe-2.7.2.tar.gz", hash = "sha256:56f490331d5a71676e101f9f9dd7409aa324f4483e0847c494887a3879ec48bf"},
+]
 Django = [
     {file = "Django-4.0.7-py3-none-any.whl", hash = "sha256:41bd65a9e5f8a89cdbfa7a7bba45cd7431ae89e750af82dea8a35fd1a7ecbe66"},
     {file = "Django-4.0.7.tar.gz", hash = "sha256:9c6d5ad36be798e562ddcaa6b17b1c3ff2d3c4f529a47432b69fb9a30f847461"},

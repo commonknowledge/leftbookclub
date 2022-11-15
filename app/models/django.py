@@ -66,6 +66,11 @@ class User(AbstractUser):
                 djstripe.models.Customer.sync_from_stripe_data(customer)
                 # Update subscriptions
                 self.stripe_customer._sync_subscriptions()
+            if self.active_subscription is not None:
+                try:
+                    self.request.session["gift_giver_subscription"] = None
+                except:
+                    pass
         except Exception as e:
             capture_exception(e)
             pass
@@ -279,7 +284,9 @@ class User(AbstractUser):
     def shipping_postcode(self):
         return self.shipping_address.get("postal_code", None)
 
-    def cleanup_membership_subscriptions(self, keep=[]):
+    def cleanup_membership_subscriptions(self, keep=None):
+        if keep is None:
+            keep = []
         for sub in self.stripe_customer.subscriptions.all():
             if sub.metadata.get("gift_mode", None) is None and not sub.id in keep:
                 try:

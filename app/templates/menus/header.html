@@ -55,9 +55,7 @@
           <div class='px-2'><a href="{{ item.href }}" class="nav-link !tw-text-black {{ item.active_class }}">{{ item.text }}</a></div>
         {% endfor %}
 
-        {% if request.session.gift_giver_subscription is not None %}
-          <div class='px-2'><a href="{% url 'redeem_setup' %}" class="btn btn-outline-dark btn-sm !tw-text-black tw-bg-magenta">Finish gift set up</a></div>
-        {% elif not user.is_member %}
+        {% if not user.is_member %}
           <div class='px-2'><a href="{% url 'redeem' %}" class="nav-link !tw-text-black">Redeem gift card</a></div>
         {% endif %}
 

@@ -570,6 +570,15 @@ class GiftTestCase(TestCase):
             self.gift_recipient_user.active_subscription, recipient_subscription
         )
 
+        # Assert that nothing has gone backwards
+        import time
+
+        time.sleep(10)
+        self.gift_recipient_user.refresh_stripe_data()
+        self.assertEqual(
+            self.gift_recipient_user.active_subscription, recipient_subscription
+        )
+
         # Assert that the promo code can't be used anymore, because it's been redeemed
         promo_code = stripe.PromotionCode.retrieve(promo_code.id)
         self.assertFalse(promo_code.active)

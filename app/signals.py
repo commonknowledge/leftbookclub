@@ -20,10 +20,11 @@ def cancel_gift_recipient_subscription(event, **kwargs):
         object.get("object", None) == "subscription"
         and object.get("metadata", {}).get("gift_mode", None) is not None
     ):
-        promo_code = object.get("metadata", {}).get("promo_code", None)
-        if promo_code is not None:
-            recipient_subscription = gift_recipient_subscription_from_code(promo_code)
-            stripe.Subscription.delete(recipient_subscription.id)
+        gift_recipient_subscription_id = object.get("metadata", {}).get(
+            "gift_recipient_subscription", None
+        )
+        if gift_recipient_subscription_id is not None:
+            stripe.Subscription.delete(gift_recipient_subscription_id)
             # Analytics
             try:
                 customer = Customer.objects.filter(id=object.get("customer")).first()

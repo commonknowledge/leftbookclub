@@ -427,17 +427,18 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         return super().form_valid(form)
 
     def finish_gift_redemption(self, gift_giver_subscription_id) -> dict:
-        if self.request.user.stripe_customer is not None:
-            self.request.user.cleanup_membership_subscriptions()
-
         try:
             stripe_sub = stripe.Subscription.retrieve(gift_giver_subscription_id)
             gift_giver_subscription = (
                 djstripe.models.Subscription.sync_from_stripe_data(stripe_sub)
             )
-            create_gift_recipient_subscription(
+            gift_recipient_subscription = create_gift_recipient_subscription(
                 gift_giver_subscription, self.request.user
             )
+            if self.request.user.stripe_customer is not None:
+                self.request.user.cleanup_membership_subscriptions(
+                    keep=[gift_recipient_subscription.id]
+                )
         except djstripe.models.Subscription.DoesNotExist as e:
             capture_exception(e)
             raise ValueError(

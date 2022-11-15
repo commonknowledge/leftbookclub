@@ -9,16 +9,40 @@
     {% if page.primary_image_url %}
     <div class="col-12 col-md-6">
       <div class='sticky sticky-top'>
-        <img src="{{ page.primary_image_url }}" class="d-block w-100" />
-        {% comment %} TODO: {% for image_url in page.image_urls %} {% endcomment %}
+        {% if page.image_urls|length > 1 %}
+          <div id="productImageCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+              {% for url in page.image_urls %}
+                <button type="button" data-bs-target="#productImageCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.counter0 == 0 %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
+              {% endfor %}
+            </div>
+            <div class="carousel-inner">
+              {% for url in page.image_urls %}
+                <div class="carousel-item {% if forloop.counter0 == 0 %}active{% endif %}">
+                  <img class="d-block w-100" src="{{ url }}" alt="Slide {{ forloop.counter }}">
+                </div>
+              {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+        {% else %}
+            <img src="{{ page.primary_image_url }}" class="d-block w-100" />
+        {% endif %}
       </div>
     </div>
     {% endif %}
 
     <div class="col">
-      <div class='md:tw-max-w-lg lg:tw-py-5 xl:tw-py-6 mx-auto'>
+      <div class='md:tw-max-w-lg tw-py-3 lg:tw-py-5 xl:tw-py-6 mx-auto'>
         <header class='mb-4 lh-2'>
-          <h1 class='m-0 fs-2'>{{page.title}}</h1>   
+          <h1 class='mx-0 fs-2'>{{page.title}}</h1>   
         </header>
     
         <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}">

@@ -10,7 +10,7 @@
     <div class='row text-left gy-4 d-flex'>
       {% for subscription in request.user.gifts_bought %}
         <div class='col-12 d-flex flex-column align-items-center justify-content-center'>
-          {% include "app/includes/gift_card.html" with subscription=subscription %}
+          {% include "app/includes/gift_card.html" with subscription=subscription allow_cancel=True %}
         </div>
       {% endfor %}
     </div>

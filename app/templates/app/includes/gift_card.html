@@ -65,6 +65,8 @@
       <div class='fs-7 text-muted'>Created on {{ subscription.created|to_date|date:"d M Y" }}</div>
       {% if subscription.cancel_at %} 
         <div class='fs-7 text-danger'>Expires on on {{ subscription.cancel_at|to_date|date:"d M Y" }}</div>
+      {% elif allow_cancel is True %}
+        <a href='{% url "cancel_membership" subscription.id %}' class='btn btn-sm btn-outline-danger'>Cancel this card</a>
       {% endif %}
     </div>
   </article>

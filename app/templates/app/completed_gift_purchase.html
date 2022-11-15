@@ -13,7 +13,7 @@
         {% if error is None %}
           {% if promo_code %}
           <p>
-            Give the gift code below to your intended recipient and ask them to visit <a href='{% setting "BASE_URL" %}{% url "redeem" code=promo_code %}'>this link</a> to activate their membership.
+            Give the gift code below to your intended recipient and ask them to visit <a href='{% setting "BASE_URL" %}{% url "redeem" code=promo_code.code %}'>this link</a> to activate their membership.
           </p>
           {% endif %}
           {% if gift_giver_subscription %}

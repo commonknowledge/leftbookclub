@@ -1,3 +1,12 @@
+const plugin = require("tailwindcss/plugin");
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
+const {
+  default: createUtilityPlugin,
+} = require("tailwindcss/lib/util/createUtilityPlugin");
+
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   prefix: "tw-",
   content: [
@@ -41,7 +50,28 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ matchUtilities, theme }) => {
+      matchUtilities(
+        {
+          "inline-shadow": (value) => ({
+            boxShadow: `var(--tw-inline-shadow-width, ${theme(
+              "spacing.1"
+            )}) 0 0 ${value}, calc(-1 * var(--tw-inline-shadow-width, ${theme(
+              "spacing.1"
+            )})) 0 0 ${value}`,
+          }),
+        },
+        {
+          values: flattenColorPalette(theme("colors")),
+          type: "color",
+        }
+      );
+    }),
+    createUtilityPlugin("spacing", [
+      ["inline-shadow-width", ["--tw-inline-shadow-width"]],
+    ]),
+  ],
   corePlugins: {
     preflight: false,
   },

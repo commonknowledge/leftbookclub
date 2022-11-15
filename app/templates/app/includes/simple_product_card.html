@@ -1,15 +1,19 @@
 
 {% load djmoney %}
-<article class="{{class}} d-flex flex-col tw-justify-items-stretch">
+<article class="{{class}} d-flex flex-col tw-justify-items-stretch tw-leading-4">
   <a href="{{product.url}}" title="{{ product.title }}" class='w-100 h-100 bg-white d-block position-relative text-decoration-none'>
     <img src="{{ product.primary_image_url }}" class="d-block w-100 position-relative tw-z-0" />
-    <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50 tw-bg-white tw-text-black tw-px-1'>
-      {{ product.title }}
-    </div>
-    {% if product.cached_price %}
-      <div class='position-absolute tw-bottom-2 tw-right-2 fs-7 tw-z-50 text-capitalize tw-bg-black tw-text-white tw-px-1'>
-        {% money_localize product.cached_price "GBP" %}
+    <div class='position-absolute tw-bottom-0 tw-left-0 tw-p-2 tw-w-full tw-flex tw-flex-row tw-justify-between tw-items-end tw-space-x-2'>
+      <div class='tw-max-w-[50%] tw-m-0.5'>
+        <span class='tw-inline text-dark fs-7 tw-z-50 tw-bg-white tw-text-black tw-py-0.5 tw-inline-shadow-white'>
+          {{ product.title }}
+        </span>
       </div>
-    {% endif %}
+      {% if product.cached_price %}
+        <div class='tw-max-w-[50%] fs-7 tw-z-50 text-capitalize tw-bg-black tw-text-white tw-px-1'>
+          {% money_localize product.cached_price "GBP" %}
+        </div>
+      {% endif %}
+    </div>
   </a>
 </article>

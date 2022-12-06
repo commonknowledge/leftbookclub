@@ -35,6 +35,8 @@ bootstrap: install pre-commit-install migrate setup-cms
 .PHONY: codestyle
 codestyle:
 	poetry run pyupgrade --exit-zero-even-if-changed --py38-plus **/*.py
+	poetry run djlint --version
+	poetry run djlint app/templates/ --reformat
 	poetry run isort --version --gitignore
 	poetry run isort --settings-path ./pyproject.toml ./
 	poetry run black --version
@@ -54,6 +56,8 @@ test:
 
 .PHONY: check-codestyle
 check-codestyle:
+	poetry run djlint --version
+	poetry run djlint app/templates/ --lint
 	poetry run isort --version --gitignore
 	poetry run isort --diff --check-only --settings-path ./pyproject.toml ./
 	poetry run black --version

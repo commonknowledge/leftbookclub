@@ -3,6 +3,11 @@
 requires = ["poetry_core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.djlint]
+profile = "django"
+use_gitignore = true
+ignore="H006,H031" # Ignore img width/height requirements
+
 [tool.poetry]
 name = "app"
 version = "0.1.0"
@@ -60,6 +65,7 @@ django-oauth-toolkit = "^2.0.0"
 humanize = "^4.3.0"
 django-db-queue = "^3.0.0"
 dj-stripe = "^2.7.2"
+djlint = "^1.19.7"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

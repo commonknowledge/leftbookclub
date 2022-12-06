@@ -6,7 +6,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.djlint]
 profile = "django"
 use_gitignore = true
-ignore="H006,H031" # Ignore img width/height requirements
+ignore="H006,H031,T003,H008,H030,T002,H029,T032,T001,D018,H021,H023,H026"
 
 [tool.poetry]
 name = "app"

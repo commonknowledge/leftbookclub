@@ -1,36 +1,23 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 <section class='my-2 {{ value.background_color }}'>
-  <section class='row gx-2'>
-    {% for column in value.columns %}
-      <div class='
-        col-12
-        {% if value.columns|length < 3 %}
-          col-sm
-        {% elif value.columns|length == 3 %}
-          col-sm-6
-          col-md-4
-        {% elif value.columns|length == 4 %}
-          col-sm-6
-          col-lg
-        {% elif value.columns|length > 4 %}
-          col-sm-4
-          col-lg
-        {% endif %}
-      '>
-        <div class='{{ column.background_color }} h-100 d-flex tw-flex-col tw-justify-center'>
-          {% for row in column.content %}
-              {% if row.block_type == 'button' %}
-                  <div class='block-{{ row.block_type }} p-3 -tw-mt-3'>{% include_block row %}</div>
-              {% elif row.block_type == 'image' %}
-                  {% image row.value fill-800x800 class='block-{{ row.block_type }} tw-max-w-full tw-h-auto' %}
-              {% elif row.block_type == 'richtext' %}
-                  <div class='block-{{ row.block_type }} p-3'>{% include_block row %}</div>
-              {% else %} 
-                  {% include_block row %}
-              {% endif %}
-          {% endfor %}
-        </div>
-      </div>
-    {% endfor %}
-  </section>
+    <section class='row gx-2'>
+        {% for column in value.columns %}
+            <div class=' col-12 {% if value.columns|length < 3 %} col-sm {% elif value.columns|length == 3 %} col-sm-6 col-md-4 {% elif value.columns|length == 4 %} col-sm-6 col-lg {% elif value.columns|length > 4 %} col-sm-4 col-lg {% endif %} '>
+                <div class='{{ column.background_color }} h-100 d-flex tw-flex-col tw-justify-center'>
+                    {% for row in column.content %}
+                        {% if row.block_type == 'button' %}
+                            <div class='block-{{ row.block_type }} p-3 -tw-mt-3'>{% include_block row %}</div>
+                        {% elif row.block_type == 'image' %}
+                            {% image row.value fill-800x800 class='block-{{ row.block_type }}
+                            tw-max-w-full tw-h-auto' %}
+                        {% elif row.block_type == 'richtext' %}
+                            <div class='block-{{ row.block_type }} p-3'>{% include_block row %}</div>
+                        {% else %}
+                            {% include_block row %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </section>
 </section>

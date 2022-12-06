@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
-
 {% block content %}
-  {% if page.layout %}
-    {% include "app/includes/layout.html" with streamfield=page.layout %}
-  {% endif %}
+    {% if page.layout %}
+        {% include "app/includes/layout.html" with streamfield=page.layout %}
+    {% endif %}
 {% endblock %}

@@ -1,15 +1,15 @@
 {% load setting %}
 {% setting setting_name as setting_value %}
 {% if setting_value != None %}
-  {% if parse and parse == 'boolean' %}
-    {% if setting_value == True %}
-window["{{setting_name}}"] = true;
+    {% if parse and parse == 'boolean' %}
+        {% if setting_value == True %}
+            window["{{ setting_name }}"] = true;
+        {% else %}
+            window["{{ setting_name }}"] = false;
+        {% endif %}
     {% else %}
-window["{{setting_name}}"] = false;
+        window["{{ setting_name }}"] = "{{ setting_value }}";
     {% endif %}
-  {% else %}
-window["{{setting_name}}"] = "{{setting_value}}";
-  {% endif %}
 {% else %}
-window["{{setting_name}}"] = null;
+    window["{{ setting_name }}"] = null;
 {% endif %}

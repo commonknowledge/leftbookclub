@@ -1,5 +1,4 @@
 {% load wagtailuserbar django_vite menu_tags setting tz valid_json %}
-
 {% timezone "Europe/London" %}
 <!DOCTYPE html>
 <html class="no-js" lang="en">
@@ -11,28 +10,23 @@
         <meta charset="utf-8" />
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{% block head_title %}Left Book Club{% endblock %}</title>
+        <title>
+            {% block head_title %}Left Book Club{% endblock %}
+        </title>
         {% include "wagtailseo/meta.html" %}
-
         {% vite_hmr_client %}
-        <script>
-            document.documentElement.classList.remove('no-js')
-        </script>
-
-        <link rel="preconnect" href="https://fonts.gstatic.com">
-        <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@300&family=Open+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-        
+        <script>document.documentElement.classList.remove('no-js')</script>
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@300&family=Open+Sans:ital,wght@0,400;0,700;1,400&display=swap"
+              rel="stylesheet"/>
         {% vite_asset 'frontend/main.ts' %}
-
-        {% block extra_js %}
-        {% endblock %}
-        {% block extra_css %}
-        {% endblock %}
+        {% block extra_js %}{% endblock %}
+        {% block extra_css %}{% endblock %}
         {% load setting %}
         {% setting "FACEBOOK_PIXEL" as FACEBOOK_PIXEL %}
         {% if FACEBOOK_PIXEL %}
-          <!-- Meta Pixel Code -->
-          <script>
+            <!-- Meta Pixel Code -->
+            <script>
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
             n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -44,44 +38,36 @@
             fbq('init', '{{ FACEBOOK_PIXEL }}');
             fbq('track', 'PageView');
             {% block facebook_pixel_event %}{% endblock %}
-          </script>
-          <noscript><img height="1" width="1" style="display:none"
-          src'https://www.facebook.com/tr?id={{ FACEBOOK_PIXEL }}&ev=PageView&noscript=1'
-          /></noscript>
-          <!-- End Meta Pixel Code -->
-        {% endif %}    
+            </script>
+            <noscript>
+                <img alt="FB pixel"
+                     height="1"
+                     width="1"
+                     style="display:none"
+                     src="https://www.facebook.com/tr?id={{ FACEBOOK_PIXEL }}&ev=PageView&noscript=1"/>
+            </noscript>
+            <!-- End Meta Pixel Code -->
+        {% endif %}
     </head>
-
-    <body
-      class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }} {% endif %} tw-min-h-screen d-flex flex-column"
-      data-controller="product"
-      data-product-shopify-domain-value="{% setting 'SHOPIFY_DOMAIN' %}"
-      data-product-shopify-storefront-access-token-value="{% setting 'SHOPIFY_STOREFRONT_ACCESS_TOKEN' %}"
-      data-product-shopify-collection-id-value="{% setting 'SHOPIFY_COLLECTION_ID' %}"
-      data-product-user-email-value="{{ user.primary_email }}"
-      data-product-stripe-shipping-value='{{ user.stripe_customer.shipping|valid_json }}'
-    >
-        <div id='wagtailuserbar-data-turbo-permanent-wrapper' data-turbo-permanent>
-          {% wagtailuserbar %}
-        </div>
-
+    <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }}{% endif %} tw-min-h-screen d-flex flex-column"
+          data-controller="product"
+          data-product-shopify-domain-value="{% setting 'SHOPIFY_DOMAIN' %}"
+          data-product-shopify-storefront-access-token-value="{% setting 'SHOPIFY_STOREFRONT_ACCESS_TOKEN' %}"
+          data-product-shopify-collection-id-value="{% setting 'SHOPIFY_COLLECTION_ID' %}"
+          data-product-user-email-value="{{ user.primary_email }}"
+          data-product-stripe-shipping-value='{{ user.stripe_customer.shipping|valid_json }}'>
+        <div id='wagtailuserbar-data-turbo-permanent-wrapper' data-turbo-permanent>{% wagtailuserbar %}</div>
         {% block header %}
-        {% main_menu max_levels=1 template="menus/header.html" %}
+            {% main_menu max_levels=1 template="menus/header.html" %}
         {% endblock %}
-
         <main class="{% block content_extra_classes %}{% endblock %} {% block content_width %}container-fluid container-xl{% endblock %} {% block content_padding %}py-3{% endblock %} tw-flex-grow">
-        {% block content %}{% endblock %}
+            {% block content %}{% endblock %}
         </main>
-
         {% block footer %}
-        <div class='mt-auto'>
-        {% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}
-        </div>
+            <div class='mt-auto'>{% flat_menu 'footer' max_levels=1 template="menus/footer.html" %}</div>
         {% endblock %}
-
         {% include "wagtailseo/struct_data.html" %}
         {% block bottom_of_page %}{% endblock %}
-
         {% include "app/includes/cart.html" %}
     </body>
 </html>

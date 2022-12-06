@@ -1,30 +1,29 @@
 {% extends "base.html" %}
 {% load account setting django_bootstrap5 %}
 {% block title %}Welcome to the Left Book Club{% endblock %}
-
 {% block content %}
-  <div class='container'>
-    <div class="row justify-content-md-center text-center">
-      <div class='col col-md-6 col-lg-4'>
-        <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
-          <h1 class="h2 fw-normal">You've bought a gift membership!</h1>
-          <p class="fs-5 text-muted">Thank you for supporting the Left Book Club.</p>
-        </header>
-        {% if error is None %}
-          {% if promo_code %}
-          <p>
-            Give the gift code below to your intended recipient and ask them to visit <a href='{% setting "BASE_URL" %}{% url "redeem" code=promo_code.code %}'>this link</a> to activate their membership.
-          </p>
-          {% endif %}
-          {% if gift_giver_subscription %}
-          <div class='my-4'>
-            {% include "app/includes/gift_card.html" with subscription=gift_giver_subscription %}
-          </div>
-          {% endif %}
-        {% endif %}
-        <p>We've sent you an email with these details.</p>
-        <p>You can find your purchased gift card <a href="{% url 'gift_cards' %}">here</a>.</p>
-      </div>
+    <div class='container'>
+        <div class="row justify-content-md-center text-center">
+            <div class='col col-md-6 col-lg-4'>
+                <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
+                    <h1 class="h2 fw-normal">You've bought a gift membership!</h1>
+                    <p class="fs-5 text-muted">Thank you for supporting the Left Book Club.</p>
+                </header>
+                {% if error is None %}
+                    {% if promo_code %}
+                        <p>
+                            Give the gift code below to your intended recipient and ask them to visit <a href='{% setting "BASE_URL" %}{% url "redeem" code=promo_code.code %}'>this link</a> to activate their membership.
+                        </p>
+                    {% endif %}
+                    {% if gift_giver_subscription %}
+                        <div class='my-4'>{% include "app/includes/gift_card.html" with subscription=gift_giver_subscription %}</div>
+                    {% endif %}
+                {% endif %}
+                <p>We've sent you an email with these details.</p>
+                <p>
+                    You can find your purchased gift card <a href="{% url 'gift_cards' %}">here</a>.
+                </p>
+            </div>
+        </div>
     </div>
-  </div>
 {% endblock %}

@@ -1,42 +1,39 @@
 {% load menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 <div class='row gx-2'>
-  {% for event in events %}
-    {% if forloop.counter <= value.number_of_events %}
-      <article
-        data-action="mouseenter->fly-to-map#flyTo"
-        data-fly-to-map-zoom="12"
-        data-fly-to-map-lng-param="{{ event.geometry.coordinates.0 }}"
-        data-fly-to-map-lat-param="{{ event.geometry.coordinates.1 }}"
-        id="event-{{event.properties.id}}"
-        data-location-type="{{ event.properties.location_type }}"
-        class="col tw-justify-items-stretch">
-        <div class='tw-flex tw-flex-row tw-bg-white tw-h-full tw-flex-grow'>
-          <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
-            <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
-              <div class=''>{{ event.properties.starts_at|date:"j" }}</div>
-              <div class='tw-uppercase '>{{ event.properties.starts_at|date:"M" }}</div>
-            </div>
-          </div>
-          <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink tw-flex tw-flex-col">
-            <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.properties.name }}</h3>
-            <div class='tw-text-sm tw-font-normal tw-leading-none tw-text-gray-700 tw-mb-3'>
-              <div>
-                <span class="tw-capitalize">{{ event.properties.location_type|replace:"_| " }}</span>
-                <span>&middot;</span>
-                <span>Starts at {{event.properties.starts_at|date:"P"}}</span>
-                <span>&middot;</span>
-                <span>{{event.properties.starts_at|naturaltime}}</span>
-              </div>
-              {% if event.properties.physical_address.formatted_address %}
-              <div class='tw-mt-2'>
-                {{ event.properties.physical_address.formatted_address }}
-              </div>
-              {% endif %}
-            </div>
-            {% bootstrap_button href=event.properties.url content="Learn more" button_class="btn btn-primary tw-mt-auto" %}
-          </div>
-        </div>
-      </article>
-    {% endif %}
-  {% endfor %}
+    {% for event in events %}
+        {% if forloop.counter <= value.number_of_events %}
+            <article data-action="mouseenter->fly-to-map#flyTo"
+                     data-fly-to-map-zoom="12"
+                     data-fly-to-map-lng-param="{{ event.geometry.coordinates.0 }}"
+                     data-fly-to-map-lat-param="{{ event.geometry.coordinates.1 }}"
+                     id="event-{{ event.properties.id }}"
+                     data-location-type="{{ event.properties.location_type }}"
+                     class="col tw-justify-items-stretch">
+                <div class='tw-flex tw-flex-row tw-bg-white tw-h-full tw-flex-grow'>
+                    <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
+                        <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
+                            <div class=''>{{ event.properties.starts_at|date:"j" }}</div>
+                            <div class='tw-uppercase '>{{ event.properties.starts_at|date:"M" }}</div>
+                        </div>
+                    </div>
+                    <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink tw-flex tw-flex-col">
+                        <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.properties.name }}</h3>
+                        <div class='tw-text-sm tw-font-normal tw-leading-none tw-text-gray-700 tw-mb-3'>
+                            <div>
+                                <span class="tw-capitalize">{{ event.properties.location_type|replace:"_| " }}</span>
+                                <span>&middot;</span>
+                                <span>Starts at {{ event.properties.starts_at|date:"P" }}</span>
+                                <span>&middot;</span>
+                                <span>{{ event.properties.starts_at|naturaltime }}</span>
+                            </div>
+                            {% if event.properties.physical_address.formatted_address %}
+                                <div class='tw-mt-2'>{{ event.properties.physical_address.formatted_address }}</div>
+                            {% endif %}
+                        </div>
+                        {% bootstrap_button href=event.properties.url content="Learn more" button_class="btn btn-primary tw-mt-auto" %}
+                    </div>
+                </div>
+            </article>
+        {% endif %}
+    {% endfor %}
 </div>

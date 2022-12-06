@@ -1,59 +1,64 @@
 {% extends "account/modal_base.html" %}
-
 {% load i18n %}
 {% load url django_bootstrap5 account socialaccount %}
-
-{% block head_title %}{% trans "Create an account" %}{% endblock %}
-
+{% block head_title %}
+    {% trans "Create an account" %}
+{% endblock %}
 {% block modal_content %}
-{% get_providers as socialaccount_providers %}
-
-<h1 class='text-center h2'>{% trans "Let's get you set up" %}</h1>
-    
-{% url_test includes="/checkout" as checkout_flow %}
-{% if checkout_flow %}
-  <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
-    <ol class="breadcrumb justify-content-center">
-      <li class="breadcrumb-item"><a class='text-muted tw-no-underline' href="/join">Select plan</a></li>
-      <li class="breadcrumb-item"><a class='text-muted tw-no-underline' data-controller="backlink">Shipping</a></li>
-      <li class="breadcrumb-item text-black active tw-underline" aria-current="page">Create account</li>
-      <li class="breadcrumb-item">Checkout</li>
-    </ol>
-  </nav>
-{% endif %}
-
-<div class="row">
-  {% if socialaccount_providers  %}
-  <div class="col-md-5 col-lg-5">
-    {% include "allauth/account/provider_panel.html" with process="login" %}
-  </div>
-  {% endif %}
-
-  <div>
-    <p class='text-center'>Already have an account? <a href="{{ login_url }}">Sign in</a>.</p>
-        
-    <form data-turbo="false" id="signup_form" method="post" action="{% url 'account_signup' %}{% qs_link %}">
-      {% csrf_token %}
-      {% bootstrap_field form.email show_label=False %}
-      <div class="row g-3">
-        <div class="col">
-          {% bootstrap_field form.first_name show_label=False %}
+    {% get_providers as socialaccount_providers %}
+    <h1 class='text-center h2'>{% trans "Let's get you set up" %}</h1>
+    {% url_test includes="/checkout" as checkout_flow %}
+    {% if checkout_flow %}
+        <nav style="--bs-breadcrumb-divider: url(&#34;
+                    data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;
+                    )"
+             aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item">
+                    <a class='text-muted tw-no-underline' href="/join">Select plan</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a class='text-muted tw-no-underline' data-controller="backlink">Shipping</a>
+                </li>
+                <li class="breadcrumb-item text-black active tw-underline"
+                    aria-current="page">Create account</li>
+                <li class="breadcrumb-item">Checkout</li>
+            </ol>
+        </nav>
+    {% endif %}
+    <div class="row">
+        {% if socialaccount_providers  %}
+            <div class="col-md-5 col-lg-5">{% include "allauth/account/provider_panel.html" with process="login" %}</div>
+        {% endif %}
+        <div>
+            <p class='text-center'>
+                Already have an account? <a href="{{ login_url }}">Sign in</a>.
+            </p>
+            <form data-turbo="false"
+                  id="signup_form"
+                  method="post"
+                  action="{% url 'account_signup' %}{% qs_link %}">
+                {% csrf_token %}
+                {% bootstrap_field form.email show_label=False %}
+                <div class="row g-3">
+                    <div class="col">{% bootstrap_field form.first_name show_label=False %}</div>
+                    <div class="col">{% bootstrap_field form.last_name show_label=False %}</div>
+                </div>
+                {% bootstrap_form form show_label=False exclude="email,first_name,last_name,gdpr_email_consent,promotional_consent,password2" %}
+                {% bootstrap_field form.gdpr_email_consent show_label=True %}
+                {% comment %} {% bootstrap_field form.promotional_consent show_label=True %} {% endcomment %}
+                {% if redirect_field_value %}
+                    <input type="hidden"
+                           name="{{ redirect_field_name }}"
+                           value="{{ redirect_field_value }}"/>
+                {% endif %}
+                <div class="form-actions text-center">
+                    {% bootstrap_button size='lg' button_class="btn-primary" content="Sign up" %}
+                </div>
+                <p class='form-text'>
+                    By signing up you agree to the <a href='/terms-and-conditions/'>terms, conditions</a> and <a href='/privacy-policy/'>privacy policy</a>
+                </p>
+            </form>
         </div>
-        <div class="col">
-          {% bootstrap_field form.last_name show_label=False %}
-        </div>
-      </div>
-      {% bootstrap_form form show_label=False exclude="email,first_name,last_name,gdpr_email_consent,promotional_consent,password2" %}
-      {% bootstrap_field form.gdpr_email_consent show_label=True %}
-      {% comment %} {% bootstrap_field form.promotional_consent show_label=True %} {% endcomment %}
-      {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-      {% endif %}
-      <div class="form-actions text-center">
-        {% bootstrap_button size='lg' button_class="btn-primary" content="Sign up" %}
-      </div>
-      <p class='form-text'>By signing up you agree to the <a href='/terms-and-conditions/'>terms, conditions</a> and <a href='/privacy-policy/'>privacy policy</a></p>
-    </form>
-  </div>
-</div>
+    </div>
 {% endblock %}

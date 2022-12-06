@@ -1,81 +1,94 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags wagtailimages_tags setting djmoney date django_bootstrap5 negate books %}
-
 {% block content_width %}container-fluid{% endblock %}
-
-{% block content%}
-<article>
-  <div class="row">
-    {% if page.primary_image_url %}
-    <div class="col-12 col-md-6">
-      <div class='sticky sticky-top'>
-        {% if page.image_urls|length > 1 %}
-          <div id="productImageCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-indicators">
-              {% for url in page.image_urls %}
-                <button type="button" data-bs-target="#productImageCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.counter0 == 0 %}class="active" aria-current="true"{% endif %} aria-label="Slide {{ forloop.counter }}"></button>
-              {% endfor %}
-            </div>
-            <div class="carousel-inner">
-              {% for url in page.image_urls %}
-                <div class="carousel-item {% if forloop.counter0 == 0 %}active{% endif %}">
-                  <img class="d-block w-100" src="{{ url }}" alt="Slide {{ forloop.counter }}">
+{% block content %}
+    <article>
+        <div class="row">
+            {% if page.primary_image_url %}
+                <div class="col-12 col-md-6">
+                    <div class='sticky sticky-top'>
+                        {% if page.image_urls|length > 1 %}
+                            <div id="productImageCarousel"
+                                 class="carousel slide"
+                                 data-bs-ride="carousel">
+                                <div class="carousel-indicators">
+                                    {% for url in page.image_urls %}
+                                        <button type="button"
+                                                data-bs-target="#productImageCarousel"
+                                                data-bs-slide-to="{{ forloop.counter0 }}"
+                                                {% if forloop.counter0 == 0 %}class="active" aria-current="true"{% endif %}
+                                                aria-label="Slide {{ forloop.counter }}">
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                                <div class="carousel-inner">
+                                    {% for url in page.image_urls %}
+                                        <div class="carousel-item {% if forloop.counter0 == 0 %}active{% endif %}">
+                                            <img class="d-block w-100"
+                                                 src="{{ url }}"
+                                                 alt="Slide {{ forloop.counter }}"/>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="carousel-control-prev"
+                                        type="button"
+                                        data-bs-target="#productImageCarousel"
+                                        data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next"
+                                        type="button"
+                                        data-bs-target="#productImageCarousel"
+                                        data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
+                        {% else %}
+                            <img alt="Photo of {{ page.title }}"
+                                 src="{{ page.primary_image_url }}"
+                                 class="d-block w-100"/>
+                        {% endif %}
+                    </div>
                 </div>
-              {% endfor %}
+            {% endif %}
+            <div class="col">
+                <div class='md:tw-max-w-lg tw-py-3 lg:tw-py-5 xl:tw-py-6 mx-auto'>
+                    <header class='mb-4 lh-2'>
+                        <h1 class='mx-0 fs-2'>{{ page.title }}</h1>
+                    </header>
+                    <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}">
+                    {% comment %} Start with cached information, then load in newer info {% endcomment %}
+                    {% include "app/includes/cart_options.html" with product=product loading=True %}
+                    </turbo-frame>
+                    <section class='mt-4'>
+                        <div class="product-description">{{ page.description | richtext }}</div>
+                    </section>
+                </div>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel" data-bs-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel" data-bs-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Next</span>
-            </button>
-          </div>
-        {% else %}
-            <img src="{{ page.primary_image_url }}" class="d-block w-100" />
-        {% endif %}
-      </div>
-    </div>
+        </div>
+    </article>
+    {% if page.layout %}
+        {% include "app/includes/layout.html" with streamfield=page.layout %}
+    {% else %}
+        <h2 class='tw-mt-5'>More merchandise</h2>
+        <turbo-frame id='all-merch' src="{% url 'all_merch' %}" loading="lazy" target="_top">
+        <div class='my-3'>
+            <span class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"></span>
+            <span>Loading...</span>
+        </div>
+        </turbo-frame>
+        <h2 class='tw-mt-5'>Books from LBC</h2>
+        <turbo-frame id='all-books' src="{% url 'all_books' %}" loading="lazy" target="_top">
+        <div class='my-3'>
+            <span class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"></span>
+            <span>Loading...</span>
+        </div>
+        </turbo-frame>
     {% endif %}
-
-    <div class="col">
-      <div class='md:tw-max-w-lg tw-py-3 lg:tw-py-5 xl:tw-py-6 mx-auto'>
-        <header class='mb-4 lh-2'>
-          <h1 class='mx-0 fs-2'>{{page.title}}</h1>   
-        </header>
-    
-        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}">
-          {% comment %} Start with cached information, then load in newer info {% endcomment %}
-          {% include "app/includes/cart_options.html" with product=product loading=True %}
-        </turbo-frame> 
-
-        <section class='mt-4'>
-            <div class="product-description">{{ page.description | richtext }}</div>
-        </section>
-      </div>
-    </div>
-
-  </div>
-</article>
-
-{% if page.layout %}
-  {% include "app/includes/layout.html" with streamfield=page.layout %}
-{% else %}
-  <h2 class='tw-mt-5'>More merchandise</h2>
-  <turbo-frame id='all-merch' src="{% url 'all_merch' %}" loading="lazy" target="_top">
-    <div class='my-3'>
-      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      <span>Loading...</span>
-    </div>
-  </turbo-frame>
-  <h2 class='tw-mt-5'>Books from LBC</h2>
-  <turbo-frame id='all-books' src="{% url 'all_books' %}" loading="lazy" target="_top">
-    <div class='my-3'>
-      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      <span>Loading...</span>
-    </div>
-  </turbo-frame>
-{% endif %}
-
 {% endblock %}

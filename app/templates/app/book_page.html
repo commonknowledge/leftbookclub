@@ -1,34 +1,23 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags wagtailimages_tags setting djmoney date django_bootstrap5 negate books %}
-
 {% block content_width %}container-fluid{% endblock %}
-
-{% block content%}
-<article>
-  <div class="row">
-    {% if page.primary_image_url %}
-    <div class="col-12 col-md-6">
-      <div class='sticky sticky-top'>
-        <img src="{{ page.primary_image_url }}" class="d-block w-100" />
-        <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>
-          {{ page.published_date|date:"F Y" }}
-        </div>
-        {% if page.type %}
-        <div class='position-absolute tw-bottom-2 tw-right-2 fs-7 tw-z-50 text-capitalize
-          {% if page.type == "classic" %}
-            tw-bg-black tw-text-white tw-px-1
-          {% elif page.type == "contemporary" %}
-            tw-bg-yellow tw-text-black tw-px-1
-          {% else %}
-            text-dark
-          {% endif %}
-        '>
-          {{ page.type }}
-        </div>
-        {% endif %}
-      </div>
-
-      {% comment %} <div class="social text-center my-3">
+{% block content %}
+    <article>
+        <div class="row">
+            {% if page.primary_image_url %}
+                <div class="col-12 col-md-6">
+                    <div class='sticky sticky-top'>
+                        <img alt="Book cover for {{ page.title }}"
+                             src="{{ page.primary_image_url }}"
+                             class="d-block w-100"/>
+                        <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>{{ page.published_date|date:"F Y" }}</div>
+                        {% if page.type %}
+                            <div class='position-absolute tw-bottom-2 tw-right-2 fs-7 tw-z-50 text-capitalize {% if page.type == "classic" %} tw-bg-black tw-text-white tw-px-1 {% elif page.type == "contemporary" %} tw-bg-yellow tw-text-black tw-px-1 {% else %} text-dark {% endif %} '>
+                                {{ page.type }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% comment %} <div class="social text-center my-3">
         <a href="https://twitter.com/intent/tweet?text={{ page.title | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&via={{ site.social.twitter }}&hashtags=11ty,shopify" target="_blank">
           <i class="fa fa-fw fa-2x fa-twitter text-black-50">Share to Twitter</i>
         </a>
@@ -38,79 +27,72 @@
         <a href="https://www.pinterest.com/pin/create/button/?description={{ page.description | urlencode }}&url={% setting BASE_URL %}/{{ page.url | urlencode }}&media={{ page.primary_image_url }}" target="_blank">
           <i class="fa fa-fw fa-2x fa-pinterest text-black-50">Share to Pinterest</i>
         </a>
-      </div> {% endcomment %}
-    </div>
-    {% endif %}
-
-    <div class="col">
-      <div class='md:tw-max-w-lg lg:tw-py-5 xl:tw-py-6 mx-auto'>
-        <header class='mb-3 lh-2'>
-          <h1 class='m-0 display-3 tw-font-bold'>{{page.title}}</h1>    
-          {% if page.subtitle %}
-            <h2 class='m-0 fs-2 text-secondary'>{{page.subtitle}}</h2>
-          {% endif %}
-          {% if page.authors %}
-            <div class='h5 fs-2'>By {{ page.authors|join:", "}}</div>   
-          {% endif %}
-          {% for forward in page.forward_by %}
-            <div class='fs-6'>{{ forward }}</div>
-          {% endfor %}
-        </header>
-    
-        {% if not user.is_member %}
-        <div class='my-4'>
-            {% bootstrap_button href="/join" content="Become a member to buy" button_class='btn-primary my-2' %}
-            {% if not user.is_authenticated %}
-              <p>Already a member? <a href="{% url 'account_login' %}?next={{ request.get_full_path }}" class='tw-underline'>Login</a>.
+                    </div> {% endcomment %}
+                </div>
             {% endif %}
+            <div class="col">
+                <div class='md:tw-max-w-lg lg:tw-py-5 xl:tw-py-6 mx-auto'>
+                    <header class='mb-3 lh-2'>
+                        <h1 class='m-0 display-3 tw-font-bold'>{{ page.title }}</h1>
+                        {% if page.subtitle %}<h2 class='m-0 fs-2 text-secondary'>{{ page.subtitle }}</h2>{% endif %}
+                        {% if page.authors %}<div class='h5 fs-2'>By {{ page.authors|join:", " }}</div>{% endif %}
+                        {% for forward in page.forward_by %}<div class='fs-6'>{{ forward }}</div>{% endfor %}
+                    </header>
+                    {% if not user.is_member %}
+                        <div class='my-4'>
+                            {% bootstrap_button href="/join" content="Become a member to buy" button_class='btn-primary my-2' %}
+                            {% if not user.is_authenticated %}
+                                <p>
+                                    Already a member? <a href="{% url 'account_login' %}?next={{ request.get_full_path }}"
+    class='tw-underline'>Login</a>.
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <hr />
+                        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{ user.is_member|negate }}">
+                        {% comment %} Start with cached information, then load in newer info {% endcomment %}
+                        {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
+                        </turbo-frame>
+                        <hr />
+                    {% endif %}
+                    <section class='my-4'>
+                        <div class="product-description">{{ page.description | richtext }}</div>
+                    </section>
+                    <section>
+                        <h5>Details</h5>
+                        <p>
+                            {% if page.isbn %}
+                                <span>{{ page.isbn }}</span>
+                                <br />
+                            {% endif %}
+                            {% if page.original_publisher %}<span>Originally published by {{  page.original_publisher }}</span>{% endif %}
+                        </p>
+                    </section>
+                </div>
+            </div>
         </div>
-        {% else %}  
-          <hr />
-          <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{user.is_member|negate}}">
-            {% comment %} Start with cached information, then load in newer info {% endcomment %}
-            {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
-          </turbo-frame> 
-          <hr />
-        {% endif %}
-
-        <section class='my-4'>
-            <div class="product-description">{{ page.description | richtext }}</div>
-        </section>
-
-        <section>
-            <h5>Details</h5>
-            <p>
-              {% if page.isbn %}
-                <span>{{ page.isbn }}</span><br />
-              {% endif %}
-              {% if page.original_publisher %}
-                <span>Originally published by {{  page.original_publisher }}</span>
-              {% endif %}
-            </p>
-        </section>
-      </div>
-    </div>
-
-  </div>
-</article>
-
-{% if page.layout %}
-  {% include "app/includes/layout.html" with streamfield=page.layout %}
-{% else %}
-  <h2 class='tw-mt-5'>More books from LBC</h2>
-  <turbo-frame id='all-books' src="{% url 'all_books' %}" loading="lazy" target="_top">
-    <div class='my-3'>
-      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      <span>Loading...</span>
-    </div>
-  </turbo-frame>
-  <h2 class='tw-mt-5'>Get LBC merchandise</h2>
-  <turbo-frame id='all-merch' src="{% url 'all_merch' %}" loading="lazy" target="_top">
-    <div class='my-3'>
-      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      <span>Loading...</span>
-    </div>
-  </turbo-frame>
-{% endif %}
-
+    </article>
+    {% if page.layout %}
+        {% include "app/includes/layout.html" with streamfield=page.layout %}
+    {% else %}
+        <h2 class='tw-mt-5'>More books from LBC</h2>
+        <turbo-frame id='all-books' src="{% url 'all_books' %}" loading="lazy" target="_top">
+        <div class='my-3'>
+            <span class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"></span>
+            <span>Loading...</span>
+        </div>
+        </turbo-frame>
+        <h2 class='tw-mt-5'>Get LBC merchandise</h2>
+        <turbo-frame id='all-merch' src="{% url 'all_merch' %}" loading="lazy" target="_top">
+        <div class='my-3'>
+            <span class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"></span>
+            <span>Loading...</span>
+        </div>
+        </turbo-frame>
+    {% endif %}
 {% endblock %}

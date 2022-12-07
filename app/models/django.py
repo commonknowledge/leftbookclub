@@ -164,7 +164,7 @@ class User(AbstractUser):
         try:
             if self.active_subscription is not None:
                 product = get_primary_product_for_djstripe_subscription(
-                    self.active_subscription.lbc
+                    self.active_subscription
                 )
                 return product
         except:

@@ -8,8 +8,7 @@
                         {% if row.block_type == 'button' %}
                             <div class='block-{{ row.block_type }} p-3 -tw-mt-3'>{% include_block row %}</div>
                         {% elif row.block_type == 'image' %}
-                            {% image row.value fill-800x800 class='block-{{ row.block_type }}
-                            tw-max-w-full tw-h-auto' %}
+                            {% image row.value fill-800x800 class='tw-max-w-full tw-h-auto' %}
                         {% elif row.block_type == 'richtext' %}
                             <div class='block-{{ row.block_type }} p-3'>{% include_block row %}</div>
                         {% else %}

@@ -1,5 +1,5 @@
 {% load wagtailcore_tags %}
-{% if user.has_never_subscribed %}
+{% if user.has_never_subscribed and not request.session.gift_giver_subscription %}
     <div class='bg-warning'>
         <div class='container-xl py-2 text-center'>
             Looks like you didn't finish signing up. <a href='/join'>Pick a membership</a>

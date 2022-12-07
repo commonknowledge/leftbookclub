@@ -19,7 +19,7 @@
         </div>
         <br />
     {% endif %}
-    <form method='POST' data-turbo="false">
+    <form method='POST' data-turbo="false" id="redeem-form">
         {% csrf_token %}
         {% comment %} Basic form bits {% endcomment %}
         <div class='row justify-content-center'>

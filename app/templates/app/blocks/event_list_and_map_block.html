@@ -15,7 +15,7 @@
               data-controller="zoom-to-source-features map-geolocator"
               data-zoom-to-source-features-source-ids-value='["events"]'
               data-zoom-to-source-features-max-zoom-value="12">
-            <section class='tw-col-span-2 tw-order-last md:tw-order-first'
+            <section class='tw-col-span-2 tw-order-last md:tw-order-first tw-flex tw-flex-col tw-justify-between'
                      data-controller="fly-to-map"
                      data-map-target="config">
                 <article class="px-4 my-3 tw-hidden md:tw-block">
@@ -42,7 +42,7 @@
                     {% map_layer id=id layer=layer %}
                 {% endfor %}
                 <div data-map-target="canvas"
-                     class='tw-h-full tw-w-full tw-absolute tw-top-0 tw-left-0'></div>
+                     class='tw-h-full tw-w-full tw-absolute tw-top-0 tw-left-0 tw-min-h-[300px]'></div>
             </section>
         </main>
     {% endmap %}

@@ -443,3 +443,34 @@ def human_readable_price(plan: djstripe.models.Plan):
         format_args["interval_count"] = interval_count
 
     return format_lazy(template, **format_args)
+
+
+def create_gift_subscription_and_promo_code(
+    plan, gift_giver_user, payment_card=None, metadata=None, zone=None
+):
+    from app.models import ShippingZone
+    from app.views import SubscriptionCheckoutView
+
+    gift_sub_stripe_context = SubscriptionCheckoutView.create_checkout_context(
+        product=plan.monthly_price.products.first(),
+        price=plan.monthly_price,
+        zone=zone if zone is not None else ShippingZone.default_zone,
+        gift_mode=True,
+    )
+
+    args = dict(
+        customer=gift_giver_user.stripe_customer.id,
+        items=gift_sub_stripe_context["checkout_args"]["line_items"],
+        metadata=metadata if metadata is not None else {"created_by_script": "true"},
+    )
+    if payment_card is not None:
+        args.update(default_payment_method=payment_card.id)
+    gift_giver_subscription = stripe.Subscription.create(**args)
+
+    (promo_code, gift_giver_subscription,) = configure_gift_giver_subscription_and_code(
+        gift_giver_subscription.id,
+        gift_giver_user.id,
+        metadata=metadata if metadata is not None else {"created_by_script": "true"},
+    )
+
+    return promo_code, gift_giver_subscription

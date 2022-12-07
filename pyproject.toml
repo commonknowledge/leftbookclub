@@ -66,6 +66,8 @@ humanize = "^4.3.0"
 django-db-queue = "^3.0.0"
 dj-stripe = "^2.7.2"
 djlint = "^1.19.7"
+selenium = "^4.7.2"
+webdriver-manager = "^3.8.5"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

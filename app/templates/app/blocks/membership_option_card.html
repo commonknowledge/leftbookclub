@@ -9,7 +9,7 @@
         <div class='px-3 pt-1'>
             <h3 class='h1 mb-2 fw-bold'>{{ option.plan.title }}</h3>
             <h5 class='fw-bold'>
-                {{ request_price.equivalent_monthly_price_string }} + postage
+                {{ request_price.equivalent_monthly_price_string }}
                 {% if request_price.interval == 'year' %}paid annually{% endif %}
             </h5>
             <h5 class='fw-bold'>A book {{ option.plan.delivery_frequency }}</h5>

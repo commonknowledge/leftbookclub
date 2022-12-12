@@ -8,10 +8,10 @@
         {% endif %}
         <div class='px-3 pt-1'>
             <h3 class='h1 mb-2 fw-bold'>{{ option.plan.title }}</h3>
-            <h5 class='fw-bold'>{{ request_price.price_string }} + postage</h5>
-            {% if request_price.interval == 'year' %}
-                <h5 class='fw-bold'>Equivalent to {{ request_price.equivalent_monthly_price_string }}</h5>
-            {% endif %}
+            <h5 class='fw-bold'>
+                {{ request_price.equivalent_monthly_price_string }} + postage
+                {% if request_price.interval == 'year' %}paid annually{% endif %}
+            </h5>
             <h5 class='fw-bold'>A book {{ option.plan.delivery_frequency }}</h5>
             <div class='mt-2'>{{ option.plan.description|richtext }}</div>
             {% if request_price.description %}<div class='mt-2'>{{ request_price.description|richtext }}</div>{% endif %}

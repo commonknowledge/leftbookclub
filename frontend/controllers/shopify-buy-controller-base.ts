@@ -55,8 +55,11 @@ export default class ShopifyBuyControllerBase extends Controller {
       } else {
         // @ts-ignore
         this.client.checkout
+          // @ts-ignore
           .create({
+            // @ts-ignore
             email: this.userEmailValue,
+            // @ts-ignore
             lineItems: [],
             // shippingAddress: this.shippingAddress,
           })

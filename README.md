@@ -2,7 +2,7 @@
 
 A starter repository for [Groundwork](https://groundwork.commonknowledge.coop) projects.
 
-## Quickstart:
+## Quickstart
 
 ### Using vscode development containers:
 

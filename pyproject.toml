@@ -30,7 +30,7 @@ groundwork-django = ">=0.1.5"
 # groundwork-django = { path = "./groundwork", develop = true }
 django-storages = "*"
 gunicorn = '>=20.1.0'
-wagtail = "3"
+wagtail = "^3.0"
 psycopg2 = '>=2.8.6'
 wagtail-transfer = "*"
 django-livereload-server = "^0.4"
@@ -38,7 +38,7 @@ stripe = "^2.68.0"
 django-mathfilters = "^1.0.0"
 django-money = "^2.1.1"
 pre-commit = "^2.17.0"
-wagtail-autocomplete = "^0.8.1"
+wagtail-autocomplete = "^0.9"
 django-allauth = "^0.50.0"
 django-bootstrap5 = "^21.3"
 django-countries = "^7.3.2"

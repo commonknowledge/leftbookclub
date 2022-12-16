@@ -1,4 +1,4 @@
-# Groundwork Starter
+# Left Book Club
 
 A starter repository for [Groundwork](https://groundwork.commonknowledge.coop) projects.
 

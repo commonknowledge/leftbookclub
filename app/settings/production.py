@@ -12,24 +12,54 @@ MIDDLEWARE += [
     "redirect_to_non_www.middleware.RedirectToNonWww",
 ]
 
+#### File storage
 
-if os.getenv("AWS_S3_REGION_NAME"):
-    DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"
+# like `fra1`
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", None)
+# like `leftbookclub`
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", None)
+# like `https://fra1.digitaloceanspaces.com`
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", None)
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", None)
+# can be ignored
+AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_S3_CUSTOM_DOMAIN", None)
+#
+USE_S3_FOR_STATIC_FILES = os.getenv("USE_S3_FOR_STATIC_FILES", "1") == "1"
+
+if AWS_S3_REGION_NAME is not None:
     AWS_S3_ADDRESSING_STYLE = "virtual"
-    # like `fra1`
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-    # like `leftbookclub`
-    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-    # like `https://fra1.digitaloceanspaces.com`
-    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    # can be ignored
-    AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_S3_CUSTOM_DOMAIN")
-    MEDIA_URL = os.getenv("MEDIA_URL")
+    DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"
+    ### Media
+    PUBLIC_MEDIA_LOCATION = "media"
+    MEDIA_URL = (
+        (
+            f"https://{AWS_S3_CUSTOM_DOMAIN}"
+            if AWS_S3_CUSTOM_DOMAIN
+            else AWS_S3_ENDPOINT_URL
+        )
+        + "/"
+        + PUBLIC_MEDIA_LOCATION.lstrip("/").rstrip("/")
+        + "/"
+    )
+    DEFAULT_FILE_STORAGE = "app.storage.MediaStorage"
+    ### Static
+    if USE_S3_FOR_STATIC_FILES:
+        STATIC_LOCATION = "static"
+        STATIC_URL = (
+            (
+                f"https://{AWS_S3_CUSTOM_DOMAIN}"
+                if AWS_S3_CUSTOM_DOMAIN
+                else AWS_S3_ENDPOINT_URL.rstrip("/")
+            )
+            + "/"
+            + STATIC_LOCATION.lstrip("/").rstrip("/")
+            + "/"
+        )
+        STATICFILES_STORAGE = "app.storage.StaticStorage"
 else:
     MEDIA_ROOT = os.getenv(MEDIA_ROOT)
-    MEDIA_URL = os.getenv("MEDIA_URL", "/media")
+    MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
 
 
 if os.getenv("MAILJET_API_KEY"):

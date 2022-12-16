@@ -1,9 +1,11 @@
 import urllib.parse
 
-from storages.backends.s3boto3 import S3Boto3Storage
+from storages.backends.s3boto3 import S3Boto3Storage, S3ManifestStaticStorage
 
 
-class DigitalOceanSpacesStorage(S3Boto3Storage):
+class MediaStorage(S3Boto3Storage):
+    default_acl = "public-read"
+
     def url(self, name, parameters=None, expire=None, http_method=None):
         s3_url = super().url(name, parameters, expire, http_method)
 
@@ -31,3 +33,8 @@ class DigitalOceanSpacesStorage(S3Boto3Storage):
             fragment=url_parts.fragment,
         )
         return url_parts.geturl()
+
+
+class StaticStorage(S3ManifestStaticStorage):
+    location = "static"
+    default_acl = "public-read"

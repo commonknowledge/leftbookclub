@@ -2,7 +2,7 @@
 
 ## Quickstart
 
-### Using vscode development containers:
+### Using VS Code development containers
 
 0. (Check that VSCode has the right python interpreter selected, by comparing it to the path in `poetry run python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"`. You can see this in the bottom bar of editor UI)
 1. [Generate a repository](https://github.com/commonknowledge/groundwork-starter-template/generate) from this template

@@ -315,7 +315,7 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
 
 class CartOptionsView(TemplateView):
     template_name = "app/frames/cart_options.html"
-    url_pattern = "cartoptions/<product_id>/"
+    url_pattern = "anonymous/cartoptions/<product_id>/"
 
     def get_context_data(self, product_id=None, **kwargs):
         from .models import BookPage
@@ -681,3 +681,30 @@ class SyncShopifyWebhookEndpoint(View):
         if already_queued:
             return
         Job.objects.create(name="sync_shopify_products")
+
+
+class WagtailStreamfieldBlockTurboFrame(TemplateView):
+    def get_context_data(self, page_id=None, field_name=None, block_id=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "page_id": page_id,
+                "field_name": field_name,
+                "block_id": block_id,
+                **WagtailStreamfieldBlockTurboFrame.get_block_context(
+                    page_id, field_name, block_id
+                ),
+            }
+        )
+        return context
+
+    @classmethod
+    def get_block_context(cls, page_id, field_name, block_id):
+        context = {}
+        page = Page.objects.get(id=page_id)
+        for block in getattr(page.specific, field_name):
+            if block.id == block_id:
+                context["value"] = block.value
+                context.update(block.block.get_context(block.value))
+                break
+        return context

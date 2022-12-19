@@ -7,7 +7,7 @@ register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
-def qs_link(context, **kwargs):
+def qs_link(context, base_url=None, **kwargs):
     """
     Add query kwargs to URL
     """
@@ -16,13 +16,16 @@ def qs_link(context, **kwargs):
         return
 
     params = request.GET.dict()
+    if base_url is not None:
+        params.update(parse.parse_qs(parse.urlsplit(base_url).query))
+
     for key, value in kwargs.items():
-        if value is None:
+        if value is None or not value:
             params.pop(key, None)
         else:
             params[key] = value
 
-    return "?" + parse.urlencode(params)
+    return (base_url if base_url is not None else "") + "?" + parse.urlencode(params)
 
 
 @register.simple_tag(takes_context=True)

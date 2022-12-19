@@ -1,0 +1,57 @@
+{% load wagtailcore_tags django_bootstrap5 url %}
+{% with request.GET.gift_mode as gift_mode %}
+    {% with request.GET.annual as annual %}
+        {% url "membership_options_grid" page_id=page_id field_name=field_name block_id=block_id as frame_url %}
+        <turbo-frame id="membership-options">
+        <section class='bg-white p-2'>
+            <header class='row gx-0'>
+                <div class='col p-3'>
+                    {% if value.heading %}<h2 class='h1 fw-bold'>{{ value.heading }}</h2>{% endif %}
+                    {% if value.description %}<div>{{ value.description|richtext }}</div>{% endif %}
+                    <div class="btn-group my-1"
+                         role="group"
+                         aria-label="Basic outlined example">
+                        {% qs_link frame_url annual=None as url %}
+                        {% if not annual %}
+                            <a data-turbo="true"
+                               id="pick-monthly"
+                               class='btn btn-md btn-secondary'
+                               href="{{ url }}"
+                               data-turbo-frame="_self">Monthly pricing</a>
+                        {% else %}
+                            <a data-turbo="true"
+                               id="pick-monthly"
+                               class='btn btn-md btn-outline-secondary'
+                               href="{{ url }}"
+                               data-turbo-frame="_self">Monthly pricing</a>
+                        {% endif %}
+                        {% qs_link frame_url annual="true" as url %}
+                        {% if annual %}
+                            <a data-turbo="true"
+                               id="pick-annual"
+                               class='btn btn-md btn-secondary'
+                               href="{{ url }}"
+                               data-turbo-frame="_self">Annual pricing</a>
+                        {% else %}
+                            <a data-turbo="true"
+                               id="pick-annual"
+                               class='btn btn-md btn-outline-secondary'
+                               href="{{ url }}"
+                               data-turbo-frame="_self">Annual pricing: pay upfront and save!</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+            <div class='row g-2'>
+                {% for option in value.plans %}
+                    {% if option.plan.live %}
+                        <article class='col-12 col-md'>
+                            {% include_block option %}
+                        </article>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+        </turbo-frame>
+    {% endwith %}
+{% endwith %}

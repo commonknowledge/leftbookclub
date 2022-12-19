@@ -15,7 +15,7 @@ from django.db import models
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.html import strip_tags
 from django_countries import countries
 from djmoney.models.fields import Money, MoneyField
@@ -190,11 +190,29 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         blank=True,
     )
 
-    products = ParentalManyToManyField(LBCProduct, blank=True)
+    should_advertise_postage_price = models.BooleanField(
+        default=True,
+        help_text="Whether to advertise that the price is + p&p, before the shipping zone is known.",
+    )
+
+    products = ParentalManyToManyField(
+        LBCProduct,
+        blank=True,
+        help_text="The stripe product that the user will be subscribed to. If multiple products are set here, then the user will be asked to pick which one they want, e.g. Classic or Contemporary books.",
+    )
 
     panels = [
-        AutocompletePanel("products", target_model=LBCProduct),
-        FieldPanel("price"),
+        FieldRowPanel(
+            [
+                FieldPanel("price"),
+            ]
+        ),
+        MultiFieldPanel(
+            [
+                AutocompletePanel("products", target_model=LBCProduct),
+            ],
+            heading="Product",
+        ),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),
@@ -202,7 +220,13 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             ],
             heading="billing schedule",
         ),
-        AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+        MultiFieldPanel(
+            [
+                FieldPanel("should_advertise_postage_price"),
+                AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+            ],
+            heading="Shipping fees",
+        ),
         FieldPanel(
             "description",
             classname="full",
@@ -243,7 +267,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     def price_string(self) -> str:
         money = str(self.price)
         interval = self.humanised_interval()
-        return f"{money}{interval}"
+        s = f"{money}{interval}"
+        if self.should_advertise_postage_price:
+            return f"{s} + p&p"
+        return s
 
     @property
     def months_per_billing_cycle(self):
@@ -263,7 +290,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     @property
     def equivalent_monthly_price_string(self) -> str:
         money = str(self.equivalent_monthly_price)
-        return f"{money}/month"
+        s = f"{money}/month"
+        if self.should_advertise_postage_price:
+            return f"{s} + p&p"
+        return s
 
     def __str__(self) -> str:
         return f"{self.price_string} on {self.plan}"
@@ -323,6 +353,68 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             },
         ]
         return line_items
+
+    def upsell(self, product_id: str):
+        return Upsell.objects.filter(
+            plan=self.plan, from_stripe_product__id=product_id
+        ).first()
+
+    def upsell_data(self, product_id: str, country_id):
+        try:
+            upsell = self.upsell(product_id)
+            if upsell is not None and upsell.url() is not None:
+                if country_id is not None:
+                    return {
+                        "description": upsell.description,
+                        "url": upsell.url(country_id),
+                    }
+                return {"description": upsell.description, "url": upsell.url()}
+        except:
+            return None
+
+
+@register_snippet
+class Upsell(Orderable, ClusterableModel):
+    class Meta:
+        unique_together = ["plan", "from_stripe_product", "to_stripe_product"]
+
+    plan = ParentalKey(
+        "app.MembershipPlanPage",
+        on_delete=models.CASCADE,
+        related_name="upsells",
+        verbose_name="membership plan",
+    )
+
+    description = models.CharField(max_length=150)
+
+    from_stripe_product = models.ForeignKey(
+        LBCProduct, on_delete=models.CASCADE, related_name="upsells"
+    )
+
+    to_stripe_product = models.ForeignKey(
+        LBCProduct, on_delete=models.CASCADE, related_name="+"
+    )
+
+    panels = [
+        FieldPanel("description"),
+        AutocompletePanel("plan", target_model="app.MembershipPlanPage"),
+        AutocompletePanel("from_stripe_product", target_model=LBCProduct),
+        AutocompletePanel("to_stripe_product", target_model=LBCProduct),
+    ]
+
+    @property
+    def to_price(self):
+        return self.plan.prices.filter(products=self.to_stripe_product).first()
+
+    def url(self, country_id=None):
+        return reverse(
+            "plan_shipping",
+            kwargs=dict(
+                price_id=self.to_price.id,
+                product_id=self.to_stripe_product.id,
+                country_id=country_id,
+            ),
+        )
 
 
 class PlanTitleBlock(blocks.StructBlock):
@@ -1098,6 +1190,7 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
         FieldPanel("deliveries_per_year"),
         FieldPanel("description"),
         InlinePanel("prices", min_num=1, label="Subscription Pricing Options"),
+        InlinePanel("upsells", heading="Upsell options", label="Upsell option"),
         FieldPanel("pick_product_title", classname="full title"),
         FieldPanel("pick_product_text"),
         StreamFieldPanel("layout"),

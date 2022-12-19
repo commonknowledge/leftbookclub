@@ -21,12 +21,20 @@
                         <li class="breadcrumb-item">
                             <a class='text-muted tw-no-underline' href="/join">Select plan</a>
                         </li>
+                        {% if price.plan.prices|length > 1 %}
+                            <li class="breadcrumb-item">
+                                <a class='text-muted tw-no-underline' href="{% pageurl price.plan %}">Select book series</a>
+                            </li>
+                        {% endif %}
                         <li class="breadcrumb-item active text-black tw-underline"
                             aria-current="page">Shipping</li>
                         {% if not user.is_authenticated %}<li class="breadcrumb-item">Create account</li>{% endif %}
                         <li class="breadcrumb-item">Checkout</li>
                     </ol>
                 </nav>
+                <div>
+                    {% if upsell %}<a href="{{ upsell.url }}">{{ upsell.description }}</a>{% endif %}
+                </div>
             </header>
             <div class="row justify-content-center">
                 {% comment %} Shipping form {% endcomment %}

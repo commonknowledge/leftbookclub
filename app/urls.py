@@ -33,6 +33,7 @@ from app.views import (
     StripeCustomerPortalView,
     SubscriptionCheckoutView,
     SyncShopifyWebhookEndpoint,
+    WagtailStreamfieldBlockTurboFrame,
 )
 
 urlpatterns = [
@@ -124,17 +125,24 @@ urlpatterns = [
         ShippingCostView.url_pattern, ShippingCostView.as_view(), name="shippingcosts"
     ),
     path(CartOptionsView.url_pattern, CartOptionsView.as_view(), name="cartoptions"),
-    path("product/<int:id>/", ProductRedirectView.as_view(), name="product"),
+    path("anonymous/product/<int:id>/", ProductRedirectView.as_view(), name="product"),
     path(settings.SYNC_SHOPIFY_WEBHOOK_ENDPOINT, SyncShopifyWebhookEndpoint.as_view()),
     path(
-        "frames/all_merch/",
+        "anonymous/frames/all_merch/",
         TemplateView.as_view(template_name="app/frames/all_merch.html"),
         name="all_merch",
     ),
     path(
-        "frames/all_books/",
+        "anonymous/frames/all_books/",
         TemplateView.as_view(template_name="app/frames/all_books.html"),
         name="all_books",
+    ),
+    path(
+        "anonymous/frames/membership_options_grid/<int:page_id>/<str:field_name>/<str:block_id>/",
+        WagtailStreamfieldBlockTurboFrame.as_view(
+            template_name="app/frames/membership_options_grid.html"
+        ),
+        name="membership_options_grid",
     ),
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism

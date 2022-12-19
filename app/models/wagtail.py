@@ -190,11 +190,32 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         blank=True,
     )
 
-    products = ParentalManyToManyField(LBCProduct, blank=True)
+    should_advertise_postage_price = models.BooleanField(
+        default=True,
+        help_text="Whether to advertise that the price is + p&p, before the shipping zone is known.",
+    )
+
+    products = ParentalManyToManyField(
+        LBCProduct,
+        blank=True,
+        help_text="The stripe product that the user will be subscribed to. If multiple products are set here, then the user will be asked to pick which one they want, e.g. Classic or Contemporary books.",
+    )
 
     panels = [
-        AutocompletePanel("products", target_model=LBCProduct),
-        FieldPanel("price"),
+        FieldRowPanel(
+            [
+                FieldPanel("price"),
+            ]
+        ),
+        MultiFieldPanel(
+            [
+                AutocompletePanel("products", target_model=LBCProduct),
+                InlinePanel(
+                    "related_links", heading="Related links", label="Related link"
+                ),
+            ],
+            heading="Product",
+        ),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),
@@ -202,7 +223,13 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             ],
             heading="billing schedule",
         ),
-        AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+        MultiFieldPanel(
+            [
+                FieldPanel("should_advertise_postage_price"),
+                AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+            ],
+            heading="Shipping fees",
+        ),
         FieldPanel(
             "description",
             classname="full",
@@ -243,7 +270,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     def price_string(self) -> str:
         money = str(self.price)
         interval = self.humanised_interval()
-        return f"{money}{interval}"
+        s = f"{money}{interval}"
+        if self.should_advertise_postage_price:
+            return f"{s} + p&p"
+        return s
 
     @property
     def months_per_billing_cycle(self):
@@ -263,7 +293,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     @property
     def equivalent_monthly_price_string(self) -> str:
         money = str(self.equivalent_monthly_price)
-        return f"{money}/month"
+        s = f"{money}/month"
+        if self.should_advertise_postage_price:
+            return f"{s} + p&p"
+        return s
 
     def __str__(self) -> str:
         return f"{self.price_string} on {self.plan}"

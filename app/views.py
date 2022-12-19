@@ -515,6 +515,7 @@ class ShippingForProductView(TemplateView):
             {
                 "price": price,
                 "product": product,
+                "upsell": price.upsell_data(product_id, country_id),
                 "default_country_code": country_id,
                 "country_selector_form": CountrySelectorForm(
                     initial={"country": country_id}

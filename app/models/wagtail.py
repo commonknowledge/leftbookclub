@@ -42,6 +42,7 @@ from wagtail.search import index
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.snippets.models import register_snippet
 from wagtailautocomplete.edit_handlers import AutocompletePanel
+from wagtailcache.cache import WagtailCacheMixin
 from wagtailseo import utils
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
@@ -570,7 +571,7 @@ class ImageRendition(AbstractRendition):
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 
-class BlogIndexPage(IndexPageSeoMixin, Page):
+class BlogIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     """
     Define blog index page.
     """
@@ -584,7 +585,7 @@ class BlogIndexPage(IndexPageSeoMixin, Page):
     seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["intro"]
 
 
-class BlogPage(ArticleSeoMixin, Page):
+class BlogPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     """
     Define blog detail page.
     """
@@ -622,7 +623,7 @@ def shopify_product_id_key(page):
     return page.shopify_product_id
 
 
-class BaseShopifyProductPage(ArticleSeoMixin, Page):
+class BaseShopifyProductPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     class Meta:
         abstract = True
 
@@ -1105,7 +1106,7 @@ def create_streamfield(additional_blocks=None, **kwargs):
     return StreamField(blcks, null=True, blank=True, use_json_field=True, **kwargs)
 
 
-class MerchandiseIndexPage(IndexPageSeoMixin, Page):
+class MerchandiseIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
@@ -1163,7 +1164,7 @@ class BookPage(BaseShopifyProductPage):
         ordering = ["-published_date"]
 
 
-class MembershipPlanPage(ArticleSeoMixin, Page):
+class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
 
     deliveries_per_year = models.IntegerField()
@@ -1243,25 +1244,25 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
         return context
 
 
-class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
+class HomePage(WagtailCacheMixin, IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class InformationPage(ArticleSeoMixin, Page):
+class InformationPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class BookIndexPage(IndexPageSeoMixin, Page):
+class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class MapPage(Page):
+class MapPage(WagtailCacheMixin, Page):
     intro = RichTextField()
 
     content_panels = Page.content_panels + [FieldPanel("intro")]

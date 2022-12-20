@@ -2038,6 +2038,17 @@ docs = ["Sphinx (>=1.7)", "sphinx-rtd-theme (>=0.4.0)"]
 test = ["beautifulsoup4 (>=4.8)", "html5lib (>=0.999999999)", "pytest (>=3.5)", "pytest-django (>=3.2)", "pytest-pythonpath (>=0.7.2)", "tox"]
 
 [[package]]
+name = "wagtail-cache"
+version = "2.2.0"
+description = "A simple page cache for Wagtail based on the Django cache middleware."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+wagtail = ">=3.0,<5.0"
+
+[[package]]
 name = "wagtail-seo"
 version = "2.3.0"
 description = "Search engine and social media optimization for Wagtail."
@@ -2190,7 +2201,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "40b6e3acdec1a27cdb8eeecf15f3c11e613f3b06b0fb7c2784c61dc541ef3dcc"
+content-hash = "69b02a413a662d6708b5fc9bc4d46d907009d61b79f298f2dd9a77a669ecd32b"
 
 [metadata.files]
 anyascii = [
@@ -3219,6 +3230,10 @@ wagtail-admin-list-controls = [
 wagtail-autocomplete = [
     {file = "wagtail-autocomplete-0.9.0.tar.gz", hash = "sha256:b64828d35f370453c84bc4094174872822798e54414f5fb9fc8a43c2a6c3e727"},
     {file = "wagtail_autocomplete-0.9.0-py3-none-any.whl", hash = "sha256:d85789543308d344447656725b9aac8d1c4c6fb271221a3340008a3c9f2ab6fa"},
+]
+wagtail-cache = [
+    {file = "wagtail-cache-2.2.0.tar.gz", hash = "sha256:e9e6a8391795d5faab877183c025451c82905ea94b7a0d5eb4aca29ea136499f"},
+    {file = "wagtail_cache-2.2.0-py3-none-any.whl", hash = "sha256:a231bc3941eb3ce3e8c73b9aea5d9a54e2f580009a0c87bf86ac59a6545a9609"},
 ]
 wagtail-seo = [
     {file = "wagtail-seo-2.3.0.tar.gz", hash = "sha256:cefd8c1b011d55a95dbe8b6c75a504fb441df089f594e2b06d92e3d5b95f3609"},

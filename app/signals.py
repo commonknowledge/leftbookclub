@@ -5,6 +5,7 @@ from djstripe import webhooks
 from djstripe.models import Customer
 from sentry_sdk import capture_exception
 from shopify_webhook.signals import products_create, products_delete, products_update
+from wagtail import hooks
 
 from app import analytics
 from app.models.wagtail import BookPage
@@ -89,3 +90,15 @@ def sync(*args, data: shopify.Product, **kwargs):
     product_id = data.get("id")
     print("Product", product_id, "was deleted")
     BookPage.objects.filter(shopify_product_id=product_id).delete()
+
+
+from wagtailcache.cache import clear_cache
+
+
+@hooks.register("after_create_page")
+@hooks.register("after_edit_page")
+@hooks.register("after_publish_page")
+@hooks.register("after_unpublish_page")
+@hooks.register("after_delete_page")
+def clear_wagtailcache(*args, **kwargs):
+    clear_cache()

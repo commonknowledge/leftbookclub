@@ -18,7 +18,7 @@ if os.getenv("SKIP_DB") != "1":
 
 INSTALLED_APPS += ["wagtail.contrib.styleguide", "django_extensions"]
 
-USE_DEBUG_TOOLBAR = True
+USE_DEBUG_TOOLBAR = False
 
 if USE_DEBUG_TOOLBAR:
     INSTALLED_APPS += [
@@ -39,6 +39,8 @@ if USE_SILK:
     INSTALLED_APPS += [
         "silk",
     ]
+
+WAGTAIL_CACHE = True
 
 try:
     from .local import *

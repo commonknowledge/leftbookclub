@@ -1029,6 +1029,7 @@ class ColumnBlock(blocks.StructBlock):
         ("membership_plan", PlanBlock()),
         ("richtext", blocks.RichTextBlock(features=block_features)),
         ("button", ButtonBlock()),
+        ("newsletter_signup", NewsletterSignupBlock()),
     ]
     background_color = BackgroundColourChoiceBlock(required=False)
     content = blocks.StreamBlock(stream_blocks, required=False)
@@ -1098,7 +1099,6 @@ def create_streamfield(additional_blocks=None, **kwargs):
         ("list_of_heading_image_text", ListBlock()),
         ("single_column", SingleColumnBlock()),
         ("columns", MultiColumnBlock()),
-        ("newsletter_signup", NewsletterSignupBlock()),
         ("events_list_and_map", EventsListAndMap()),
         ("events_list_block", EventsListBlock()),
     ]

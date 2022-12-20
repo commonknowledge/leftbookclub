@@ -6,11 +6,10 @@
       target="_blank"
       novalidate>
     <fieldset>
-        <legend>
+        <legend class="h1 fw-bold mb-3">
             {% firstof heading "Subscribe to the newsletter" %}
         </legend>
         <div class="mb-3">
-            <label for="exampleFormControlInput1" class="form-label">Email address</label>
             <input type="email"
                    name="EMAIL"
                    class="form-control"
@@ -28,8 +27,5 @@
                 value='subscribe'
                 type="submit"
                 class="btn btn-primary">Subscribe</button>
-        <div id="passwordHelpBlock" class="form-text">
-            You can change your mind at any time by clicking the unsubscribe link in the footer of our emails. <a href='https://www.leftbookclub.com/privacy-policy/'>Read our privacy policy here</a>. We use Mailchimp as our marketing platform. By subscribing you acknowledge that your information will be transferred to Mailchimp for processing. <a href="https://mailchimp.com/legal/terms" target="_blank">Learn more about Mailchimp's privacy practices here.</a>
-        </div>
     </fieldset>
 </form>

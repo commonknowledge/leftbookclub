@@ -40,7 +40,7 @@ if USE_SILK:
         "silk",
     ]
 
-WAGTAIL_CACHE = True
+WAGTAIL_CACHE = False
 
 try:
     from .local import *

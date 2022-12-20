@@ -16,6 +16,7 @@ from django.http.response import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django_countries import countries
 from djmoney.models.fields import Money, MoneyField
@@ -42,7 +43,7 @@ from wagtail.search import index
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.snippets.models import register_snippet
 from wagtailautocomplete.edit_handlers import AutocompletePanel
-from wagtailcache.cache import WagtailCacheMixin
+from wagtailcache.cache import WagtailCacheMixin, cache_page
 from wagtailseo import utils
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
@@ -571,6 +572,7 @@ class ImageRendition(AbstractRendition):
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 
+@method_decorator(cache_page, name="serve")
 class BlogIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     """
     Define blog index page.
@@ -585,6 +587,7 @@ class BlogIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["intro"]
 
 
+@method_decorator(cache_page, name="serve")
 class BlogPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     """
     Define blog detail page.
@@ -623,7 +626,7 @@ def shopify_product_id_key(page):
     return page.shopify_product_id
 
 
-class BaseShopifyProductPage(WagtailCacheMixin, ArticleSeoMixin, Page):
+class BaseShopifyProductPage(ArticleSeoMixin, Page):
     class Meta:
         abstract = True
 
@@ -1106,13 +1109,15 @@ def create_streamfield(additional_blocks=None, **kwargs):
     return StreamField(blcks, null=True, blank=True, use_json_field=True, **kwargs)
 
 
+@method_decorator(cache_page, name="serve")
 class MerchandiseIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class MerchandisePage(BaseShopifyProductPage):
+@method_decorator(cache_page, name="serve")
+class MerchandisePage(WagtailCacheMixin, BaseShopifyProductPage):
     shopify_collection_id = settings.SHOPIFY_MERCH_COLLECTION_ID
 
     @classmethod
@@ -1120,7 +1125,8 @@ class MerchandisePage(BaseShopifyProductPage):
         return MerchandiseIndexPage.objects.first()
 
 
-class BookPage(BaseShopifyProductPage):
+@method_decorator(cache_page, name="serve")
+class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     shopify_collection_id = settings.SHOPIFY_BOOKS_COLLECTION_ID
 
     parent_page_types = ["app.BookIndexPage"]
@@ -1164,6 +1170,7 @@ class BookPage(BaseShopifyProductPage):
         ordering = ["-published_date"]
 
 
+@method_decorator(cache_page, name="serve")
 class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
 
@@ -1244,24 +1251,28 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
         return context
 
 
+@method_decorator(cache_page, name="serve")
 class HomePage(WagtailCacheMixin, IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
+@method_decorator(cache_page, name="serve")
 class InformationPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
+@method_decorator(cache_page, name="serve")
 class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
+@method_decorator(cache_page, name="serve")
 class MapPage(WagtailCacheMixin, Page):
     intro = RichTextField()
 

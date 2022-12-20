@@ -449,16 +449,6 @@ WAGTAIL_CACHE = os.getenv("WAGTAIL_CACHE", False)
 
 INSTALLED_APPS += ["wagtailcache"]
 
-# Add at the beginning and end
-# docs: https://docs.coderedcorp.com/wagtail-cache/getting_started/install.html
-MIDDLEWARE = (
-    ["wagtailcache.cache.UpdateCacheMiddleware"]
-    + MIDDLEWARE
-    + [
-        "wagtailcache.cache.FetchFromCacheMiddleware",
-    ]
-)
-
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",

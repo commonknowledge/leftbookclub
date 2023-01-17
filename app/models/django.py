@@ -11,11 +11,14 @@ from sentry_sdk import capture_exception
 
 from app.utils.stripe import (
     get_primary_product_for_djstripe_subscription,
+    get_primary_product_subscription_item_for_djstripe_subscription,
+    get_shipping_product_for_djstripe_subscription,
     interval_string_for_plan,
     subscription_with_promocode,
 )
 
 from .stripe import LBCProduct, LBCSubscription
+from .wagtail import MembershipPlanPrice
 
 
 def custom_user_casual_name(user: AbstractUser) -> str:
@@ -307,6 +310,40 @@ class User(AbstractUser):
                 return si.plan.human_readable_price
         except:
             return None
+
+    # TODO: Test this
+    def get_membership_plan_price_and_si(self):
+        if self.active_subscription is None:
+            return None, None
+        si = get_primary_product_subscription_item_for_djstripe_subscription(
+            self.active_subscription
+        )
+        try:
+            current_plan_price = MembershipPlanPrice.objects.get(
+                id=si.plan.product.price.metadata.get("wagtail_price")
+            )
+        except:
+            pass
+        if current_plan_price is None:
+            current_plan_price = MembershipPlanPrice.objects.filter(
+                interval=si.plan.interval,
+                interval_count=si.plan.interval_count,
+                product=si.plan.product,
+            )
+        return current_plan_price, si
+
+    # TODO: Test this
+    def has_legacy_price(self):
+        current_plan_price, si = self.get_membership_plan_price_and_si()
+        if si is None:
+            return False
+        if si.plan.amount < current_plan_price.price:
+            return True
+
+    # TODO: Test this
+    def has_free_shipping(self):
+        sub = self.active_subscription
+        return get_shipping_product_for_djstripe_subscription(sub) is None
 
     def get_analytics_data(self):
         user_data = {

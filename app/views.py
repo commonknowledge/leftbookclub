@@ -708,3 +708,61 @@ class WagtailStreamfieldBlockTurboFrame(TemplateView):
                 context.update(block.block.get_context(block.value))
                 break
         return context
+
+
+from django import forms
+
+
+class UpgradeView(FormView):
+    template_name = "app/upgrade.html"
+    success_url = "app/upgrade_success.html"
+
+    # TODO: If you're a gift user, you shouldn't see this
+    # TODO: Be clear in the template if the upgrade is for the gift or personal sub
+
+    def get_form_class(self):
+        user = self.request.user
+
+        CHOICES = [
+            # Look at current price of primary product, and compare to what's in the plans, then display or don't. This logic should be put on the User model so it can be checked on in
+            # TODO: Detail your current plan price (e.g. next invoice)
+            ("STATUS_QUO", "Your current plan"),
+        ]
+
+        if user.has_free_shipping():
+            # TODO: Show value of new price
+            CHOICES += [("ADD_SHIPPING", "Choose new price")]
+
+        if user.has_legacy_price():
+            # TODO: Show value of new price
+            CHOICES += [("REFRESH_ALL_LINE_ITEMS", "New price + add shipping")]
+
+        class UpgradeForm(forms.Form):
+            fee_option = forms.ChoiceField(
+                widget=forms.RadioSelect, choices=CHOICES, default="status_quo"
+            )
+
+            def form_valid(self, form):
+                fee_option = form.cleaned_data.get("fee_option")
+                print("Updating Stripe sub", user, fee_option, form.cleaned_data)
+
+                if fee_option == "STATUS_QUO":
+                    pass
+                elif fee_option == "ADD_SHIPPING":
+                    # TODO: Add shipping product to subscription, if it's not already there
+                    price = None
+                    zone = None
+                    price.to_shipping_line_items(zone=zone)
+                    # NB: No prorations; billing schedule stays the same, just next fee is billed at the new price
+                    pass
+                elif fee_option == "REFRESH_ALL_LINE_ITEMS":
+                    # TODO: Remove all line items and regenerate them using the same code as for new signups
+                    price = None
+                    zone = None
+                    product = None
+                    price.to_checkout_line_items(product=product, zone=zone)
+                    # NB: No prorations; billing schedule stays the same, just next fee is billed at the new price
+                    pass
+                return super(UpgradeView, self).form_valid(form)
+
+        return UpgradeForm

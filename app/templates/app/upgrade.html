@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 gift_card static %}
+{% block title %}Redeem a gift code | Left Book Club{% endblock %}
+{% block content_padding %}p-5{% endblock %}
+{% block content_width %}container-fluid{% endblock %}
+{% block content_extra_classes %}tw-bg-yellow{% endblock %}
+{% block content %}
+    {% url "redeem" as redeem_url %}
+    <header class='text-center my-4'>
+        <img alt="Cartoon of a gift box"
+             src='{% static "images/gift.png" %}'
+             class='my-4'/>
+        <h1>Someone bought you a gift membership!</h1>
+        <p>We hope you enjoy reading with us.</p>
+    </header>
+    {% if code %}
+        <div class='row'>
+            <div class='d-flex flex-column justify-content-center align-items-center'>{% gift_card_from_code code %}</div>
+        </div>
+        <br />
+    {% endif %}
+    <form method='POST' data-turbo="false" id="redeem-form">
+        {% csrf_token %}
+        {% comment %} Basic form bits {% endcomment %}
+        <div class='row justify-content-center'>
+            <div class='max-width-card w-100'>
+                {% if code %}
+                    <div class='d-none'>{% bootstrap_form form field_class="text-center fs-4" size="lg" %}</div>
+                {% elif code and not code|is_redeemable_gift_card and code|is_real_gift_card %}
+                    {% bootstrap_alert "This code has already been redeemed" %}
+                {% else %}
+                    {% bootstrap_form form show_label=False field_class="text-center fs-4" size="lg" %}
+                {% endif %}
+            </div>
+        </div>
+        {% comment %} Extra form bits {% endcomment %}
+        {% if code|is_redeemable_gift_card and user.is_member %}
+            <div class='row justify-content-center'>
+                <div class="form-check max-width-card w-100">
+                    <input required
+                           class="form-check-input"
+                           type="checkbox"
+                           value=""
+                           id='confirm_cancel_current_subscriptions'
+                           name='confirm_cancel_current_subscriptions'/>
+                    <label class="form-check-label" for="confirm_cancel_current_subscriptions">
+                        <p>
+                            I confirm that my existing subscription(s) will be <u>immediately cancelled</u> and replaced with this new, gifted subscription: <i>{{ user.primary_product.name }}</i>
+                        </p>
+                    </label>
+                </div>
+            </div>
+        {% endif %}
+        {% comment %} Buttons {% endcomment %}
+        <div class='row justify-content-center'>
+            <div class="max-width-card w-100 text-center"
+                 role="group"
+                 aria-label="Button group">
+                {% if code|is_redeemable_gift_card or code is None %}
+                    {% bootstrap_button size='lg' button_class='btn-dark' content="Redeem" %}
+                {% endif %}
+                <br />
+                <br />
+                {% if code %}
+                    {% bootstrap_button button_class='btn-light text-muted' href=redeem_url content="Enter a code manually" %}
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}

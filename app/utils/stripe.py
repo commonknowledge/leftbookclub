@@ -334,13 +334,31 @@ def create_gift_recipient_subscription(
     return subscription
 
 
+def get_primary_product_subscription_item_for_djstripe_subscription(
+    sub: djstripe.models.Subscription,
+) -> djstripe.models.SubscriptionItem:
+    if sub.plan is not None:
+        return sub
+    return (
+        sub.items.exclude(plan__product__name=shipping_product_name)
+        .select_related("plan__product")
+        .first()
+    )
+
+
 def get_primary_product_for_djstripe_subscription(
     sub: djstripe.models.Subscription,
 ) -> djstripe.models.Product:
-    if sub.plan is not None and sub.plan.product is not None:
-        return sub.plan.product
+    si = get_primary_product_subscription_item_for_djstripe_subscription(sub)
+    if si is not None:
+        return si.plan.product
+
+
+def get_shipping_product_for_djstripe_subscription(
+    sub: djstripe.models.Subscription,
+) -> Union[djstripe.models.Product, None]:
     return (
-        sub.items.exclude(plan__product__name=shipping_product_name)
+        sub.items.filter(plan__product__name=shipping_product_name)
         .select_related("plan__product")
         .first()
         .plan.product

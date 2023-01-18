@@ -6,16 +6,10 @@
         {% bootstrap_alert error alert_type='danger' %}
     {% endif %}
     <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
-        <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
-        <p>You've successfully started a membership plan</p>
+        <h1 class="h2 fw-normal">Your membership has been updated, {% user_display user %}</h1>
+        <p>Your delivery schedule is unchanged. Happy reading!</p>
     </header>
     <div class="d-flex flex-column justify-content-center align-items-center mb-4">
         {% include "app/includes/membership_card.html" %}
-    </div>
-    <div>
-        {% get_settings %}
-        {% if settings.app.MembershipJourney.welcome_content %}
-            {% include "app/includes/layout.html" with streamfield=settings.app.MembershipJourney.welcome_content %}
-        {% endif %}
     </div>
 {% endblock %}

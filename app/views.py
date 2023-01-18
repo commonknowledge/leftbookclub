@@ -717,11 +717,23 @@ class UpgradeView(FormView):
     template_name = "app/upgrade.html"
     success_url = "app/upgrade_success.html"
 
-    # TODO: If you're a gift user, you shouldn't see this
-    # TODO: Be clear in the template if the upgrade is for the gift or personal sub
-
     def get_form_class(self):
-        user = self.request.user
+        return UpgradeView.get_form_class_for_user(self.request.user)
+
+    def form_valid(self, form):
+        form.update_membership()
+        return super().form_valid(form)
+
+    @classmethod
+    def get_form_class_for_user(cls, user):
+        billing_deets = user.get_membership_details()
+        sub = billing_deets.get("subscription")
+        price = billing_deets.get("membership_plan_price")
+        zone = billing_deets.get("shipping_zone")
+        shipping_si = billing_deets.get("shipping_si")
+        membership_si = billing_deets.get("membership_si")
+        has_legacy_membership_price = billing_deets.get("has_legacy_membership_price")
+        product = billing_deets.get("membership_si").plan.product
 
         CHOICES = [
             # Look at current price of primary product, and compare to what's in the plans, then display or don't. This logic should be put on the User model so it can be checked on in
@@ -729,40 +741,55 @@ class UpgradeView(FormView):
             ("STATUS_QUO", "Your current plan"),
         ]
 
-        if user.has_free_shipping():
+        if shipping_si is None:
             # TODO: Show value of new price
-            CHOICES += [("ADD_SHIPPING", "Choose new price")]
+            shipping_fee = price.shipping_fee(zone)
+            CHOICES += [("ADD_SHIPPING", f"Add shipping for {shipping_fee}")]
 
-        if user.has_legacy_price():
+        if has_legacy_membership_price:
             # TODO: Show value of new price
-            CHOICES += [("REFRESH_ALL_LINE_ITEMS", "New price + add shipping")]
+            new_price = price.price_string_including_shipping(zone)
+            CHOICES += [
+                (
+                    "REFRESH_ALL_LINE_ITEMS",
+                    f"Move to the new standard rate including shipping: {new_price}",
+                )
+            ]
+
+        def get_initial(self):
+            """
+            Returns the initial data to use for forms on this view.
+            """
+            initial = super().get_initial()
+            initial["fee_option"] = "STATUS_QUO"
+            return initial
 
         class UpgradeForm(forms.Form):
-            fee_option = forms.ChoiceField(
-                widget=forms.RadioSelect, choices=CHOICES, default="status_quo"
-            )
+            fee_option = forms.ChoiceField(widget=forms.RadioSelect, choices=CHOICES)
 
-            def form_valid(self, form):
-                fee_option = form.cleaned_data.get("fee_option")
-                print("Updating Stripe sub", user, fee_option, form.cleaned_data)
+            def update_membership(self, *args, **kwargs):
+                print(self, args, kwargs)
+                fee_option = self.cleaned_data.get("fee_option")
+                print("Updating Stripe sub", user, fee_option, self.cleaned_data)
 
                 if fee_option == "STATUS_QUO":
                     pass
                 elif fee_option == "ADD_SHIPPING":
-                    # TODO: Add shipping product to subscription, if it's not already there
-                    price = None
-                    zone = None
-                    price.to_shipping_line_items(zone=zone)
-                    # NB: No prorations; billing schedule stays the same, just next fee is billed at the new price
-                    pass
+                    stripe.SubscriptionItem.create(
+                        proration_behavior="none",
+                        **price.to_shipping_price_data(zone=zone),
+                    )
                 elif fee_option == "REFRESH_ALL_LINE_ITEMS":
-                    # TODO: Remove all line items and regenerate them using the same code as for new signups
-                    price = None
-                    zone = None
-                    product = None
-                    price.to_checkout_line_items(product=product, zone=zone)
-                    # NB: No prorations; billing schedule stays the same, just next fee is billed at the new price
-                    pass
-                return super(UpgradeView, self).form_valid(form)
+                    new_items = price.to_checkout_line_items(product=product, zone=zone)
+
+                    # Remove old items
+                    if membership_si is not None:
+                        new_items += [{"id": membership_si.id, "deleted": True}]
+                    if shipping_si is not None:
+                        new_items += [{"id": shipping_si.id, "deleted": True}]
+
+                    stripe.Subscription.modify(
+                        sub.id, proration_behavior="none", items=new_items
+                    )
 
         return UpgradeForm

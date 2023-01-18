@@ -1,3 +1,5 @@
+import json
+
 import djstripe
 import stripe
 from allauth.account.models import EmailAddress
@@ -10,6 +12,7 @@ from django.utils import timezone
 from sentry_sdk import capture_exception
 
 from app.utils.stripe import (
+    SHIPPING_PRODUCT_NAME,
     get_primary_product_for_djstripe_subscription,
     get_primary_product_subscription_item_for_djstripe_subscription,
     get_shipping_product_for_djstripe_subscription,
@@ -18,7 +21,6 @@ from app.utils.stripe import (
 )
 
 from .stripe import LBCProduct, LBCSubscription
-from .wagtail import MembershipPlanPrice
 
 
 def custom_user_casual_name(user: AbstractUser) -> str:
@@ -311,13 +313,9 @@ class User(AbstractUser):
         except:
             return None
 
-    # TODO: Test this
-    def get_membership_plan_price_and_si(self):
-        if self.active_subscription is None:
-            return None, None
-        si = get_primary_product_subscription_item_for_djstripe_subscription(
-            self.active_subscription
-        )
+    def get_membership_plan_price_for_si(self, si):
+        from .wagtail import MembershipPlanPrice
+
         try:
             current_plan_price = MembershipPlanPrice.objects.get(
                 id=si.plan.product.price.metadata.get("wagtail_price")
@@ -330,20 +328,50 @@ class User(AbstractUser):
                 interval_count=si.plan.interval_count,
                 product=si.plan.product,
             )
-        return current_plan_price, si
 
-    # TODO: Test this
-    def has_legacy_price(self):
-        current_plan_price, si = self.get_membership_plan_price_and_si()
-        if si is None:
-            return False
-        if si.plan.amount < current_plan_price.price:
-            return True
+    def get_membership_details(self):
+        """
+        From this, you can glean plan, product, pricing, shipping, location, etc., as well as subscription dates and billing schedule.
+        """
+        from .wagtail import MembershipPlanPrice, ShippingZone
 
-    # TODO: Test this
-    def has_free_shipping(self):
-        sub = self.active_subscription
-        return get_shipping_product_for_djstripe_subscription(sub) is None
+        if self.active_subscription is None:
+            return {}
+
+        sis = self.active_subscription.items.select_related("plan__product").all()
+
+        shipping_si = None
+        membership_si = None
+
+        for si in sis:
+            if si.plan.product.name == SHIPPING_PRODUCT_NAME:
+                shipping_si = si
+            else:
+                membership_si = si
+
+        membership_plan_price = MembershipPlanPrice.from_si(membership_si)
+
+        print(membership_si.plan.amount, membership_plan_price.price.amount)
+
+        return {
+            "subscription": self.active_subscription,
+            "membership_si": membership_si,
+            "membership_plan_price": MembershipPlanPrice.from_si(membership_si),
+            "has_legacy_membership_price": membership_si.plan.amount
+            < membership_plan_price.price.amount,
+            "shipping_si": shipping_si,
+            "shipping_zone": ShippingZone.get_for_country(self.shipping_country),
+        }
+
+    def should_upgrade(self):
+        """
+        Any reason to show the upgrade view.
+        """
+        billing_deets = self.get_membership_details()
+        return (
+            billing_deets.get("is_legacy_membership_price")
+            or billing_deets.get("shipping_si") is None
+        )
 
     def get_analytics_data(self):
         user_data = {

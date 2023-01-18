@@ -23,6 +23,7 @@ from app.views import (
     GiftCodeRedeemView,
     GiftMembershipSetupView,
     SubscriptionCheckoutView,
+    UpgradeView,
 )
 
 
@@ -447,7 +448,7 @@ class GiftTestCase(BaseGiftTestCase):
             "Gift subscriptions should not count as active membership subscriptions for the gift purchaser.",
         )
 
-        # Test that promo code and updated_subscription have correct metadata
+        # Test that promo code and updated_subcription have correct metadata
         self.assertEqual(
             gift_giver_subscription.metadata["automated_test_record"],
             "true",
@@ -511,7 +512,7 @@ class GiftTestCase(BaseGiftTestCase):
             "Gift subscriptions should not count as active membership subscriptions for the gift purchaser.",
         )
 
-        # Test that promo code and updated_subscription have correct metadata
+        # Test that promo code and updated_subcription have correct metadata
         self.assertEqual(
             gift_giver_subscription.metadata["automated_test_record"],
             "true",
@@ -793,3 +794,440 @@ class GiftTestCase(BaseGiftTestCase):
 #         self.driver.implicitly_wait(4)
 #         print("Expecting success", self.driver.current_url)
 #         self.assertContains(self.driver.current_url, reverse('completed_gift_redemption'))
+
+
+import datetime
+
+from dateutil.relativedelta import relativedelta
+
+
+def epoch_time(**kwargs):
+    time = datetime.datetime.now()
+    if len(kwargs.items()) > 0:
+        time = time + relativedelta(**kwargs)
+    return int(time.timestamp())
+
+
+class UpgradeTestCase(TestCase):
+    users = []
+    passwords = {}
+
+    def create_user(self) -> User:
+        # Generate current time in seconds since epoch
+        self.clock = stripe.test_helpers.TestClock.create(
+            frozen_time=epoch_time(), name="Monthly billing"
+        )
+        id = uid()
+        email = f"unit-test-{id}@leftbookclub.com"
+        user = User.objects.create_user(id, email, "default_pw_12345_xyz_lbc")
+        password = User.objects.make_random_password()
+        user.plaintext_password = password
+        user.set_password(password)
+        user.save(update_fields=["password"])
+
+        customer = stripe.Customer.create(
+            email=user.email, test_clock=self.clock.id, metadata={"text_mode": "true"}
+        )
+        payment_card = stripe.PaymentMethod.create(
+            type="card",
+            card={
+                "number": "4242424242424242",
+                "exp_month": 5,
+                "exp_year": date.today().year + 3,
+                "cvc": "424",
+            },
+        )
+        stripe.PaymentMethod.attach(
+            payment_card.id,
+            customer=customer.id,
+        )
+        customer = stripe.Customer.modify(
+            customer.id, invoice_settings=dict(default_payment_method=payment_card.id)
+        )
+        customer = djstripe.models.Customer.sync_from_stripe_data(customer)
+        customer.subscriber = user
+        customer.save()
+
+        self.passwords[user] = password
+        self.users += [user]
+        return user
+
+    @classmethod
+    def setUpTestData(cls):
+        # sync all products
+        products = stripe.Product.list(limit=100)
+        for product in products:
+            djstripe.models.Product.sync_from_stripe_data(product)
+        return super().setUpTestData()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        for user in cls.users:
+            if user.stripe_customer is not None:
+                stripe.Customer.delete(user.stripe_customer.id)
+        return super().tearDownClass()
+
+    def setUp(self) -> None:
+        self.user = self.create_user()
+
+        # Add zone
+        self.zone = ShippingZone.objects.create(
+            rest_of_world=True, code="ROW", nickname="ROW", rate=Money(2, "GBP")
+        )
+
+        # configure a boring plan
+        self.product = (
+            djstripe.models.Product.objects.filter(
+                active=True, metadata__shipping__isnull=True
+            )
+            .order_by("?")
+            .first()
+        )
+        self.plan = MembershipPlanPage(
+            title="Static Plan",
+            deliveries_per_year=12,
+            prices=[
+                MembershipPlanPrice(
+                    price=Money(10, "GBP"), interval="month", interval_count=1
+                )
+            ],
+        )
+        Page.get_first_root_node().add_child(instance=self.plan)
+        self.plan.save()
+        self.plan.monthly_price.products.set([self.product.djstripe_id])
+        self.plan.monthly_price.save()
+
+        return super().setUp()
+
+    def tearDown(self) -> None:
+        stripe.test_helpers.TestClock.delete(self.clock.id)
+        ShippingZone.objects.all().delete()
+        self.plan.unpublish()
+        self.plan.delete()
+        return super().tearDown()
+
+    def test_customer_chooses_status_quo(self):
+        # Set up
+        stripe_context = SubscriptionCheckoutView.create_checkout_context(
+            product=self.plan.monthly_price.products.first(),
+            price=self.plan.monthly_price,
+            zone=ShippingZone.default_zone,
+        )
+        args = dict(
+            customer=self.user.stripe_customer.id,
+            items=stripe_context["checkout_args"]["line_items"],
+            metadata={"created_by_script": "true"},
+        )
+        subscription = stripe.Subscription.create(**args)
+        djstripe.models.Subscription.sync_from_stripe_data(subscription)
+
+        # The user picks STATUS_QUO
+        form_class = UpgradeView.get_form_class_for_user(self.user)
+        form = form_class(data={"fee_option": "STATUS_QUO"})
+        form.update_membership()
+
+        # Their stripe subscription should be the same as it was before — check by invoice estimate
+        updated_sub = stripe.Subscription.retrieve(subscription.id)
+        djstripe.models.Subscription.sync_from_stripe_data(updated_sub)
+        print("IIIITEMS", type(updated_sub.items), updated_sub.items())
+        self.assertEqual(len(subscription.items()), len(updated_sub.items()))
+
+    def test_legacy_customer_adds_shipping(self):
+        # A price was never created for this user in the past.
+        # They're on some random price for a product that also has a newer, higher price.
+
+        # Set up
+        args = dict(
+            customer=self.user.stripe_customer.id,
+            items=[
+                {
+                    "price_data": {
+                        # half the price
+                        "unit_amount_decimal": (
+                            self.plan.monthly_price.price.amount * 100
+                        )
+                        / 2,
+                        "currency": self.plan.monthly_price.price_currency,
+                        # same product
+                        "product": self.plan.monthly_price.products.first().id,
+                        "recurring": {
+                            "interval": self.plan.monthly_price.interval,
+                            "interval_count": self.plan.monthly_price.interval_count,
+                        },
+                        "metadata": {"primary": True},
+                    },
+                    "quantity": 1,
+                },
+                # no shipping item
+            ],
+            metadata={"created_by_script": "true"},
+        )
+        subscription = stripe.Subscription.create(**args)
+        djstripe.models.Subscription.sync_from_stripe_data(subscription)
+
+        # They're alerted to the fact they should upgrade
+        self.assertTrue(self.user.should_upgrade())
+
+    def test_legacy_customer_adds_shipping(self):
+        # A price was never created for this user in the past.
+        # They're on some random price for a product that also has a newer, higher price.
+
+        # Set up
+        args = dict(
+            customer=self.user.stripe_customer.id,
+            items=[
+                {
+                    "price_data": {
+                        # half the price
+                        "unit_amount_decimal": (
+                            self.plan.monthly_price.price.amount * 100
+                        )
+                        / 2,
+                        "currency": self.plan.monthly_price.price_currency,
+                        # same product
+                        "product": self.plan.monthly_price.products.first().id,
+                        "recurring": {
+                            "interval": self.plan.monthly_price.interval,
+                            "interval_count": self.plan.monthly_price.interval_count,
+                        },
+                        "metadata": {"primary": True},
+                    },
+                    "quantity": 1,
+                },
+                # no shipping item
+            ],
+            metadata={"created_by_script": "true"},
+        )
+        subscription = stripe.Subscription.create(**args)
+        djstripe.models.Subscription.sync_from_stripe_data(subscription)
+
+        # The user picks ADD_SHIPPING
+        form_class = UpgradeView.get_form_class_for_user(self.user)
+        form = form_class(data={"fee_option": "ADD_SHIPPING"})
+        form.update_membership()
+
+        # The user should end up with two line items
+        updated_sub = stripe.Subscription.retrieve(subscription.id)
+        djstripe.models.Subscription.sync_from_stripe_data(updated_sub)
+        billing_deets = self.user.get_membership_details()
+        self.assertEqual(len(updated_sub.items()), 2)
+        self.assertGreater(len(subscription.items()), len(updated_sub.items()))
+        # Including shipping
+        self.assertIsNotNone(billing_deets.get("shipping_si"))
+        # And the old fee they were paying
+        self.assertEqual(
+            billing_deets.get("membership_si").plan.amount,
+            subscription.items()[0].plan.amount,
+        )
+
+        # No prorations
+        # price is as expected
+        stripe.test_helpers.TestClock.advance(
+            self.clock.id, frozen_time=epoch_time(days=15)
+        )
+        expected_line_items = billing_deets.get(
+            "membership_plan_price"
+        ).to_checkout_line_items(
+            product=billing_deets.get("membership_si").plan.product,
+            zone=billing_deets.get("shipping_zone"),
+        )
+        quote = stripe.Quote.create(
+            customer=self.user.stripe_customer.id,
+            line_items=expected_line_items,
+        )
+        upcoming_invoice = stripe.Invoice.upcoming(
+            customer=self.user.stripe_customer.id
+        )
+        self.assertEqual(quote.amount_total, upcoming_invoice.subtotal)
+
+    def test_legacy_customer_refreshes_to_new_price(self):
+        # A price was never created for this user in the past
+        # The user should end up with two line items, including the new price
+
+        # Set up
+        args = dict(
+            customer=self.user.stripe_customer.id,
+            items=[
+                {
+                    "price_data": {
+                        # half the price
+                        "unit_amount_decimal": (
+                            self.plan.monthly_price.price.amount * 100
+                        )
+                        / 2,
+                        "currency": self.plan.monthly_price.price_currency,
+                        # same product
+                        "product": self.plan.monthly_price.products.first().id,
+                        "recurring": {
+                            "interval": self.plan.monthly_price.interval,
+                            "interval_count": self.plan.monthly_price.interval_count,
+                        },
+                        "metadata": {"primary": True},
+                    },
+                    "quantity": 1,
+                },
+                # no shipping item
+            ],
+            metadata={"created_by_script": "true"},
+        )
+        subscription = stripe.Subscription.create(**args)
+        djstripe.models.Subscription.sync_from_stripe_data(subscription)
+        subscription_items = stripe.SubscriptionItem.list(
+            subscription=subscription.id,
+        )
+
+        # The user picks ADD_SHIPPING
+        form_class = UpgradeView.get_form_class_for_user(self.user)
+        form = form_class(data={"fee_option": "REFRESH_ALL_LINE_ITEMS"})
+        form.update_membership()
+
+        # The user should end up with two line items
+        updated_subscription = stripe.Subscription.retrieve(subscription.id)
+        djstripe.models.Subscription.sync_from_stripe_data(updated_subscription)
+        updated_subscription_items = stripe.SubscriptionItem.list(
+            subscription=subscription.id,
+        )
+        self.assertEqual(len(updated_subscription_items.data), 2)
+        self.assertGreater(
+            len(updated_subscription_items.data), len(subscription_items.data)
+        )
+        # Including shipping
+        billing_deets = self.user.get_membership_details()
+        self.assertIsNotNone(billing_deets.get("shipping_si"))
+        # And the NEW fee
+        self.assertEqual(
+            billing_deets.get("membership_si").plan.amount,
+            self.plan.monthly_price.price.amount,
+        )
+
+        # No prorations
+        # price is as expected
+        stripe.test_helpers.TestClock.advance(
+            self.clock.id, frozen_time=epoch_time(days=15)
+        )
+        expected_line_items = billing_deets.get(
+            "membership_plan_price"
+        ).to_checkout_line_items(
+            product=billing_deets.get("membership_si").plan.product,
+            zone=billing_deets.get("shipping_zone"),
+        )
+        quote = stripe.Quote.create(
+            customer=self.user.stripe_customer.id,
+            line_items=expected_line_items,
+        )
+        upcoming_invoice = stripe.Invoice.upcoming(
+            customer=self.user.stripe_customer.id
+        )
+        self.assertEqual(quote.amount_total, upcoming_invoice.subtotal)
+
+    def test_customer_on_edited_price_updates_to_new_price(self):
+        # A price was created
+        # The user signed up with it
+        # Since then, the price changed
+        # The user should end up on the new price
+
+        # Set up
+        stripe_context = SubscriptionCheckoutView.create_checkout_context(
+            product=self.plan.monthly_price.products.first(),
+            price=self.plan.monthly_price,
+            zone=ShippingZone.default_zone,
+        )
+        args = dict(
+            customer=self.user.stripe_customer.id,
+            items=stripe_context["checkout_args"]["line_items"],
+            metadata={"created_by_script": "true"},
+        )
+        subscription = stripe.Subscription.create(**args)
+        djstripe.models.Subscription.sync_from_stripe_data(subscription)
+
+        # Later, the prices double
+        old_zone_rate = self.zone.rate
+        self.zone.rate = self.zone.rate * 2
+        self.zone.save()
+        price = self.plan.monthly_price
+        old_membership_price = self.plan.monthly_price.price
+        price.price = self.plan.monthly_price.price * 2
+        price.save()
+
+        # The user picks STATUS_QUO
+        form_class = UpgradeView.get_form_class_for_user(self.user)
+        form = form_class(data={"fee_option": "REFRESH_ALL_LINE_ITEMS"})
+        form.update_membership()
+
+        # The user should end up with two line items
+        updated_subscription = stripe.Subscription.retrieve(subscription.id)
+        djstripe.models.Subscription.sync_from_stripe_data(updated_subscription)
+        updated_sub = stripe.Subscription.retrieve(subscription.id)
+        self.assertEqual(len(updated_sub.items()), 2)
+        self.assertGreater(len(subscription.items()), len(updated_sub.items()))
+
+        # Shipping price should have increased
+        billing_deets = self.user.get_membership_details()
+        self.assertGreater(billing_deets.get("shipping_si").plan.amount, old_zone_rate)
+        # Membership price should have increased
+        self.assertGreater(
+            billing_deets.get("membership_si").plan.amount,
+            subscription.items()[0].plan.amount,
+            old_membership_price,
+        )
+
+    def test_customer_on_deleted_price_updates_to_new_price(self):
+        # A price was created
+        # The user signed up with it
+        # Since then, the price was deleted
+        # The user should end up on the new price
+
+        # Set up
+        stripe_context = SubscriptionCheckoutView.create_checkout_context(
+            product=self.plan.monthly_price.products.first(),
+            price=self.plan.monthly_price,
+            zone=ShippingZone.default_zone,
+        )
+        args = dict(
+            customer=self.user.stripe_customer.id,
+            items=stripe_context["checkout_args"]["line_items"],
+            metadata={"created_by_script": "true"},
+        )
+        subscription = stripe.Subscription.create(**args)
+        djstripe.models.Subscription.sync_from_stripe_data(subscription)
+
+        # Later, the price was deleted and a new, similar one was created
+        old_membership_price = self.plan.monthly_price.price
+        self.plan.delete()
+        new_plan = MembershipPlanPage(
+            title="New Plan",
+            deliveries_per_year=12,
+            prices=[
+                MembershipPlanPrice(
+                    price=Money(20, "GBP"), interval="month", interval_count=1
+                )
+            ],
+        )
+        Page.get_first_root_node().add_child(instance=new_plan)
+        new_plan.save()
+        new_plan.monthly_price.products.set([self.product.djstripe_id])
+        new_plan.monthly_price.save()
+
+        # The user picks STATUS_QUO
+        form_class = UpgradeView.get_form_class_for_user(self.user)
+        form = form_class(data={"fee_option": "REFRESH_ALL_LINE_ITEMS"})
+        form.update_membership()
+
+        # The user should end up with two line items
+        updated_sub = stripe.Subscription.retrieve(subscription.id)
+        djstripe.models.Subscription.sync_from_stripe_data(updated_sub)
+        self.assertEqual(len(updated_sub.items()), 2)
+        self.assertGreater(len(subscription.items()), len(updated_sub.items()))
+
+        # Membership price should have increased
+        billing_deets = self.user.get_membership_details()
+        self.assertGreater(
+            billing_deets.get("membership_si").plan.amount,
+            subscription.items()[0].plan.amount,
+            old_membership_price,
+        )
+
+        # New plan should be recognised as belonging to this user
+        self.assertEqual(
+            billing_deets.get("membership_plan_price"), new_plan.monthly_price
+        )

@@ -708,3 +708,25 @@ class WagtailStreamfieldBlockTurboFrame(TemplateView):
                 context.update(block.block.get_context(block.value))
                 break
         return context
+
+
+from django.contrib.auth.mixins import UserPassesTestMixin
+
+
+class SuperUserCheck(UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_superuser
+
+
+class RefreshDataView(SuperUserCheck, LoginRequiredMixin, TemplateView):
+    template_name = "app/refreshed.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        from django.core import management
+
+        from app.models import BookPage, CircleEvent, MerchandisePage
+
+        CircleEvent.sync()
+        # BookPage.sync_shopify_products_to_pages()
+        # MerchandisePage.sync_shopify_products_to_pages()
+        return super().get_context_data(**kwargs)

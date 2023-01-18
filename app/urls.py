@@ -121,7 +121,7 @@ urlpatterns = [
     path(
         f"refresh/",
         RefreshDataView.as_view(),
-        name="refresh_data",
+        name="refresh_circle",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),

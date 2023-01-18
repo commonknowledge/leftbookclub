@@ -222,9 +222,6 @@ circle_communities = CircleAPIResource(
 
 
 class CircleEvent(SyncedModel):
-    class Meta:
-        ordering = ["-starts_at"]
-
     # This is where we specify the datasource, along with other options
     # for customizing how synchronization happens.
     sync_config = SyncConfig(

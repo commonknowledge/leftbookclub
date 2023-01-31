@@ -6,7 +6,12 @@ from wagtail.admin.panels import StreamFieldPanel
 from wagtail.contrib.settings.models import BaseSetting, register_setting
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 
-from app.models.wagtail import BookPage, YourBooks, create_streamfield
+from app.models.wagtail import (
+    BookPage,
+    MembershipPlanPage,
+    YourBooks,
+    create_streamfield,
+)
 
 
 @register_setting(icon="users")
@@ -23,6 +28,18 @@ class MemberProfilePage(BaseSetting):
         ]
     )
     panels = [StreamFieldPanel("profile_page_content")]
+
+
+@register_setting(icon="money")
+class UpsellPlanSettings(BaseSetting):
+    upsell_plan = models.ForeignKey(
+        MembershipPlanPage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text="Plan promoted to all existing members — the best offer for anyone to upgrade to",
+    )
 
 
 def settings_path(custom_settings_cls):

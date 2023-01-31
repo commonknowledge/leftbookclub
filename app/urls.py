@@ -33,6 +33,7 @@ from app.views import (
     StripeCustomerPortalView,
     SubscriptionCheckoutView,
     SyncShopifyWebhookEndpoint,
+    UpgradeView,
     WagtailStreamfieldBlockTurboFrame,
 )
 
@@ -81,6 +82,12 @@ urlpatterns = [
         f"redeem/<str:code>/",
         GiftCodeRedeemView.as_view(),
         name="redeem",
+    ),
+    # Add an upgrade path using UpgradeView
+    path(
+        f"update-membership/",
+        UpgradeView.as_view(),
+        name="upgrade",
     ),
     path(
         "welcome/",

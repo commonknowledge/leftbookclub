@@ -1,27 +1,58 @@
 {% extends "base.html" %}
-{% load django_bootstrap5 gift_card static %}
+{% load django_bootstrap5 gift_card static wagtailcore_tags %}
 {% block title %}Update your membership | Left Book Club{% endblock %}
 {% comment %} {% block content_padding %}p-5{% endblock %}
 {% block content_width %}container-fluid{% endblock %}
 {% block content_extra_classes %}tw-bg-yellow{% endblock %} {% endcomment %}
 {% block content %}
-    <header class='text-center my-4'>
-        <h1>Thanks for considering upgrading</h1>
-    </header>
     {% if not user.should_upgrade %}
+        <header class='text-center my-4'>
+            <h1>Your membership is up to date</h1>
+        </header>
         <p>You're on a standard membership plan, so there are no actions to take. Happy reading!</p>
     {% else %}
         <form method='POST' data-turbo="false" id="upgrade-form">
             {% csrf_token %}
-            <div class='row justify-content-center'>
-                <div class='max-width-card w-100'>
-                    {% if error %}
-                        {% bootstrap_alert error alert_type='danger' %}
-                    {% endif %}
-                    {% bootstrap_form form show_label=False field_class="text-center fs-4" size="lg" %}
-                </div>
+            <header class='text-center my-4 tw-max-w-xl mx-auto'>
+                <h1>Thanks for reviewing your membership fee</h1>
+                <p>
+                    Since you signed up, our operating costs have dramatically increased due to the economic times we’re all living through. Paper alone has risen by 20%.
+                </p>
+                <p>
+                    We’ve increased the price of new memberships and protected your fee, but we are starting to struggle. Can you afford to increase your support for LBC through your membership fee?
+                </p>
+            </header>
+            <div class='tw-max-w-3xl tw-mx-auto'>
+                {% if error %}
+                    {% bootstrap_alert error alert_type='danger' %}
+                {% endif %}
+                <ul class="tw-list-none tw-grid tw-w-full tw-gap-6 md:tw-grid-cols-2">
+                    {% for option_id, option in options.items %}
+                        <li>
+                            <input {% if option.default_selected %}checked{% endif %}
+                                   type="radio"
+                                   id="fee_option-{{ option_id|slugify }}"
+                                   name="fee_option"
+                                   value="{{ option_id }}"
+                                   class="tw-hidden tw-peer"
+                                   required/>
+                            <div class='text-center text-sm'>{{ option.label }}</div>
+                            <label for="fee_option-{{ option_id|slugify }}"
+                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-5 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer    peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100   ">
+                                <div class="tw-block">
+                                    <div class="tw-w-full tw-text-lg tw-font-semibold">{{ option.title }}</div>
+                                    <div class="tw-w-full">{{ option.text|richtext }}</div>
+                                    <div class="tw-w-full tw-border tw-border-gray-200 p-2">{{ option.action_text }}</div>
+                                </div>
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class='my-3'>
+                    By clicking the button below, you agree to pay the new fee from your next payment date. Your book delivery dates won't change.
+                </p>
+                <button type="submit" class='btn btn-primary'>Update new subscription price</button>
             </div>
-            <button type="submit">Upgrade</button>
         </form>
     {% endif %}
 {% endblock %}

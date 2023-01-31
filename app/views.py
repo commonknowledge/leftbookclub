@@ -11,6 +11,7 @@ import djstripe.enums
 import djstripe.models
 import stripe
 from dateutil.relativedelta import relativedelta
+from django import forms
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
@@ -29,8 +30,8 @@ from sentry_sdk import capture_exception, capture_message
 from wagtail.core.models import Page
 
 from app import analytics
-from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
-from app.models import LBCProduct
+from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm, UpgradeForm
+from app.models import LBCProduct, User
 from app.models.stripe import LBCSubscription, ShippingZone
 from app.models.wagtail import BaseShopifyProductPage, MembershipPlanPrice
 from app.utils.mailchimp import tag_user_in_mailchimp
@@ -710,86 +711,26 @@ class WagtailStreamfieldBlockTurboFrame(TemplateView):
         return context
 
 
-from django import forms
-
-
-class UpgradeView(FormView):
+class UpgradeView(LoginRequiredMixin, FormView):
+    form_class = UpgradeForm
     template_name = "app/upgrade.html"
     success_url = "app/upgrade_success.html"
 
-    def get_form_class(self):
-        return UpgradeView.get_form_class_for_user(self.request.user)
-
-    def form_valid(self, form):
+    def form_valid(self, form: UpgradeForm):
         form.update_membership()
         return super().form_valid(form)
 
-    @classmethod
-    def get_form_class_for_user(cls, user):
-        billing_deets = user.get_membership_details()
-        sub = billing_deets.get("subscription")
-        price = billing_deets.get("membership_plan_price")
-        zone = billing_deets.get("shipping_zone")
-        shipping_si = billing_deets.get("shipping_si")
-        membership_si = billing_deets.get("membership_si")
-        has_legacy_membership_price = billing_deets.get("has_legacy_membership_price")
-        product = billing_deets.get("membership_si").plan.product
-
-        CHOICES = [
-            # Look at current price of primary product, and compare to what's in the plans, then display or don't. This logic should be put on the User model so it can be checked on in
-            # TODO: Detail your current plan price (e.g. next invoice)
-            ("STATUS_QUO", "Your current plan"),
-        ]
-
-        if shipping_si is None:
-            # TODO: Show value of new price
-            shipping_fee = price.shipping_fee(zone)
-            CHOICES += [("ADD_SHIPPING", f"Add shipping for {shipping_fee}")]
-
-        if has_legacy_membership_price:
-            # TODO: Show value of new price
-            new_price = price.price_string_including_shipping(zone)
-            CHOICES += [
-                (
-                    "REFRESH_ALL_LINE_ITEMS",
-                    f"Move to the new standard rate including shipping: {new_price}",
-                )
-            ]
-
-        def get_initial(self):
-            """
-            Returns the initial data to use for forms on this view.
-            """
+    def get_initial(self):
+        if isinstance(self.request.user, User):
             initial = super().get_initial()
             initial["fee_option"] = "STATUS_QUO"
+            initial["user_id"] = self.request.user.pk
             return initial
 
-        class UpgradeForm(forms.Form):
-            fee_option = forms.ChoiceField(widget=forms.RadioSelect, choices=CHOICES)
-
-            def update_membership(self, *args, **kwargs):
-                print(self, args, kwargs)
-                fee_option = self.cleaned_data.get("fee_option")
-                print("Updating Stripe sub", user, fee_option, self.cleaned_data)
-
-                if fee_option == "STATUS_QUO":
-                    pass
-                elif fee_option == "ADD_SHIPPING":
-                    stripe.SubscriptionItem.create(
-                        proration_behavior="none",
-                        **price.to_shipping_price_data(zone=zone),
-                    )
-                elif fee_option == "REFRESH_ALL_LINE_ITEMS":
-                    new_items = price.to_checkout_line_items(product=product, zone=zone)
-
-                    # Remove old items
-                    if membership_si is not None:
-                        new_items += [{"id": membership_si.id, "deleted": True}]
-                    if shipping_si is not None:
-                        new_items += [{"id": shipping_si.id, "deleted": True}]
-
-                    stripe.Subscription.modify(
-                        sub.id, proration_behavior="none", items=new_items
-                    )
-
-        return UpgradeForm
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        if isinstance(self.request.user, User):
+            context.update(
+                {"options": UpgradeForm.get_options_for_user(self.request.user)}
+            )
+        return context

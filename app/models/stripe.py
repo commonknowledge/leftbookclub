@@ -45,12 +45,16 @@ class LBCSubscription(djstripe.models.Subscription):
     def customer_id(self):
         return self.customer.id
 
+    GIFT_GIVER_SUB_METADATA_KEY = "gift_giver_subscription"
+
     @property
     def gift_giver_subscription(self):
         """
         If this subscription was created as a result of a neighbouring gift subscription
         """
-        related_subscription_id = self.metadata.get("gift_giver_subscription", None)
+        related_subscription_id = self.metadata.get(
+            self.GIFT_GIVER_SUB_METADATA_KEY, None
+        )
         if related_subscription_id:
             return LBCSubscription.objects.filter(id=related_subscription_id).first()
 
@@ -69,7 +73,7 @@ class LBCSubscription(djstripe.models.Subscription):
 
     @property
     def is_gift_receiver(self):
-        self.metadata.get("gift_giver_subscription", None) is not None
+        self.metadata.get(self.GIFT_GIVER_SUB_METADATA_KEY, None) is not None
 
     def recipient_name(self):
         try:

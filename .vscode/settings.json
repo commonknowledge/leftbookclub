@@ -16,5 +16,6 @@
   },
   "files.associations": {
     "*.html": "django-html"
-  }
+  },
+  "python.analysis.typeCheckingMode": "basic"
 }

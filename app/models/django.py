@@ -1,4 +1,8 @@
+from typing import Optional
+
 import json
+from collections import namedtuple
+from dataclasses import dataclass
 
 import djstripe
 import stripe
@@ -335,33 +339,47 @@ class User(AbstractUser):
         """
         from .wagtail import MembershipPlanPrice, ShippingZone
 
+        @dataclass
+        class MembershipDetails:
+            subscription: Optional[LBCSubscription] = None
+            membership_si: Optional[djstripe.models.SubscriptionItem] = None
+            membership_plan_price: Optional[MembershipPlanPrice] = None
+            shipping_si: Optional[djstripe.models.SubscriptionItem] = None
+            shipping_zone: Optional[ShippingZone] = None
+            has_legacy_membership_price: bool = False
+
+        details = MembershipDetails()
+
         if self.active_subscription is None:
-            return {}
+            return details
+
+        details.subscription = self.active_subscription
 
         sis = self.active_subscription.items.select_related("plan__product").all()
-
-        shipping_si = None
-        membership_si = None
-
         for si in sis:
             if si.plan.product.name == SHIPPING_PRODUCT_NAME:
-                shipping_si = si
+                details.shipping_si = si
             else:
-                membership_si = si
+                details.membership_si = si
 
-        membership_plan_price = MembershipPlanPrice.from_si(membership_si)
+        if details.membership_si is not None:
+            details.membership_plan_price = MembershipPlanPrice.from_si(
+                details.membership_si
+            )
+        if (
+            details.membership_si is not None
+            and details.membership_plan_price is not None
+        ):
+            details.has_legacy_membership_price = (
+                details.membership_si.plan.amount
+                < details.membership_plan_price.price.amount
+            )
+        if self.shipping_country() is not None:
+            details.shipping_zone = ShippingZone.get_for_country(
+                self.shipping_country()
+            )
 
-        print(membership_si.plan.amount, membership_plan_price.price.amount)
-
-        return {
-            "subscription": self.active_subscription,
-            "membership_si": membership_si,
-            "membership_plan_price": MembershipPlanPrice.from_si(membership_si),
-            "has_legacy_membership_price": membership_si.plan.amount
-            < membership_plan_price.price.amount,
-            "shipping_si": shipping_si,
-            "shipping_zone": ShippingZone.get_for_country(self.shipping_country),
-        }
+        return details
 
     def should_upgrade(self):
         """
@@ -369,8 +387,8 @@ class User(AbstractUser):
         """
         billing_deets = self.get_membership_details()
         return (
-            billing_deets.get("is_legacy_membership_price")
-            or billing_deets.get("shipping_si") is None
+            billing_deets.has_legacy_membership_price
+            or billing_deets.shipping_si is None
         )
 
     def get_analytics_data(self):

@@ -260,7 +260,7 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     def humanised_interval(self):
         s = "/"
         if self.interval_count > 1:
-            s += self.interval_count + " "
+            s += str(self.interval_count) + " "
         s += self.interval
         if self.interval_count > 1:
             s += "s"

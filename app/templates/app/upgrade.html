@@ -26,9 +26,9 @@
                 {% if error %}
                     {% bootstrap_alert error alert_type='danger' %}
                 {% endif %}
-                <ul class="tw-list-none tw-grid tw-w-full tw-gap-6 md:tw-grid-cols-2">
+                <section class='row g-2'>
                     {% for option_id, option in options.items %}
-                        <li>
+                        <article class='col-12 col-md'>
                             <input {% if option.default_selected %}checked{% endif %}
                                    type="radio"
                                    id="fee_option-{{ option_id|slugify }}"
@@ -36,22 +36,44 @@
                                    value="{{ option_id }}"
                                    class="tw-hidden tw-peer"
                                    required/>
-                            <div class='text-center text-sm'>{{ option.label }}</div>
                             <label for="fee_option-{{ option_id|slugify }}"
-                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-5 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer    peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100   ">
-                                <div class="tw-block">
-                                    <div class="tw-w-full tw-text-lg tw-font-semibold">{{ option.title }}</div>
-                                    <div class="tw-w-full">{{ option.text|richtext }}</div>
-                                    <div class="tw-w-full tw-border tw-border-gray-200 p-2">{{ option.action_text }}</div>
+                                   class='peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100 overflow-hidden h-100 d-flex flex-column tw-border tw-border-gray-300'>
+                                {% if option.label %}
+                                    {% include "app/includes/banner.html" with label=option.label class='mt-3 mb-1' %}
+                                {% else %}
+                                    {% include "app/includes/banner.html" with label="&nbsp;." class='mt-3 mb-1 opacity-0' %}
+                                {% endif %}
+                                <div class='px-3 pt-1'>
+                                    <h3 class='h2 mb-2 fw-bold'>{{ option.title }}</h3>
+                                    <div class='my-2 h4'>{{ option.price_str }}</div>
+                                    <div class='my-2 h5 tw-flex tw-items-center'>
+                                        <svg class="tw-w-4 tw-h-4"
+                                             fill="none"
+                                             stroke="currentColor"
+                                             viewBox="0 0 24 24"
+                                             xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
+                                        <span>A book {{ option.plan.delivery_frequency }}</span>
+                                    </div>
+                                    {% if option.text %}<div class='mt-2'>{{ option.text|richtext }}</div>{% endif %}
+                                </div>
+                                <div class='mt-auto p-3'>
+                                    <div data-analytics-action="select_upgrade_option"
+                                         class='btn btn-outline-dark tw-text-inherit tw-border-inherit'>
+                                        {{ option.action_text }}
+                                    </div>
                                 </div>
                             </label>
-                        </li>
+                        </article>
                     {% endfor %}
-                </ul>
-                <p class='my-3'>
-                    By clicking the button below, you agree to pay the new fee from your next payment date. Your book delivery dates won't change.
-                </p>
-                <button type="submit" class='btn btn-primary'>Update new subscription price</button>
+                </section>
+                <section class='text-center my-4 tw-max-w-xl mx-auto'>
+                    <p class='my-3'>
+                        By clicking the button below, you agree to pay the new fee from your next payment date. Your book delivery dates won't change.
+                    </p>
+                    <button type="submit" class='btn btn-primary'>Click to confirm price</button>
+                </section>
             </div>
         </form>
     {% endif %}

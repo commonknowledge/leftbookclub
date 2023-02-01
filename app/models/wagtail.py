@@ -48,7 +48,6 @@ from wagtailcache.cache import WagtailCacheMixin, cache_page
 from wagtailseo import utils
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
-from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
 from app.models.circle import CircleEvent
 from app.models.django import User

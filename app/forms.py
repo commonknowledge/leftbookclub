@@ -12,7 +12,7 @@ from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
 
-from app.models import User
+from app.models import MembershipPlanPage, User
 from app.utils.stripe import (
     gift_giver_subscription_from_code,
     is_real_gift_code,
@@ -173,10 +173,12 @@ class UpgradeAction(models.TextChoices):
 
 @dataclass
 class UpgradeOption:
+    plan: MembershipPlanPage
     line_items: List[Dict[str, Any]]
     quote: Optional[stripe.Quote]
     label: Optional[str]
     title: str
+    price_str: str
     text: Any = ""
     action_text: str = "Select"
     default_selected: Optional[bool] = False
@@ -218,6 +220,7 @@ class UpgradeForm(forms.Form):
                 customer=user.stripe_customer.id,
                 line_items=new_items,
             )
+            quote.cancel()
 
             # Remove old items
             if membership.membership_si is not None:
@@ -226,27 +229,32 @@ class UpgradeForm(forms.Form):
                 new_items += [{"id": membership.shipping_si.id, "deleted": True}]
 
             old_price = float(membership.subscription.latest_invoice.amount_due)
+            old_price_str = f"£{(old_price):.2f}{membership.membership_plan_price.humanised_interval()}"
             new_price = float(quote.amount_total / 100)
+            new_price_str = f"£{(new_price):.2f}{membership.membership_plan_price.humanised_interval()}"
             effective_discount = abs((old_price - new_price) / old_price)
 
             ####
             ## Add status quo option
             ####
-            title = f"Legacy fee ({effective_discount:.0%} discount)"
+            title = f"Your legacy fee"
 
             if membership.shipping_si is None:
-                title += "+ subsidised shipping"
+                title += " with unpaid shipping"
 
             options[cls.choices.STATUS_QUO] = UpgradeOption(
                 line_items=[],
+                plan=membership.membership_plan_price.plan,
                 quote=None,
+                price_str=old_price_str,
                 title=title,
                 label="Your current plan",
                 text=f"""
-                <p>You’re currently paying £{(membership.subscription.latest_invoice.amount_due)}{membership.membership_plan_price.humanised_interval()}. Select this option if it’s all you can afford right now — that is totally OK.</p>
+                <p>This is your current fee, which is a {effective_discount:.0%} discount on the break-even price of the subscription.</p>
+                <p>Re-select this option if it’s all you can afford right now — that is totally OK.</p>
                 <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>
                 """,
-                action_text="Keep current plan",
+                action_text="Keep current fee",
                 default_selected=True,
             )
 
@@ -254,16 +262,22 @@ class UpgradeForm(forms.Form):
             ## Add standard update option
             ####
 
+            title = "2023 standard fee"
+            if membership.shipping_si is None:
+                title += " including shipping"
+
             options[cls.choices.UPDATE_PRICE] = UpgradeOption(
                 line_items=new_items,
                 quote=quote,
+                plan=membership.membership_plan_price.plan,
+                price_str=new_price_str,
                 label="Recommended",
-                title="2023 standard fee + pp",
+                title=title,
                 text=f"""
-              <p>This is the price we are charging new members, which includes packaging and postage.</p>
-              <p>If everyone paid this rate, we would break even.</p>
-              """,
-                action_text=f"Switch to £{(quote.amount_total / 100):.2f}{membership.membership_plan_price.humanised_interval()}",
+                  <p>This is the price we are charging new members, which includes packaging and postage.</p>
+                  <p>If everyone paid this rate, we would break even. Please select this option if you can afford it.</p>
+                """,
+                action_text=f"Switch to {new_price_str}",
                 default_selected=True,
             )
 
@@ -301,6 +315,10 @@ class UpgradeForm(forms.Form):
                         customer=user.stripe_customer.id,
                         line_items=new_items,
                     )
+                    quote.cancel()
+
+                    new_price = float(quote.amount_total / 100)
+                    new_price_str = f"£{(new_price):.2f}{membership.membership_plan_price.humanised_interval()}"
 
                     # Remove old items
                     if membership.membership_si is not None:
@@ -314,11 +332,13 @@ class UpgradeForm(forms.Form):
 
                     options[cls.choices.UPGRADE_TO_SOLIDARITY] = UpgradeOption(
                         line_items=new_items,
+                        plan=solidarity_plan,
                         quote=quote,
+                        price_str=new_price_str,
                         label="If you can afford it",
-                        title="2023 solidarity rate",
+                        title="Solidarity rate",
                         text="<p>Select this option if you can afford to pay a little more in order to support others on lower incomes.</p>",
-                        action_text=f"Select (£{(quote.amount_total / 100):.2f})",
+                        action_text=f"Switch to {new_price_str}",
                     )
 
         return options

@@ -83,11 +83,15 @@ urlpatterns = [
         GiftCodeRedeemView.as_view(),
         name="redeem",
     ),
-    # Add an upgrade path using UpgradeView
     path(
         f"update-membership/",
         UpgradeView.as_view(),
         name="upgrade",
+    ),
+    path(
+        f"update-membership/success",
+        LoginRequiredTemplateView.as_view(template_name="app/upgrade_success.html"),
+        name="upgrade-success",
     ),
     path(
         "welcome/",

@@ -122,6 +122,17 @@ class LBCSubscription(djstripe.models.Subscription):
     def shipping_postcode(self):
         return self.customer_shipping_address.get("postal_code", None)
 
+    def next_fee(self):
+        upcoming_invoice = stripe.Invoice.upcoming(
+            customer=self.customer.id,
+            subscription=self.id,
+        )
+        discount = 0
+        for d in upcoming_invoice.total_discount_amounts:
+            discount += d.amount
+
+        return (upcoming_invoice.total - discount) / 100
+
 
 add_proxy_method(djstripe.models.Subscription, LBCSubscription, "lbc")
 

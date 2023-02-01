@@ -175,12 +175,13 @@ class UpgradeAction(models.TextChoices):
 class UpgradeOption:
     plan: MembershipPlanPage
     line_items: List[Dict[str, Any]]
-    quote: Optional[stripe.Quote]
-    label: Optional[str]
     title: str
+    price_float: float
     price_str: str
     text: Any = ""
     action_text: str = "Select"
+    label: Optional[str] = None
+    discount: Optional[str] = None
     default_selected: Optional[bool] = False
 
 
@@ -210,17 +211,57 @@ class UpgradeForm(forms.Form):
 
         options: Dict[UpgradeAction, UpgradeOption] = {}
 
-        if user.should_upgrade:
+        title = f"Your current plan"
+        old_price = membership.subscription.next_fee()
+        old_price_str = (
+            f"£{(old_price):.2f}{membership.membership_plan_price.humanised_interval()}"
+        )
+
+        if not user.should_upgrade():
+            options[cls.choices.STATUS_QUO] = UpgradeOption(
+                line_items=[],
+                plan=membership.membership_plan_price.plan,
+                price_float=old_price,
+                price_str=old_price_str,
+                title=title,
+                label="Your current plan",
+                text=membership.membership_plan_price.description,
+                action_text="Keep current plan",
+                default_selected=True,
+            )
+
+            # TODO: Add product selection to the current plan
+            # for when MembershipPlanPrice has multiple products
+            #
+            # for plan in MembershipPlanPage.objects.public().live().all():
+            #     if plan == membership.membership_plan_price.plan:
+            #         continue
+
+            #     if membership.membership_plan_price.interval == "month":
+            #         plan_price = plan.monthly_price
+            #     else:
+            #         plan_price = plan.annual_price
+
+            #     new_price = float(plan_price.price_including_shipping(membership.shipping_zone).amount)
+            #     new_price_str = f"£{(new_price):.2f}{plan_price.humanised_interval()}"
+
+            #     # Create a new option for this alternative plan
+            #     options[plan_price.id] = UpgradeOption(
+            #         line_items=plan_price.to_checkout_line_items(
+            #             zone=membership.shipping_zone,
+            #         ),
+            #         plan=plan,
+            #         price_float=new_price,
+            #         price_str=new_price_str,
+            #         title=plan.title,
+            #         text=plan_price.description,
+            #         action_text="Switch",
+            #     )
+        else:
             new_items = membership.membership_plan_price.to_checkout_line_items(
                 product=membership.membership_si.plan.product,
                 zone=membership.shipping_zone,
             )
-
-            quote = stripe.Quote.create(
-                customer=user.stripe_customer.id,
-                line_items=new_items,
-            )
-            quote.cancel()
 
             # Remove old items
             if membership.membership_si is not None:
@@ -228,16 +269,16 @@ class UpgradeForm(forms.Form):
             if membership.shipping_si is not None:
                 new_items += [{"id": membership.shipping_si.id, "deleted": True}]
 
-            old_price = float(membership.subscription.latest_invoice.amount_due)
-            old_price_str = f"£{(old_price):.2f}{membership.membership_plan_price.humanised_interval()}"
-            new_price = float(quote.amount_total / 100)
+            new_price = float(membership.membership_plan_price.price_including_shipping(membership.shipping_zone).amount)  # type: ignore
             new_price_str = f"£{(new_price):.2f}{membership.membership_plan_price.humanised_interval()}"
             effective_discount = abs((old_price - new_price) / old_price)
 
             ####
             ## Add status quo option
             ####
-            title = f"Your legacy fee"
+
+            if membership.has_legacy_membership_price:
+                title = f"Your legacy fee"
 
             if membership.shipping_si is None:
                 title += " with unpaid shipping"
@@ -245,8 +286,9 @@ class UpgradeForm(forms.Form):
             options[cls.choices.STATUS_QUO] = UpgradeOption(
                 line_items=[],
                 plan=membership.membership_plan_price.plan,
-                quote=None,
+                price_float=old_price,
                 price_str=old_price_str,
+                discount=f"{effective_discount:.0%}",
                 title=title,
                 label="Your current plan",
                 text=f"""
@@ -255,7 +297,6 @@ class UpgradeForm(forms.Form):
                 <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>
                 """,
                 action_text="Keep current fee",
-                default_selected=True,
             )
 
             ####
@@ -268,8 +309,8 @@ class UpgradeForm(forms.Form):
 
             options[cls.choices.UPDATE_PRICE] = UpgradeOption(
                 line_items=new_items,
-                quote=quote,
                 plan=membership.membership_plan_price.plan,
+                price_float=new_price,
                 price_str=new_price_str,
                 label="Recommended",
                 title=title,
@@ -281,65 +322,59 @@ class UpgradeForm(forms.Form):
                 default_selected=True,
             )
 
-        ####
-        ## Add solidarity option
-        ####
-        from app.models import UpsellPlanSettings
+            ####
+            ## Add solidarity option
+            ####
+            from app.models import UpsellPlanSettings
 
-        upsell_settings = UpsellPlanSettings.objects.filter(
-            site=membership.membership_plan_price.plan.get_site()
-        ).first()
-        if upsell_settings is not None:
-            solidarity_plan = upsell_settings.upsell_plan  # type: ignore
-            if (
-                solidarity_plan is not None
-                and membership.membership_plan_price.plan.pk != solidarity_plan.pk
-            ):
+            upsell_settings = UpsellPlanSettings.objects.first()
+            if upsell_settings is not None:
+                solidarity_plan = upsell_settings.upsell_plan  # type: ignore
                 if (
-                    membership.membership_plan_price.plan.deliveries_per_year
-                    != solidarity_plan.deliveries_per_year
+                    solidarity_plan is not None
+                    and membership.membership_plan_price.plan.pk != solidarity_plan.pk
                 ):
-                    # raise ValueError("Solidarity plan is not compatible with current plan")
-                    pass
-                else:
-                    if membership.membership_plan_price.interval == "month":
-                        new_price = solidarity_plan.monthly_price
+                    if (
+                        membership.membership_plan_price.plan.deliveries_per_year
+                        != solidarity_plan.deliveries_per_year
+                    ):
+                        # raise ValueError("Solidarity plan is not compatible with current plan")
+                        pass
                     else:
-                        new_price = solidarity_plan.annual_price
+                        if membership.membership_plan_price.interval == "month":
+                            plan_price = solidarity_plan.monthly_price
+                        else:
+                            plan_price = solidarity_plan.annual_price
 
-                    new_items = new_price.to_checkout_line_items(
-                        zone=membership.shipping_zone
-                    )
+                        new_items = plan_price.to_checkout_line_items(
+                            zone=membership.shipping_zone
+                        )
 
-                    quote = stripe.Quote.create(
-                        customer=user.stripe_customer.id,
-                        line_items=new_items,
-                    )
-                    quote.cancel()
+                        new_price = float(plan_price.price_including_shipping(membership.shipping_zone).amount)  # type: ignore
+                        new_price_str = plan_price.price_string_including_shipping(
+                            membership.shipping_zone
+                        )
 
-                    new_price = float(quote.amount_total / 100)
-                    new_price_str = f"£{(new_price):.2f}{membership.membership_plan_price.humanised_interval()}"
+                        # Remove old items
+                        if membership.membership_si is not None:
+                            new_items += [
+                                {"id": membership.membership_si.id, "deleted": True}
+                            ]
+                        if membership.shipping_si is not None:
+                            new_items += [
+                                {"id": membership.shipping_si.id, "deleted": True}
+                            ]
 
-                    # Remove old items
-                    if membership.membership_si is not None:
-                        new_items += [
-                            {"id": membership.membership_si.id, "deleted": True}
-                        ]
-                    if membership.shipping_si is not None:
-                        new_items += [
-                            {"id": membership.shipping_si.id, "deleted": True}
-                        ]
-
-                    options[cls.choices.UPGRADE_TO_SOLIDARITY] = UpgradeOption(
-                        line_items=new_items,
-                        plan=solidarity_plan,
-                        quote=quote,
-                        price_str=new_price_str,
-                        label="If you can afford it",
-                        title="Solidarity rate",
-                        text="<p>Select this option if you can afford to pay a little more in order to support others on lower incomes.</p>",
-                        action_text=f"Switch to {new_price_str}",
-                    )
+                        options[cls.choices.UPGRADE_TO_SOLIDARITY] = UpgradeOption(
+                            line_items=new_items,
+                            plan=solidarity_plan,
+                            price_float=new_price,
+                            price_str=new_price_str,
+                            label="If you can afford it",
+                            title="Solidarity rate",
+                            text="<p>Select this option if you can afford to pay a little more in order to support others on lower incomes.</p>",
+                            action_text=f"Switch to {new_price_str}",
+                        )
 
         return options
 

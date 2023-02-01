@@ -196,36 +196,32 @@ class UpgradeForm(forms.Form):
 
     @classmethod
     def get_options_for_user(cls, user: User) -> Dict[UpgradeAction, UpgradeOption]:
-        membership = user.get_membership_details()
-
         if (
-            membership.subscription is None
-            or membership.membership_plan_price is None
-            or membership.membership_si is None
-            or membership.subscription.is_gift_receiver
+            user.active_subscription is None
+            or user.active_subscription.membership_plan_price is None
+            or user.active_subscription.membership_si is None
+            or user.active_subscription.is_gift_receiver
         ):
             raise ValueError("User is not a member yet.")
 
-        if membership.shipping_zone is None:
+        if user.active_subscription.shipping_zone is None:
             raise ValueError("Please add a shipping address first.")
 
         options: Dict[UpgradeAction, UpgradeOption] = {}
 
         title = f"Your current plan"
-        old_price = membership.subscription.next_fee()
-        old_price_str = (
-            f"£{(old_price):.2f}{membership.membership_plan_price.humanised_interval()}"
-        )
+        old_price = user.active_subscription.next_fee
+        old_price_str = f"£{(old_price):.2f}{user.active_subscription.membership_plan_price.humanised_interval()}"
 
-        if not user.should_upgrade():
+        if not user.active_subscription.should_upgrade:
             options[cls.choices.STATUS_QUO] = UpgradeOption(
                 line_items=[],
-                plan=membership.membership_plan_price.plan,
+                plan=user.active_subscription.membership_plan_price.plan,
                 price_float=old_price,
                 price_str=old_price_str,
                 title=title,
                 label="Your current plan",
-                text=membership.membership_plan_price.description,
+                text=user.active_subscription.membership_plan_price.description,
                 action_text="Keep current plan",
                 default_selected=True,
             )
@@ -234,21 +230,21 @@ class UpgradeForm(forms.Form):
             # for when MembershipPlanPrice has multiple products
             #
             # for plan in MembershipPlanPage.objects.public().live().all():
-            #     if plan == membership.membership_plan_price.plan:
+            #     if plan == user.active_subscription.membership_plan_price.plan:
             #         continue
 
-            #     if membership.membership_plan_price.interval == "month":
+            #     if user.active_subscription.membership_plan_price.interval == "month":
             #         plan_price = plan.monthly_price
             #     else:
             #         plan_price = plan.annual_price
 
-            #     new_price = float(plan_price.price_including_shipping(membership.shipping_zone).amount)
+            #     new_price = float(plan_price.price_including_shipping(user.active_subscription.shipping_zone).amount)
             #     new_price_str = f"£{(new_price):.2f}{plan_price.humanised_interval()}"
 
             #     # Create a new option for this alternative plan
             #     options[plan_price.id] = UpgradeOption(
             #         line_items=plan_price.to_checkout_line_items(
-            #             zone=membership.shipping_zone,
+            #             zone=user.active_subscription.shipping_zone,
             #         ),
             #         plan=plan,
             #         price_float=new_price,
@@ -258,34 +254,40 @@ class UpgradeForm(forms.Form):
             #         action_text="Switch",
             #     )
         else:
-            new_items = membership.membership_plan_price.to_checkout_line_items(
-                product=membership.membership_si.plan.product,
-                zone=membership.shipping_zone,
+            new_items = (
+                user.active_subscription.membership_plan_price.to_checkout_line_items(
+                    product=user.active_subscription.membership_si.plan.product,
+                    zone=user.active_subscription.shipping_zone,
+                )
             )
 
             # Remove old items
-            if membership.membership_si is not None:
-                new_items += [{"id": membership.membership_si.id, "deleted": True}]
-            if membership.shipping_si is not None:
-                new_items += [{"id": membership.shipping_si.id, "deleted": True}]
+            if user.active_subscription.membership_si is not None:
+                new_items += [
+                    {"id": user.active_subscription.membership_si.id, "deleted": True}
+                ]
+            if user.active_subscription.shipping_si is not None:
+                new_items += [
+                    {"id": user.active_subscription.shipping_si.id, "deleted": True}
+                ]
 
-            new_price = float(membership.membership_plan_price.price_including_shipping(membership.shipping_zone).amount)  # type: ignore
-            new_price_str = f"£{(new_price):.2f}{membership.membership_plan_price.humanised_interval()}"
+            new_price = float(user.active_subscription.membership_plan_price.price_including_shipping(user.active_subscription.shipping_zone).amount)  # type: ignore
+            new_price_str = f"£{(new_price):.2f}{user.active_subscription.membership_plan_price.humanised_interval()}"
             effective_discount = abs((old_price - new_price) / old_price)
 
             ####
             ## Add status quo option
             ####
 
-            if membership.has_legacy_membership_price:
+            if user.active_subscription.has_legacy_membership_price:
                 title = f"Your legacy fee"
 
-            if membership.shipping_si is None:
+            if user.active_subscription.shipping_si is None:
                 title += " with unpaid shipping"
 
             options[cls.choices.STATUS_QUO] = UpgradeOption(
                 line_items=[],
-                plan=membership.membership_plan_price.plan,
+                plan=user.active_subscription.membership_plan_price.plan,
                 price_float=old_price,
                 price_str=old_price_str,
                 discount=f"{effective_discount:.0%}",
@@ -304,12 +306,12 @@ class UpgradeForm(forms.Form):
             ####
 
             title = "2023 standard fee"
-            if membership.shipping_si is None:
+            if user.active_subscription.shipping_si is None:
                 title += " including shipping"
 
             options[cls.choices.UPDATE_PRICE] = UpgradeOption(
                 line_items=new_items,
-                plan=membership.membership_plan_price.plan,
+                plan=user.active_subscription.membership_plan_price.plan,
                 price_float=new_price,
                 price_str=new_price_str,
                 label="Recommended",
@@ -332,37 +334,47 @@ class UpgradeForm(forms.Form):
                 solidarity_plan = upsell_settings.upsell_plan  # type: ignore
                 if (
                     solidarity_plan is not None
-                    and membership.membership_plan_price.plan.pk != solidarity_plan.pk
+                    and user.active_subscription.membership_plan_price.plan.pk
+                    != solidarity_plan.pk
                 ):
                     if (
-                        membership.membership_plan_price.plan.deliveries_per_year
+                        user.active_subscription.membership_plan_price.plan.deliveries_per_year
                         != solidarity_plan.deliveries_per_year
                     ):
                         # raise ValueError("Solidarity plan is not compatible with current plan")
                         pass
                     else:
-                        if membership.membership_plan_price.interval == "month":
+                        if (
+                            user.active_subscription.membership_plan_price.interval
+                            == "month"
+                        ):
                             plan_price = solidarity_plan.monthly_price
                         else:
                             plan_price = solidarity_plan.annual_price
 
                         new_items = plan_price.to_checkout_line_items(
-                            zone=membership.shipping_zone
+                            zone=user.active_subscription.shipping_zone
                         )
 
-                        new_price = float(plan_price.price_including_shipping(membership.shipping_zone).amount)  # type: ignore
+                        new_price = float(plan_price.price_including_shipping(user.active_subscription.shipping_zone).amount)  # type: ignore
                         new_price_str = plan_price.price_string_including_shipping(
-                            membership.shipping_zone
+                            user.active_subscription.shipping_zone
                         )
 
                         # Remove old items
-                        if membership.membership_si is not None:
+                        if user.active_subscription.membership_si is not None:
                             new_items += [
-                                {"id": membership.membership_si.id, "deleted": True}
+                                {
+                                    "id": user.active_subscription.membership_si.id,
+                                    "deleted": True,
+                                }
                             ]
-                        if membership.shipping_si is not None:
+                        if user.active_subscription.shipping_si is not None:
                             new_items += [
-                                {"id": membership.shipping_si.id, "deleted": True}
+                                {
+                                    "id": user.active_subscription.shipping_si.id,
+                                    "deleted": True,
+                                }
                             ]
 
                         options[cls.choices.UPGRADE_TO_SOLIDARITY] = UpgradeOption(
@@ -383,14 +395,13 @@ class UpgradeForm(forms.Form):
             raise ValueError("Form is not valid")
         fee_option = self.cleaned_data.get("fee_option")
         user = User.objects.get(pk=self.cleaned_data.get("user_id"))
-        membership = user.get_membership_details()
         options = UpgradeForm.get_options_for_user(user)
 
         if (
-            membership.subscription is None
-            or membership.membership_plan_price is None
-            or membership.membership_si is None
-            or membership.subscription.is_gift_receiver
+            user.active_subscription is None
+            or user.active_subscription.membership_plan_price is None
+            or user.active_subscription.membership_si is None
+            or user.active_subscription.is_gift_receiver
         ):
             raise ValueError("User is not a member yet.")
 
@@ -401,7 +412,7 @@ class UpgradeForm(forms.Form):
             and options.get(UpgradeForm.choices.UPDATE_PRICE, None) is not None
         ):
             stripe.Subscription.modify(
-                membership.subscription.id,
+                user.active_subscription.id,
                 proration_behavior="none",
                 items=options[UpgradeForm.choices.UPDATE_PRICE].line_items,
             )
@@ -410,7 +421,7 @@ class UpgradeForm(forms.Form):
             and options.get(UpgradeForm.choices.UPGRADE_TO_SOLIDARITY, None) is not None
         ):
             stripe.Subscription.modify(
-                membership.subscription.id,
+                user.active_subscription.id,
                 proration_behavior="none",
                 items=options[UpgradeForm.choices.UPDATE_PRICE].line_items,
             )

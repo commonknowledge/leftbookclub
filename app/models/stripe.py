@@ -1,3 +1,7 @@
+from typing import Any, Dict, List, Optional, Tuple
+
+from dataclasses import dataclass
+
 import djstripe.models
 import stripe
 from django import forms
@@ -5,6 +9,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.functions import Length
 from django.forms import RadioSelect
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries as django_countries
 from django_countries.fields import CountryField
@@ -15,7 +20,10 @@ from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list
 from app.utils.django import add_proxy_method
-from app.utils.stripe import get_primary_product_for_djstripe_subscription
+from app.utils.stripe import (
+    SHIPPING_PRODUCT_NAME,
+    get_primary_product_for_djstripe_subscription,
+)
 
 
 class LBCCustomer(djstripe.models.Customer):
@@ -30,7 +38,7 @@ class LBCSubscription(djstripe.models.Subscription):
     class Meta:
         proxy = True
 
-    @property
+    @cached_property
     def primary_product(self):
         return get_primary_product_for_djstripe_subscription(self)
 
@@ -47,7 +55,7 @@ class LBCSubscription(djstripe.models.Subscription):
 
     GIFT_GIVER_SUB_METADATA_KEY = "gift_giver_subscription"
 
-    @property
+    @cached_property
     def gift_giver_subscription(self):
         """
         If this subscription was created as a result of a neighbouring gift subscription
@@ -58,7 +66,7 @@ class LBCSubscription(djstripe.models.Subscription):
         if related_subscription_id:
             return LBCSubscription.objects.filter(id=related_subscription_id).first()
 
-    @property
+    @cached_property
     def gift_recipient_subscription(self):
         """
         If this subscription was created as a result of a neighbouring gift subscription
@@ -122,6 +130,79 @@ class LBCSubscription(djstripe.models.Subscription):
     def shipping_postcode(self):
         return self.customer_shipping_address.get("postal_code", None)
 
+    @dataclass
+    class NamedSubscriptionItems:
+        membership_si: Optional[djstripe.models.SubscriptionItem] = None
+        shipping_si: Optional[djstripe.models.SubscriptionItem] = None
+
+    @cached_property
+    def named_subscription_items(self):
+        sis = self.items.select_related("plan__product").all()
+
+        details = self.NamedSubscriptionItems()
+
+        for si in sis:
+            if si.plan.product.name == SHIPPING_PRODUCT_NAME:
+                details.shipping_si = si
+            else:
+                details.membership_si = si
+
+        return details
+
+    @property
+    def membership_si(self):
+        return self.named_subscription_items.membership_si
+
+    @property
+    def shipping_si(self):
+        return self.named_subscription_items.shipping_si
+
+    @property
+    def no_shipping_line(self):
+        return self.shipping_si is None
+
+    @property
+    def non_zero_shipping(self):
+        return self.shipping_si is not None and self.shipping_si.plan.amount > 0
+
+    @cached_property
+    def membership_plan_price(self):
+        from app.models import MembershipPlanPrice
+
+        if self.membership_si is None:
+            return None
+        return MembershipPlanPrice.from_si(self.membership_si)
+
+    @cached_property
+    def shipping_zone(self):
+        if self.shipping_si is not None:
+            code = self.shipping_si.metadata.get("shipping_zone", None)
+            if code is not None:
+                result = ShippingZone.get_for_code(code)
+                if result is not None:
+                    return result
+        shipping_country = self.customer.subscriber.shipping_country()
+        if shipping_country is not None:
+            return ShippingZone.get_for_country(shipping_country)
+
+    @cached_property
+    def has_legacy_membership_price(self):
+        try:
+            result = (
+                self.membership_si.plan.amount < self.membership_plan_price.price.amount
+            )
+            return result
+        except:
+            return False
+
+    @cached_property
+    def should_upgrade(self):
+        try:
+            return self.has_legacy_membership_price or self.shipping_si is None
+        except:
+            return False
+
+    @cached_property
     def next_fee(self):
         upcoming_invoice = stripe.Invoice.upcoming(
             customer=self.customer.id,
@@ -132,6 +213,17 @@ class LBCSubscription(djstripe.models.Subscription):
             discount += d.amount
 
         return (upcoming_invoice.total - discount) / 100
+
+    @property
+    def price_string(self):
+        if self.membership_plan_price is not None:
+            return f"£{(self.next_fee):.2f}{self.membership_plan_price.humanised_interval()}"
+        else:
+            return f"£{(self.next_fee):.2f}"
+
+    @property
+    def next_billing_date(self):
+        return self.current_period_end
 
 
 add_proxy_method(djstripe.models.Subscription, LBCSubscription, "lbc")

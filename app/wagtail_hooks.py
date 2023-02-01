@@ -119,11 +119,16 @@ class CustomerAdmin(ModelAdmin):
         "recipient_name",
         "primary_product_name",
         "is_active_member",
+        "should_upgrade",
     )
     list_export = (
         "recipient_name",
         "recipient_email",
         "primary_product_name",
+        "should_upgrade",
+        "has_legacy_membership_price",
+        "no_shipping_line",
+        "non_zero_shipping",
         "is_gift_receiver",
         "is_active_member",
         "status",

@@ -5,7 +5,7 @@
 {% block content_width %}container-fluid{% endblock %}
 {% block content_extra_classes %}tw-bg-yellow{% endblock %} {% endcomment %}
 {% block content %}
-    {% comment %} {% if not user.should_upgrade %}
+    {% comment %} {% if not user.active_subscription.should_upgrade %}
     <header class='text-center my-4 tw-max-w-xl mx-auto'>
       <h1>You're up to date</h1>
     </header>
@@ -16,7 +16,7 @@
         {{ form.user_id }}
         {% comment %} /End hidden inputs {% endcomment %}
         <header class='text-center my-4 tw-max-w-xl mx-auto'>
-            {% if not user.should_upgrade %}
+            {% if not user.active_subscription.should_upgrade %}
                 <h1>Review membership plan</h1>
                 <p>
                     You're currently on <i>{{ user.primary_product.name }}</i>.
@@ -32,7 +32,7 @@
             {% endif %}
         </header>
         <div>
-            {% if user.should_upgrade %}
+            {% if user.active_subscription.should_upgrade %}
                 <h3 class='h3 mb-3 text-center'>Select the fee amount you can afford</h3>
             {% else %}
                 <h3 class='h3 mb-3 text-center'>Select a new plan</h3>

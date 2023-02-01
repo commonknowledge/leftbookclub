@@ -13,6 +13,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 from sentry_sdk import capture_exception
 
 from app.utils.stripe import (
@@ -100,7 +101,7 @@ class User(AbstractUser):
         djstripe.enums.SubscriptionStatus.unpaid,
     ]
 
-    @property
+    @cached_property
     def active_subscription(self) -> LBCSubscription:
         try:
             sub = (
@@ -332,64 +333,6 @@ class User(AbstractUser):
                 interval_count=si.plan.interval_count,
                 product=si.plan.product,
             )
-
-    def get_membership_details(self):
-        """
-        From this, you can glean plan, product, pricing, shipping, location, etc., as well as subscription dates and billing schedule.
-        """
-        from .wagtail import MembershipPlanPrice, ShippingZone
-
-        @dataclass
-        class MembershipDetails:
-            subscription: Optional[LBCSubscription] = None
-            membership_si: Optional[djstripe.models.SubscriptionItem] = None
-            membership_plan_price: Optional[MembershipPlanPrice] = None
-            shipping_si: Optional[djstripe.models.SubscriptionItem] = None
-            shipping_zone: Optional[ShippingZone] = None
-            has_legacy_membership_price: bool = False
-
-        details = MembershipDetails()
-
-        if self.active_subscription is None:
-            return details
-
-        details.subscription = self.active_subscription
-
-        sis = self.active_subscription.items.select_related("plan__product").all()
-        for si in sis:
-            if si.plan.product.name == SHIPPING_PRODUCT_NAME:
-                details.shipping_si = si
-            else:
-                details.membership_si = si
-
-        if details.membership_si is not None:
-            details.membership_plan_price = MembershipPlanPrice.from_si(
-                details.membership_si
-            )
-        if (
-            details.membership_si is not None
-            and details.membership_plan_price is not None
-        ):
-            details.has_legacy_membership_price = (
-                details.membership_si.plan.amount
-                < details.membership_plan_price.price.amount
-            )
-        if self.shipping_country() is not None:
-            details.shipping_zone = ShippingZone.get_for_country(
-                self.shipping_country()
-            )
-
-        return details
-
-    def should_upgrade(self):
-        """
-        Any reason to show the upgrade view.
-        """
-        billing_deets = self.get_membership_details()
-        return (
-            billing_deets.has_legacy_membership_price
-            or billing_deets.shipping_si is None
-        )
 
     def get_analytics_data(self):
         user_data = {

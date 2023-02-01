@@ -1,15 +1,23 @@
 {% extends "base.html" %}
-{% load wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
-{% block title %}Welcome to the Left Book Club{% endblock %}
+{% load wagtailsettings_tags account setting date django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% block title %}Update successful | Left Book Club{% endblock %}
 {% block content %}
     {% if error %}
         {% bootstrap_alert error alert_type='danger' %}
     {% endif %}
-    <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
-        <h1 class="h2 fw-normal">Your membership has been updated, {% user_display user %}</h1>
-        <p>Your delivery schedule is unchanged. Happy reading!</p>
+    <header class="pricing-header p-3 pb-md-4 mx-auto tw-max-w-lg">
+        <h1 class="h2 mb-4">Thanks for confirming your membership fee</h1>
+        <p>Your account has been updated.</p>
+        <p>
+            From now on you'll pay <b>{{ user.active_subscription.price_string }}</b> for <b>{{ user.primary_product.name }}</b>.
+        </p>
+        <p>
+            Your billing schedule is unaffected. You'll next be charged on <b>{{ user.active_subscription.next_billing_date|to_date|date:"d M Y" }}</b>.
+        </p>
+        <p>
+            Your delivery schedule is <b>unchanged</b>.
+        </p>
+        <p>Happy reading!</p>
     </header>
-    <div class="d-flex flex-column justify-content-center align-items-center mb-4">
-        {% include "app/includes/membership_card.html" %}
-    </div>
+    <div class="mb-4">{% include "app/includes/membership_card.html" %}</div>
 {% endblock %}

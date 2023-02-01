@@ -714,7 +714,7 @@ class WagtailStreamfieldBlockTurboFrame(TemplateView):
 class UpgradeView(LoginRequiredMixin, FormView):
     form_class = UpgradeForm
     template_name = "app/upgrade.html"
-    success_url = "app/upgrade_success.html"
+    success_url = reverse_lazy("upgrade-success")
 
     def form_valid(self, form: UpgradeForm):
         form.update_membership()

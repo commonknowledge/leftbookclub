@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from dataclasses import dataclass
 
+import djstripe.models
 import stripe
 from allauth.account.views import SignupForm
 from django import forms
@@ -406,25 +407,31 @@ class UpgradeForm(forms.Form):
             raise ValueError("User is not a member yet.")
 
         if fee_option == UpgradeForm.choices.STATUS_QUO:
-            pass
+            return user.active_subscription
         elif (
             fee_option == UpgradeForm.choices.UPDATE_PRICE
             and options.get(UpgradeForm.choices.UPDATE_PRICE, None) is not None
         ):
-            stripe.Subscription.modify(
+            subscription = stripe.Subscription.modify(
                 user.active_subscription.id,
                 proration_behavior="none",
                 items=options[UpgradeForm.choices.UPDATE_PRICE].line_items,
             )
+
+            sub = djstripe.models.Subscription.sync_from_stripe_data(subscription)
+            return sub.lbc()
         elif (
             fee_option == UpgradeForm.choices.UPGRADE_TO_SOLIDARITY
             and options.get(UpgradeForm.choices.UPGRADE_TO_SOLIDARITY, None) is not None
         ):
-            stripe.Subscription.modify(
+            subscription = stripe.Subscription.modify(
                 user.active_subscription.id,
                 proration_behavior="none",
                 items=options[UpgradeForm.choices.UPDATE_PRICE].line_items,
             )
+
+            sub = djstripe.models.Subscription.sync_from_stripe_data(subscription)
+            return sub.lbc()
 
 
 # Create a form with a field for user_id, donation_amount, and on submission add a donation product to the subscription
@@ -452,6 +459,6 @@ class DonationForm(forms.Form):
             raise ValueError("No billable subscription was found for this user.")
 
         # Create a new donation product
-        user.active_subscription.upsert_regular_donation(
-            int(amount * 100), metadata={"via": "donation_form"}
+        return user.active_subscription.upsert_regular_donation(
+            float(amount), metadata={"via": "donation_form"}
         )

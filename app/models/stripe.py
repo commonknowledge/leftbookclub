@@ -113,15 +113,16 @@ class LBCSubscription(djstripe.models.Subscription):
         items = []
 
         # Get the existing donation SI if it exists, and delete it
-        if self.donation_si is not None:
-            items.append({"id": self.donation_si.id, "delete": True})
+        donation_si = self._named_subscription_items().donation_si
+        if donation_si is not None:
+            items.append({"id": donation_si.id, "deleted": True})
 
         # Create a new donation SI with the amount arg
         plan = self.items.first().plan
         items.append(
             {
                 "price_data": {
-                    "unit_amount_decimal": amount,
+                    "unit_amount_decimal": int(amount * 100),
                     "product": get_donation_product().id,
                     "metadata": {**metadata},
                     # Mirror details from another SI
@@ -175,8 +176,7 @@ class LBCSubscription(djstripe.models.Subscription):
         shipping_si: Optional[djstripe.models.SubscriptionItem] = None
         donation_si: Optional[djstripe.models.SubscriptionItem] = None
 
-    @cached_property
-    def named_subscription_items(self):
+    def _named_subscription_items(self):
         sis = self.items.select_related("plan__product").all()
 
         details = self.NamedSubscriptionItems()
@@ -190,6 +190,10 @@ class LBCSubscription(djstripe.models.Subscription):
                 details.membership_si = si
 
         return details
+
+    @cached_property
+    def named_subscription_items(self):
+        return self._named_subscription_items()
 
     @property
     def membership_si(self):

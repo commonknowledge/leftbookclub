@@ -160,11 +160,10 @@ We used https://github.com/nextauthjs/next-auth-example/ to test this implementa
 DATABASE_URL; // set by running `fly pg attach lbc-pg-staging --app lbc-staging` or similar
 SECRET_KEY; // random key
 BASE_URL; // set this to the URL of your staging site like https://lbc-staging.fly.dev
-// The below all come from Stripe dashboard in test mode:
-DJSTRIPE_WEBHOOK_SECRET;
 STRIPE_LIVE_MODE = False;
-STRIPE_TEST_SECRET_KEY;
-STRIPE_TEST_PUBLIC_KEY;
+STRIPE_WEBHOOK_SECRET; // signing secret from https://dashboard.stripe.com/test/webhooks/we_1KlUZ2KYdS0VccAEF1CWol1Q
+STRIPE_TEST_SECRET_KEY; // API key section: https://dashboard.stripe.com/test/apikeys
+STRIPE_TEST_PUBLIC_KEY; // API key section: https://dashboard.stripe.com/test/apikeys
 ```
 
 #### Production

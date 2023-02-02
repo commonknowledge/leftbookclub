@@ -53,24 +53,24 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
   poetry run python manage.py sync_shopify_products
   ```
 
-## Application stack:
+## Application stack
 
 - [Django](https://www.djangoproject.com/)
 - [Django Rest Framework](https://groundwork.commonknowledge.coop)
 - [Groundwork](https://groundwork.commonknowledge.coop)
 
-## Frontend stack:
+## Frontend stack
 
 - [Stimulus](https://stimulus.hotwired.dev/)
 - [Turbo](https://turbo.hotwired.dev/)
 - [Bootstrap](https://groundwork.commonknowledge.coop)
 
-## Development stack:
+## Development stack
 
 - [Poetry](https://python-poetry.org/) for python dependencies
 - [Vite](https://vitejs.dev/) for frontend build pipeline
 
-## Deployment & CI stack:
+## Deployment & CI stack
 
 - VSCode Development Containers
 - Github Actions

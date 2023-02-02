@@ -252,6 +252,8 @@ class LBCSubscription(djstripe.models.Subscription):
 
     @cached_property
     def should_upgrade(self):
+        if self.is_gift_receiver:
+            return False
         try:
             return self.has_legacy_membership_price or self.shipping_si is None
         except:

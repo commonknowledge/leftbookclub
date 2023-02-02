@@ -30,7 +30,13 @@ from sentry_sdk import capture_exception, capture_message
 from wagtail.core.models import Page
 
 from app import analytics
-from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm, UpgradeForm
+from app.forms import (
+    CountrySelectorForm,
+    DonationForm,
+    GiftCodeForm,
+    StripeShippingForm,
+    UpgradeForm,
+)
 from app.models import LBCProduct, User
 from app.models.stripe import LBCSubscription, ShippingZone
 from app.models.wagtail import BaseShopifyProductPage, MembershipPlanPrice
@@ -717,7 +723,7 @@ class UpgradeView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy("upgrade-success")
 
     def form_valid(self, form: UpgradeForm):
-        form.update_membership()
+        form.update_subscription()
         return super().form_valid(form)
 
     def get_initial(self):
@@ -733,4 +739,26 @@ class UpgradeView(LoginRequiredMixin, FormView):
             context.update(
                 {"options": UpgradeForm.get_options_for_user(self.request.user)}
             )
+        return context
+
+
+class UpgradeSuccessDonationTrailerView(LoginRequiredMixin, FormView):
+    form_class = DonationForm
+    template_name = "app/upgrade_success.html"
+    success_url = reverse_lazy("donation-success")
+
+    def get_initial(self):
+        if isinstance(self.request.user, User):
+            initial = super().get_initial()
+            initial["user_id"] = self.request.user.pk
+            initial["donation_amount"] = 2
+            return initial
+
+    def form_valid(self, form: DonationForm):
+        form.update_subscription()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["donation_amount_options"] = [1, 2, 3]
         return context

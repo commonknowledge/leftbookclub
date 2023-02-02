@@ -33,6 +33,7 @@ from app.views import (
     StripeCustomerPortalView,
     SubscriptionCheckoutView,
     SyncShopifyWebhookEndpoint,
+    UpgradeSuccessDonationTrailerView,
     UpgradeView,
     WagtailStreamfieldBlockTurboFrame,
 )
@@ -90,8 +91,13 @@ urlpatterns = [
     ),
     path(
         f"update-membership/success",
-        LoginRequiredTemplateView.as_view(template_name="app/upgrade_success.html"),
+        UpgradeSuccessDonationTrailerView.as_view(),
         name="upgrade-success",
+    ),
+    path(
+        f"donate/success",
+        LoginRequiredTemplateView.as_view(template_name="app/donate_success.html"),
+        name="donation-success",
     ),
     path(
         "welcome/",

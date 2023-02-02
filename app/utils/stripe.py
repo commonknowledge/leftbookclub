@@ -361,7 +361,9 @@ def get_primary_product_subscription_item_for_djstripe_subscription(
     if sub.plan is not None:
         return sub
     return (
-        sub.items.exclude(plan__product__name=SHIPPING_PRODUCT_NAME)
+        sub.items.exclude(
+            plan__product__name__in=[SHIPPING_PRODUCT_NAME, DONATION_PRODUCT_NAME],
+        )
         .select_related("plan__product")
         .first()
     )

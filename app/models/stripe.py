@@ -21,7 +21,9 @@ from wagtail.snippets.models import register_snippet
 from app.utils import flatten_list
 from app.utils.django import add_proxy_method
 from app.utils.stripe import (
+    DONATION_PRODUCT_NAME,
     SHIPPING_PRODUCT_NAME,
+    get_donation_product,
     get_primary_product_for_djstripe_subscription,
 )
 
@@ -103,6 +105,43 @@ class LBCSubscription(djstripe.models.Subscription):
         except:
             return None
 
+    def upsert_regular_donation(self, amount: float, metadata: Dict[str, Any] = dict()):
+        if amount <= 0:
+            raise ValueError("Donation amount must be greater than 0")
+
+        # Modify the stripe subscription with a donation product and the amount arg
+        items = []
+
+        # Get the existing donation SI if it exists, and delete it
+        if self.donation_si is not None:
+            items.append({"id": self.donation_si.id, "delete": True})
+
+        # Create a new donation SI with the amount arg
+        plan = self.items.first().plan
+        items.append(
+            {
+                "price_data": {
+                    "unit_amount_decimal": amount,
+                    "product": get_donation_product().id,
+                    "metadata": {**metadata},
+                    # Mirror details from another SI
+                    "currency": plan.currency,
+                    "recurring": {
+                        "interval": plan.interval,
+                        "interval_count": plan.interval_count,
+                    },
+                },
+                "quantity": 1,
+            }
+        )
+
+        subscription = stripe.Subscription.modify(
+            self.id, proration_behavior="none", items=items
+        )
+
+        sub = djstripe.models.Subscription.sync_from_stripe_data(subscription)
+        return sub.lbc
+
     @property
     def customer_shipping_address(self):
         try:
@@ -134,6 +173,7 @@ class LBCSubscription(djstripe.models.Subscription):
     class NamedSubscriptionItems:
         membership_si: Optional[djstripe.models.SubscriptionItem] = None
         shipping_si: Optional[djstripe.models.SubscriptionItem] = None
+        donation_si: Optional[djstripe.models.SubscriptionItem] = None
 
     @cached_property
     def named_subscription_items(self):
@@ -144,6 +184,8 @@ class LBCSubscription(djstripe.models.Subscription):
         for si in sis:
             if si.plan.product.name == SHIPPING_PRODUCT_NAME:
                 details.shipping_si = si
+            elif si.plan.product.name == DONATION_PRODUCT_NAME:
+                details.donation_si = si
             else:
                 details.membership_si = si
 
@@ -156,6 +198,14 @@ class LBCSubscription(djstripe.models.Subscription):
     @property
     def shipping_si(self):
         return self.named_subscription_items.shipping_si
+
+    @property
+    def donation_si(self):
+        return self.named_subscription_items.donation_si
+
+    @property
+    def includes_donation(self):
+        return self.donation_si is not None
 
     @property
     def no_shipping_line(self):

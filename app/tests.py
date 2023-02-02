@@ -1002,7 +1002,7 @@ class UpgradeTestCase(TestCase):
                 "fee_option": UpgradeForm.UpgradeAction.STATUS_QUO,
             }
         )
-        form.update_membership()
+        form.update_subscription()
 
         # Their stripe subscription should be the same as it was before — check by invoice estimate
         updated_subscription_items = stripe.SubscriptionItem.list(
@@ -1051,7 +1051,7 @@ class UpgradeTestCase(TestCase):
         djstripe.models.Subscription.sync_from_stripe_data(subscription)
 
         # They're alerted to the fact they should upgrade
-        self.assertTrue(self.user.should_upgrade())
+        self.assertTrue(self.user.active_subscription.should_upgrade)
 
     # def test_legacy_customer_adds_shipping(self):
     #     # A price was never created for this user in the past.
@@ -1100,7 +1100,7 @@ class UpgradeTestCase(TestCase):
     #             "fee_option": UpgradeForm.UpgradeAction.ADD_SHIPPING,
     #         }
     #     )
-    #     form.update_membership()
+    #     form.update_subscription()
 
     #     # Load data from stripe
     #     updated_subscription_items = stripe.SubscriptionItem.list(
@@ -1179,7 +1179,7 @@ class UpgradeTestCase(TestCase):
                 "fee_option": UpgradeForm.UpgradeAction.UPDATE_PRICE,
             }
         )
-        form.update_membership()
+        form.update_subscription()
 
         # The user should end up with two line items
         updated_subscription = stripe.Subscription.retrieve(subscription.id)
@@ -1281,7 +1281,7 @@ class UpgradeTestCase(TestCase):
                 "fee_option": UpgradeForm.UpgradeAction.UPDATE_PRICE,
             }
         )
-        form.update_membership()
+        form.update_subscription()
 
         # The user should end up with two line items
         updated_subscription_items = stripe.SubscriptionItem.list(
@@ -1377,7 +1377,7 @@ class UpgradeTestCase(TestCase):
     #             "fee_option": UpgradeForm.UpgradeAction.UPDATE_PRICE,
     #         }
     #     )
-    #     form.update_membership()
+    #     form.update_subscription()
 
     #     # The user should end up with two line items
     #     updated_subscription_items = stripe.SubscriptionItem.list(
@@ -1454,7 +1454,7 @@ class UpgradeTestCase(TestCase):
                 "fee_option": UpgradeForm.UpgradeAction.UPGRADE_TO_SOLIDARITY,
             }
         )
-        form.update_membership()
+        form.update_subscription()
 
         # The user should end up with two line items), len(subscription_items.data)
         # Membership price should have increased

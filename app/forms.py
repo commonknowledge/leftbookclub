@@ -390,7 +390,7 @@ class UpgradeForm(forms.Form):
 
         return options
 
-    def update_membership(self, *args, **kwargs):
+    def update_subscription(self, *args, **kwargs):
         if not self.is_valid():
             raise ValueError("Form is not valid")
         fee_option = self.cleaned_data.get("fee_option")
@@ -425,3 +425,33 @@ class UpgradeForm(forms.Form):
                 proration_behavior="none",
                 items=options[UpgradeForm.choices.UPDATE_PRICE].line_items,
             )
+
+
+# Create a form with a field for user_id, donation_amount, and on submission add a donation product to the subscription
+class DonationForm(forms.Form):
+    user_id = forms.IntegerField(widget=forms.HiddenInput)
+    donation_amount = forms.DecimalField(
+        min_value=0,
+        max_value=1000,
+        decimal_places=2,
+        localize=True,
+        label="Donation amount",
+        help_text="Enter a donation amount in GBP",
+    )
+
+    def update_subscription(self, *args, **kwargs):
+        if not self.is_valid():
+            raise ValueError("Form is not valid")
+        user = User.objects.get(pk=self.cleaned_data.get("user_id"))
+        amount = self.cleaned_data.get("donation_amount")
+
+        if (
+            user.active_subscription is None
+            or user.active_subscription.is_gift_receiver
+        ):
+            raise ValueError("No billable subscription was found for this user.")
+
+        # Create a new donation product
+        user.active_subscription.upsert_regular_donation(
+            int(amount * 100), metadata={"via": "donation_form"}
+        )

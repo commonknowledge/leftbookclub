@@ -106,8 +106,8 @@ class LBCSubscription(djstripe.models.Subscription):
             return None
 
     def upsert_regular_donation(self, amount: float, metadata: Dict[str, Any] = dict()):
-        if amount <= 0:
-            raise ValueError("Donation amount must be greater than 0")
+        if amount < 0:
+            raise ValueError("Donation amount must be 0 or greater.")
 
         # Modify the stripe subscription with a donation product and the amount arg
         items = []
@@ -117,24 +117,25 @@ class LBCSubscription(djstripe.models.Subscription):
         if donation_si is not None:
             items.append({"id": donation_si.id, "deleted": True})
 
-        # Create a new donation SI with the amount arg
-        plan = self.items.first().plan
-        items.append(
-            {
-                "price_data": {
-                    "unit_amount_decimal": int(amount * 100),
-                    "product": get_donation_product().id,
-                    "metadata": {**metadata},
-                    # Mirror details from another SI
-                    "currency": plan.currency,
-                    "recurring": {
-                        "interval": plan.interval,
-                        "interval_count": plan.interval_count,
+        if amount > 0:
+            # Create a new donation SI with the amount arg
+            plan = self.items.first().plan
+            items.append(
+                {
+                    "price_data": {
+                        "unit_amount_decimal": int(amount * 100),
+                        "product": get_donation_product().id,
+                        "metadata": {**metadata},
+                        # Mirror details from another SI
+                        "currency": plan.currency,
+                        "recurring": {
+                            "interval": plan.interval,
+                            "interval_count": plan.interval_count,
+                        },
                     },
-                },
-                "quantity": 1,
-            }
-        )
+                    "quantity": 1,
+                }
+            )
 
         subscription = stripe.Subscription.modify(
             self.id, proration_behavior="none", items=items

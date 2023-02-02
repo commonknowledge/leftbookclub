@@ -23,6 +23,7 @@ from app.views import (
     CompletedGiftPurchaseView,
     CompletedGiftRedemptionView,
     CompletedMembershipPurchaseView,
+    DonationView,
     GiftCodeRedeemView,
     GiftMembershipSetupView,
     LoginRequiredTemplateView,
@@ -93,6 +94,11 @@ urlpatterns = [
         f"update-membership/success",
         UpgradeSuccessDonationTrailerView.as_view(),
         name="upgrade-success",
+    ),
+    path(
+        f"donate",
+        DonationView.as_view(),
+        name="donate",
     ),
     path(
         f"donate/success",

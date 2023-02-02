@@ -762,3 +762,19 @@ class UpgradeSuccessDonationTrailerView(LoginRequiredMixin, FormView):
         context = super().get_context_data(**kwargs)
         context["donation_amount_options"] = [1, 2, 3]
         return context
+
+
+class DonationView(UpgradeSuccessDonationTrailerView):
+    form_class = DonationForm
+    template_name = "app/donate.html"
+    success_url = reverse_lazy("donation-success")
+
+    def get_initial(self):
+        if isinstance(self.request.user, User):
+            initial = super().get_initial()
+            initial["user_id"] = self.request.user.pk
+            if self.request.user.active_subscription.donation_si is not None:
+                initial["donation_amount"] = float(
+                    self.request.user.active_subscription.donation_si.plan.amount
+                )
+            return initial

@@ -10,7 +10,7 @@
         <p>
             Your account has been updated. From now on you'll pay <b>{{ user.active_subscription.price_string }}</b> for <b>{{ user.primary_product.name }}</b>. Your billing schedule is unaffected. You'll next be charged on <b>{{ user.active_subscription.next_billing_date|to_date|date:"d M Y" }}</b>. Your delivery schedule is <b>unchanged</b>. Happy reading!
         </p>
-        {% if user.active_subscription.includes_donation %}
+        {% if not user.active_subscription.includes_donation %}
             {% with user.active_subscription.membership_plan_price.humanised_interval as interval_text %}
                 <h3 class='mt-5'>Add a recurring donation</h3>
                 <p>

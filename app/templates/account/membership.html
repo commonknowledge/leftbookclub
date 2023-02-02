@@ -116,6 +116,8 @@
                     <div class='my-4'>
                         {% url "customerportal" as portal_url %}
                         {% bootstrap_button button_class='btn-secondary' href=portal_url content="Update billing" %}
+                        {% url "donate" as donation_url %}
+                        {% bootstrap_button button_class='btn-secondary' href=donation_url content="Manage donation amount" %}
                     </div>
                     {% if user.active_subscription and not user.active_subscription.cancel_at %}
                         {% url "cancel_membership" as cancellation_url %}

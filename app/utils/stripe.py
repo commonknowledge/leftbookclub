@@ -11,6 +11,9 @@ if TYPE_CHECKING:
 
 from app.utils import include_keys
 
+SHIPPING_PRODUCT_NAME = "Shipping"
+DONATION_PRODUCT_NAME = "Donation"
+
 
 def is_real_gift_code(code):
     possible_codes = stripe.PromotionCode.list(code=code)
@@ -82,21 +85,18 @@ def subscription_with_promocode(
     return sub
 
 
-shipping_product_name = "Shipping"
-
-
 def get_shipping_product() -> djstripe.models.Product:
     shipping_product = None
     metadata_key = "shipping"
     metadata_value = "True"
     shipping_products = stripe.Product.search(
-        query=f'active:"true" AND name:"{shipping_product_name}" AND metadata["{metadata_key}"]:"{metadata_value}"',
+        query=f'active:"true" AND name:"{SHIPPING_PRODUCT_NAME}" AND metadata["{metadata_key}"]:"{metadata_value}"',
     ).data
     if len(shipping_products) > 0:
         shipping_product = shipping_products[0]
     else:
         shipping_product = stripe.Product.create(
-            name=shipping_product_name,
+            name=SHIPPING_PRODUCT_NAME,
             unit_label="delivery",
             metadata={metadata_key: metadata_value},
         )
@@ -104,6 +104,27 @@ def get_shipping_product() -> djstripe.models.Product:
         shipping_product
     )
     return dj_shipping_product
+
+
+def get_donation_product() -> djstripe.models.Product:
+    donation_product = None
+    metadata_key = "donation"
+    metadata_value = "True"
+    donation_products = stripe.Product.search(
+        query=f'active:"true" AND name:"{DONATION_PRODUCT_NAME}" AND metadata["{metadata_key}"]:"{metadata_value}"',
+    ).data
+    if len(donation_products) > 0:
+        donation_product = donation_products[0]
+    else:
+        donation_product = stripe.Product.create(
+            name=DONATION_PRODUCT_NAME,
+            unit_label="donation",
+            metadata={metadata_key: metadata_value},
+        )
+    dj_donation_product = djstripe.models.Product.sync_from_stripe_data(
+        donation_product
+    )
+    return dj_donation_product
 
 
 def get_gift_card_coupon(
@@ -334,13 +355,33 @@ def create_gift_recipient_subscription(
     return subscription
 
 
+def get_primary_product_subscription_item_for_djstripe_subscription(
+    sub: djstripe.models.Subscription,
+) -> djstripe.models.SubscriptionItem:
+    if sub.plan is not None:
+        return sub
+    return (
+        sub.items.exclude(
+            plan__product__name__in=[SHIPPING_PRODUCT_NAME, DONATION_PRODUCT_NAME],
+        )
+        .select_related("plan__product")
+        .first()
+    )
+
+
 def get_primary_product_for_djstripe_subscription(
     sub: djstripe.models.Subscription,
 ) -> djstripe.models.Product:
-    if sub.plan is not None and sub.plan.product is not None:
-        return sub.plan.product
+    si = get_primary_product_subscription_item_for_djstripe_subscription(sub)
+    if si is not None:
+        return si.plan.product
+
+
+def get_shipping_product_for_djstripe_subscription(
+    sub: djstripe.models.Subscription,
+) -> Union[djstripe.models.Product, None]:
     return (
-        sub.items.exclude(plan__product__name=shipping_product_name)
+        sub.items.filter(plan__product__name=SHIPPING_PRODUCT_NAME)
         .select_related("plan__product")
         .first()
         .plan.product

@@ -17,4 +17,10 @@
             Your payment is overdue. <a href='{% url "customerportal" %}'>Update your payment details</a>
         </div>
     </div>
+{% elif user.active_subscription.should_upgrade %}
+    <div class='bg-warning'>
+        <div class='container-xl py-2 text-center'>
+            You're on a legacy membership plan. <a href='{% url "upgrade" %}'>Review your options</a>
+        </div>
+    </div>
 {% endif %}

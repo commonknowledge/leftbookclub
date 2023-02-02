@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 gift_card static wagtailcore_tags %}
+{% block title %}Update your membership | Left Book Club{% endblock %}
+{% comment %} {% block content_padding %}p-5{% endblock %}
+{% block content_width %}container-fluid{% endblock %}
+{% block content_extra_classes %}tw-bg-yellow{% endblock %} {% endcomment %}
+{% block content %}
+    {% comment %} {% if not user.active_subscription.should_upgrade %}
+    <header class='text-center my-4 tw-max-w-xl mx-auto'>
+      <h1>You're up to date</h1>
+    </header>
+{% else %} {% endcomment %}
+    <form method='POST' data-turbo="false" id="upgrade-form">
+        {% comment %} Hidden inputs {% endcomment %}
+        {% csrf_token %}
+        {{ form.user_id }}
+        {% comment %} /End hidden inputs {% endcomment %}
+        <header class='text-center my-4 tw-max-w-xl mx-auto'>
+            {% if not user.active_subscription.should_upgrade %}
+                <h1>Review membership plan</h1>
+                <p>
+                    You're currently on <i>{{ user.primary_product.name }}</i>.
+                </p>
+            {% else %}
+                <h1>Thanks for reviewing your membership fee</h1>
+                <p>
+                    Since you signed up, our operating costs have dramatically increased due to the economic times we’re all living through. Paper alone has risen by 20%.
+                </p>
+                <p>
+                    We've increased the price of new memberships and protected your fee, but we are starting to struggle. Can you afford to increase your support for LBC through your membership fee?
+                </p>
+            {% endif %}
+        </header>
+        <div>
+            {% if user.active_subscription.should_upgrade %}
+                <h3 class='h3 mb-3 text-center'>Select the fee amount you can afford</h3>
+            {% else %}
+                <h3 class='h3 mb-3 text-center'>Select a new plan</h3>
+            {% endif %}
+            {% comment %} {% if error %}
+                      {% bootstrap_alert error alert_type='danger' %}
+            {% endif %} {% endcomment %}
+            {{ form.non_field_errors }}
+            {{ form.fee_option.errors }}
+            <section class='row g-2'>
+                {% for option_id, option in options.items %}
+                    <article class='col-12 col-md'>
+                        <input {% if option.default_selected %}checked{% endif %}
+                               type="radio"
+                               id="fee_option-{{ option_id|slugify }}"
+                               name="fee_option"
+                               value="{{ option_id }}"
+                               class="tw-hidden tw-peer"
+                               required/>
+                        <label for="fee_option-{{ option_id|slugify }}"
+                               class='tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 peer-checked:tw-bg-white hover:tw-text-gray-600 hover:tw-bg-gray-100 overflow-hidden h-100 d-flex flex-column tw-border tw-border-gray-300'>
+                            {% if option.label %}
+                                {% include "app/includes/banner.html" with label=option.label class='mt-3 mb-1' %}
+                            {% else %}
+                                {% include "app/includes/banner.html" with label="&nbsp;." class='mt-3 mb-1 opacity-0' %}
+                            {% endif %}
+                            <div class='px-3 pt-1'>
+                                <h3 class='h2 mb-2 fw-bold'>{{ option.title }}</h3>
+                                <div class='my-2 h4'>
+                                    {{ option.price_str }}
+                                    {% if option.discount %}
+                                        <br />
+                                        ({{ option.discount }} below break-even price)
+                                    {% endif %}
+                                </div>
+                                <div class='my-2 h5 tw-flex tw-items-center'>
+                                    <svg class="tw-w-4 tw-h-4"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         viewBox="0 0 24 24"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    <span>A book {{ option.plan.delivery_frequency }}</span>
+                                </div>
+                                {% if option.text %}<div class='mt-2'>{{ option.text|richtext }}</div>{% endif %}
+                            </div>
+                            <div class='mt-auto p-3'>
+                                <div data-analytics-action="select_upgrade_option"
+                                     class='btn btn-outline-dark tw-text-inherit tw-border-inherit'>
+                                    {{ option.action_text }}
+                                </div>
+                            </div>
+                        </label>
+                    </article>
+                {% endfor %}
+            </section>
+            <section class='text-center my-4 tw-max-w-xl mx-auto'>
+                <p class='my-3'>
+                    By clicking the button below, you agree to pay the new fee from your next payment date. No immediate payment will be requested and your book delivery dates won't change.
+                </p>
+                <button type="submit" class='btn btn-primary'>Click to confirm price</button>
+            </section>
+        </div>
+    </form>
+    {% comment %} {% endif %} {% endcomment %}
+{% endblock %}

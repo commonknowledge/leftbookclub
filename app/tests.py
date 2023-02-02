@@ -1,20 +1,29 @@
 import random
 import string
 from datetime import date, datetime
+from http import HTTPStatus
 from multiprocessing.sharedctypes import Value
 
 import djstripe.models
 from django.test import TestCase
+from django.urls import reverse
 from djmoney.money import Money
 from djstripe.enums import ProductType
 
 from app.models import *
+from app.utils.python import uid
 from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
     create_gift_recipient_subscription,
+    create_gift_subscription_and_promo_code,
     recreate_one_off_stripe_price,
 )
-from app.views import SubscriptionCheckoutView
+from app.views import (
+    CompletedGiftPurchaseView,
+    GiftCodeRedeemView,
+    GiftMembershipSetupView,
+    SubscriptionCheckoutView,
+)
 
 
 class PlansAndShippingTestCase(TestCase):
@@ -332,16 +341,18 @@ class ComplexPlansAndPrices(TestCase):
         self.assertEqual(line_items[0]["price_data"]["product"], product.id)
 
 
-class GiftTestCase(TestCase):
+class BaseGiftTestCase(TestCase):
     users = []
+    passwords = {}
 
     @classmethod
     def create_user(cls) -> User:
-        uid = "".join(random.choice(string.ascii_lowercase) for i in range(10))
-        user = User.objects.create_user(
-            uid, f"unit-test-{uid}@leftbookclub.com", "default_pw_12345_xyz_lbc"
-        )
+        id = uid()
+        email = f"unit-test-{id}@leftbookclub.com"
+        user = User.objects.create_user(id, email, "default_pw_12345_xyz_lbc")
         password = User.objects.make_random_password()
+        user.plaintext_password = password
+        cls.passwords[user] = password
         user.set_password(password)
         user.save(update_fields=["password"])
         cls.users += [user]
@@ -411,36 +422,25 @@ class GiftTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        for user in cls.users:
-            if user.stripe_customer is not None:
-                stripe.Customer.delete(user.stripe_customer.id)
+        # for user in cls.users:
+        #     if user.stripe_customer is not None:
+        #         stripe.Customer.delete(user.stripe_customer.id)
         return super().tearDownClass()
 
-    def test_buying_gift_card_and_applying_it_to_yourself(self):
-        # create subscription
-        context = SubscriptionCheckoutView.create_checkout_context(
-            product=self.gift_plan.monthly_price.products.first(),
-            price=self.gift_plan.monthly_price,
-            zone=ShippingZone.default_zone,
-            gift_mode=True,
-        )
-        gift_giver_subscription = stripe.Subscription.create(
-            customer=self.gift_giver_user.stripe_customer.id,
-            items=context["checkout_args"]["line_items"],
-            metadata={"automated_test_record": "true"},
-            default_payment_method=self.payment_card.id,
-        )
 
-        # TODO: test line items are correct
-
+class GiftTestCase(BaseGiftTestCase):
+    def test_buying_gift_card_and_redeeming_it_yourself(self):
         (
             promo_code,
             gift_giver_subscription,
-        ) = configure_gift_giver_subscription_and_code(
-            gift_giver_subscription.id,
-            self.gift_giver_user.id,
+        ) = create_gift_subscription_and_promo_code(
+            self.gift_plan,
+            self.gift_giver_user,
+            self.payment_card,
             metadata={"automated_test_record": "true"},
         )
+
+        print("Promo code", promo_code)
         self.assertEqual(
             self.gift_giver_user.active_subscription,
             None,
@@ -495,29 +495,14 @@ class GiftTestCase(TestCase):
         promo_code = stripe.PromotionCode.retrieve(promo_code.id)
         self.assertFalse(promo_code.active)
 
-    def test_buying_gift_card_and_applying_it_to_someone_else(self):
-        # create subscription
-        context = SubscriptionCheckoutView.create_checkout_context(
-            product=self.gift_plan.monthly_price.products.first(),
-            price=self.gift_plan.monthly_price,
-            zone=ShippingZone.default_zone,
-            gift_mode=True,
-        )
-        gift_giver_subscription = stripe.Subscription.create(
-            customer=self.gift_giver_user.stripe_customer.id,
-            items=context["checkout_args"]["line_items"],
-            metadata={"automated_test_record": "true"},
-            default_payment_method=self.payment_card.id,
-        )
-
-        # TODO: test line items are correct
-
+    def test_buying_gift_card_and_redeeming_it_with_someone_else(self):
         (
             promo_code,
             gift_giver_subscription,
-        ) = configure_gift_giver_subscription_and_code(
-            gift_giver_subscription.id,
-            self.gift_giver_user.id,
+        ) = create_gift_subscription_and_promo_code(
+            self.gift_plan,
+            self.gift_giver_user,
+            self.payment_card,
             metadata={"automated_test_record": "true"},
         )
         self.assertEqual(
@@ -570,6 +555,15 @@ class GiftTestCase(TestCase):
             self.gift_recipient_user.active_subscription, recipient_subscription
         )
 
+        # Assert that nothing has gone backwards
+        import time
+
+        self.driver.implicitly_wait(10)
+        self.gift_recipient_user.refresh_stripe_data()
+        self.assertEqual(
+            self.gift_recipient_user.active_subscription, recipient_subscription
+        )
+
         # Assert that the promo code can't be used anymore, because it's been redeemed
         promo_code = stripe.PromotionCode.retrieve(promo_code.id)
         self.assertFalse(promo_code.active)
@@ -584,20 +578,6 @@ class GiftTestCase(TestCase):
         3. TEST: The gift is redeemed successfully
         """
 
-        # create subscription
-        context = SubscriptionCheckoutView.create_checkout_context(
-            product=self.gift_plan.monthly_price.products.first(),
-            price=self.gift_plan.monthly_price,
-            zone=ShippingZone.default_zone,
-            gift_mode=True,
-        )
-        gift_giver_subscription = stripe.Subscription.create(
-            customer=self.gift_giver_user.stripe_customer.id,
-            items=context["checkout_args"]["line_items"],
-            metadata={"automated_test_record": "true"},
-            default_payment_method=self.payment_card.id,
-        )
-
         ####
         #### 1. Create the gift giver subscription
         ####
@@ -605,9 +585,10 @@ class GiftTestCase(TestCase):
         (
             promo_code,
             gift_giver_subscription,
-        ) = configure_gift_giver_subscription_and_code(
-            gift_giver_subscription.id,
-            self.gift_giver_user.id,
+        ) = create_gift_subscription_and_promo_code(
+            self.gift_plan,
+            self.gift_giver_user,
+            self.payment_card,
             metadata={"automated_test_record": "true"},
         )
 
@@ -666,3 +647,149 @@ class GiftTestCase(TestCase):
         # Assert that the promo code can't be used anymore, because it's been redeemed
         promo_code = stripe.PromotionCode.retrieve(promo_code.id)
         self.assertFalse(promo_code.active)
+
+    # def test_redemption_flow_views(self):
+    #     # 1. Create subscription programatically, as we can't go through the Stripe UI here
+
+    # (
+    #     promo_code,
+    #     gift_giver_subscription,
+    # ) = create_gift_subscription_and_promo_code(
+    #   self.gift_plan,
+    #   self.gift_giver_user,
+    #   self.payment_card,
+    #   metadata={"automated_test_record": "true"}
+    # )
+
+    #     # 2. Mock the UI flow for redemption
+
+    #     ### First, test that promo code handling works at all
+    #     form = GiftCodeRedeemView.form_class(data={"code": "--" + promo_code.code})
+    #     self.assertEqual(form.errors["code"], ["This isn't a real code"])
+
+    #     ### Then test that the view handles form errors OK.
+    #     response = self.client.post(reverse("redeem"), {"code": "=="+promo_code.code})
+    #     self.assertEqual(response.url, reverse('redeem'))
+
+    #     ### Then test the view actually shows up in the URL
+    #     response = self.client.get(reverse("redeem"))
+    #     self.assertEqual(response.status_code, HTTPStatus.OK)
+    #     self.assertContains(response, "Someone bought you a gift membership!")
+
+    #     ### Then test that a successful code takes you to the shipping page
+    #     response = self.client.post(reverse("redeem"), {"code": promo_code.code})
+    #     self.assertRedirects(response, reverse('redeem_setup'), status_code=302, target_status_code=200)
+
+    #     # Shipping page - enter shipping info
+    #     response = self.client.get(reverse("redeem_setup"))
+    #     self.assertContains(response, "Set up shipping")
+    #     response = self.client.post(
+    #         reverse("redeem_setup"),
+    #         {
+    #             "name": "Test",
+    #             "line1": "Test",
+    #             "line2": "Test",
+    #             "postal_code": "Test",
+    #             "city": "Test",
+    #             "state": "Test",
+    #             "country": "US",
+    #         },
+    #     )
+
+    #     # Should see success page
+    #     self.assertRedirects(response, reverse('completed_gift_redemption'), status_code=302, target_status_code=200)
+    #     response = self.client.get(reverse("completed_gift_redemption"))
+
+    #     #
+    #     self.assertContains(
+    #         response, "You've successfully redeemed a gift card for a membership."
+    #     )
+
+
+# from app.utils.tests import SeleniumTestCase
+# from selenium.webdriver.common.by import By
+# import time
+
+# class DisableCSRFMiddleware(object):
+
+#     def __init__(self, get_response):
+#         self.get_response = get_response
+
+#     def __call__(self, request):
+#         setattr(request, '_dont_enforce_csrf_checks', True)
+#         response = self.get_response(request)
+#         return response
+
+# class IntegrationGiftTestCase(SeleniumTestCase, BaseGiftTestCase):
+#     def test_gift_flow(self):
+#         # 1. Create subscription programatically, as we can't go through the Stripe UI here
+
+# (
+#     promo_code,
+#     gift_giver_subscription,
+# ) = create_gift_subscription_and_promo_code(
+#   self.gift_plan,
+#   self.gift_giver_user,
+#   self.payment_card,
+#   metadata={"automated_test_record": "true"}
+# )
+
+#         # 2. Mock the UI flow for redemption
+#         ENTER_KEY = u'\ue007'
+
+#         def click_link(el):
+#             # el.click()
+#             login_url = el.get_attribute('href')
+#             self.driver.get(login_url)
+
+#         # Test error message
+#         self.driver.get(f"{self.live_server_url}{reverse('redeem')}")
+#         print("Expecting /redeem", self.driver.current_url)
+#         self.driver.find_element(By.CSS_SELECTOR, "form#redeem-form input[name=code]").send_keys("ObviouslyFalsePromoCode")
+#         self.driver.find_element(By.CSS_SELECTOR, "form#redeem-form input[name=code]").submit()
+#         self.assertContains(
+#           self.driver.find_element(By.CSS_SELECTOR, "form#redeem-form .list-unstyled.text-danger").text,
+#           "This isn't a real code"
+#         )
+#         self.driver.implicitly_wait(4)
+
+#         # Test success path message
+#         print("Expecting /redeem", self.driver.current_url)
+#         self.driver.get(f"{self.live_server_url}{reverse('redeem')}")
+#         print(self.driver.current_url)
+#         self.driver.find_element(By.CSS_SELECTOR, "form#redeem-form input[name=code]").send_keys(promo_code.code)
+#         self.driver.find_element(By.CSS_SELECTOR, "form#redeem-form input[name=code]").submit()
+
+#         # Should navigate to signup
+#         self.driver.implicitly_wait(4)
+#         self.assertContains(self.driver.current_url, "accounts/signup")
+#         print("Expecting /accounts/signup", self.driver.current_url)
+
+#         # Sign in
+#         click_link(self.driver.find_element(By.ID, "sign-in-link"))
+#         print(self.driver.current_url)
+#         self.driver.implicitly_wait(2)
+#         self.driver.find_element(By.CSS_SELECTOR, "input[name=login]").send_keys(self.gift_recipient_user.email)
+#         self.driver.find_element(By.CSS_SELECTOR, "input[name=password]").send_keys(self.gift_recipient_user.plaintext_password)
+#         self.driver.find_element(By.CSS_SELECTOR, "form").submit()
+
+#         # Should navigate back to shipping
+#         self.driver.implicitly_wait(2)
+#         self.assertContains(self.driver.current_url, reverse('redeem_setup'))
+
+#         # Shipping
+#         print("Expectign redeem setup", self.driver.current_url)
+#         self.assertContains(self.driver.current_url, reverse('redeem_setup'))
+#         self.driver.find_element(By.CSS_SELECTOR, "form input[name=name]").send_keys("Test")
+#         self.driver.find_element(By.CSS_SELECTOR, "form input[name=line1]").send_keys("Test")
+#         self.driver.find_element(By.CSS_SELECTOR, "form input[name=line2]").send_keys("Test")
+#         self.driver.find_element(By.CSS_SELECTOR, "form input[name=postal_code]").send_keys("Test")
+#         self.driver.find_element(By.CSS_SELECTOR, "form input[name=city]").send_keys("Test")
+#         self.driver.find_element(By.CSS_SELECTOR, "form input[name=state]").send_keys("Test")
+#         self.driver.find_element(By.CSS_SELECTOR, "form input[name=country]").send_keys("US")
+#         self.driver.find_element(By.CSS_SELECTOR, "form").submit()
+
+#         # Success page
+#         self.driver.implicitly_wait(4)
+#         print("Expecting success", self.driver.current_url)
+#         self.assertContains(self.driver.current_url, reverse('completed_gift_redemption'))

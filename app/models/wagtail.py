@@ -13,9 +13,10 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models
 from django.http.response import Http404
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django_countries import countries
 from djmoney.models.fields import Money, MoneyField
@@ -42,6 +43,7 @@ from wagtail.search import index
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.snippets.models import register_snippet
 from wagtailautocomplete.edit_handlers import AutocompletePanel
+from wagtailcache.cache import WagtailCacheMixin, cache_page
 from wagtailseo import utils
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
@@ -50,6 +52,7 @@ from app.models.blocks import ArticleContentStream
 from app.models.circle import CircleEvent
 from app.models.django import User
 from app.utils import include_keys
+from app.utils.abstract_model_querying import abstract_page_query_filter
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
@@ -189,11 +192,29 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         blank=True,
     )
 
-    products = ParentalManyToManyField(LBCProduct, blank=True)
+    should_advertise_postage_price = models.BooleanField(
+        default=True,
+        help_text="Whether to advertise that the price is + p&p, before the shipping zone is known.",
+    )
+
+    products = ParentalManyToManyField(
+        LBCProduct,
+        blank=True,
+        help_text="The stripe product that the user will be subscribed to. If multiple products are set here, then the user will be asked to pick which one they want, e.g. Classic or Contemporary books.",
+    )
 
     panels = [
-        AutocompletePanel("products", target_model=LBCProduct),
-        FieldPanel("price"),
+        FieldRowPanel(
+            [
+                FieldPanel("price"),
+            ]
+        ),
+        MultiFieldPanel(
+            [
+                AutocompletePanel("products", target_model=LBCProduct),
+            ],
+            heading="Product",
+        ),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),
@@ -201,7 +222,13 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             ],
             heading="billing schedule",
         ),
-        AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+        MultiFieldPanel(
+            [
+                FieldPanel("should_advertise_postage_price"),
+                AutocompletePanel("free_shipping_zones", target_model=ShippingZone),
+            ],
+            heading="Shipping fees",
+        ),
         FieldPanel(
             "description",
             classname="full",
@@ -242,7 +269,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     def price_string(self) -> str:
         money = str(self.price)
         interval = self.humanised_interval()
-        return f"{money}{interval}"
+        s = f"{money}{interval}"
+        if self.should_advertise_postage_price:
+            return f"{s} + p&p"
+        return s
 
     @property
     def months_per_billing_cycle(self):
@@ -262,7 +292,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     @property
     def equivalent_monthly_price_string(self) -> str:
         money = str(self.equivalent_monthly_price)
-        return f"{money}/month"
+        s = f"{money}/month"
+        if self.should_advertise_postage_price:
+            return f"{s} + p&p"
+        return s
 
     def __str__(self) -> str:
         return f"{self.price_string} on {self.plan}"
@@ -322,6 +355,68 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             },
         ]
         return line_items
+
+    def upsell(self, product_id: str):
+        return Upsell.objects.filter(
+            plan=self.plan, from_stripe_product__id=product_id
+        ).first()
+
+    def upsell_data(self, product_id: str, country_id):
+        try:
+            upsell = self.upsell(product_id)
+            if upsell is not None and upsell.url() is not None:
+                if country_id is not None:
+                    return {
+                        "description": upsell.description,
+                        "url": upsell.url(country_id),
+                    }
+                return {"description": upsell.description, "url": upsell.url()}
+        except:
+            return None
+
+
+@register_snippet
+class Upsell(Orderable, ClusterableModel):
+    class Meta:
+        unique_together = ["plan", "from_stripe_product", "to_stripe_product"]
+
+    plan = ParentalKey(
+        "app.MembershipPlanPage",
+        on_delete=models.CASCADE,
+        related_name="upsells",
+        verbose_name="membership plan",
+    )
+
+    description = models.CharField(max_length=150)
+
+    from_stripe_product = models.ForeignKey(
+        LBCProduct, on_delete=models.CASCADE, related_name="upsells"
+    )
+
+    to_stripe_product = models.ForeignKey(
+        LBCProduct, on_delete=models.CASCADE, related_name="+"
+    )
+
+    panels = [
+        FieldPanel("description"),
+        AutocompletePanel("plan", target_model="app.MembershipPlanPage"),
+        AutocompletePanel("from_stripe_product", target_model=LBCProduct),
+        AutocompletePanel("to_stripe_product", target_model=LBCProduct),
+    ]
+
+    @property
+    def to_price(self):
+        return self.plan.prices.filter(products=self.to_stripe_product).first()
+
+    def url(self, country_id=None):
+        return reverse(
+            "plan_shipping",
+            kwargs=dict(
+                price_id=self.to_price.id,
+                product_id=self.to_stripe_product.id,
+                country_id=country_id,
+            ),
+        )
 
 
 class PlanTitleBlock(blocks.StructBlock):
@@ -477,7 +572,8 @@ class ImageRendition(AbstractRendition):
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 
-class BlogIndexPage(IndexPageSeoMixin, Page):
+@method_decorator(cache_page, name="serve")
+class BlogIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     """
     Define blog index page.
     """
@@ -491,7 +587,8 @@ class BlogIndexPage(IndexPageSeoMixin, Page):
     seo_description_sources = IndexPageSeoMixin.seo_description_sources + ["intro"]
 
 
-class BlogPage(ArticleSeoMixin, Page):
+@method_decorator(cache_page, name="serve")
+class BlogPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     """
     Define blog detail page.
     """
@@ -537,6 +634,18 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     shopify_product_id = models.CharField(max_length=300, blank=False, null=False)
     description = RichTextField(null=True, blank=True)
     image_url = models.URLField(max_length=500, blank=True)
+    image_urls = ArrayField(
+        models.URLField(max_length=500, blank=True), blank=True, null=True
+    )
+    cached_price = models.FloatField(blank=True, null=True)
+
+    @property
+    def primary_image_url(self):
+        return (
+            self.image_urls[0]
+            if self.image_urls is not None and len(self.image_urls) > 0
+            else self.image_url
+        )
 
     # Don't allow editing here because it won't be synced back to Shopify
     content_panels = [
@@ -550,6 +659,10 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     ]
 
     @classmethod
+    def get_lowest_price(cls, product):
+        return min(variant.price for variant in product.variants)
+
+    @classmethod
     def get_args_for_page(cls, product, metafields):
         images = product.attributes.get("images", [])
         return dict(
@@ -558,6 +671,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             title=product.attributes.get("title"),
             description=product.attributes.get("body_html"),
             image_url=images[0].src if len(images) > 0 else "",
+            image_urls=[image.src for image in images] if len(images) > 0 else [],
+            cached_price=cls.get_lowest_price(product),
         )
 
     @classmethod
@@ -645,7 +760,6 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
     def sync_shopify_products_to_pages(cls, collection_id=None):
         if collection_id is None:
             collection_id = cls.shopify_collection_id
-        print("sync_shopify_products_to_pages", collection_id)
         with shopify.Session.temp(
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
@@ -675,9 +789,20 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         except:
             return ""
 
-
-class MerchandisePage(BaseShopifyProductPage):
-    pass
+    @classmethod
+    def get_specific_product_by_shopify_id(cls, shopify_product_id):
+        return (
+            Page.objects.filter(
+                abstract_page_query_filter(
+                    BaseShopifyProductPage, dict(shopify_product_id=shopify_product_id)
+                )
+            )
+            .distinct()
+            .live()
+            .specific()
+            .order_by("title")
+            .first()
+        )
 
 
 class ButtonBlock(blocks.StructBlock):
@@ -759,12 +884,40 @@ class FeaturedBookBlock(blocks.StructBlock):
         icon = "fa fa-book"
 
 
+class FeaturedProductBlock(blocks.StructBlock):
+    product = blocks.PageChooserBlock(
+        page_type="app.merchandisepage",
+        target_model="app.merchandisepage",
+        can_choose_root=False,
+    )
+    background_color = BackgroundColourChoiceBlock(required=False)
+    promotion_label = blocks.CharBlock(
+        required=False, help_text="Label that highlights this product"
+    )
+    description = blocks.RichTextBlock(
+        required=False,
+        help_text="This will replace the product's default description. You can use this to provide a more contextualised description of the product",
+    )
+
+    class Meta:
+        template = "app/blocks/featured_product_block.html"
+        icon = "fa fa-shopping-cart"
+
+
 class BookGridBlock(blocks.StructBlock):
     column_width = ColumnWidthChoiceBlock()
 
     class Meta:
         template = "app/blocks/book_grid_block.html"
         icon = "fa fa-book"
+
+
+class ProductGridBlock(blocks.StructBlock):
+    column_width = ColumnWidthChoiceBlock()
+
+    class Meta:
+        template = "app/blocks/product_grid_block.html"
+        icon = "fa fa-shopping-cart"
 
 
 class SelectedBooksBlock(BookGridBlock):
@@ -782,6 +935,21 @@ class SelectedBooksBlock(BookGridBlock):
         return context
 
 
+class SelectedProductsBlock(ProductGridBlock):
+    products = blocks.ListBlock(
+        blocks.PageChooserBlock(
+            page_type="app.merchandisepage",
+            target_model="app.merchandisepage",
+            can_choose_root=False,
+        )
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["products"] = list(value["products"])
+        return context
+
+
 class RecentlyPublishedBooks(BookGridBlock):
     max_books = blocks.IntegerBlock(
         default=4, help_text="How many books should show up?"
@@ -795,8 +963,23 @@ class RecentlyPublishedBooks(BookGridBlock):
             filters["type"] = value["type"]
         context["books"] = (
             BookPage.objects.order_by("-published_date")
+            .live()
+            .public()
             .filter(published_date__isnull=False, **filters)
             .all()[: value["max_books"]]
+        )
+        return context
+
+
+class FullProductList(ProductGridBlock):
+    max_products = blocks.IntegerBlock(
+        default=10, help_text="How many products should show up?"
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["products"] = list(
+            MerchandisePage.objects.live().public().all()[: value["max_products"]]
         )
         return context
 
@@ -846,6 +1029,7 @@ class ColumnBlock(blocks.StructBlock):
         ("membership_plan", PlanBlock()),
         ("richtext", blocks.RichTextBlock(features=block_features)),
         ("button", ButtonBlock()),
+        ("newsletter_signup", NewsletterSignupBlock()),
     ]
     background_color = BackgroundColourChoiceBlock(required=False)
     content = blocks.StreamBlock(stream_blocks, required=False)
@@ -906,13 +1090,15 @@ def create_streamfield(additional_blocks=None, **kwargs):
         ("featured_book", FeaturedBookBlock()),
         ("book_selection", SelectedBooksBlock()),
         ("recently_published_books", RecentlyPublishedBooks()),
+        ("featured_product", FeaturedProductBlock()),
+        ("product_selection", SelectedProductsBlock()),
+        ("full_product_list", FullProductList()),
         ("hero_text", HeroTextBlock()),
         ("heading", blocks.CharBlock(form_classname="full title")),
         ("richtext", ArticleText()),
         ("list_of_heading_image_text", ListBlock()),
         ("single_column", SingleColumnBlock()),
         ("columns", MultiColumnBlock()),
-        ("newsletter_signup", NewsletterSignupBlock()),
         ("events_list_and_map", EventsListAndMap()),
         ("events_list_block", EventsListBlock()),
     ]
@@ -923,8 +1109,25 @@ def create_streamfield(additional_blocks=None, **kwargs):
     return StreamField(blcks, null=True, blank=True, use_json_field=True, **kwargs)
 
 
-class BookPage(BaseShopifyProductPage):
-    shopify_collection_id = settings.SHOPIFY_COLLECTION_ID
+@method_decorator(cache_page, name="serve")
+class MerchandiseIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
+    show_in_menus_default = True
+    layout = create_streamfield()
+    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+
+
+@method_decorator(cache_page, name="serve")
+class MerchandisePage(WagtailCacheMixin, BaseShopifyProductPage):
+    shopify_collection_id = settings.SHOPIFY_MERCH_COLLECTION_ID
+
+    @classmethod
+    def get_root_page(cls):
+        return MerchandiseIndexPage.objects.first()
+
+
+@method_decorator(cache_page, name="serve")
+class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
+    shopify_collection_id = settings.SHOPIFY_BOOKS_COLLECTION_ID
 
     parent_page_types = ["app.BookIndexPage"]
     subtitle = models.CharField(max_length=300, blank=True)
@@ -967,7 +1170,8 @@ class BookPage(BaseShopifyProductPage):
         ordering = ["-published_date"]
 
 
-class MembershipPlanPage(ArticleSeoMixin, Page):
+@method_decorator(cache_page, name="serve")
+class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
 
     deliveries_per_year = models.IntegerField()
@@ -994,6 +1198,7 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
         FieldPanel("deliveries_per_year"),
         FieldPanel("description"),
         InlinePanel("prices", min_num=1, label="Subscription Pricing Options"),
+        InlinePanel("upsells", heading="Upsell options", label="Upsell option"),
         FieldPanel("pick_product_title", classname="full title"),
         FieldPanel("pick_product_text"),
         StreamFieldPanel("layout"),
@@ -1046,25 +1251,29 @@ class MembershipPlanPage(ArticleSeoMixin, Page):
         return context
 
 
-class HomePage(IndexPageSeoMixin, RoutablePageMixin, Page):
+@method_decorator(cache_page, name="serve")
+class HomePage(WagtailCacheMixin, IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class InformationPage(ArticleSeoMixin, Page):
+@method_decorator(cache_page, name="serve")
+class InformationPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class BookIndexPage(IndexPageSeoMixin, Page):
+@method_decorator(cache_page, name="serve")
+class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
     content_panels = Page.content_panels + [StreamFieldPanel("layout")]
 
 
-class MapPage(Page):
+@method_decorator(cache_page, name="serve")
+class MapPage(WagtailCacheMixin, Page):
     intro = RichTextField()
 
     content_panels = Page.content_panels + [FieldPanel("intro")]

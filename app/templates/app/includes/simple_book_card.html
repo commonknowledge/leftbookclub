@@ -1,21 +1,15 @@
-<article class="{{class}} d-flex flex-col tw-justify-items-stretch">
-  <a href="{{book.url}}" title="{{ book.title }}" class='w-100 h-100 bg-white d-block position-relative text-decoration-none'>
-    <img src="{{ book.image_url }}" class="d-block w-100 position-relative tw-z-0" />
-    <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>
-      {{ book.published_date|date:"F Y" }}
-    </div>
-    {% if book.type %}
-    <div class='position-absolute tw-bottom-2 tw-right-2 fs-7 tw-z-50 text-capitalize
-      {% if book.type == "classic" %}
-        tw-bg-black tw-text-white tw-px-1
-      {% elif book.type == "contemporary" %}
-        tw-bg-yellow tw-text-black tw-px-1
-      {% else %}
-        text-dark
-      {% endif %}
-    '>
-      {{ book.type }}
-    </div>
-    {% endif %}
-  </a>
+<article class="{{ class }} d-flex flex-col tw-justify-items-stretch tw-leading-4">
+    <a href="{{ book.url }}"
+       title="{{ book.title }}"
+       class='w-100 h-100 bg-white d-block position-relative text-decoration-none'>
+        <img alt="Book cover for {{ book.title }}"
+             src="{{ book.primary_image_url }}"
+             class="d-block w-100 position-relative tw-z-0"/>
+        <div class='position-absolute tw-bottom-2 tw-left-2 text-dark fs-7 tw-z-50'>{{ book.published_date|date:"F Y" }}</div>
+        {% if book.type %}
+            <div class='position-absolute tw-bottom-2 tw-right-2 fs-7 tw-z-50 text-capitalize {% if book.type == "classic" %} tw-bg-black tw-text-white tw-px-1 {% elif book.type == "contemporary" %} tw-bg-yellow tw-text-black tw-px-1 {% else %} text-dark {% endif %} '>
+                {{ book.type }}
+            </div>
+        {% endif %}
+    </a>
 </article>

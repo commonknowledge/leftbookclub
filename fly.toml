@@ -11,7 +11,7 @@ kill_timeout = 5
 
 [processes]
   web = "poetry run gunicorn -b 0.0.0.0:8080 app.wsgi"
-  cron = "poetry run python manage.py run_cron_tasks"
+  cron = "poetry run python manage.py start_worker"
 
 [env]
   PORT = "8080"

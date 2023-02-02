@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from app.models import BookPage
+from app.models.wagtail import MerchandisePage
 
 
 class Command(BaseCommand):
@@ -12,5 +13,9 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        BookPage.sync_shopify_products_to_pages()
-        # ProductPage.sync_shopify_products_to_pages()
+        run()
+
+
+def run(*args, **kwargs):
+    BookPage.sync_shopify_products_to_pages()
+    MerchandisePage.sync_shopify_products_to_pages()

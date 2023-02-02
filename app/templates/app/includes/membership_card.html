@@ -1,26 +1,26 @@
 {% load date static %}
 <article class='bg-white container rounded-3 shadow-sm border border-1 w-100 max-width-card'>
-  {% if user.is_member %}
-    <div class='row gx-1 px-2 py-4'>
-      <div class='col-2'>
-        <img src="{% static 'images/logo.png' %}" style='width: 40px;'/>
-      </div>
-      <div class='col-10'>
-        <div class='text-left'>
-          <div class='text-muted'>Membership No. #{{ user.stripe_customer.invoice_prefix }}</div>
-          <div class='fw-bold'>{{ user.active_subscription.primary_product.name}}</div>
-          {% comment %} <div>{{user.subscribed_price.human_readable_price}}</div> {% endcomment %}
-          {% if user.active_subscription.gift_giver_subscription %}
-            <div>Gifted by {{user.gift_giver}}</div>
-          {% endif %}
-          <div class='text-muted'>Since {{ user.active_subscription.created|date:"d M Y" }}</div>
-          {% if user.active_subscription.cancel_at %}
-            <div class='text-danger'>Expires on {{user.active_subscription.cancel_at}}</div>
-          {% endif %}
+    {% if user.is_member %}
+        <div class='row gx-1 px-2 py-4'>
+            <div class='col-2'>
+                <img alt="Left Book Club logo"
+                     src="{% static 'images/logo.png' %}"
+                     style='width: 40px'/>
+            </div>
+            <div class='col-10'>
+                <div class='text-left'>
+                    <div class='text-muted'>Membership No. #{{ user.stripe_customer.invoice_prefix }}</div>
+                    <div class='fw-bold'>{{ user.active_subscription.primary_product.name }}</div>
+                    {% comment %} <div>{{user.subscribed_price.human_readable_price}}</div> {% endcomment %}
+                    {% if user.active_subscription.gift_giver_subscription %}<div>Gifted by {{ user.gift_giver }}</div>{% endif %}
+                    <div class='text-muted'>Since {{ user.active_subscription.created|date:"d M Y" }}</div>
+                    {% if user.active_subscription.cancel_at %}
+                        <div class='text-danger'>Expires on {{ user.active_subscription.cancel_at }}</div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  {% else %}
-    <div class='text-muted text-center py-3'>You're not currently a member</div>
-  {% endif %}
+    {% else %}
+        <div class='text-muted text-center py-3'>You're not currently a member</div>
+    {% endif %}
 </article>

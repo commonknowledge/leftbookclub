@@ -40,6 +40,8 @@ if USE_SILK:
         "silk",
     ]
 
+WAGTAIL_CACHE = False
+
 try:
     from .local import *
 except ImportError:

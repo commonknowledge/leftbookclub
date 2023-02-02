@@ -1,85 +1,123 @@
 {% load static account menu_tags wagtailcore_tags %}
-
 <header>
-  {% comment %} Desktop nav {% endcomment %}
-  <nav class='tw-hidden md:tw-flex text-uppercase tw-text-sm navbar container-xl'>
-    <ul class="nav col-12 col-md tw-justify-center md:tw-justify-start tw-order-3 md:tw-order-1 small-text tw-text-black">
-      {% for item in menu_items %}
-        <li><a href="{{ item.href }}" class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a></li>
-      {% endfor %}
-    </ul>
-    <a href="/" class="text-center col text-dark text-decoration-none md:tw-flex-grow-0 tw-order-1 md:tw-order-2">
-      <img src="{% static 'images/logo.png' %}" style='width: 100px; height: 100px;' alt="Left Book Club logo" title="Left Book Club" />
-    </a>
-    <ul class="nav col-12 col-md tw-justify-center md:tw-justify-end tw-order-2 md:tw-order-3 tw-items-center small-text tw-text-black">
-      {% if user.is_authenticated %}
-        <li>
-          <a href="{% url 'account_membership' %}" class="nav-link pl-2 link-dark tw-align-middle !tw-inline-block !tw-pr-0">{% user_display request.user %}</a>
-          {% include "app/includes/membership_badge.html" with user=user %}
-        </li>
-        <li><a href="{% url 'account_logout' %}" class="nav-link btn-sm px-2 link-dark">Sign out</a></li>
-      {% else %}
-        <li><a href="{% url 'account_login' %}" class="nav-link btn-sm px-2 link-dark">Login</a></li>
-      {% endif %}
-      {% comment %} {% if user.is_member is None %} {% endcomment %}
-        {% if request.session.gift_giver_subscription is not None %}
-          <li><a href="{% url 'redeem_setup' %}" class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-magenta">Finish gift set up</a></li>
-        {% elif not user.is_member %}
-          <li><a href="{% url 'redeem' %}" class="nav-link px-2 link-dark">Redeem gift card</a></li>
-          <li><a href="/join" class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-yellow">Join</a></li>
-        {% endif %}
-      {% comment %} {% endif %} {% endcomment %}
-    </ul>
-  </nav>
-
-  {% comment %} Mobile nav {% endcomment %}
-  <nav class='md:tw-hidden text-uppercase tw-text-sm navbar navbar-light container-xl'>
-    <a href="/" class="text-dark text-decoration-none tw-pr-1">
-      <img src="{% static 'images/logo.png' %}" style='width: 60px; height: 60px;' alt="Left Book Club logo" title="Left Book Club" />
-    </a>
-    <div class='tw-space-x-1 small-text tw-flex-grow-1 tw-flex-shrink-0 tw-text-center'>
-      {% comment %} Just show the first three items on mobile, leave the rest to the dropdown {% endcomment %}
-      {% for item in menu_items|slice:":3" %}
-        <a href="{{ item.href }}" class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
-      {% endfor %}
-    </div>
-    <div class='tw-pl-1 tw-text-right'>
-      <button class="navbar-toggler !tw-py-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-    </div>
-    <div class="collapse navbar-collapse tw-mt-3 -tw-mx-3 tw-bg-yellow" id="navbarNav">
-      <div class="navbar-nav small-text px-2 py-2 tw-border-black tw-border-t-2 tw-border-b-2">
-        {% for item in menu_items %}
-          <div class='px-2'><a href="{{ item.href }}" class="nav-link !tw-text-black {{ item.active_class }}">{{ item.text }}</a></div>
-        {% endfor %}
-
-        {% if request.session.gift_giver_subscription is not None %}
-          <div class='px-2'><a href="{% url 'redeem_setup' %}" class="btn btn-outline-dark btn-sm !tw-text-black tw-bg-magenta">Finish gift set up</a></div>
-        {% elif not user.is_member %}
-          <div class='px-2'><a href="{% url 'redeem' %}" class="nav-link !tw-text-black">Redeem gift card</a></div>
-        {% endif %}
-
-        <hr class='tw-mx-[8px]' />
-
-        {% if user.is_authenticated %}
-          <div class='px-2'>
-            <a href="{% url 'account_membership' %}" class="nav-link !tw-text-black tw-align-middle !tw-inline-block">{% user_display request.user %}</a>
-            {% include "app/includes/membership_badge.html" with user=user %}
-          </div>
-          <div class='px-2'><a href="{% url 'account_logout' %}" class="nav-link btn-sm !tw-text-black">Sign out</a></div>
-        {% else %}
-          <div class='px-2'><a href="{% url 'account_login' %}" class="nav-link btn-sm !tw-text-black">Login</a></div>
-        {% endif %}
-      </ul>
-    </div>
-  </nav>
-
-  {% comment %} Aesthetics {% endcomment %}
-  {% include "app/includes/banner.html" with label="Read. Debate. Organise." class="tw-mt-1 md:tw-mt-3 mb-1" %}
-  <div class='tw-border-b-2 tw-border-black'></div>  
-
-  {% comment %} Member subscription banner {% endcomment %}
-  {% include "app/includes/membership_banner.html" with user=user %}
-
+    {% comment %} Desktop nav {% endcomment %}
+    <nav class='tw-hidden md:tw-flex text-uppercase tw-text-sm navbar container-xl'>
+        <ul class="nav col-12 col-md tw-justify-center md:tw-justify-start tw-order-3 md:tw-order-1 small-text tw-text-black">
+            {% for item in menu_items %}
+                <li>
+                    <a href="{{ item.href }}"
+                       class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="/"
+           class="text-center col text-dark text-decoration-none md:tw-flex-grow-0 tw-order-1 md:tw-order-2">
+            <img src="{% static 'images/logo.png' %}"
+                 style='width: 100px;
+                        height: 100px'
+                 alt="Left Book Club logo"
+                 title="Left Book Club"/>
+        </a>
+        <ul class="nav col-12 col-md tw-justify-center md:tw-justify-end tw-order-2 md:tw-order-3 tw-items-center small-text tw-text-black">
+            {% include "app/includes/cart_icon.html" %}
+            {% if user.is_authenticated %}
+                <li>
+                    <a href="{% url 'account_membership' %}"
+                       class="nav-link pl-2 link-dark tw-align-middle !tw-inline-block !tw-pr-0">{% user_display request.user %}</a>
+                    {% comment %} {% include "app/includes/membership_badge.html" with user=user %} {% endcomment %}
+                </li>
+                <li>
+                    <a href="{% url 'account_logout' %}"
+                       class="nav-link btn-sm px-2 link-dark">Sign out</a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{% url 'account_login' %}"
+                       class="nav-link btn-sm px-2 link-dark">Login</a>
+                </li>
+            {% endif %}
+            {% comment %} {% if user.is_member is None %} {% endcomment %}
+            {% if request.session.gift_giver_subscription is not None %}
+                <li>
+                    <a href="{% url 'redeem_setup' %}"
+                       class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-magenta">Finish gift set up</a>
+                </li>
+            {% elif not user.is_member %}
+                <li>
+                    <a href="{% url 'redeem' %}" class="nav-link px-2 link-dark">Redeem gift card</a>
+                </li>
+                <li>
+                    <a href="/join"
+                       class="btn btn-outline-dark btn-sm px-2 link-dark tw-bg-yellow">Join</a>
+                </li>
+            {% endif %}
+            {% comment %} {% endif %} {% endcomment %}
+        </ul>
+    </nav>
+    {% comment %} Mobile nav {% endcomment %}
+    <nav class='md:tw-hidden text-uppercase tw-text-sm navbar navbar-light container-xl'>
+        <a href="/" class="text-dark text-decoration-none tw-pr-1">
+            <img src="{% static 'images/logo.png' %}"
+                 style='width: 60px;
+                        height: 60px'
+                 alt="Left Book Club logo"
+                 title="Left Book Club"/>
+        </a>
+        <div class='tw-space-x-1 small-text tw-flex-grow-1 tw-flex-shrink-0 tw-text-center'>
+            {% for item in menu_items|slice:":2" %}
+                <a href="{{ item.href }}"
+                   class="text-center text-dark text-decoration-none {{ item.active_class }}">{{ item.text }}</a>
+            {% endfor %}
+            {% include "app/includes/cart_icon.html" %}
+        </div>
+        <div class='tw-pl-1 tw-text-right'>
+            <button class="navbar-toggler !tw-py-1"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="collapse navbar-collapse tw-mt-3 -tw-mx-3 tw-bg-yellow"
+             id="navbarNav">
+            <div class="navbar-nav small-text px-2 py-2 tw-border-black tw-border-t-2 tw-border-b-2">
+                {% for item in menu_items %}
+                    <div class='px-2'>
+                        <a href="{{ item.href }}"
+                           class="nav-link !tw-text-black {{ item.active_class }}">{{ item.text }}</a>
+                    </div>
+                {% endfor %}
+                {% if not user.is_member %}
+                    <div class='px-2'>
+                        <a href="{% url 'redeem' %}" class="nav-link !tw-text-black">Redeem gift card</a>
+                    </div>
+                {% endif %}
+                <hr class='tw-mx-[8px]' />
+                {% if user.is_authenticated %}
+                    <div class='px-2'>
+                        <a href="{% url 'account_membership' %}"
+                           class="nav-link !tw-text-black tw-align-middle !tw-inline-block">{% user_display request.user %}</a>
+                        {% comment %} {% include "app/includes/membership_badge.html" with user=user %} {% endcomment %}
+                    </div>
+                    <div class='px-2'>
+                        <a href="{% url 'account_logout' %}"
+                           class="nav-link btn-sm !tw-text-black">Sign out</a>
+                    </div>
+                {% else %}
+                    <div class='px-2'>
+                        <a href="{% url 'account_login' %}"
+                           class="nav-link btn-sm !tw-text-black">Login</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% comment %} Aesthetics {% endcomment %}
+    {% include "app/includes/banner.html" with label="Read. Debate. Organise." class="tw-mt-1 md:tw-mt-3 mb-1" %}
+    <div class='tw-border-b-2 tw-border-black'></div>
+    {% comment %} Member subscription banner {% endcomment %}
+    {% include "app/includes/membership_banner.html" with user=user %}
 </header>

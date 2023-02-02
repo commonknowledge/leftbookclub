@@ -2,7 +2,7 @@ from re import I
 
 import djstripe.models
 import shopify
-from admin_list_controls.actions import SubmitForm
+from admin_list_controls.actions import Link, SubmitForm
 from admin_list_controls.components import Button, Columns, Panel
 from admin_list_controls.filters import BooleanFilter, ChoiceFilter, TextFilter
 from admin_list_controls.views import ListControlsIndexView
@@ -151,3 +151,57 @@ class CustomerAdmin(ModelAdmin):
 
 # Now you just need to register your customised ModelAdmin class with Wagtail
 modeladmin_register(CustomerAdmin)
+
+
+from django.urls import reverse
+from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
+
+from app.models import CircleEvent
+
+
+class EventIndexView(ListControlsIndexView):
+    def build_list_controls(self):
+        config = [
+            Panel()(
+                Button(action=Link(reverse("refresh_circle")))(
+                    "Sync new events from Circle.so"
+                )
+            ),
+        ]
+        return config
+
+
+class EventAdmin(ModelAdmin):
+    index_view_class = EventIndexView
+    model = CircleEvent
+    base_url_path = (
+        "circle-events"  # customise the URL from default to admin/EventAdmin
+    )
+    menu_label = "Events"  # ditch this to use verbose_name_plural from model
+    menu_icon = "date"  # change as required
+    menu_order = 500  # will put in 3rd place (000 being 1st, 100 2nd)
+    ordering = ("-starts_at",)
+    add_to_settings_menu = False  # or True to add your model to the Settings sub-menu
+    exclude_from_explorer = (
+        False  # or True to exclude pages of this type from Wagtail's explorer view
+    )
+    add_to_admin_menu = True  # or False to exclude your model from the menu
+    list_display = (
+        "name",
+        "starts_at",
+        "location_type",
+        "url",
+    )
+    list_filter = (
+        "starts_at",
+        "location_type",
+    )
+    search_fields = (
+        "name",
+        "in_person_location",
+        "body_html",
+    )
+
+
+# Now you just need to register your customised ModelAdmin class with Wagtail
+modeladmin_register(EventAdmin)

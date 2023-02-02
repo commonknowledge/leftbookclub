@@ -1,16 +1,18 @@
 {% load static menu_tags %}
-<div class='tw-border-b-2 tw-border-black'></div>  
+<div class='tw-border-b-2 tw-border-black'></div>
 {% include "app/includes/banner.html" with label="Read. Debate. Organise." class="mt-3 mb-1" %}
 <footer class="container-xl">
-  <div class="row pt-3 mb-3">
-    <div class="col-12 col-sm">
-      <img src="{% static 'images/logo.png' %}" style='width: 60px;'/>
-      <small class="d-block text-muted">© 2015-{% now "Y" %}</small>
+    <div class="row pt-3 mb-3">
+        <div class="col-12 col-sm">
+            <img alt="Left Book Club logo"
+                 src="{% static 'images/logo.png' %}"
+                 style='width: 60px'/>
+            <small class="d-block text-muted">© 2015-{% now "Y" %}</small>
+        </div>
+        <div class="col-12 col-sm text-small d-flex flex-row gap-4 flex-wrap justify-content-end">
+            {% for item in menu_items %}
+                <a class="link-secondary text-decoration-none" href="{{ item.href }}">{{ item.text }}</a>
+            {% endfor %}
+        </div>
     </div>
-    <div class="col-12 col-sm text-small d-flex flex-row gap-4 flex-wrap justify-content-end">
-      {% for item in menu_items %}
-          <a class="link-secondary text-decoration-none" href="{{item.href}}">{{item.text}}</a>
-      {% endfor %}
-    </div>
-  </div>
 </footer>

@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("djstripe", "0010_alter_customer_balance"),
+        ("djstripe", "0001_initial"),
         ("app", "0011_alter_blogpage_intro"),
     ]
 

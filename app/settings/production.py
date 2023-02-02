@@ -7,11 +7,15 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", BASE_URL).split(",")
 
+#
+
+WAGTAIL_CACHE = os.getenv("WAGTAIL_CACHE", True)
+
+## HTTPS redirect
 
 MIDDLEWARE += [
     "redirect_to_non_www.middleware.RedirectToNonWww",
 ]
-
 
 if os.getenv("AWS_S3_REGION_NAME"):
     DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"
@@ -69,7 +73,6 @@ if os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"):
         "BASE_URL": "https://lbc-production.fly.dev/wagtail-transfer/",
         "SECRET_KEY": os.getenv("WAGTAILTRANSFER_SECRET_KEY_PRODUCTION"),
     }
-
 
 try:
     from .local import *

@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "import_export",
     "oauth2_provider",
     "django.contrib.humanize",
+    "django_dbq",
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -301,7 +302,15 @@ SHOPIFY_DOMAIN = os.environ.get("SHOPIFY_DOMAIN", "left-book-club-shop.myshopify
 SHOPIFY_STOREFRONT_ACCESS_TOKEN = os.environ.get(
     "SHOPIFY_STOREFRONT_ACCESS_TOKEN", "a65d1227c3865ae25999a6d24d2106e0"
 )
-SHOPIFY_COLLECTION_ID = os.environ.get("SHOPIFY_COLLECTION_ID", "402936398057")
+SHOPIFY_BOOKS_COLLECTION_ID = os.environ.get(
+    "SHOPIFY_BOOKS_COLLECTION_ID", "415349473513"
+)
+SHOPIFY_MERCH_COLLECTION_ID = os.environ.get(
+    "SHOPIFY_MERCH_COLLECTION_ID", "415349407977"
+)
+SYNC_SHOPIFY_WEBHOOK_ENDPOINT = os.environ.get(
+    "SYNC_SHOPIFY_WEBHOOK_ENDPOINT", "shopify/sync"
+)
 SHOPIFY_PRIVATE_APP_PASSWORD = os.environ.get("SHOPIFY_PRIVATE_APP_PASSWORD", None)
 SHOPIFY_APP_API_SECRET = os.environ.get("SHOPIFY_APP_API_SECRET", "")
 SHOPIFY_WEBHOOK_PATH = os.environ.get("SHOPIFY_WEBHOOK_PATH", "shopify/webhooks/")
@@ -425,3 +434,28 @@ OAUTH2_PROVIDER = {
 }
 
 # OAUTH2_PROVIDER_APPLICATION_MODEL='app.CustomOAuth2Application'
+
+JOBS = {
+    "sync_shopify_products": {
+        "tasks": ["app.management.commands.sync_shopify_products.run"],
+    },
+}
+
+
+#### Cache
+
+# Disable in development
+WAGTAIL_CACHE = os.getenv("WAGTAIL_CACHE", False)
+
+INSTALLED_APPS += ["wagtailcache"]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.path.join(BASE_DIR, "cache"),
+        "KEY_PREFIX": "wagtailcache",
+        "TIMEOUT": int(
+            os.getenv("WAGTAIL_CACHE_TIMEOUT_SECONDS", 60 * 60 * 24)
+        ),  # in seconds
+    }
+}

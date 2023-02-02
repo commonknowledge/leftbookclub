@@ -1,0 +1,11 @@
+<section class='{% firstof value.background_color "bg-white" %}'>
+    <section class='row gx-0 position-relative'>
+        {% if value.promotion_label %}
+            {% include "app/includes/banner.html" with label=value.promotion_label class="position-absolute tw-top-0 tw-left-0 mt-3" %}
+        {% endif %}
+        {% include "app/includes/product_card.html" with page=value.product background_color=value.background_color description=value.description %}
+        {% if value.promotion_label %}
+            {% include "app/includes/banner.html" with label=value.promotion_label class="position-absolute tw-bottom-0 tw-left-0 mb-3" %}
+        {% endif %}
+    </section>
+</section>

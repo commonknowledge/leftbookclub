@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("wagtailcore", "0066_collection_management_permissions"),
-        ("djstripe", "0010_alter_customer_balance"),
+        ("djstripe", "0001_initial"),
         ("app", "0002_homepage"),
     ]
 

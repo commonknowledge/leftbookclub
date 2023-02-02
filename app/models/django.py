@@ -164,7 +164,7 @@ class User(AbstractUser):
         try:
             if self.active_subscription is not None:
                 product = get_primary_product_for_djstripe_subscription(
-                    self.active_subscription.lbc
+                    self.active_subscription
                 )
                 return product
         except:
@@ -279,7 +279,9 @@ class User(AbstractUser):
     def shipping_postcode(self):
         return self.shipping_address.get("postal_code", None)
 
-    def cleanup_membership_subscriptions(self, keep=[]):
+    def cleanup_membership_subscriptions(self, keep=None):
+        if keep is None:
+            keep = []
         for sub in self.stripe_customer.subscriptions.all():
             if sub.metadata.get("gift_mode", None) is None and not sub.id in keep:
                 try:

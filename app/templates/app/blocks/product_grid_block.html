@@ -1,0 +1,12 @@
+<section class='row g-2'>
+    {% firstof value.column_width column_width as column_width %}
+    {% for product in products %}
+        {% if column_width == 'small' %}
+            {% include "app/includes/simple_product_card.html" with product=product class="col-6 col-md-4 col-lg-3" %}
+        {% elif column_width == 'medium' %}
+            {% include "app/includes/simple_product_card.html" with product=product class="col-6 col-md-4" %}
+        {% else %}
+            {% include "app/includes/simple_product_card.html" with product=product class="col-12 col-md-6" %}
+        {% endif %}
+    {% endfor %}
+</section>

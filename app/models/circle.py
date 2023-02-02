@@ -5,12 +5,15 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 
 import humanize
+from django import forms  # the default Django widgets live here
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.geos import Point
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from groundwork.core.datasources import RestDatasource, SyncConfig, SyncedModel
+from wagtail.admin import widgets  # to use Wagtail's special datetime widget
+from wagtail.admin.panels import FieldPanel
 from wagtail.fields import RichTextField
 
 ResourceT = TypeVar("ResourceT")
@@ -244,8 +247,16 @@ class CircleEvent(SyncedModel):
     as_geojson_feature = models.JSONField(
         blank=True, null=True, encoder=DjangoJSONEncoder
     )
-    name = models.CharField(max_length=300)
     body = models.JSONField(blank=True, null=True, encoder=DataclassJSONEncoder)
     url = models.URLField(max_length=1024, blank=False, null=False)
     coordinates = gis_models.PointField(null=True, blank=True)
     body_html = RichTextField(blank=True, null=True)
+
+    title_widget = forms.TextInput(attrs={"placeholder": "Enter Full Title"})
+    # using the correct widget for your field type and desired effect
+    date_widget = widgets.AdminDateInput(attrs={"placeholder": "dd-mm-yyyy"})
+
+    panels = [
+        FieldPanel("name", widget=title_widget),  # then add them as a variable
+        FieldPanel("starts_at", widget=date_widget),
+    ]

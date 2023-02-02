@@ -149,3 +149,4 @@ app/settings/local_dev.py
 
 app/settings/local_prod.py
 groundwork/*
+*.djcache

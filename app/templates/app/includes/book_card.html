@@ -1,29 +1,24 @@
 {% load wagtailcore_tags django_bootstrap5 %}
 <article class="mx-auto">
-  <div class="row g-0">
-    {% if page.image_url %}
-    <div class="col-12 col-md-6" style="background: url('{{ page.image_url }}') center no-repeat; background-size: cover; min-height: 250px">
+    <div class="row g-0">
+        {% if page.primary_image_url %}
+            <div class="col-12 col-md-6"
+                 style="background: url('{{ page.primary_image_url }}') center no-repeat;
+                        background-size: cover;
+                        min-height: 250px">
+            </div>
+        {% endif %}
+        <div class="col-12 col-md-6 tw-p-3 tw-pb-4 md:tw-px-4 md:tw-py-5 lg:tw-px-5 lg:tw-py-6">
+            <div class="card-body">
+                {% if label %}<span class="badge rounded-pill bg-primary mb-3">{{ label }}</span>{% endif %}
+                <h2 class='m-0 h1 fw-bold'>{{ page.title }}</h2>
+                {% if page.subtitle %}<h3 class='m-0 h4'>{{ page.subtitle }}</h3>{% endif %}
+                {% if page.authors %}<div class='h4'>By {{ page.authors|join:", " }}</div>{% endif %}
+                {% for forward in page.forward_by %}<div>{{ forward }}</div>{% endfor %}
+                <p class="card-text">{% firstof description page.description|richtext|truncatewords_html:60 %}</p>
+                {% pageurl page as url %}
+                {% bootstrap_button button_class="btn-outline-dark" href=url content="Read more" %}
+            </div>
+        </div>
     </div>
-    {% endif %}
-    <div class="col-12 col-md-6 tw-p-3 tw-pb-4 md:tw-px-4 md:tw-py-5 lg:tw-px-5 lg:tw-py-6">
-      <div class="card-body">
-        {% if label %}
-          <span class="badge rounded-pill bg-primary mb-3">{{ label }}</span>
-        {% endif %}
-        <h2 class='m-0 h1 fw-bold'>{{page.title}}</h2>    
-        {% if page.subtitle %}
-          <h3 class='m-0 h4'>{{page.subtitle}}</h3>
-        {% endif %}
-        {% if page.authors %}
-          <div class='h4'>By {{ page.authors|join:", "}}</div>   
-        {% endif %}
-        {% for forward in page.forward_by %}
-          <div>{{ forward }}</div>
-        {% endfor %}
-        <p class="card-text">{% firstof description page.description|richtext|truncatewords_html:60 %}</p>
-        {% pageurl page as url %}
-        {% bootstrap_button button_class="btn-outline-dark" href=url content="Read more" %}
-      </div>
-    </div>
-  </div>
 </article>

@@ -9,4 +9,4 @@ kill_timeout = 5
     soft_limit = 1
 
 [experimental]
-cmd = ["poetry", "run", "python", "manage.py", "run_cron_tasks"]
+cmd = ["poetry", "run", "python", "manage.py", "start_worker"]

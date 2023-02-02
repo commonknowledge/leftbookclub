@@ -1,88 +1,84 @@
 {% extends "account/base.html" %}
 {% load wagtailcore_tags account django_bootstrap5 gravatar setting gift_card books date %}
 {% url "customerportal" as portal_url %}
-
 {% block account_content %}
-<div>
-  {% if subscription and subscription.cancel_at %}
-    {% comment %} Cancelling a cancelled subscription {% endcomment %}
-    <h3 class='my-4 text-center'>Your subscription has been cancelled</h3>
-    <p>Membership will expire on {{subscription.cancel_at}}</p>
-  {% elif subscription.gift_recipient_subscription %}
-    {% comment %} Cancelling a gift giver subscription {% endcomment %}
-    <h3 class='my-4 text-center'>Thinking of cancelling this gift card?</h3>
-    <p class='text-center'>
-      {% if subscription.gift_recipient_subscription %}
-        This gift card was redeemed by {{ subscription.gift_recipient_subscription.customer.subscriber }}.
-        If you cancel, they'll stop receiving books <b>on {{ subscription.current_period_end }}</b>.
-      {% else %}
-        This gift card was never redeemed.
-      {% endif %}
-      You'll no longer be billed by LBC.
-    </p>
-    <form method='POST' class='text-center' data-turbo='false'>
-      {% csrf_token %}
-      {% bootstrap_button button_class='btn-outline-danger' content="I really want to cancel" %}
-    </form>
-  {% elif subscription.gift_giver_subscription %}
-    {% comment %} Cancelling a gift recipient subscription {% endcomment %}
-    <h3 class='my-4 text-center'>Thinking of cancelling your gifted membership?</h3>
-    <p class='text-center'>
-      Your membership is being paid for by {{ user.gift_giver }}. If you cancel, they'll no longer pay your membership fee and your membership will will <b>end on {{ subscription.current_period_end }}</b>.
-    </p>
-    <div class='d-flex flex-column justify-content-center align-items-center my-4'>
-      {% include "app/includes/membership_card.html" %}
+    <div>
+        {% if subscription and subscription.cancel_at %}
+            {% comment %} Cancelling a cancelled subscription {% endcomment %}
+            <h3 class='my-4 text-center'>Your subscription has been cancelled</h3>
+            <p>Membership will expire on {{ subscription.cancel_at }}</p>
+        {% elif subscription.metadata.gift_recipient_subscription or subscription.metadata.gift_mode %}
+            {% comment %} Cancelling a gift giver subscription {% endcomment %}
+            <h3 class='my-4 text-center'>Thinking of cancelling this gift card?</h3>
+            <p class='text-center'>
+                {% if subscription.metadata.gift_recipient_subscription %}
+                    This gift card was redeemed by {{ subscription.gift_recipient_subscription.customer.subscriber }}.
+                    If you cancel, they'll stop receiving books <b>on {{ subscription.current_period_end }}</b>.
+                {% else %}
+                    This gift card was never redeemed.
+                {% endif %}
+                You'll no longer be billed by LBC.
+            </p>
+            <form method='POST' class='text-center' data-turbo='false'>
+                {% csrf_token %}
+                {% bootstrap_button button_class='btn-outline-danger' content="I really want to cancel" %}
+            </form>
+        {% elif subscription.metadata.gift_giver_subscription %}
+            {% comment %} Cancelling a gift recipient subscription {% endcomment %}
+            <h3 class='my-4 text-center'>Thinking of cancelling your gifted membership?</h3>
+            <p class='text-center'>
+                Your membership is being paid for by {{ user.gift_giver }}. If you cancel, they'll no longer pay your membership fee and your membership will will <b>end on {{ subscription.current_period_end }}</b>.
+            </p>
+            <div class='d-flex flex-column justify-content-center align-items-center my-4'>
+                {% include "app/includes/membership_card.html" %}
+            </div>
+            {% get_books since=user.active_subscription.created types=user.primary_product.book_types as books %}
+            {% if books|length > 0 %}
+                <section class='container my-5'>
+                    <div class='row text-center my-4'>
+                        <h3>Books we've read together</h3>
+                    </div>
+                    <div class='row justify-content-center align-items-center text-center g-1'>
+                        {% for book in books %}
+                            {% include "app/includes/simple_book_card.html" with book=book class='col-6 col-sm-4 col-lg-3 col-xl-2' %}
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+            <form method='POST' class='text-center' data-turbo='false'>
+                {% csrf_token %}
+                {% bootstrap_button button_class='btn-outline-danger' content="I really want to cancel" %}
+            </form>
+        {% elif request.user.is_member %}
+            {% comment %} Cancelling your own plan {% endcomment %}
+            <h3 class='my-4 text-center'>Thinking of cancelling?</h3>
+            <div class='d-flex flex-column justify-content-center align-items-center my-4'>
+                {% include "app/includes/membership_card.html" %}
+            </div>
+            {% get_books since=user.active_subscription.created types=user.primary_product.book_types as books %}
+            {% if books|length > 0 %}
+                <section class='container my-5'>
+                    <div class='row text-center my-4'>
+                        <h3>Books we've read together</h3>
+                    </div>
+                    <div class='row justify-content-center align-items-center text-center g-1'>
+                        {% for book in books %}
+                            {% include "app/includes/simple_book_card.html" with book=book class='col-6 col-sm-4 col-lg-3 col-xl-2' %}
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+            <p class='text-center'>
+                If you choose to cancel, you'll no longer be billed by LBC and your membership will <b>end on {{ subscription.current_period_end }}</b>.
+            </p>
+            <form method='POST' class='text-center' data-turbo='false'>
+                {% csrf_token %}
+                {% bootstrap_button button_class='btn-outline-danger' content="Cancel" %}
+            </form>
+        {% else %}
+            {% comment %} Cancelling a non-subscription {% endcomment %}
+            <h3 class='fw-light text-center'>You're not a member at the moment.</h3>
+            <div class='my-4 text-center'>{% bootstrap_button href="/join" content="Become a member" %}</div>
+        {% endif %}
     </div>
-    {% get_books since=user.active_subscription.created types=user.primary_product.book_types as books %}
-    {% if books|length > 0 %}
-      <section class='container my-5'>
-        <div class='row text-center my-4'>
-          <h3>Books we've read together</h3>
-        </div>
-        <div class='row justify-content-center align-items-center text-center g-1'>
-        {% for book in books %}
-          {% include "app/includes/simple_book_card.html" with book=book class='col-6 col-sm-4 col-lg-3 col-xl-2' %}
-        {% endfor %}
-        </div>
-      </section>
-    {% endif %}
-    <form method='POST' class='text-center' data-turbo='false'>
-      {% csrf_token %}
-      {% bootstrap_button button_class='btn-outline-danger' content="I really want to cancel" %}
-    </form>
-  {% elif request.user.is_member %}
-    {% comment %} Cancelling your own plan {% endcomment %}
-    <h3 class='my-4 text-center'>Thinking of cancelling?</h3>
-    <div class='d-flex flex-column justify-content-center align-items-center my-4'>
-      {% include "app/includes/membership_card.html" %}
-    </div>
-    {% get_books since=user.active_subscription.created types=user.primary_product.book_types as books %}
-    {% if books|length > 0 %}
-      <section class='container my-5'>
-        <div class='row text-center my-4'>
-          <h3>Books we've read together</h3>
-        </div>
-        <div class='row justify-content-center align-items-center text-center g-1'>
-        {% for book in books %}
-          {% include "app/includes/simple_book_card.html" with book=book class='col-6 col-sm-4 col-lg-3 col-xl-2' %}
-        {% endfor %}
-        </div>
-      </section>
-    {% endif %}
-    <p class='text-center'>
-      If you choose to cancel, you'll no longer be billed by LBC and your membership will <b>end on {{ subscription.current_period_end }}</b>.</p>
-    <form method='POST' class='text-center' data-turbo='false'>
-      {% csrf_token %}
-      {% bootstrap_button button_class='btn-outline-danger' content="Cancel" %}
-    </form>
-  {% else %}
-    {% comment %} Cancelling a non-subscription {% endcomment %}
-    <h3 class='fw-light text-center'>
-      You're not a member at the moment.
-    </h3>
-    <div class='my-4 text-center'>
-      {% bootstrap_button href="/join" content="Become a member" %}
-    </div>
-  {% endif %}
-</div>
 {% endblock %}

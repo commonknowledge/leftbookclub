@@ -1,12 +1,7 @@
 {% extends "base.html" %}
-
 {% block content %}
-
-{% map class="h-100 md:first-letter:ho" %}
-
-{% map_source id="mapbox-terrain" data=data %}
-{% map_layer layer=layer %}
-
+    {% map class="h-100 md:first-letter:ho" %}
+    {% map_source id="mapbox-terrain" data=data %}
+    {% map_layer layer=layer %}
 {% endmap %}
-
 {% endblock %}

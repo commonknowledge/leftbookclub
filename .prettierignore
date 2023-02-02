@@ -10,3 +10,5 @@ vite/
 media/
 static/
 .venv/
+.env/
+env/

@@ -70,3 +70,11 @@ def batch_and_aggregate(arr_limit):
         return resulting_fn
 
     return decorator
+
+
+import random
+import string
+
+
+def uid():
+    return "".join(random.choice(string.ascii_lowercase) for i in range(10))

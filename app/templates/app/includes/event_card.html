@@ -1,44 +1,38 @@
 {% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
-
-<li
-  data-fly-to-map-zoom-param="12"
-  data-fly-to-map-lng-param="{{ event.coordinates.0 }}"
-  data-fly-to-map-lat-param="{{ event.coordinates.1 }}"
-  data-action="mouseenter->fly-to-map#flyTo"
-  id="event-{{event.id}}"
-  data-list-filter-target="item"
-  data-location-type="{{ event.location_type }}"
-  class="{% firstof class 'tw-w-full tw-px-2' %}">
+<li data-fly-to-map-zoom-param="12"
+    data-fly-to-map-lng-param="{{ event.coordinates.0 }}"
+    data-fly-to-map-lat-param="{{ event.coordinates.1 }}"
+    data-action="mouseenter->fly-to-map#flyTo"
+    id="event-{{ event.id }}"
+    data-list-filter-target="item"
+    data-location-type="{{ event.location_type }}"
+    class="{% firstof class 'tw-w-full tw-px-2' %}">
     <div class='tw-flex tw-flex-row tw-bg-white'>
-      <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
-        <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
-          <div class='tw-text-lg'>{{ event.starts_at|date:"j" }}</div>
-          <div class='tw-uppercase '>{{ event.starts_at|date:"M" }}</div>
+        <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
+            <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
+                <div class='tw-text-lg'>{{ event.starts_at|date:"j" }}</div>
+                <div class='tw-uppercase '>{{ event.starts_at|date:"M" }}</div>
+            </div>
         </div>
-      </div>
-      <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
-        <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.name }}</h3>
-        <div class='tw-text-sm tw-font-normal tw-leading-none tw-mt-3 tw-text-gray-700'>
-          <div>
-            <span class="tw-capitalize">{{ event.location_type|replace:"_| " }}</span>
-            <span>&middot;</span>
-            <span>Starts at {{event.starts_at|date:"P T"}}</span>
-            <span>&middot;</span>
-            <span>{{event.starts_at|naturaltime}}</span>
-          </div>
-          {% if event.physical_address.formatted_address %}
-          <div class='tw-mt-2'>
-            {{ event.physical_address.formatted_address }}
-          </div>
-          {% endif %}
+        <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
+            <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.name }}</h3>
+            <div class='tw-text-sm tw-font-normal tw-leading-none tw-mt-3 tw-text-gray-700'>
+                <div>
+                    <span class="tw-capitalize">{{ event.location_type|replace:"_| " }}</span>
+                    <span>&middot;</span>
+                    <span>Starts at {{ event.starts_at|date:"P T" }}</span>
+                    <span>&middot;</span>
+                    <span>{{ event.starts_at|naturaltime }}</span>
+                </div>
+                {% if event.physical_address.formatted_address %}
+                    <div class='tw-mt-2'>{{ event.physical_address.formatted_address }}</div>
+                {% endif %}
+            </div>
+            {% if show_event is not False and event.body_html %}{{ event.body_html|richtext }}{% endif %}
+            {% if show_button is not False %}
+                <br />
+                {% bootstrap_button href=event.url content="Learn more" %}
+            {% endif %}
         </div>
-        {% if show_event is not False and event.body_html %}
-          {{ event.body_html|richtext }}
-        {% endif %}
-        {% if show_button is not False %}
-          <br />
-          {% bootstrap_button href=event.url content="Learn more" %}
-        {% endif %}
-      </div>
     </div>
 </li>

@@ -154,7 +154,13 @@ class LBCProduct(djstripe.models.Product):
     autocomplete_search_field = "name"
 
     def autocomplete_label(self):
-        return getattr(self, self.autocomplete_search_field)
+        from app.models import MembershipPlanPrice
+
+        price = MembershipPlanPrice.objects.filter(products=self).first()
+        s = getattr(self, self.autocomplete_search_field)
+        if price:
+            return f"{s} (applies to price: {price})"
+        return s
 
     def get_prices_for_country(self, iso_a2: str, **kwargs):
         zone = ShippingZone.get_for_country(iso_a2)

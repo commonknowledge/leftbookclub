@@ -15,21 +15,24 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.http import HttpRequest, HttpResponseRedirect
-from django.http.response import Http404
+from django.http.response import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import include, path, re_path, reverse, reverse_lazy
-from django.views.generic.base import RedirectView, TemplateView
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.base import RedirectView, TemplateView, View
 from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 from sentry_sdk import capture_exception, capture_message
+from wagtail.core.models import Page
 
 from app import analytics
 from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
 from app.models import LBCProduct
 from app.models.stripe import LBCSubscription, ShippingZone
-from app.models.wagtail import MembershipPlanPrice
+from app.models.wagtail import BaseShopifyProductPage, MembershipPlanPrice
 from app.utils.mailchimp import tag_user_in_mailchimp
 from app.utils.shopify import create_shopify_order
 from app.utils.stripe import (
@@ -312,13 +315,13 @@ class StripeCustomerPortalView(LoginRequiredMixin, RedirectView):
 
 class CartOptionsView(TemplateView):
     template_name = "app/frames/cart_options.html"
-    url_pattern = "cartoptions/<product_id>/"
+    url_pattern = "anonymous/cartoptions/<product_id>/"
 
     def get_context_data(self, product_id=None, **kwargs):
         from .models import BookPage
 
         context = super().get_context_data(**kwargs)
-        product = BookPage.objects.get(shopify_product_id=product_id)
+        product = BaseShopifyProductPage.get_specific_product_by_shopify_id(product_id)
         context = {
             **context,
             "product": product.nocache_shopify_product,
@@ -424,17 +427,18 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         return super().form_valid(form)
 
     def finish_gift_redemption(self, gift_giver_subscription_id) -> dict:
-        if self.request.user.stripe_customer is not None:
-            self.request.user.cleanup_membership_subscriptions()
-
         try:
             stripe_sub = stripe.Subscription.retrieve(gift_giver_subscription_id)
             gift_giver_subscription = (
                 djstripe.models.Subscription.sync_from_stripe_data(stripe_sub)
             )
-            create_gift_recipient_subscription(
+            gift_recipient_subscription = create_gift_recipient_subscription(
                 gift_giver_subscription, self.request.user
             )
+            if self.request.user.stripe_customer is not None:
+                self.request.user.cleanup_membership_subscriptions(
+                    keep=[gift_recipient_subscription.id]
+                )
         except djstripe.models.Subscription.DoesNotExist as e:
             capture_exception(e)
             raise ValueError(
@@ -511,6 +515,7 @@ class ShippingForProductView(TemplateView):
             {
                 "price": price,
                 "product": product,
+                "upsell": price.upsell_data(product_id, country_id),
                 "default_country_code": country_id,
                 "country_selector_form": CountrySelectorForm(
                     initial={"country": country_id}
@@ -628,3 +633,100 @@ class SubscriptionCheckoutView(TemplateView):
         )
 
         return StripeCheckoutView.as_view(context=checkout_context)(request)
+
+
+from django.shortcuts import get_object_or_404
+
+
+class ProductRedirectView(RedirectView):
+    def get_redirect_url(self, id, **kwargs):
+        product = BaseShopifyProductPage.get_specific_product_by_shopify_id(id)
+
+        if product is None:
+            raise Http404
+
+        return product.url
+
+
+from django_dbq.models import Job
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class SyncShopifyWebhookEndpoint(View):
+    def put(self, request, *args, **kwargs):
+        """
+        Trigger the sync_shopify_products command.
+        """
+        self.create_job()
+        return HttpResponse(status=200)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Trigger the sync_shopify_products command.
+        """
+        self.create_job()
+        return HttpResponse(status=200)
+
+    def get(self, request, *args, **kwargs):
+        """
+        Trigger the sync_shopify_products command.
+        """
+        self.create_job()
+        return HttpResponse(status=200)
+
+    def create_job(self):
+        already_queued = Job.objects.filter(
+            name="sync_shopify_products", state__in=[Job.STATES.READY, Job.STATES.NEW]
+        ).exists()
+        if already_queued:
+            return
+        Job.objects.create(name="sync_shopify_products")
+
+
+class WagtailStreamfieldBlockTurboFrame(TemplateView):
+    def get_context_data(self, page_id=None, field_name=None, block_id=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "page_id": page_id,
+                "field_name": field_name,
+                "block_id": block_id,
+                **WagtailStreamfieldBlockTurboFrame.get_block_context(
+                    page_id, field_name, block_id
+                ),
+            }
+        )
+        return context
+
+    @classmethod
+    def get_block_context(cls, page_id, field_name, block_id):
+        context = {}
+        page = Page.objects.get(id=page_id)
+        for block in getattr(page.specific, field_name):
+            if block.id == block_id:
+                context["value"] = block.value
+                context.update(block.block.get_context(block.value))
+                break
+        return context
+
+
+from django.contrib.auth.mixins import UserPassesTestMixin
+
+
+class SuperUserCheck(UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_superuser
+
+
+class RefreshDataView(SuperUserCheck, LoginRequiredMixin, TemplateView):
+    template_name = "app/refreshed.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        from django.core import management
+
+        from app.models import BookPage, CircleEvent, MerchandisePage
+
+        CircleEvent.sync()
+        # BookPage.sync_shopify_products_to_pages()
+        # MerchandisePage.sync_shopify_products_to_pages()
+        return super().get_context_data(**kwargs)

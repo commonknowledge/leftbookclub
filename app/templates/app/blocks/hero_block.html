@@ -1,9 +1,10 @@
 {% load wagtailcore_tags django_bootstrap5 %}
-<section class='{{value.background_color}} p-2 h-100' style='min-height: 200px;'>
-  <section class='row gx-0'>
-    <div class='col {% if fullwidth %}col-lg-7{% endif %} p-3 pb-5'>
-      <h2 class='h1 fw-bold'>{{value.heading}}</h2>
-      {% include "app/blocks/cta.html" with value=value.button %}
-    </div>
-  </section>
+<section class='{{ value.background_color }} p-2 h-100'
+         style='min-height: 200px'>
+    <section class='row gx-0'>
+        <div class='col {% if fullwidth %}col-lg-7{% endif %} p-3 pb-5'>
+            <h2 class='h1 fw-bold'>{{ value.heading }}</h2>
+            {% include "app/blocks/cta.html" with value=value.button %}
+        </div>
+    </section>
 </section>

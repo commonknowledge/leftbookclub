@@ -1,78 +1,76 @@
 {% extends "account/base.html" %}
 {% load account django_bootstrap5 gravatar setting gift_card %}
-
 {% block account_content %}
-<div>
-  {% if request.user.is_member or request.user.gifts_bought|length > 0 %}
-    <div class='d-flex flex-column'>
-      {% if request.user.is_member %}
-      <section class='card'>
-        <div class="card-body">
-          <h4>
-            Membership fee
-          </h4>
-          {% for si in user.active_subscription.items.all %}
-          <div class='row'>
-            <div class='col'>{{ si.plan.product.name }}</div><div class='col'>{{ si.plan.human_readable_price }}</div>
-          </div>
-          {% endfor %}
-          {% if user.active_subscription.discount.coupon %}
-          <div class='row'>
-            <div class='col'>Discount</div><div class='col'>{{ user.active_subscription.discount.coupon.percent_off }}% off</div>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-      <div class='my-4'>
-        {% url "customerportal" as portal_url %}
-        {% bootstrap_button href=portal_url content="Update shipping and billing" %}
-      </div>
-      {% if request.user.gifts_bought|length > 0 %}
-        <section class='card'>
-          <div class="card-body">
-            <h4>
-              Gift cards you're paying for
-            </h4>
-            {% for subscription in request.user.gifts_bought %}
-              <hr />
-              <div class='my-4 w-100 d-flex flex-column align-items-center justify-content-center'>
-                {% include "app/includes/gift_card.html" with subscription=subscription %}
-              </div>
-              {% if subscription.status != 'active' %}
-                <h5>Not active / no charge</h3>
-              {% else %}
-                {% for si in subscription.items.all %}
-                <div class='row'>
-                  <div class='col'>{{ si.plan.product.name }}</div><div class='col'>{{ si.plan.human_readable_price }}</div>
-                </div>
-                {% endfor %}
-                {% if subscription.discount.coupon %}
-                <div class='row'>
-                  <div class='col'>Discount</div><div class='col'>{{ subscription.discount.coupon.percent_off }}% off</div>
-                </div>
+    <div>
+        {% if request.user.is_member or request.user.gifts_bought|length > 0 %}
+            <div class='d-flex flex-column'>
+                {% if request.user.is_member %}
+                    <section class='card'>
+                        <div class="card-body">
+                            <h4>Membership fee</h4>
+                            {% for si in user.active_subscription.items.all %}
+                                <div class='row'>
+                                    <div class='col'>{{ si.plan.product.name }}</div>
+                                    <div class='col'>{{ si.plan.human_readable_price }}</div>
+                                </div>
+                            {% endfor %}
+                            {% if user.active_subscription.discount.coupon %}
+                                <div class='row'>
+                                    <div class='col'>Discount</div>
+                                    <div class='col'>{{ user.active_subscription.discount.coupon.percent_off }}% off</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
                 {% endif %}
-              {% endif %}
-              <div class='text-center'>
-                {% if not subscription.cancel_at %}
-                  {% url "cancel_membership" subscription_id=subscription.id as cancellation_url %}
-                  {% bootstrap_button size='sm' button_class='btn-outline-danger' href=cancellation_url content="Cancel gift card" %}
+                <div class='my-4'>
+                    {% url "customerportal" as portal_url %}
+                    {% bootstrap_button href=portal_url content="Update shipping and billing" %}
+                </div>
+                {% if request.user.gifts_bought|length > 0 %}
+                    <section class='card'>
+                        <div class="card-body">
+                            <h4>Gift cards you're paying for</h4>
+                            {% for subscription in request.user.gifts_bought %}
+                                <hr />
+                                <div class='my-4 w-100 d-flex flex-column align-items-center justify-content-center'>
+                                    {% include "app/includes/gift_card.html" with subscription=subscription %}
+                                </div>
+                                {% if subscription.status != 'active' %}
+                                    <h3>Not active / no charge</h3>
+                                {% else %}
+                                    {% for si in subscription.items.all %}
+                                        <div class='row'>
+                                            <div class='col'>{{ si.plan.product.name }}</div>
+                                            <div class='col'>{{ si.plan.human_readable_price }}</div>
+                                        </div>
+                                    {% endfor %}
+                                    {% if subscription.discount.coupon %}
+                                        <div class='row'>
+                                            <div class='col'>Discount</div>
+                                            <div class='col'>{{ subscription.discount.coupon.percent_off }}% off</div>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                <div class='text-center'>
+                                    {% if not subscription.cancel_at %}
+                                        {% url "cancel_membership" subscription_id=subscription.id as cancellation_url %}
+                                        {% bootstrap_button size='sm' button_class='btn-outline-danger' href=cancellation_url content="Cancel gift card" %}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </section>
                 {% endif %}
-              </div>
-            {% endfor %}
             </div>
-        </section>
-      {% endif %}
+        {% else %}
+            <h3 class='fw-light text-center'>You're not paying for any subscriptions at the moment.</h3>
+            <div class='my-4 text-center'>
+                {% bootstrap_button href="/join" content="Become a member" %}
+                <br />
+                <br />
+                {% bootstrap_button href="/join?gift_mode=true" content="Buy a gift card" %}
+            </div>
+        {% endif %}
     </div>
-  {% else %}
-    <h3 class='fw-light text-center'>
-      You're not paying for any subscriptions at the moment.
-    </h3>
-    <div class='my-4 text-center'>
-      {% bootstrap_button href="/join" content="Become a member" %}
-      <br /><br />
-      {% bootstrap_button href="/join?gift_mode=true" content="Buy a gift card" %}
-    </div>
-  {% endif %}
-</div>
 {% endblock %}

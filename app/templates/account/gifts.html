@@ -1,26 +1,25 @@
 {% extends "account/base.html" %}
 {% load account django_bootstrap5 gravatar setting gift_card %}
 {% url "customerportal" as portal_url %}
-
 {% block account_content %}
-<div class='text-center container'>
-  {% if request.user.gifts_bought|length > 0 %}
-    <p>Gift cards you've bought for other people. Redeem gift codes <a href='{% setting "BASE_URL" %}{% url "redeem" %}'>here</a>.</p>
-    <p>If you can't see a gift card you've bought, please <a href='mailto:office@leftbookclub.com'>email office@leftbookclub.com</a> and we'll fix it.</p>
-    <div class='row text-left gy-4 d-flex'>
-      {% for subscription in request.user.gifts_bought %}
-        <div class='col-12 d-flex flex-column align-items-center justify-content-center'>
-          {% include "app/includes/gift_card.html" with subscription=subscription %}
-        </div>
-      {% endfor %}
+    <div class='text-center container'>
+        {% if request.user.gifts_bought|length > 0 %}
+            <p>
+                Gift cards you've bought for other people. Redeem gift codes <a href='{% setting "BASE_URL" %}{% url "redeem" %}'>here</a>.
+            </p>
+            <p>
+                If you can't see a gift card you've bought, please <a href='mailto:office@leftbookclub.com'>email office@leftbookclub.com</a> and we'll fix it.
+            </p>
+            <div class='row text-left gy-4 d-flex'>
+                {% for subscription in request.user.gifts_bought %}
+                    <div class='col-12 d-flex flex-column align-items-center justify-content-center'>
+                        {% include "app/includes/gift_card.html" with subscription=subscription allow_cancel=True %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <h3 class='fw-light text-center'>You've not bought anyone a gift card yet</h3>
+            <div class='my-4 text-center'>{% bootstrap_button href="/join?gift_mode=true" content="Buy a gift card" %}</div>
+        {% endif %}
     </div>
-  {% else %}
-    <h3 class='fw-light text-center'>
-      You've not bought anyone a gift card yet
-    </h3>
-    <div class='my-4 text-center'>
-      {% bootstrap_button href="/join?gift_mode=true" content="Buy a gift card" %}
-    </div>
-  {% endif %}
-</div>
 {% endblock %}

@@ -1,39 +1,13 @@
-{% load wagtailcore_tags django_bootstrap5 url %}
+{% load url %}
 {% with request.GET.gift_mode as gift_mode %}
-{% with request.GET.annual as annual %}
-
-<turbo-frame id="membership-options">
-<section class='bg-white p-2'>
-  <header class='row gx-0'>
-    <div class='col p-3'>
-      {% if value.heading %}<h2 class='h1 fw-bold'>{{ value.heading }}</h2>{% endif %}
-      {% if value.description %}<div>{{ value.description|richtext }}</div>{% endif %}
-      <div class="btn-group my-1" role="group" aria-label="Basic outlined example">
-        {% qs_link annual=None as url %}
-        {% if not annual %}
-          <a data-turbo="true" id="pick-monthly" class='btn btn-md btn-secondary' href="{{url}}">Monthly pricing</a>
+    {% with request.GET.annual as annual %}
+        {% if preload %}
+            {% include "app/frames/membership_options_grid.html" with page_id=page.id field_name="layout" block_id=block.id annual=annual gift_mode=gift_mode %}
         {% else %}
-          <a data-turbo="true" id="pick-monthly" class='btn btn-md btn-outline-secondary' href="{{url}}">Monthly pricing</a>
+            {% url "membership_options_grid" page_id=page.id field_name="layout" block_id=block.id as frame_url %}
+            {% qs_link frame_url annual=annual gift_mode=gift_mode as current_url %}
+            <turbo-frame id="membership-options" src="{{ current_url }}">
+            </turbo-frame>
         {% endif %}
-        {% qs_link annual="true" as url %}
-        {% if annual %}
-          <a data-turbo="true" id="pick-annual" class='btn btn-md btn-secondary' href="{{url}}">Annual pricing</a>
-        {% else %}
-          <a data-turbo="true" id="pick-annual" class='btn btn-md btn-outline-secondary' href="{{url}}">Annual pricing: pay upfront and save!</a>
-        {% endif %}
-      </div>
-    </div>
-  </header>
-  <div class='row g-2'>
-  {% for option in value.plans %}
-    {% if option.plan.live %}
-      <article class='col-12 col-md'>
-        {% include_block option %}
-      </article>
-    {% endif %}
-  {% endfor %}
-  </div>
-</section>
-</turbo-frame>
-{% endwith %}
+    {% endwith %}
 {% endwith %}

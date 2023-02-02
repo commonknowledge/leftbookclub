@@ -43,7 +43,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": ["run_cron_tasks", "--once"],
+      "args": ["start_worker", "--once"],
       "justMyCode": true,
       "django": true,
       "presentation": {

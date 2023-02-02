@@ -5,6 +5,7 @@ from djstripe import webhooks
 from djstripe.models import Customer
 from sentry_sdk import capture_exception
 from shopify_webhook.signals import products_create, products_delete, products_update
+from wagtail import hooks
 
 from app import analytics
 from app.models.wagtail import BookPage
@@ -20,10 +21,11 @@ def cancel_gift_recipient_subscription(event, **kwargs):
         object.get("object", None) == "subscription"
         and object.get("metadata", {}).get("gift_mode", None) is not None
     ):
-        promo_code = object.get("metadata", {}).get("promo_code", None)
-        if promo_code is not None:
-            recipient_subscription = gift_recipient_subscription_from_code(promo_code)
-            stripe.Subscription.delete(recipient_subscription.id)
+        gift_recipient_subscription_id = object.get("metadata", {}).get(
+            "gift_recipient_subscription", None
+        )
+        if gift_recipient_subscription_id is not None:
+            stripe.Subscription.delete(gift_recipient_subscription_id)
             # Analytics
             try:
                 customer = Customer.objects.filter(id=object.get("customer")).first()
@@ -88,3 +90,15 @@ def sync(*args, data: shopify.Product, **kwargs):
     product_id = data.get("id")
     print("Product", product_id, "was deleted")
     BookPage.objects.filter(shopify_product_id=product_id).delete()
+
+
+from wagtailcache.cache import clear_cache
+
+
+@hooks.register("after_create_page")
+@hooks.register("after_edit_page")
+@hooks.register("after_publish_page")
+@hooks.register("after_unpublish_page")
+@hooks.register("after_delete_page")
+def clear_wagtailcache(*args, **kwargs):
+    clear_cache()

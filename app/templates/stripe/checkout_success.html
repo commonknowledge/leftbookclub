@@ -1,31 +1,27 @@
 {% extends "base.html" %}
 {% load setting %}
-
-{% block extra_js %}
-<script async src="https://js.stripe.com/v3/"></script>
-{% endblock %}
-
+{% block extra_js %}<script async src="https://js.stripe.com/v3/"></script>{% endblock %}
 {% block facebook_pixel_event %}
-{% if subscription %}
-  fbq('track', 'Subscribe', { subscription_id: '{{subscription.id}}', currency: '{{currency}}', value: '{{value}}' });
-{% elif payment_intent %}
-  fbq('track', 'Purchase', { currency: '{{currency}}', value: '{{value}}' });
-{% endif %}
+    {% if subscription %}
+        fbq('track', 'Subscribe', { subscription_id: '{{ subscription.id }}', currency: '{{ currency }}', value: '{{ value }}' });
+    {% elif payment_intent %}
+        fbq('track', 'Purchase', { currency: '{{ currency }}', value: '{{ value }}' });
+    {% endif %}
 {% endblock %}
-
 {% block header %}
-  {% comment %} Blank page {% endcomment %}
+    {% comment %} Blank page {% endcomment %}
 {% endblock %}
-
-{% block content_padding %}tw-h-screen my-0 text-center d-flex flex-column justify-center align-content-center align-items-center justify-content-center tw-justify-items-center align-middle py-4 h5{% endblock %}
-
+{% block content_padding %}
+    tw-h-screen my-0 text-center d-flex flex-column justify-center align-content-center align-items-center justify-content-center tw-justify-items-center align-middle py-4 h5
+{% endblock %}
 {% block content %}
-<span>Payment complete.</span>
-<a class='fs-5 monospace my-4' href='{{next}}' data-turbo-action="replace">Click this link if the page doesn't automatically redirect</a>
+    <span>Payment complete.</span>
+    <a class='fs-5 monospace my-4'
+       href='{{ next }}'
+       data-turbo-action="replace">Click this link if the page doesn't automatically redirect</a>
 {% endblock %}
-
 {% block bottom_of_page %}
-<script>
+    <script>
   try {
     Turbo.visit("{{next}}", { action: "replace" })
   } catch(e) {
@@ -35,9 +31,8 @@
     }
     document.addEventListener("turbo:load", fn)
   }
-</script>
+    </script>
 {% endblock %}
-
 {% block footer %}
-  {% comment %} Blank page {% endcomment %}
+    {% comment %} Blank page {% endcomment %}
 {% endblock %}

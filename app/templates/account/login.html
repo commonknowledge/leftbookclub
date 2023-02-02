@@ -1,44 +1,42 @@
 {% extends "account/modal_base.html" %}
-
 {% load url i18n django_bootstrap5 account socialaccount setting %}
-
-{% block head_title %}{% trans "Sign In" %}{% endblock %}
-
-
+{% block head_title %}
+    {% trans "Sign In" %}
+{% endblock %}
 {% block modal_content %}
-{% get_providers as socialaccount_providers %}
-
-{% oauth_application_from_query as app %}
-{% if app %}
-  <h1 class="text-center h2">Log in to {{ app.name }}</h1>
-{% else %}
-  <h1 class="text-center h2">Log In</h1>
-{% endif %}
-
-<div class="row">
-
-  {% if socialaccount_providers  %}
-  <div class="col-md-5 col-lg-5">
-    {% include "allauth/account/provider_panel.html" with process="login" %}
-  </div>
-  {% endif %}
-
-  <div>
-    <form data-turbo="false" class="login" method="POST" action="{% url 'account_login' %}{% qs_link %}">
-      <p class="text-center">Not yet a member? <a href="/join">Join</a></p>
-      {% csrf_token %}
-      {% bootstrap_field form.login show_label=False %}
-      {% bootstrap_field form.password show_label=False %}
-      {% bootstrap_form form exclude="login,password" %}
-      {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-      {% endif %}
-      <div class="form-actions">
-        <button class="btn btn-primary pull-right !tw-w-auto" type="submit">{% trans "Sign In" %}</button>
-        <a class="btn" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-      </div>
-    </form>
-  </div>
-</div>
-
+    {% get_providers as socialaccount_providers %}
+    {% oauth_application_from_query as app %}
+    {% if app %}
+        <h1 class="text-center h2">Log in to {{ app.name }}</h1>
+    {% else %}
+        <h1 class="text-center h2">Log In</h1>
+    {% endif %}
+    <div class="row">
+        {% if socialaccount_providers  %}
+            <div class="col-md-5 col-lg-5">{% include "allauth/account/provider_panel.html" with process="login" %}</div>
+        {% endif %}
+        <div>
+            <form data-turbo="false"
+                  class="login"
+                  method="POST"
+                  action="{% url 'account_login' %}{% qs_link %}">
+                <p class="text-center">
+                    Not yet a member? <a href="/join">Join</a>
+                </p>
+                {% csrf_token %}
+                {% bootstrap_field form.login show_label=False %}
+                {% bootstrap_field form.password show_label=False %}
+                {% bootstrap_form form exclude="login,password" %}
+                {% if redirect_field_value %}
+                    <input type="hidden"
+                           name="{{ redirect_field_name }}"
+                           value="{{ redirect_field_value }}"/>
+                {% endif %}
+                <div class="form-actions">
+                    <button class="btn btn-primary pull-right !tw-w-auto" type="submit">{% trans "Sign In" %}</button>
+                    <a class="btn" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}

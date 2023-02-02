@@ -154,6 +154,21 @@ We used https://github.com/nextauthjs/next-auth-example/ to test this implementa
 
 ### Secrets
 
+#### Staging
+
+```js
+DATABASE_URL; // set by running `fly pg attach lbc-pg-staging --app lbc-staging` or similar
+SECRET_KEY; // random key
+BASE_URL; // set this to the URL of your staging site like https://lbc-staging.fly.dev
+// The below all come from Stripe dashboard in test mode:
+DJSTRIPE_WEBHOOK_SECRET;
+STRIPE_LIVE_MODE = False;
+STRIPE_TEST_SECRET_KEY;
+STRIPE_TEST_PUBLIC_KEY;
+```
+
+#### Production
+
 Contact jan@commonknowledge.coop for an up to date list of env variables.
 
 ```js

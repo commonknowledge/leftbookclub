@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from dataclasses import dataclass
+from datetime import datetime
 
 import djstripe.models
 import stripe
@@ -208,6 +209,8 @@ class UpgradeForm(forms.Form):
         if user.active_subscription.shipping_zone is None:
             raise ValueError("Please add a shipping address first.")
 
+        year = datetime.now().year
+
         options: Dict[UpgradeAction, UpgradeOption] = {}
 
         title = f"Your current plan"
@@ -281,10 +284,10 @@ class UpgradeForm(forms.Form):
             ####
 
             if user.active_subscription.has_legacy_membership_price:
-                title = f"Your legacy fee"
+                title = f"Legacy rate"
 
-            if user.active_subscription.shipping_si is None:
-                title += " with unpaid shipping"
+            # if user.active_subscription.shipping_si is None:
+            #     title += " with unpaid shipping"
 
             options[cls.choices.STATUS_QUO] = UpgradeOption(
                 line_items=[],
@@ -295,31 +298,42 @@ class UpgradeForm(forms.Form):
                 title=title,
                 label="Your current plan",
                 text=f"""
-                <p>This is your current fee, which is a {effective_discount:.0%} discount on the break-even price of the subscription.</p>
-                <p>Re-select this option if it’s all you can afford right now — that is totally OK.</p>
+                <p>You’re currently paying {old_price_str}. Select this option if it’s all you can afford right now — that is totally OK.</p>
                 <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>
                 """,
-                action_text="Keep current fee",
+                action_text=f"Continue with {old_price_str}",
             )
 
             ####
             ## Add standard update option
             ####
 
-            title = "2023 standard fee"
-            if user.active_subscription.shipping_si is None:
-                title += " including shipping"
+            title = f"{year} standard rate"
+            # if user.active_subscription.shipping_si is None:
+            #     title += " including shipping"
+
+            raw_price_string = (
+                user.active_subscription.membership_plan_price.raw_price_string()
+            )
+            shipping_price_string = (
+                user.active_subscription.membership_plan_price.shipping_price_string(
+                    user.active_subscription.shipping_zone
+                )
+            )
 
             options[cls.choices.UPDATE_PRICE] = UpgradeOption(
                 line_items=new_items,
                 plan=user.active_subscription.membership_plan_price.plan,
                 price_float=new_price,
                 price_str=new_price_str,
-                label="Recommended",
+                label="Recommended plan",
                 title=title,
                 text=f"""
-                  <p>This is the price we are charging new members, which includes packaging and postage.</p>
-                  <p>If everyone paid this rate, we would break even. Please select this option if you can afford it.</p>
+                  <p>This is what we are charging new members. If everyone paid this rate, we would break even.</p>
+                  <ul>
+                  <li><b>{raw_price_string}</b> for membership (including books, community and benefits)</li>
+                  <li><b>{shipping_price_string}</b> for packaging + postage</li>
+                  </ul>
                 """,
                 action_text=f"Switch to {new_price_str}",
                 default_selected=True,
@@ -361,6 +375,10 @@ class UpgradeForm(forms.Form):
                         new_price_str = plan_price.price_string_including_shipping(
                             user.active_subscription.shipping_zone
                         )
+                        raw_price_string = plan_price.raw_price_string()
+                        shipping_price_string = plan_price.shipping_price_string(
+                            user.active_subscription.shipping_zone
+                        )
 
                         # Remove old items
                         if user.active_subscription.membership_si is not None:
@@ -383,9 +401,15 @@ class UpgradeForm(forms.Form):
                             plan=solidarity_plan,
                             price_float=new_price,
                             price_str=new_price_str,
-                            label="If you can afford it",
-                            title="Solidarity rate",
-                            text="<p>Select this option if you can afford to pay a little more in order to support others on lower incomes.</p>",
+                            # label="If you can afford it",
+                            title=f"{year} solidarity rate",
+                            text=f"""
+                            <p>Select this option if you can afford to pay a little more in order to support others on lower incomes.</p>
+                            <ul>
+                            <li><b>{raw_price_string}</b> for membership (including books, community and benefits)</li>
+                            <li><b>{shipping_price_string}</b> for packaging + postage</li>
+                            </ul>
+                            """,
                             action_text=f"Switch to {new_price_str}",
                         )
 

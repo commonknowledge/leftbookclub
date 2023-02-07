@@ -265,6 +265,18 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             s += "s"
         return s
 
+    def raw_price_string(self) -> str:
+        money = str(self.price)
+        interval = self.humanised_interval()
+        s = f"{money}{interval}"
+        return s
+
+    def shipping_price_string(self, zone) -> str:
+        money = str(self.shipping_fee(zone))
+        interval = self.humanised_interval()
+        s = f"{money}{interval}"
+        return s
+
     @property
     def price_string(self) -> str:
         money = str(self.price)

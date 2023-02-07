@@ -13,9 +13,7 @@
         {% if not user.active_subscription.includes_donation %}
             {% with user.active_subscription.membership_plan_price.humanised_interval as interval_text %}
                 <h3 class='mt-5'>Add a recurring donation</h3>
-                <p>
-                    If you have remained on a legacy or a standard price, please consider adding a monthly donation to your membership fee. Any amount, however small, will make a huge difference. Thank you!
-                </p>
+                {{ settings.app.UpsellPlanSettings.donation_text|richtext }}
                 <form method='POST'
                       data-turbo="false"
                       id="donation-form"

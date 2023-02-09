@@ -33,7 +33,7 @@ if os.getenv("AWS_S3_REGION_NAME"):
     MEDIA_URL = os.getenv("MEDIA_URL")
 else:
     MEDIA_ROOT = os.getenv(MEDIA_ROOT)
-    MEDIA_URL = os.getenv("MEDIA_URL", "/media")
+    MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
 
 
 if os.getenv("MAILJET_API_KEY"):

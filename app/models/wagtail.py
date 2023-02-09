@@ -12,6 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models
+from django.db.models import Q
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
@@ -47,7 +48,6 @@ from wagtailcache.cache import WagtailCacheMixin, cache_page
 from wagtailseo import utils
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
-from app.forms import CountrySelectorForm
 from app.models.blocks import ArticleContentStream
 from app.models.circle import CircleEvent
 from app.models.django import User
@@ -259,10 +259,22 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     def humanised_interval(self):
         s = "/"
         if self.interval_count > 1:
-            s += self.interval_count + " "
+            s += str(self.interval_count) + " "
         s += self.interval
         if self.interval_count > 1:
             s += "s"
+        return s
+
+    def raw_price_string(self) -> str:
+        money = str(self.price)
+        interval = self.humanised_interval()
+        s = f"{money}{interval}"
+        return s
+
+    def shipping_price_string(self, zone) -> str:
+        money = str(self.shipping_fee(zone))
+        interval = self.humanised_interval()
+        s = f"{money}{interval}"
         return s
 
     @property
@@ -272,6 +284,12 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         s = f"{money}{interval}"
         if self.should_advertise_postage_price:
             return f"{s} + p&p"
+        return s
+
+    def price_string_including_shipping(self, zone) -> str:
+        money = str(self.price_including_shipping(zone))
+        interval = self.humanised_interval()
+        s = f"{money}{interval}"
         return s
 
     @property
@@ -373,6 +391,20 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
                 return {"description": upsell.description, "url": upsell.url()}
         except:
             return None
+
+    @classmethod
+    def from_si(cls, si: djstripe.models.SubscriptionItem):
+        current_plan_price = MembershipPlanPrice.objects.filter(
+            Q(id=si.metadata.get("wagtail_price"))
+            | Q(id=si.plan.metadata.get("wagtail_price"))
+        ).first()
+        if current_plan_price is None:
+            current_plan_price = MembershipPlanPrice.objects.filter(
+                interval=si.plan.interval,
+                interval_count=si.plan.interval_count,
+                products=si.plan.product.djstripe_id,
+            ).first()
+        return current_plan_price
 
 
 @register_snippet

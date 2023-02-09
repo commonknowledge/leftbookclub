@@ -51,24 +51,24 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
   poetry run python manage.py sync_shopify_products
   ```
 
-## Application stack:
+## Application stack
 
 - [Django](https://www.djangoproject.com/)
 - [Django Rest Framework](https://groundwork.commonknowledge.coop)
 - [Groundwork](https://groundwork.commonknowledge.coop)
 
-## Frontend stack:
+## Frontend stack
 
 - [Stimulus](https://stimulus.hotwired.dev/)
 - [Turbo](https://turbo.hotwired.dev/)
 - [Bootstrap](https://groundwork.commonknowledge.coop)
 
-## Development stack:
+## Development stack
 
 - [Poetry](https://python-poetry.org/) for python dependencies
 - [Vite](https://vitejs.dev/) for frontend build pipeline
 
-## Deployment & CI stack:
+## Deployment & CI stack
 
 - VSCode Development Containers
 - Github Actions
@@ -150,7 +150,48 @@ How to get this going:
 
 We used https://github.com/nextauthjs/next-auth-example/ to test this implementation.
 
+### Setting up database
+
+#### Fly.io
+
+Run `fly pg connect` and run all the CREATE EXTENSION commands:
+
+```
+-- Enable PostGIS (as of 3.0 contains just geometry/geography)
+CREATE EXTENSION postgis;
+-- enable raster support (for 3+)
+CREATE EXTENSION postgis_raster;
+-- Enable Topology
+CREATE EXTENSION postgis_topology;
+-- Enable PostGIS Advanced 3D
+-- and other geoprocessing algorithms
+-- sfcgal not available with all distributions
+CREATE EXTENSION postgis_sfcgal;
+-- fuzzy matching needed for Tiger
+CREATE EXTENSION fuzzystrmatch;
+-- rule based standardizer
+CREATE EXTENSION address_standardizer;
+-- example rule data set
+CREATE EXTENSION address_standardizer_data_us;
+-- Enable US Tiger Geocoder
+CREATE EXTENSION postgis_tiger_geocoder;
+```
+
 ### Secrets
+
+#### Staging
+
+```js
+DATABASE_URL; // set by running `fly pg attach lbc-pg-staging --app lbc-staging` or similar
+SECRET_KEY; // random key
+BASE_URL; // set this to the URL of your staging site like https://lbc-staging.fly.dev
+STRIPE_LIVE_MODE = False;
+STRIPE_WEBHOOK_SECRET; // signing secret from https://dashboard.stripe.com/test/webhooks/we_1KlUZ2KYdS0VccAEF1CWol1Q
+STRIPE_TEST_SECRET_KEY; // API key section: https://dashboard.stripe.com/test/apikeys
+STRIPE_TEST_PUBLIC_KEY; // API key section: https://dashboard.stripe.com/test/apikeys
+```
+
+#### Production
 
 Contact jan@commonknowledge.coop for an up to date list of env variables.
 

@@ -1,3 +1,9 @@
+from typing import Optional
+
+import json
+from collections import namedtuple
+from dataclasses import dataclass
+
 import djstripe
 import stripe
 from allauth.account.models import EmailAddress
@@ -7,10 +13,14 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 from sentry_sdk import capture_exception
 
 from app.utils.stripe import (
+    SHIPPING_PRODUCT_NAME,
     get_primary_product_for_djstripe_subscription,
+    get_primary_product_subscription_item_for_djstripe_subscription,
+    get_shipping_product_for_djstripe_subscription,
     interval_string_for_plan,
     subscription_with_promocode,
 )
@@ -91,7 +101,7 @@ class User(AbstractUser):
         djstripe.enums.SubscriptionStatus.unpaid,
     ]
 
-    @property
+    @cached_property
     def active_subscription(self) -> LBCSubscription:
         try:
             sub = (
@@ -307,6 +317,22 @@ class User(AbstractUser):
                 return si.plan.human_readable_price
         except:
             return None
+
+    def get_membership_plan_price_for_si(self, si):
+        from .wagtail import MembershipPlanPrice
+
+        try:
+            current_plan_price = MembershipPlanPrice.objects.get(
+                id=si.plan.product.price.metadata.get("wagtail_price")
+            )
+        except:
+            pass
+        if current_plan_price is None:
+            current_plan_price = MembershipPlanPrice.objects.filter(
+                interval=si.plan.interval,
+                interval_count=si.plan.interval_count,
+                product=si.plan.product,
+            )
 
     def get_analytics_data(self):
         user_data = {

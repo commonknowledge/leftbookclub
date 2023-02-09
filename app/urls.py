@@ -23,6 +23,7 @@ from app.views import (
     CompletedGiftPurchaseView,
     CompletedGiftRedemptionView,
     CompletedMembershipPurchaseView,
+    DonationView,
     GiftCodeRedeemView,
     GiftMembershipSetupView,
     LoginRequiredTemplateView,
@@ -34,6 +35,8 @@ from app.views import (
     StripeCustomerPortalView,
     SubscriptionCheckoutView,
     SyncShopifyWebhookEndpoint,
+    UpgradeSuccessDonationTrailerView,
+    UpgradeView,
     WagtailStreamfieldBlockTurboFrame,
 )
 
@@ -82,6 +85,26 @@ urlpatterns = [
         f"redeem/<str:code>/",
         GiftCodeRedeemView.as_view(),
         name="redeem",
+    ),
+    path(
+        f"update-membership/",
+        UpgradeView.as_view(),
+        name="upgrade",
+    ),
+    path(
+        f"update-membership/success",
+        UpgradeSuccessDonationTrailerView.as_view(),
+        name="upgrade-success",
+    ),
+    path(
+        f"donate",
+        DonationView.as_view(),
+        name="donate",
+    ),
+    path(
+        f"donate/success",
+        LoginRequiredTemplateView.as_view(template_name="app/donate_success.html"),
+        name="donation-success",
     ),
     path(
         "welcome/",

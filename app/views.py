@@ -11,6 +11,7 @@ import djstripe.enums
 import djstripe.models
 import stripe
 from dateutil.relativedelta import relativedelta
+from django import forms
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
@@ -29,8 +30,14 @@ from sentry_sdk import capture_exception, capture_message
 from wagtail.core.models import Page
 
 from app import analytics
-from app.forms import CountrySelectorForm, GiftCodeForm, StripeShippingForm
-from app.models import LBCProduct
+from app.forms import (
+    CountrySelectorForm,
+    DonationForm,
+    GiftCodeForm,
+    StripeShippingForm,
+    UpgradeForm,
+)
+from app.models import LBCProduct, User
 from app.models.stripe import LBCSubscription, ShippingZone
 from app.models.wagtail import BaseShopifyProductPage, MembershipPlanPrice
 from app.utils.mailchimp import tag_user_in_mailchimp
@@ -730,3 +737,66 @@ class RefreshDataView(SuperUserCheck, LoginRequiredMixin, TemplateView):
         # BookPage.sync_shopify_products_to_pages()
         # MerchandisePage.sync_shopify_products_to_pages()
         return super().get_context_data(**kwargs)
+
+
+class UpgradeView(LoginRequiredMixin, FormView):
+    form_class = UpgradeForm
+    template_name = "app/upgrade.html"
+    success_url = reverse_lazy("upgrade-success")
+
+    def form_valid(self, form: UpgradeForm):
+        form.update_subscription()
+        return super().form_valid(form)
+
+    def get_initial(self):
+        if isinstance(self.request.user, User):
+            initial = super().get_initial()
+            initial["fee_option"] = "STATUS_QUO"
+            initial["user_id"] = self.request.user.pk
+            return initial
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        if isinstance(self.request.user, User):
+            context.update(
+                {"options": UpgradeForm.get_options_for_user(self.request.user)}
+            )
+        return context
+
+
+class UpgradeSuccessDonationTrailerView(LoginRequiredMixin, FormView):
+    form_class = DonationForm
+    template_name = "app/upgrade_success.html"
+    success_url = reverse_lazy("donation-success")
+
+    def get_initial(self):
+        if isinstance(self.request.user, User):
+            initial = super().get_initial()
+            initial["user_id"] = self.request.user.pk
+            initial["donation_amount"] = 2
+            return initial
+
+    def form_valid(self, form: DonationForm):
+        form.update_subscription()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["donation_amount_options"] = [1, 2, 3]
+        return context
+
+
+class DonationView(UpgradeSuccessDonationTrailerView):
+    form_class = DonationForm
+    template_name = "app/donate.html"
+    success_url = reverse_lazy("donation-success")
+
+    def get_initial(self):
+        if isinstance(self.request.user, User):
+            initial = super().get_initial()
+            initial["user_id"] = self.request.user.pk
+            if self.request.user.active_subscription.donation_si is not None:
+                initial["donation_amount"] = float(
+                    self.request.user.active_subscription.donation_si.plan.amount
+                )
+            return initial

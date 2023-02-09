@@ -2,9 +2,16 @@
 $primary: #fade70;
 $custom-colors: (
   "primary": $primary,
-  yellow: #F8F400; black: #231F20; teal: #46A9C2; darkgreen: #2D936C; lilacgrey:
-    #A5A1BB; coral: #FE825E; purple: #9A93FF; magenta: #FF55B4; pink: #FFBBD2;
-    lightgreen: #8FBB99;,
+  yellow: #f8f400,
+  black: #231f20,
+  teal: #46a9c2,
+  darkgreen: #2d936c,
+  lilacgrey: #a5a1bb,
+  coral: #fe825e,
+  purple: #9a93ff,
+  magenta: #ff55b4,
+  pink: #ffbbd2,
+  lightgreen: #8fbb99,
 );
 
 // $theme-colors: map-merge($theme-colors, $custom-colors);

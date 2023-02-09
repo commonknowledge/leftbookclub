@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 gift_card static wagtailcore_tags %}
+{% block title %}Update your membership | Left Book Club{% endblock %}
+{% comment %} {% block content_padding %}p-5{% endblock %}
+{% block content_width %}container-fluid{% endblock %}
+{% block content_extra_classes %}tw-bg-yellow{% endblock %} {% endcomment %}
+{% block content %}
+    {% comment %} {% if not user.active_subscription.should_upgrade %}
+    <header class='text-center my-4 tw-max-w-xl mx-auto'>
+      <h1>You're up to date</h1>
+    </header>
+{% else %} {% endcomment %}
+    <form method='POST' data-turbo="false" id="upgrade-form">
+        {% comment %} Hidden inputs {% endcomment %}
+        {% csrf_token %}
+        {{ form.user_id }}
+        {% comment %} /End hidden inputs {% endcomment %}
+        <header class='text-left my-4 tw-max-w-xl mx-auto'>
+            {% if not user.active_subscription.should_upgrade %}
+                <h1>Review your fee</h1>
+                <p>
+                    You're currently on <i>{{ user.active_subscription.membership_plan_price.plan.title }} ({{ user.primary_product.name }})</i>.
+                </p>
+            {% else %}
+                {{ settings.app.UpsellPlanSettings.intro_text|richtext }}
+            {% endif %}
+        </header>
+        <div>
+            {% if error %}
+                {% bootstrap_alert error alert_type='danger' %}
+            {% endif %}
+            {{ form.non_field_errors }}
+            {{ form.fee_option.errors }}
+            <section class='row g-2 justify-content-center'>
+                {% for option_id, option in options.items %}
+                    <article class='col-12 col-md tw-max-w-xl tw-relative tw-mt-5'>
+                        <input {% if option.default_selected %}checked{% endif %}
+                               type="radio"
+                               id="fee_option-{{ option_id|slugify }}"
+                               name="fee_option"
+                               value="{{ option_id }}"
+                               class="tw-hidden tw-peer"
+                               required/>
+                        {% if option.label %}
+                            <div class='tw-absolute -tw-top-4 -tw-mt-2 tw-w-full tw-text-center tw-font-bold h5 tw-text-purpleDark'>
+                                {{ option.label }}
+                            </div>
+                        {% endif %}
+                        <label for="fee_option-{{ option_id|slugify }}"
+                               class='tw-cursor-pointer tw-opacity-90 peer-checked:tw-opacity-100 peer-checked:tw-border-purpleDark peer-checked:tw-bg-purpleLight hover:tw-text-gray-600 hover:tw-bg-gray-100 overflow-hidden h-100 d-flex flex-column tw-border tw-border-gray-300'>
+                            <div class='px-3 pt-1'>
+                                <h3 class='h4 mt-3 mb-2 fw-bold'>{{ option.title }}</h3>
+                                {% if option.discount %}<div class='my-2 h5'>({{ option.discount }} below break-even price)</div>{% endif %}
+                                {% if option.text %}<div class='mt-2'>{{ option.text|richtext }}</div>{% endif %}
+                            </div>
+                            <div class='mt-auto p-3'>
+                                <div data-analytics-action="select_upgrade_option"
+                                     class='btn btn-outline-dark tw-text-inherit tw-w-full tw-border tw-border-purple tw-text-purpleDark tw-bg-white'>
+                                    {{ option.action_text }}
+                                </div>
+                            </div>
+                        </label>
+                    </article>
+                {% endfor %}
+            </section>
+            <section class='text-left my-4 tw-max-w-xl mx-auto'>
+                <p class='my-3'>
+                    By clicking the button below, you agree to pay the new fee from your next payment date. No immediate payment will be requested and your book delivery dates won't change.
+                </p>
+                <button type="submit" class='btn btn-primary'>Click to confirm price</button>
+            </section>
+        </div>
+    </form>
+    {% comment %} {% endif %} {% endcomment %}
+{% endblock %}

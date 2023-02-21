@@ -12,10 +12,7 @@ export default function initialisePosthog() {
     api_host: window.POSTHOG_URL,
     autocapture: true,
     loaded: (posthog) => {
-      if (window.DEBUG) {
-        // Permanently opt out all devs from analytics, if they ever run the system in debug mode
-        posthog.opt_out_capturing();
-      }
+      // posthog.opt_in_capturing();
 
       // Capture visits mediated by Turbo
       // window.addEventListener("turbo:load", () => {

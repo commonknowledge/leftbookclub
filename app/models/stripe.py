@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from dataclasses import dataclass
+from datetime import datetime
 
 import djstripe.models
 import stripe
@@ -20,6 +21,7 @@ from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list
 from app.utils.django import add_proxy_method
+from app.utils.python import diff_month
 from app.utils.stripe import (
     DONATION_PRODUCT_NAME,
     SHIPPING_PRODUCT_NAME,
@@ -54,6 +56,9 @@ class LBCSubscription(djstripe.models.Subscription):
 
     def customer_id(self):
         return self.customer.id
+
+    def subscription_months(self):
+        return diff_month(datetime.now(), self.created)
 
     GIFT_GIVER_SUB_METADATA_KEY = "gift_giver_subscription"
 

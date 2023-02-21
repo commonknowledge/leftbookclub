@@ -86,21 +86,23 @@
                                 {% endif %}
                             </a>
                         </article>
-                        <article class='mb-3 bg-white'>
-                            <header class='p-3'>
-                                <h5 class='mb-0'>
-                                    {% if gift_mode %}
-                                        Your next book delivery
-                                    {% else %}
-                                        Your next book delivery
-                                    {% endif %}
-                                </h5>
-                                <p class='mb-0 text-muted'>
-                                    And then <b>{{ price.plan.delivery_frequency }}</b>
-                                </p>
-                            </header>
-                            {% include "app/includes/simple_book_card.html" with book=current_book %}
-                        </article>
+                        {% if price.plan.delivery_frequency %}
+                            <article class='mb-3 bg-white'>
+                                <header class='p-3'>
+                                    <h5 class='mb-0'>
+                                        {% if gift_mode %}
+                                            Your next book delivery
+                                        {% else %}
+                                            Your next book delivery
+                                        {% endif %}
+                                    </h5>
+                                    <p class='mb-0 text-muted'>
+                                        And then <b>{{ price.plan.delivery_frequency }}</b>
+                                    </p>
+                                </header>
+                                {% include "app/includes/simple_book_card.html" with book=current_book %}
+                            </article>
+                        {% endif %}
                         {% comment %} <article class='mb-3 bg-white p-3'>
           <h5>More about your membership</h5>
           <div class='mb-2 fs-6'>{{ price.plan.description|richtext }}</div>

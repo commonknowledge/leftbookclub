@@ -7,6 +7,7 @@ import djstripe.models
 import stripe
 from allauth.account.views import SignupForm
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.safestring import mark_safe
@@ -14,6 +15,7 @@ from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
 
+from app import analytics
 from app.models import MembershipPlanPage, User
 from app.utils.stripe import (
     gift_giver_subscription_from_code,
@@ -175,11 +177,20 @@ class UpgradeAction(models.TextChoices):
 
 @dataclass
 class UpgradeOption:
-    plan: MembershipPlanPage
-    line_items: List[Dict[str, Any]]
     title: str
+    line_items: List[Dict[str, Any]]
     price_float: float
     price_str: str
+    interval: str
+    interval_count: int
+    plan: MembershipPlanPage
+    product: Optional[djstripe.models.Product] = None
+    old_price_float: Optional[float] = None
+    old_price_str: Optional[str] = None
+    old_interval: Optional[str] = None
+    old_interval_count: Optional[int] = None
+    old_plan: Optional[MembershipPlanPage] = None
+    old_product: Optional[djstripe.models.Product] = None
     text: Any = ""
     action_text: str = "Select"
     label: Optional[str] = None
@@ -217,12 +228,25 @@ class UpgradeForm(forms.Form):
         old_price = user.active_subscription.next_fee
         old_price_str = f"£{(old_price):.2f}{user.active_subscription.membership_plan_price.humanised_interval()}"
 
+        status_quo_data = dict(
+            old_price_float=old_price,
+            old_price_str=old_price_str,
+            old_interval=user.active_subscription.membership_plan_price.interval,
+            old_interval_count=user.active_subscription.membership_plan_price.interval_count,
+            old_plan=user.active_subscription.membership_plan_price.plan,
+            old_product=user.active_subscription.primary_product,
+        )
+
         if not user.active_subscription.should_upgrade:
             options[cls.choices.STATUS_QUO] = UpgradeOption(
                 line_items=[],
                 plan=user.active_subscription.membership_plan_price.plan,
                 price_float=old_price,
                 price_str=old_price_str,
+                interval=user.active_subscription.membership_plan_price.interval,
+                interval_count=user.active_subscription.membership_plan_price.interval_count,
+                product=user.active_subscription.primary_product,
+                **status_quo_data,
                 title=title,
                 label="Your current plan",
                 text=user.active_subscription.membership_plan_price.description,
@@ -294,6 +318,10 @@ class UpgradeForm(forms.Form):
                 plan=user.active_subscription.membership_plan_price.plan,
                 price_float=old_price,
                 price_str=old_price_str,
+                interval=user.active_subscription.membership_plan_price.interval,
+                interval_count=user.active_subscription.membership_plan_price.interval_count,
+                product=user.active_subscription.primary_product,
+                **status_quo_data,
                 discount=f"{effective_discount:.0%}",
                 title=title,
                 label="Your current plan",
@@ -326,6 +354,10 @@ class UpgradeForm(forms.Form):
                 plan=user.active_subscription.membership_plan_price.plan,
                 price_float=new_price,
                 price_str=new_price_str,
+                interval=user.active_subscription.membership_plan_price.interval,
+                interval_count=user.active_subscription.membership_plan_price.interval_count,
+                product=user.active_subscription.primary_product,
+                **status_quo_data,
                 label="Recommended plan",
                 title=title,
                 text=f"""
@@ -401,6 +433,10 @@ class UpgradeForm(forms.Form):
                             plan=solidarity_plan,
                             price_float=new_price,
                             price_str=new_price_str,
+                            interval=user.active_subscription.membership_plan_price.interval,
+                            interval_count=user.active_subscription.membership_plan_price.interval_count,
+                            product=plan_price.default_product(),
+                            **status_quo_data,
                             # label="If you can afford it",
                             title=f"{year} solidarity rate",
                             text=f"""
@@ -418,7 +454,7 @@ class UpgradeForm(forms.Form):
     def update_subscription(self, *args, **kwargs):
         if not self.is_valid():
             raise ValueError("Form is not valid")
-        fee_option = self.cleaned_data.get("fee_option")
+        fee_option: UpgradeForm.choices = self.cleaned_data.get("fee_option")
         user = User.objects.get(pk=self.cleaned_data.get("user_id"))
         options = UpgradeForm.get_options_for_user(user)
 
@@ -430,17 +466,67 @@ class UpgradeForm(forms.Form):
         ):
             raise ValueError("User is not a member yet.")
 
+        upgrade_status_quo_month_year = (
+            f"UPGRADE_STATUS_QUO_CHOSEN_{datetime.now().strftime('%Y-%m')}"
+        )
+        upgrade_recommended_month_year = (
+            f"UPGRADE_RECOMMENDED_OPTION_CHOSEN_{datetime.now().strftime('%Y-%m')}"
+        )
+        upgrade_solidarity_month_year = (
+            f"UPGRADE_SOLIDARITY_OPTION_CHOSEN_{datetime.now().strftime('%Y-%m')}"
+        )
+
         if fee_option == UpgradeForm.choices.STATUS_QUO:
+            upgrade_option = options[fee_option]
+            try:
+                analytics.upgrade_remain_on_current_plan(
+                    user,
+                    campaign="UpgradeForm",
+                    old_amount=upgrade_option.old_price_float,
+                    old_interval=upgrade_option.old_interval,
+                    old_interval_count=upgrade_option.old_interval_count,
+                    old_plan=upgrade_option.old_plan.title,
+                    old_product=upgrade_option.old_product.name,
+                )
+            except Exception as e:
+                if settings.DEBUG:
+                    raise e
+                print("Error sending analytics event: upgrade_remain_on_current_plan")
+                print(e)
+                pass
             return user.active_subscription
         elif (
             fee_option == UpgradeForm.choices.UPDATE_PRICE
             and options.get(UpgradeForm.choices.UPDATE_PRICE, None) is not None
         ):
+            upgrade_option = options[fee_option]
             subscription = stripe.Subscription.modify(
                 user.active_subscription.id,
                 proration_behavior="none",
-                items=options[UpgradeForm.choices.UPDATE_PRICE].line_items,
+                items=options[fee_option].line_items,
             )
+            try:
+                analytics.upgrade(
+                    user,
+                    campaign="UpgradeForm",
+                    option_title=upgrade_option.title,
+                    old_amount=upgrade_option.old_price_float,
+                    old_interval=upgrade_option.old_interval,
+                    old_interval_count=upgrade_option.old_interval_count,
+                    old_plan=upgrade_option.old_plan.title,
+                    old_product=upgrade_option.old_product.name,
+                    new_amount=upgrade_option.price_float,
+                    new_interval=upgrade_option.interval,
+                    new_interval_count=upgrade_option.interval_count,
+                    new_plan=upgrade_option.plan.title,
+                    new_product=upgrade_option.product.name,
+                )
+            except Exception as e:
+                if settings.DEBUG:
+                    raise e
+                print("Error sending analytics event: upgrade_remain_on_current_plan")
+                print(e)
+                pass
 
             sub = djstripe.models.Subscription.sync_from_stripe_data(subscription)
             return sub.lbc()
@@ -448,11 +534,36 @@ class UpgradeForm(forms.Form):
             fee_option == UpgradeForm.choices.UPGRADE_TO_SOLIDARITY
             and options.get(UpgradeForm.choices.UPGRADE_TO_SOLIDARITY, None) is not None
         ):
+            upgrade_option = options[fee_option]
+
             subscription = stripe.Subscription.modify(
                 user.active_subscription.id,
                 proration_behavior="none",
-                items=options[UpgradeForm.choices.UPDATE_PRICE].line_items,
+                items=upgrade_option.line_items,
             )
+
+            try:
+                analytics.upgrade(
+                    user,
+                    campaign="UpgradeForm",
+                    option_title=upgrade_option.title,
+                    old_amount=upgrade_option.old_price_float,
+                    old_interval=upgrade_option.old_interval,
+                    old_interval_count=upgrade_option.old_interval_count,
+                    old_plan=upgrade_option.old_plan,
+                    old_product=upgrade_option.old_product.name,
+                    new_amount=upgrade_option.price_float,
+                    new_interval=upgrade_option.interval,
+                    new_interval_count=upgrade_option.interval_count,
+                    new_plan=upgrade_option.plan,
+                    new_product=upgrade_option.product.name,
+                )
+            except Exception as e:
+                if settings.DEBUG:
+                    raise e
+                print("Error sending analytics event: upgrade_remain_on_current_plan")
+                print(e)
+                pass
 
             sub = djstripe.models.Subscription.sync_from_stripe_data(subscription)
             return sub.lbc()
@@ -474,7 +585,7 @@ class DonationForm(forms.Form):
         if not self.is_valid():
             raise ValueError("Form is not valid")
         user = User.objects.get(pk=self.cleaned_data.get("user_id"))
-        amount = self.cleaned_data.get("donation_amount")
+        new_amount = self.cleaned_data.get("donation_amount")
 
         if (
             user.active_subscription is None
@@ -482,7 +593,24 @@ class DonationForm(forms.Form):
         ):
             raise ValueError("No billable subscription was found for this user.")
 
+        old_amount = None
+        if user.active_subscription.donation_si is not None:
+            old_amount = user.active_subscription.donation_si.plan.amount
+
         # Create a new donation product
-        return user.active_subscription.upsert_regular_donation(
-            float(amount), metadata={"via": "donation_form"}
+        sub = user.active_subscription.upsert_regular_donation(
+            float(new_amount), metadata={"via": "donation_form"}
         )
+
+        if new_amount > 0:
+            analytics.donate(
+                user,
+                new_amount=float(new_amount),
+                old_amount=float(old_amount) if old_amount is not None else None,
+            )
+        else:
+            analytics.donation_ended(
+                user, old_amount=float(old_amount) if old_amount is not None else None
+            )
+
+        return sub

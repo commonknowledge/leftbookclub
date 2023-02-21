@@ -328,6 +328,7 @@ MJML_EXEC_CMD = "node_modules/.bin/mjml"
 # Posthog
 POSTHOG_PUBLIC_TOKEN = os.getenv("POSTHOG_PUBLIC_TOKEN", None)
 POSTHOG_URL = os.getenv("POSTHOG_URL", "https://app.posthog.com")
+POSTHOG_DJANGO = {"distinct_id": lambda request: request.user and request.user.id}
 
 # Google
 GOOGLE_TRACKING_ID = os.getenv("GOOGLE_TRACKING_ID", None)
@@ -359,17 +360,6 @@ SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS = int(
 
 # Mapbox
 MAPBOX_PUBLIC_API_KEY = os.getenv("MAPBOX_PUBLIC_API_KEY", None)
-
-### Analytics
-
-import posthog
-
-if POSTHOG_PUBLIC_TOKEN is not None:
-    posthog.project_api_key = POSTHOG_PUBLIC_TOKEN
-    posthog.host = POSTHOG_URL
-    POSTHOG_DJANGO = {"distinct_id": lambda request: request.user and request.user.id}
-if POSTHOG_PUBLIC_TOKEN is None:
-    posthog.disabled = True
 
 ### Error logging
 

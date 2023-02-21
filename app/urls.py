@@ -67,7 +67,7 @@ urlpatterns = [
         name="cancel_membership",
     ),
     path(
-        "accounts/cancel/<str:subscription_id>",
+        "accounts/cancel/<str:subscription_id>/",
         CancellationView.as_view(),
         name="cancel_membership",
     ),
@@ -92,17 +92,17 @@ urlpatterns = [
         name="upgrade",
     ),
     path(
-        f"update-membership/success",
+        f"update-membership/success/",
         UpgradeSuccessDonationTrailerView.as_view(),
         name="upgrade-success",
     ),
     path(
-        f"donate",
+        f"donate/",
         DonationView.as_view(),
         name="donate",
     ),
     path(
-        f"donate/success",
+        f"donate/success/",
         LoginRequiredTemplateView.as_view(template_name="app/donate_success.html"),
         name="donation-success",
     ),

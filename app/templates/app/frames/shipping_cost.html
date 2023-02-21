@@ -9,27 +9,31 @@
             <span>{{ price.price }}</span>
         </div>
         <div class="text-muted mb-1 d-flex justify-content-between w-100">
-            <span>
-                Post &amp; packaging
-                {% if price.interval == 'month' and price.plan.deliveries_per_year < 12 %}
-                    {% if shipping_zone.rate.amount > 0 or shipping_price.amount > 0 %}
+            {% if price.plan.deliveries_per_year > 0 %}
+                <span>
+                    Post &amp; packaging
+                    {% if price.interval == 'month' and price.plan.deliveries_per_year < 12 %}
+                        {% if shipping_zone.rate.amount > 0 or shipping_price.amount > 0 %}
+                            <br />
+                            (costs spread monthly)
+                        {% endif %}
+                    {% elif price.interval == 'year' %}
                         <br />
-                        (costs spread monthly)
+                        ({{ price.plan.deliveries_per_year }} deliveries/year)
                     {% endif %}
-                {% elif price.interval == 'year' %}
-                    <br />
-                    ({{ price.plan.deliveries_per_year }} deliveries/year)
-                {% endif %}
-            </span>
-            <span class='tw-text-right'>
-                {% if shipping_zone.rate.amount == 0 or shipping_price.amount == 0 %}
-                    FREE
-                {% elif price.interval == 'year' %}
-                    {% money_localize shipping_zone.rate %} per delivery
-                {% else %}
-                    {% money_localize shipping_price %}
-                {% endif %}
-            </span>
+                </span>
+            {% endif %}
+            {% if price.plan.deliveries_per_year > 0 %}
+                <span class='tw-text-right'>
+                    {% if shipping_zone.rate.amount == 0 or shipping_price.amount == 0 %}
+                        FREE
+                    {% elif price.interval == 'year' %}
+                        {% money_localize shipping_zone.rate %} per delivery
+                    {% else %}
+                        {% money_localize shipping_price %}
+                    {% endif %}
+                </span>
+            {% endif %}
         </div>
         <div class="h5 mb-1 d-flex justify-content-between w-100">
             <span>Total</span>

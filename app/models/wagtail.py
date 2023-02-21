@@ -1,3 +1,5 @@
+from typing import Optional
+
 import time
 import urllib.parse
 from datetime import datetime
@@ -11,6 +13,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.http.response import Http404
@@ -237,7 +240,9 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     ]
 
     @property
-    def deliveries_per_billing_period(self) -> float:
+    def deliveries_per_billing_period(self) -> Optional[float]:
+        if self.plan.deliveries_per_year <= 0:
+            return 0
         if self.interval == "year":
             return self.plan.deliveries_per_year * self.interval_count
         if self.interval == "month":
@@ -1209,7 +1214,9 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
 class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
 
-    deliveries_per_year = models.IntegerField()
+    deliveries_per_year = models.PositiveIntegerField(
+        default=0, validators=[MinValueValidator(0)]
+    )
     description = RichTextField(null=True, blank=True)
     pick_product_title = models.CharField(
         default="Choose a book series",
@@ -1241,6 +1248,8 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
 
     @property
     def delivery_frequency(self):
+        if self.deliveries_per_year <= 0:
+            return None
         months_between = self.deliveries_per_year / 12
         s = "every "
         if months_between == 1:

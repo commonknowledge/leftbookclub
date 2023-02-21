@@ -33,24 +33,24 @@ def capture_posthog_event(user: User, event: str, properties=dict()):
 
 def signup(user):
     capture_posthog_event(user, event="user signup")
-    track_event_for_user_in_mailchimp(user, "membership signup")
+    track_event_for_user_in_mailchimp(user, "membership_signup")
 
 
 def redeem(user):
     capture_posthog_event(user, event="redeem")
-    track_event_for_user_in_mailchimp(user, "redeem gift card")
+    track_event_for_user_in_mailchimp(user, "redeem_gift_card")
 
 
 def donate(user, new_amount: float, old_amount: Optional[float] = None):
     props = {"old_amount": old_amount, "new_amount": new_amount}
     capture_posthog_event(user, event="add recurring donation", properties=props)
-    track_event_for_user_in_mailchimp(user, "add recurring donation", properties=props)
+    track_event_for_user_in_mailchimp(user, "add_recurring_donation", properties=props)
 
 
 def donation_ended(user, old_amount: Optional[float] = None):
     props = {"old_amount": old_amount}
     capture_posthog_event(user, event="donation ended", properties=props)
-    track_event_for_user_in_mailchimp(user, "donation ended", properties=props)
+    track_event_for_user_in_mailchimp(user, "donation_ended", properties=props)
 
 
 def upgrade_remain_on_current_plan(
@@ -71,7 +71,7 @@ def upgrade_remain_on_current_plan(
         "old_interval_count": old_interval_count,
     }
     capture_posthog_event(user, event="decline upgrade request", properties=props)
-    track_event_for_user_in_mailchimp(user, "decline upgrade request", properties=props)
+    track_event_for_user_in_mailchimp(user, "decline_upgrade_request", properties=props)
 
 
 def upgrade(
@@ -107,49 +107,49 @@ def upgrade(
         "new_interval_count": new_interval_count,
     }
     capture_posthog_event(user, event="upgrade membership", properties=props)
-    track_event_for_user_in_mailchimp(user, "upgrade membership", props)
+    track_event_for_user_in_mailchimp(user, "upgrade_membership", props)
 
 
 def buy_book(user):
     capture_posthog_event(user, event="buy book")
-    track_event_for_user_in_mailchimp(user, "buy book")
+    track_event_for_user_in_mailchimp(user, "buy_book")
 
 
 def buy_gift(user):
     capture_posthog_event(user, event="buy gift")
-    track_event_for_user_in_mailchimp(user, "buy gift")
+    track_event_for_user_in_mailchimp(user, "buy_gift")
 
 
 def visit_stripe_checkout(user):
     capture_posthog_event(user, event="$pageview stripe checkout")
-    track_event_for_user_in_mailchimp(user, "visit stripe checkout")
+    track_event_for_user_in_mailchimp(user, "visit_stripe_checkout")
 
 
 def visit_stripe_customerportal(user):
     capture_posthog_event(user, event="$pageview stripe customerportal")
-    track_event_for_user_in_mailchimp(user, "visit stripe customerportal")
+    track_event_for_user_in_mailchimp(user, "visit_stripe_customerportal")
 
 
 def buy_membership(user):
     capture_posthog_event(user, event="buy membership")
-    track_event_for_user_in_mailchimp(user, "buy membership")
+    track_event_for_user_in_mailchimp(user, "buy_membership")
 
 
 def manage_subscription(user):
     capture_posthog_event(user, event="manage subscription")
-    track_event_for_user_in_mailchimp(user, "manage subscription")
+    track_event_for_user_in_mailchimp(user, "manage_subscription")
 
 
 def cancel_membership(user):
-    capture_posthog_event(user.id, event="cancel membership")
+    capture_posthog_event(user.id, event="cancel_membership")
     track_event_for_user_in_mailchimp(user, "cancel membership")
 
 
 def expire_membership(user):
     capture_posthog_event(user, event="expired membership")
-    track_event_for_user_in_mailchimp(user, "expire membership")
+    track_event_for_user_in_mailchimp(user, "expire_membership")
 
 
 def cancel_gift_card(user):
     capture_posthog_event(user, event="cancel gift")
-    track_event_for_user_in_mailchimp(user, "cancel gift")
+    track_event_for_user_in_mailchimp(user, "cancel_gift")

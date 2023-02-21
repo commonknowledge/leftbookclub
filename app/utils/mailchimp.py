@@ -97,6 +97,14 @@ def tag_user_in_mailchimp(user: User, tags_to_enable=list(), tags_to_disable=lis
         print(f"A Mailchimp API exception occurred: {error.text}")
 
 
+def format_event_name(event: str):
+    # Event name must only contain letters, numbers, underscores, and dashes.
+    # Event name must be 30 chars or less
+    event = str(event).replace(" ", "_")
+    event = "".join([c for c in event if c.isalnum() or c in ["_", "-"]])
+    return event[:30]
+
+
 def track_event_for_user_in_mailchimp(user: User, event: str, properties=dict()):
     if not MAILCHIMP_IS_ACTIVE:
         print("track_event_for_user_in_mailchimp", event, properties)
@@ -108,7 +116,7 @@ def track_event_for_user_in_mailchimp(user: User, event: str, properties=dict())
         response = mailchimp.lists.create_list_member_event(
             settings.MAILCHIMP_LIST_ID,
             email_to_hash(user.primary_email),
-            {"name": event[:30], "properties": properties},
+            {"name": format_event_name(event), "properties": properties},
         )
         print(f"mailchimp.lists.create_list_member_event() response: {response}")
     except MailchimpApiClientError as error:

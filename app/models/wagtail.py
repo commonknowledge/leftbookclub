@@ -352,6 +352,9 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             },
         }
 
+    def default_product(self):
+        return self.products.first()
+
     def to_checkout_line_items(self, zone=None, product=None):
         if product is None and self.products.count() == 1:
             product = self.products.first()

@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 def is_sequence(arg):
     if isinstance(arg, str):
         return False
@@ -78,3 +81,7 @@ import string
 
 def uid():
     return "".join(random.choice(string.ascii_lowercase) for i in range(10))
+
+
+def diff_month(d1: datetime, d2: datetime):
+    return (d1.year - d2.year) * 12 + d1.month - d2.month

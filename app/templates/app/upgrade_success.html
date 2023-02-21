@@ -10,58 +10,58 @@
         <p>
             Your account has been updated. From now on you'll pay <b>{{ user.active_subscription.price_string }}</b> for <b>{{ user.primary_product.name }}</b>. Your billing schedule is unaffected. You'll next be charged on <b>{{ user.active_subscription.next_billing_date|to_date|date:"d M Y" }}</b>. Your delivery schedule is <b>unchanged</b>. Happy reading!
         </p>
-        {% if not user.active_subscription.includes_donation %}
-            {% with user.active_subscription.membership_plan_price.humanised_interval as interval_text %}
-                <h3 class='mt-5'>Add a recurring donation</h3>
-                {{ settings.app.UpsellPlanSettings.donation_text|richtext }}
-                <form method='POST'
-                      data-turbo="false"
-                      id="donation-form"
-                      data-controller="donation">
-                    {{ form.non_field_errors }}
-                    {{ form.fee_option.errors }}
-                    {{ form.donation_amount.errors }}
-                    {% csrf_token %}
-                    {{ form.user_id }}
-                    <div class='row g-3'>
-                        {% for option in donation_amount_options %}
-                            <div class='col'>
-                                <input data-donation-target="input"
-                                       data-action="input->donation#update"
-                                       value="{{ option }}"
-                                       type="radio"
-                                       class="btn-check"
-                                       name="donation_amount"
-                                       id="option-{{ option }}"
-                                       autocomplete="off"
-                                       {% comment %}
-                                       Initial
-                                       {% endcomment %}
-                                       {% if form.donation_amount.value == option %}checked{% endif %}/>
-                                <label class="btn btn-outline-primary w-100" for="option-{{ option }}">£{{ option }} {{ interval_text }}</label>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <div class='text-center mx-auto my-1 tw-text-gray-500'>or</div>
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">£</span>
-                        <input data-donation-target="input"
-                               data-action="input->donation#update"
-                               name="donation_amount"
-                               type="number"
-                               step="1"
-                               min="0"
-                               max="100"
-                               class="form-control"
-                               aria-label="Custom amount"
-                               placeholder="Custom amount"/>
-                        <span class="input-group-text">{{ interval_text }}</span>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" type="submit" name="action">Confirm donation</button>
-                    </div>
-                </form>
-            {% endwith %}
-        {% endif %}
+        {% comment %} {% if not user.active_subscription.includes_donation %} {% endcomment %}
+        {% with user.active_subscription.membership_plan_price.humanised_interval as interval_text %}
+            <h3 class='mt-5'>Add a recurring donation</h3>
+            {{ settings.app.UpsellPlanSettings.donation_text|richtext }}
+            <form method='POST'
+                  data-turbo="false"
+                  id="donation-form"
+                  data-controller="donation">
+                {{ form.non_field_errors }}
+                {{ form.fee_option.errors }}
+                {{ form.donation_amount.errors }}
+                {% csrf_token %}
+                {{ form.user_id }}
+                <div class='row g-3'>
+                    {% for option in donation_amount_options %}
+                        <div class='col'>
+                            <input data-donation-target="input"
+                                   data-action="input->donation#update"
+                                   value="{{ option }}"
+                                   type="radio"
+                                   class="btn-check"
+                                   name="donation_amount"
+                                   id="option-{{ option }}"
+                                   autocomplete="off"
+                                   {% comment %}
+                                   Initial
+                                   {% endcomment %}
+                                   {% if form.donation_amount.value == option %}checked{% endif %}/>
+                            <label class="btn btn-outline-primary w-100" for="option-{{ option }}">£{{ option }} {{ interval_text }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class='text-center mx-auto my-1 tw-text-gray-500'>or</div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">£</span>
+                    <input data-donation-target="input"
+                           data-action="input->donation#update"
+                           name="donation_amount"
+                           type="number"
+                           step="1"
+                           min="0"
+                           max="100"
+                           class="form-control"
+                           aria-label="Custom amount"
+                           placeholder="Custom amount"/>
+                    <span class="input-group-text">{{ interval_text }}</span>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit" name="action">Confirm donation</button>
+                </div>
+            </form>
+        {% endwith %}
+        {% comment %} {% endif %} {% endcomment %}
     </div>
 {% endblock %}

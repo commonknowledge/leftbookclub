@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from sentry_sdk import capture_exception
 
+from app.apps import basic_posthog_event_properties
 from app.utils.stripe import (
     SHIPPING_PRODUCT_NAME,
     get_primary_product_for_djstripe_subscription,
@@ -337,24 +338,27 @@ class User(AbstractUser):
     def get_analytics_data(self):
         user_data = {
             "is_authenticated": True,
+            # Properties to be set on the user, remembered across sessions and overridable between them
             "set": {
                 "django_id": self.id
                 if settings.STRIPE_LIVE_MODE
                 else f"{self.id}-DEBUGGING",
                 "email": self.email
                 if settings.STRIPE_LIVE_MODE
-                else f"DEBUGGING--{self.email}",
+                else f"DEBUGGING--{self.email or self.id}",
                 "name": self.get_full_name(),
                 "stripe_customer_id": self.stripe_customer.id
                 if self.stripe_customer is not None
                 else None,
                 "staff": self.is_staff,
             },
-            "register": {},
+            # Properties to be set on the event
+            "register": basic_posthog_event_properties,
         }
 
         if self.primary_product is not None:
             subscription_data = {
+                "subscription_age_in_months": self.active_subscription.subscription_months(),
                 "subscription_billing_interval": self.subscription_billing_interval,
                 "subscription_price": str(self.subscription_price),
                 "primary_stripe_product_name": self.primary_product.name,
@@ -371,14 +375,13 @@ class User(AbstractUser):
                 }
             )
 
-        if self.gifts_bought is not None and len(self.gifts_bought):
-            data = {"gifts_bought": len(self.gifts_bought)}
-            user_data["register"].update(data)
-            user_data["set"].update(data)
-
-        if self.gift_giver is not None:
-            data = {"gift_recipient": True}
-            user_data["register"].update(data)
-            user_data["set"].update(data)
+        data = {
+            "gift_recipient": self.gift_giver is not None,
+            "gifts_bought": len(self.gifts_bought)
+            if self.gifts_bought is not None
+            else 0,
+        }
+        user_data["register"].update(data)
+        user_data["set"].update(data)
 
         return user_data

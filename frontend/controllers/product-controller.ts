@@ -4,7 +4,7 @@ import Client, { Address, MoneyV2 } from "shopify-buy";
 import Mustache from "mustache";
 import Wax from "@jvitela/mustache-wax";
 Wax(Mustache, { currency, pluralize, length, shopifyId, stringify });
-// import { Offcanvas } from "bootstrap";
+import { isAfter } from "date-fns";
 
 export default class ShopifyBuyControllerBase extends Controller {
   // Targets
@@ -40,13 +40,16 @@ export default class ShopifyBuyControllerBase extends Controller {
     this.getCart();
   }
 
+  private LOCALSTORAGE_CHECKOUT_ID = "checkoutId";
+
   get checkoutId() {
-    return window.localStorage.getItem("checkoutId");
+    return window.localStorage
+      .getItem(this.LOCALSTORAGE_CHECKOUT_ID)
+      ?.toString();
   }
 
-  setCheckoutId(id: string | number) {
-    window.localStorage.setItem("checkoutId", id.toString());
-    return id;
+  set checkoutId(id: string | number) {
+    window.localStorage.setItem(this.LOCALSTORAGE_CHECKOUT_ID, id.toString());
   }
 
   async getCart(): Promise<Client.Cart> {
@@ -65,35 +68,57 @@ export default class ShopifyBuyControllerBase extends Controller {
       this.checkoutValue = await this.client.checkout.fetch(this.checkoutId);
     }
 
-    const checkoutIsExpired = !!this.checkoutValue?.completedAt;
-
-    if (!this.checkoutId || checkoutIsExpired) {
-      // @ts-ignore
-      this.checkoutValue = await this.client.checkout.create({
-        email: this.userEmailValue || undefined,
-        lineItems: [],
-        shippingAddress: this.shippingAddress,
-      });
+    let checkoutIsExpired = false;
+    if (!!this.checkoutValue && this.checkoutValue?.completedAt) {
+      checkoutIsExpired = isAfter(
+        new Date(),
+        new Date(this.checkoutValue?.completedAt)
+      );
     }
 
-    this.setCheckoutId(this.checkoutValue!.id);
+    if (!this.checkoutId || checkoutIsExpired) {
+      return this.resetCart();
+    }
+
+    this.checkoutId = this.checkoutValue!.id;
+    return this.checkoutValue!;
+  }
+
+  async resetCart() {
+    // @ts-ignore
+    this.checkoutValue = await this.client?.checkout.create({
+      email: this.userEmailValue || undefined,
+      lineItems: [],
+      shippingAddress: this.shippingAddress,
+    });
+
+    this.checkoutId = this.checkoutValue!.id;
     return this.checkoutValue!;
   }
 
   async add({ params: { variantId } }: any) {
     if (!this.checkoutId) return;
     this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+    const newLineItems = [
+      {
+        variantId: stringToVariantURI(variantId),
+        quantity: 1,
+      },
+    ];
 
     // @ts-ignore
-    this.checkoutValue = await this.client?.checkout.addLineItems(
-      this.checkoutId,
-      [
-        {
-          variantId: stringToVariantURI(variantId),
-          quantity: 1,
-        },
-      ]
-    );
+    try {
+      this.checkoutValue = await this.client?.checkout.addLineItems(
+        this.checkoutId,
+        newLineItems
+      );
+    } catch (e) {
+      const checkoutValue = await this.resetCart();
+      this.checkoutValue = await this.client?.checkout.addLineItems(
+        checkoutValue.id,
+        newLineItems
+      );
+    }
   }
 
   async buyNow(e: any) {

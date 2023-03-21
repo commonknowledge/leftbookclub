@@ -14,4 +14,3 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl apps restart lbc-production
       - run: flyctl apps restart lbc-worker-production
-      - run: flyctl pg restart lbc-pg-production

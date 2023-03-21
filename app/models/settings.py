@@ -54,6 +54,16 @@ class UpsellPlanSettings(BaseSetting):
     """,
     )
 
+    upgrade_membership_text = RichTextField(
+        blank=False,
+        features=["bold", "italic", "blockquote"],        
+        default="""
+    <p>You’re currently paying {{ old_price }}. Select this option if it’s all you can afford right now — that is totally OK.</p>
+    <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>
+    """,
+    )
+
+
     upsell_plan = models.ForeignKey(
         MembershipPlanPage,
         on_delete=models.SET_NULL,

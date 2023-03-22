@@ -14,6 +14,7 @@ from django.utils.safestring import mark_safe
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
+from django.template import Template, Context
 
 from app import analytics
 from app.models import MembershipPlanPage, User
@@ -313,6 +314,16 @@ class UpgradeForm(forms.Form):
             # if user.active_subscription.shipping_si is None:
             #     title += " with unpaid shipping"
 
+
+
+            from app.models import UpsellPlanSettings
+            upsell_settings = UpsellPlanSettings.objects.first()
+            if upsell_settings is not None:  
+                settings_text = upsell_settings.upgrade_membership_text
+
+            template = Template(settings_text)
+            context = Context({"old_price": old_price_str})
+
             options[cls.choices.STATUS_QUO] = UpgradeOption(
                 line_items=[],
                 plan=user.active_subscription.membership_plan_price.plan,
@@ -325,10 +336,7 @@ class UpgradeForm(forms.Form):
                 discount=f"{effective_discount:.0%}",
                 title=title,
                 label="Your current plan",
-                text=f"""
-                <p>You’re currently paying {old_price_str}. Select this option if it’s all you can afford right now — that is totally OK.</p>
-                <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>
-                """,
+                text=template.render(context),
                 action_text=f"Continue with {old_price_str}",
             )
 

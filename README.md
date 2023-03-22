@@ -8,7 +8,7 @@
 3. Wait for dependencies to install
 4. Hit `F5` (or navigate to _Run & Debug_ and launch the _Start App_ configuration)
 
-- If you are receiving errors like `No module named 'django'`, Open the command palette, select `> Python: Select Interpreter` and select the `Poetry`-installed python binary.
+- If you are receiving errors like `No module named 'django'`, Open the command palette, select `> Python: Select Interpreter` and select the `Poetry`-installed python binary
 
 5. Navigate to http://localhost:8000
 

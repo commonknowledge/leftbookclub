@@ -53,6 +53,13 @@
                         </a>
                         <div>
                             (( variant.priceV2|currency )) ((#compareAtPrice))<s>((compareAtPrice|currency))</s>((/compareAtPrice))
+                            ((#discountAllocations))
+                            <div>Discount applied!</div>
+                            <div>
+                                <b>((discountApplication.title))</b>
+                            </div>
+                            <div>Final price: ((allocatedAmount|currency))</div>
+                            ((/discountAllocations))
                         </div>
                         <div>((quantity)) (( quantity | pluralize : "copy" : "copies" ))</div>
                         <div class='tw-mt-1'>

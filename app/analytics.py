@@ -141,7 +141,7 @@ def manage_subscription(user):
 
 
 def cancel_membership(user):
-    capture_posthog_event(user.id, event="cancel_membership")
+    capture_posthog_event(user, event="cancel_membership")
     track_event_for_user_in_mailchimp(user, "cancel membership")
 
 

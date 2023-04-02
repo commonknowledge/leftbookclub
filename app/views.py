@@ -800,3 +800,45 @@ class DonationView(UpgradeSuccessDonationTrailerView):
                     self.request.user.active_subscription.donation_si.plan.amount
                 )
             return initial
+
+
+from .forms import BulkUpdateSubscriptionsForm
+
+
+class BulkUpdateSubscriptionsView(SuperUserCheck, LoginRequiredMixin, FormView):
+    form_class = BulkUpdateSubscriptionsForm
+    template_name = "app/bulk_update_subscription.html"
+
+    def get_initial(self):
+        if isinstance(self.request.user, User):
+            initial = super().get_initial()
+            initial["user_id"] = self.request.user.pk
+            if self.request.user.active_subscription.donation_si is not None:
+                initial["donation_amount"] = float(
+                    self.request.user.active_subscription.donation_si.plan.amount
+                )
+            return initial
+
+    def form_valid(self, form: BulkUpdateSubscriptionsForm):
+        form.process_request()
+        self.success_url = reverse(
+            "bulk-update-subscriptions-status",
+            kwargs={"job_id": form.cleaned_data["job_id"]},
+        )
+        return super().form_valid(form)
+
+    # def get_success_url(self):
+    #     job_id = self.form.cleaned_data['job_id']
+    #     return reverse("bulk-update-subscriptions-status", kwargs={ "job_id": job_id })
+
+
+class BulkUpdateSubscriptionsStatusView(
+    SuperUserCheck, LoginRequiredMixin, TemplateView
+):
+    template_name = "app/bulk_update_subscription_status.html"
+
+    def get_context_data(self, job_id=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["job_id"] = job_id
+        context["jobs"] = Job.objects.filter(workspace__job_id=job_id).all()
+        return context

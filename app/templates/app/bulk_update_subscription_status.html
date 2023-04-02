@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Status of bulk update subscription | Left Book Club{% endblock %}
+{% comment %} {% block content_padding %}p-5{% endblock %}
+{% block content_width %}container-fluid{% endblock %}
+{% block content_extra_classes %}tw-bg-green-300{% endblock %} {% endcomment %}
+{% block content %}
+    <header class='text-center my-4'>
+        <h1>Jobs in bulk update queue {{ job_id }}</h1>
+    </header>
+    <table class="table my-8">
+        <thead>
+            <tr>
+                <th scope="col">Subscription (stripe link)</th>
+                <th scope="col">Status</th>
+                <th scope="col">Last changed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+                <tr>
+                    <td>
+                        <a href="https://dashboard.stripe.com/subscriptions/{{ job.workspace.subscription_id }}">
+                            {{ job.workspace.subscription_id }}
+                        </a>
+                    </td>
+                    <td>{{ job.state }}</td>
+                    <td>{{ job.modified|naturaltime }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endblock %}

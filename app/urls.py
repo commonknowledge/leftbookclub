@@ -18,6 +18,8 @@ from wagtail_transfer import urls as wagtailtransfer_urls
 from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 
 from app.views import (
+    BulkUpdateSubscriptionsStatusView,
+    BulkUpdateSubscriptionsView,
     CancellationView,
     CartOptionsView,
     CompletedGiftPurchaseView,
@@ -145,6 +147,16 @@ urlpatterns = [
         f"refresh/",
         RefreshDataView.as_view(),
         name="refresh_circle",
+    ),
+    path(
+        "bulk-update-subscriptions/",
+        BulkUpdateSubscriptionsView.as_view(),
+        name="bulk_update_subscriptions",
+    ),
+    path(
+        "bulk-update-subscriptions/<str:job_id>/",
+        BulkUpdateSubscriptionsStatusView.as_view(),
+        name="bulk_update_subscriptions_status",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),

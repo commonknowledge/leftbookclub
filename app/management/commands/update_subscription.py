@@ -18,6 +18,12 @@ class Command(BaseCommand):
             help="Stripe subscription ID",
         )
         parser.add_argument(
+            "--proration_behaviour",
+            dest="proration_behaviour",
+            default="none",
+            help="Proration behaviour",
+        )
+        parser.add_argument(
             "--add_or_update_shipping",
             dest="add_or_update_shipping",
             default=False,

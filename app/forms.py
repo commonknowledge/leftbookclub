@@ -629,7 +629,7 @@ import uuid
 from django_dbq.models import Job
 
 
-class BulkUpdateSubscriptionsForm(forms.Form):
+class BatchUpdateSubscriptionsForm(forms.Form):
     subscription_ids = forms.CharField(
         widget=forms.Textarea,
         help_text="List of IDs separated by new lines, commas, or spaces",
@@ -650,7 +650,7 @@ class BulkUpdateSubscriptionsForm(forms.Form):
         localize=True,
         required=False,
     )
-    job_id = forms.UUIDField(initial=uuid.uuid4, widget=forms.HiddenInput)
+    batch_id = forms.UUIDField(initial=uuid.uuid4, widget=forms.HiddenInput)
 
     proration_behavior = forms.ChoiceField(
         required=False,
@@ -672,7 +672,7 @@ class BulkUpdateSubscriptionsForm(forms.Form):
         if not self.is_valid():
             raise ValueError("Form is not valid")
 
-        job_id = self.cleaned_data.get("job_id")
+        batch_id = str(self.cleaned_data.get("batch_id"))
         subscription_ids = self.cleaned_data.get("subscription_ids")
         add_or_update_shipping = self.cleaned_data.get("add_or_update_shipping")
         optional_custom_shipping_fee = self.cleaned_data.get(
@@ -693,16 +693,23 @@ class BulkUpdateSubscriptionsForm(forms.Form):
                 Job.objects.create(
                     name="update_subscription",
                     workspace={
-                        "job_id": job_id,
-                        "subscription_id": subscription_id,
+                        "batch_id": batch_id,
+                        "subscription_id": subscription_id.strip(),
                         "proration_behavior": proration_behavior,
                         "add_or_update_shipping": add_or_update_shipping,
-                        "optional_custom_shipping_fee": optional_custom_shipping_fee
-                        if add_or_update_shipping and optional_custom_shipping_fee != ""
+                        "optional_custom_shipping_fee": float(
+                            optional_custom_shipping_fee
+                        )
+                        if add_or_update_shipping
+                        and optional_custom_shipping_fee is not None
+                        and optional_custom_shipping_fee != ""
                         else None,
                         "update_membership_fee": update_membership_fee,
-                        "optional_custom_membership_fee": optional_custom_membership_fee
+                        "optional_custom_membership_fee": float(
+                            optional_custom_membership_fee
+                        )
                         if update_membership_fee
+                        and optional_custom_membership_fee is not None
                         and optional_custom_membership_fee != ""
                         else None,
                     },

@@ -1,3 +1,5 @@
+from typing import Optional
+
 import shopify
 from django.conf import settings
 from django.core.cache import cache
@@ -50,28 +52,39 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        run(**options)
+        process(**options)
 
 
 import djstripe.models
 import stripe
 
 
-def run(
+def run(job):
+    process(**job.workspace)
+
+
+def process(
     subscription_id: str,
     proration_behaviour: str = "none",
     add_or_update_shipping=False,
     optional_custom_shipping_fee=None,
     update_membership_fee=False,
     optional_custom_membership_fee=None,
+    **kwargs,
 ):
+    #### Refresh data
+    st_sub = stripe.Subscription.retrieve(subscription_id)
+    print(subscription_id, st_sub)
+    djstripe.models.Subscription.sync_from_stripe_data(st_sub)
+
     #### Validate user
     user = djstripe.models.Subscription.objects.get(
         id=subscription_id
     ).customer.subscriber
 
     if (
-        user.active_subscription is None
+        user is None
+        or user.active_subscription is None
         or user.active_subscription.membership_plan_price is None
         or user.active_subscription.membership_si is None
         or user.active_subscription.is_gift_receiver
@@ -94,9 +107,10 @@ def run(
             }
         ]
         # Replace old membership item
-        line_items += [
-            {"id": user.active_subscription.membership_si.id, "deleted": True}
-        ]
+        if user.active_subscription.membership_si is not None:
+            line_items += [
+                {"id": user.active_subscription.membership_si.id, "deleted": True}
+            ]
 
     if add_or_update_shipping:
         # Create new shipping item
@@ -110,7 +124,10 @@ def run(
             }
         ]
         # Replace old shipping item
-        line_items += [{"id": user.active_subscription.shipping_si.id, "deleted": True}]
+        if user.active_subscription.shipping_si is not None:
+            line_items += [
+                {"id": user.active_subscription.shipping_si.id, "deleted": True}
+            ]
 
     #### Apply changes
 

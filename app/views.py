@@ -96,8 +96,7 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, RedirectView):
             # retreive the Stripe Customer.
             customer, is_new = user.get_or_create_customer()
             if customer is not None:
-                if session_args.get("customer_email", False):
-                    session_args.pop("customer_email")
+                session_args.pop("customer_email")
                 session_args["customer"] = customer.id
         except djstripe.models.Customer.DoesNotExist:
             pass
@@ -802,43 +801,55 @@ class DonationView(UpgradeSuccessDonationTrailerView):
             return initial
 
 
-from .forms import BulkUpdateSubscriptionsForm
+from .forms import BatchUpdateSubscriptionsForm
 
 
-class BulkUpdateSubscriptionsView(SuperUserCheck, LoginRequiredMixin, FormView):
-    form_class = BulkUpdateSubscriptionsForm
-    template_name = "app/bulk_update_subscription.html"
+class BatchUpdateSubscriptionsView(SuperUserCheck, LoginRequiredMixin, FormView):
+    form_class = BatchUpdateSubscriptionsForm
+    template_name = "app/batch_update_subscriptions.html"
 
-    def get_initial(self):
-        if isinstance(self.request.user, User):
-            initial = super().get_initial()
-            initial["user_id"] = self.request.user.pk
-            if self.request.user.active_subscription.donation_si is not None:
-                initial["donation_amount"] = float(
-                    self.request.user.active_subscription.donation_si.plan.amount
-                )
-            return initial
-
-    def form_valid(self, form: BulkUpdateSubscriptionsForm):
+    def form_valid(self, form: BatchUpdateSubscriptionsForm):
         form.process_request()
         self.success_url = reverse(
-            "bulk-update-subscriptions-status",
-            kwargs={"job_id": form.cleaned_data["job_id"]},
+            "batch_update_subscriptions_batch_status",
+            kwargs={"batch_id": form.cleaned_data["batch_id"]},
         )
+        print(self.success_url)
         return super().form_valid(form)
 
-    # def get_success_url(self):
-    #     job_id = self.form.cleaned_data['job_id']
-    #     return reverse("bulk-update-subscriptions-status", kwargs={ "job_id": job_id })
 
-
-class BulkUpdateSubscriptionsStatusView(
+class BatchUpdateSubscriptionsStatusView(
     SuperUserCheck, LoginRequiredMixin, TemplateView
 ):
-    template_name = "app/bulk_update_subscription_status.html"
+    template_name = "app/batch_update_subscriptions_status.html"
 
-    def get_context_data(self, job_id=None, **kwargs):
+    def get_context_data(self, batch_id=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["job_id"] = job_id
-        context["jobs"] = Job.objects.filter(workspace__job_id=job_id).all()
+        context["batch_id"] = batch_id
         return context
+
+
+class BatchUpdateSubscriptionsBatchTableView(
+    SuperUserCheck, LoginRequiredMixin, TemplateView
+):
+    template_name = "app/batch_update_subscriptions_batch_table.html"
+
+    def get_context_data(self, batch_id=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        retry_job_id = self.request.GET.get("retry_job_id", None)
+        if retry_job_id is not None:
+            self.retry_job(retry_job_id)
+        context["batch_id"] = batch_id
+        context["jobs"] = Job.objects.filter(workspace__batch_id=batch_id).order_by(
+            "-created"
+        )
+        return context
+
+    def retry_job(self, retry_job_id):
+        job = Job.objects.get(id=retry_job_id)
+        new_job = Job.objects.create(
+            name=job.name,
+            workspace={**job.workspace, "original_job_id": str(retry_job_id)},
+        )
+        job.workspace["retry_job_id"] = str(new_job.id)
+        job.save()

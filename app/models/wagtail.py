@@ -334,9 +334,8 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             raise ValueError("Cannot create line items without a valid product")
 
         return {
-            "unit_amount_decimal": amount
-            if amount is not None
-            else (self.price.amount * 100),
+            "unit_amount_decimal": (amount if amount is not None else self.price.amount)
+            * 100,
             "currency": self.price_currency,
             "product": product.id,
             "recurring": {
@@ -350,9 +349,10 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         shipping_product = get_shipping_product()
         shipping_fee = self.shipping_fee(zone)
         return {
-            "unit_amount_decimal": amount
-            if amount is not None
-            else (shipping_fee.amount * 100),
+            "unit_amount_decimal": (
+                amount if amount is not None else shipping_fee.amount
+            )
+            * 100,
             "currency": shipping_fee.currency,
             "product": shipping_product.id,
             "recurring": {

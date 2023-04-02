@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Status of batch update subscription | Left Book Club{% endblock %}
+{% comment %} {% block content_padding %}p-5{% endblock %}
+{% block content_width %}container-fluid{% endblock %}
+{% block content_extra_classes %}tw-bg-green-300{% endblock %} {% endcomment %}
+{% block content %}
+    <header class='text-center my-4'>
+        <h1>Subscription update queue</h1>
+        <h3>Batch ID: {{ batch_id }}</h3>
+    </header>
+    <turbo-frame
+    src="{% url 'batch_update_subscriptions_batch_table' batch_id=batch_id %}"
+    id="batch-update-subscriptions-batch-table-{{ batch_id }}"
+    data-controller="refresh"
+    data-refresh-ms-value="5000"
+    >
+    <div class='tw-my-5 text-center'>
+        <span class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"></span>
+        <span>Loading...</span>
+    </div>
+    </turbo-frame>
+{% endblock %}

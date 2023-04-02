@@ -429,6 +429,9 @@ JOBS = {
     "sync_shopify_products": {
         "tasks": ["app.management.commands.sync_shopify_products.run"],
     },
+    "update_subscription": {
+        "tasks": ["app.management.commands.update_subscription.run"],
+    },
 }
 
 

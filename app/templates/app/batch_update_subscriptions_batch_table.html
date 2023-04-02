@@ -1,0 +1,51 @@
+{% load humanize %}
+<turbo-frame id="batch-update-subscriptions-batch-table-{{ batch_id }}">
+<table class="table my-8">
+    <thead>
+        <tr>
+            <th scope="col">Stripe subscription</th>
+            <th scope="col">Status</th>
+            <th scope="col">Last changed</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in jobs %}
+            <tr>
+                <td>
+                    <a data-turbo-frame="_top"
+                       href="https://dashboard.stripe.com/subscriptions/{{ job.workspace.subscription_id }}">
+                        <span>{{ job.workspace.subscription_id }}</span>
+                    </a>
+                    {% if job.workspace.original_job_id %}<span>(Retry)</span>{% endif %}
+                </td>
+                <td>
+                    <span class='text-lowercase tw-lowercase'>
+                        {% if job.workspace.retry_job_id %}
+                            <span>RETRIED</span>
+                            <s>{{ job.state }}</s>
+                        {% elif job.state == "FAILED" %}
+                            <span class="text-danger">{{ job.state }}</span>
+                        {% elif job.state == "COMPLETE" %}
+                            <span class="text-success">{{ job.state }}</span>
+                        {% elif job.state == "NEW" %}
+                            Not yet started
+                        {% else %}
+                            {{ job.state }}
+                        {% endif %}
+                    </span>
+                </td>
+                <td>{{ job.modified|naturaltime }}</td>
+                <td>
+                    {% if job.state == 'FAILED' and not job.workspace.retry_job_id %}
+                        <a href="{% url 'batch_update_subscriptions_batch_table' batch_id=batch_id %}?retry_job_id={{ job.id }}"
+                           data-turbo-frame="_self">
+                            Retry
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</turbo-frame>

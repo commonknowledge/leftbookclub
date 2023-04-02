@@ -77,3 +77,15 @@ def add_proxy_method(base_model, proxy_model, property_name):
         return self
 
     base_model.add_to_class(property_name, accessor)
+
+
+import json
+from uuid import UUID
+
+
+class UUIDEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            # if the obj is uuid, we simply return the value of uuid
+            return obj.hex
+        return json.JSONEncoder.default(self, obj)

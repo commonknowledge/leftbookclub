@@ -10,11 +10,11 @@ from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.template import Context, Template
 from django.utils.safestring import mark_safe
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
-from django.template import Template, Context
 
 from app import analytics
 from app.models import MembershipPlanPage, User
@@ -314,11 +314,10 @@ class UpgradeForm(forms.Form):
             # if user.active_subscription.shipping_si is None:
             #     title += " with unpaid shipping"
 
-
-
             from app.models import UpsellPlanSettings
+
             upsell_settings = UpsellPlanSettings.objects.first()
-            if upsell_settings is not None:  
+            if upsell_settings is not None:
                 settings_text = upsell_settings.upgrade_membership_text
 
             template = Template(settings_text)
@@ -622,3 +621,96 @@ class DonationForm(forms.Form):
             )
 
         return sub
+
+
+import re
+import uuid
+
+from django_dbq.models import Job
+
+
+class BatchUpdateSubscriptionsForm(forms.Form):
+    subscription_ids = forms.CharField(
+        widget=forms.Textarea,
+        help_text="List of IDs separated by new lines, commas, or spaces",
+    )
+    add_or_update_shipping = forms.BooleanField(required=False)
+    optional_custom_shipping_fee = forms.DecimalField(
+        min_value=0,
+        max_value=1000,
+        decimal_places=2,
+        localize=True,
+        required=False,
+    )
+    update_membership_fee = forms.BooleanField(required=False)
+    optional_custom_membership_fee = forms.DecimalField(
+        min_value=0,
+        max_value=1000,
+        decimal_places=2,
+        localize=True,
+        required=False,
+    )
+    batch_id = forms.UUIDField(initial=uuid.uuid4, widget=forms.HiddenInput)
+
+    proration_behavior = forms.ChoiceField(
+        required=False,
+        choices=[
+            ("create_prorations", "create_prorations"),
+            ("none", "none"),
+            ("always_invoice", "always_invoice"),
+        ],
+        initial="none",
+        help_text="""
+          Determines how to handle prorations resulting from the billing_cycle_anchor. If no value is passed, the default is `create_prorations`. Options are:
+          - `create_prorations`: Will cause proration invoice items to be created when applicable.
+          - `none`: Disable creating prorations in this request.
+          - `always_invoice`: Will create proration invoice items that will be invoiced immediately, and then invoice immediately.
+        """,
+    )
+
+    def process_request(self, *args, **kwargs):
+        if not self.is_valid():
+            raise ValueError("Form is not valid")
+
+        batch_id = str(self.cleaned_data.get("batch_id"))
+        subscription_ids = self.cleaned_data.get("subscription_ids")
+        add_or_update_shipping = self.cleaned_data.get("add_or_update_shipping")
+        optional_custom_shipping_fee = self.cleaned_data.get(
+            "optional_custom_shipping_fee"
+        )
+        update_membership_fee = self.cleaned_data.get("update_membership_fee")
+        optional_custom_membership_fee = self.cleaned_data.get(
+            "optional_custom_membership_fee"
+        )
+        proration_behavior = self.cleaned_data.get("proration_behavior")
+
+        # Split by comma, space, or new line
+        subscription_ids = re.split(r"[\s,]+", subscription_ids)
+
+        # Create jobs for each subscription ID
+        for subscription_id in subscription_ids:
+            if add_or_update_shipping or update_membership_fee:
+                Job.objects.create(
+                    name="update_subscription",
+                    workspace={
+                        "batch_id": batch_id,
+                        "subscription_id": subscription_id.strip(),
+                        "proration_behavior": proration_behavior,
+                        "add_or_update_shipping": add_or_update_shipping,
+                        "optional_custom_shipping_fee": float(
+                            optional_custom_shipping_fee
+                        )
+                        if add_or_update_shipping
+                        and optional_custom_shipping_fee is not None
+                        and optional_custom_shipping_fee != ""
+                        else None,
+                        "update_membership_fee": update_membership_fee,
+                        "optional_custom_membership_fee": float(
+                            optional_custom_membership_fee
+                        )
+                        if update_membership_fee
+                        and optional_custom_membership_fee is not None
+                        and optional_custom_membership_fee != ""
+                        else None,
+                    },
+                )

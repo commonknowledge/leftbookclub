@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from app.models import BookPage
+from app.models import BookPage, LBCSubscription
 from app.models.wagtail import MerchandisePage
 
 
@@ -56,6 +56,7 @@ class Command(BaseCommand):
         execute(*args, **kwargs)
 
 
+import djstripe.enums
 import djstripe.models
 import stripe
 
@@ -91,20 +92,19 @@ def process(
     #### Refresh data
     st_sub = stripe.Subscription.retrieve(subscription_id)
     djstripe.models.Subscription.sync_from_stripe_data(st_sub)
+    dj_sub = LBCSubscription.objects.get(id=subscription_id)
 
-    #### Validate user
-    user = djstripe.models.Subscription.objects.get(
-        id=subscription_id
-    ).customer.subscriber
+    if dj_sub is None:
+        raise ValueError("Sub not found in Django database")
 
-    if (
-        user is None
-        or user.active_subscription is None
-        or user.active_subscription.membership_plan_price is None
-        or user.active_subscription.membership_si is None
-        or user.active_subscription.is_gift_receiver
-    ):
-        raise ValueError("User is not a member.")
+    if dj_sub.membership_plan_price is None or dj_sub.membership_si is None:
+        raise ValueError("Sub is not a membership")
+
+    if dj_sub.status == djstripe.enums.SubscriptionStatus.canceled:
+        raise ValueError("Sub is canceled: cannot be charged")
+
+    if dj_sub.is_gift_receiver:
+        raise ValueError("Sub is a gift recipient: cannot be charged")
 
     #### Create line items
 
@@ -114,35 +114,31 @@ def process(
         # Create new membership item
         line_items += [
             {
-                "price_data": user.active_subscription.membership_plan_price.to_price_data(
-                    product=user.active_subscription.membership_si.plan.product,
+                "price_data": dj_sub.membership_plan_price.to_price_data(
+                    product=dj_sub.membership_si.plan.product,
                     amount=optional_custom_membership_fee,
                 ),
                 "quantity": 1,
             }
         ]
         # Replace old membership item
-        if user.active_subscription.membership_si is not None:
-            line_items += [
-                {"id": user.active_subscription.membership_si.id, "deleted": True}
-            ]
+        if dj_sub.membership_si is not None:
+            line_items += [{"id": dj_sub.membership_si.id, "deleted": True}]
 
     if add_or_update_shipping:
         # Create new shipping item
         line_items += [
             {
-                "price_data": user.active_subscription.membership_plan_price.to_shipping_price_data(
-                    zone=user.active_subscription.shipping_zone,
+                "price_data": dj_sub.membership_plan_price.to_shipping_price_data(
+                    zone=dj_sub.shipping_zone,
                     amount=optional_custom_shipping_fee,
                 ),
                 "quantity": 1,
             }
         ]
         # Replace old shipping item
-        if user.active_subscription.shipping_si is not None:
-            line_items += [
-                {"id": user.active_subscription.shipping_si.id, "deleted": True}
-            ]
+        if dj_sub.shipping_si is not None:
+            line_items += [{"id": dj_sub.shipping_si.id, "deleted": True}]
 
     #### Apply changes
 

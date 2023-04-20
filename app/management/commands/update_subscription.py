@@ -76,7 +76,8 @@ def run(job):
         error = traceback.format_exc()
         job.workspace = {
             **job.workspace,
-            "error": error,
+            "error": str(e),
+            "error_trace": error,
             "context": context,
         }
         job.save()

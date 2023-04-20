@@ -9,6 +9,16 @@
         <h1>Subscription update queue</h1>
         <h3>Batch ID: {{ batch_id }}</h3>
         <p>(Refresh the page for updates)</p>
+        <ul class='tw-list-disc tw-max-w-2xl tw-text-left'>
+            {% if jobs.0.workspace.add_or_update_membership_fee %}<li>Updated member fees</li>{% endif %}
+            {% if jobs.0.workspace.optional_custom_membership_fee %}
+                <li>Custom fee: {{ jobs.0.workspace.optional_custom_membership_fee }}</li>
+            {% endif %}
+            {% if jobs.0.workspace.add_or_update_shipping %}<li>Added/updated shipping</li>{% endif %}
+            {% if jobs.0.workspace.optional_custom_shipping_fee %}
+                <li>Custom shipping: {{ jobs.0.workspace.optional_custom_shipping_fee }}</li>
+            {% endif %}
+        </ul>
     </header>
     <table class="table my-8">
         <thead>

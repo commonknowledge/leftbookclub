@@ -56,6 +56,8 @@ class Command(BaseCommand):
         execute(*args, **kwargs)
 
 
+import traceback
+
 import djstripe.enums
 import djstripe.models
 import stripe
@@ -71,9 +73,10 @@ def run(job):
         }
         execute(*args, **kwargs)
     except Exception as e:
+        error = traceback.format_exc()
         job.workspace = {
             **job.workspace,
-            "error": str(e),
+            "error": error,
             "context": context,
         }
         job.save()

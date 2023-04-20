@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -244,6 +245,35 @@ class LBCSubscription(djstripe.models.Subscription):
         shipping_country = self.customer.subscriber.shipping_country()
         if shipping_country is not None:
             return ShippingZone.get_for_country(shipping_country)
+        # For legacy customers who haven't got shipping info on their Stripe profile
+        try:
+            if self.membership_si is not None:
+                price_name = None
+                if hasattr(self.membership_si.plan, "nickname"):
+                    price_name = self.membership_si.plan.nickname
+                elif hasattr(self.membership_si.plan, "name"):
+                    price_name = self.membership_si.plan.name
+                elif hasattr(self.membership_si.plan, "price") and hasattr(
+                    self.membership_si.plan.price, "nickname"
+                ):
+                    price_name = self.membership_si.plan.price.nickname
+                elif hasattr(self.membership_si.plan, "price") and hasattr(
+                    self.membership_si.plan.price, "name"
+                ):
+                    price_name = self.membership_si.plan.price.name
+                if price_name is not None:
+                    price_name = re.sub("_", " ", price_name).lower()
+                    if price_name.endswith(" uk"):
+                        return ShippingZone.get_for_code("UK")
+                    elif price_name.endswith(" eu"):
+                        return ShippingZone.get_for_code("EU")
+                    elif price_name.endswith(" us"):
+                        return ShippingZone.get_for_code("ROW")
+                    elif price_name.endswith(" row"):
+                        return ShippingZone.get_for_code("ROW")
+        except:
+            pass
+        return ShippingZone.get_for_code("UK")
 
     @cached_property
     def has_legacy_membership_price(self):

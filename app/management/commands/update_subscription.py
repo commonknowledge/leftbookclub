@@ -52,7 +52,8 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        process(**options)
+        execute, args, kwargs = process(**options)
+        execute(*args, **kwargs)
 
 
 import djstripe.models
@@ -60,7 +61,22 @@ import stripe
 
 
 def run(job):
-    process(**job.workspace)
+    context = {}
+    try:
+        execute, args, kwargs = process(**job.workspace)
+        context = {
+            "args": args,
+            "kwargs": kwargs,
+        }
+        execute(*args, **kwargs)
+    except Exception as e:
+        job.workspace = {
+            **job.workspace,
+            "error": str(e),
+            "context": context,
+        }
+        job.save()
+        raise e
 
 
 def process(
@@ -74,7 +90,6 @@ def process(
 ):
     #### Refresh data
     st_sub = stripe.Subscription.retrieve(subscription_id)
-    print(subscription_id, st_sub)
     djstripe.models.Subscription.sync_from_stripe_data(st_sub)
 
     #### Validate user
@@ -131,8 +146,14 @@ def process(
 
     #### Apply changes
 
-    stripe.Subscription.modify(
-        subscription_id,
+    args = [subscription_id]
+
+    kwargs = dict(
         proration_behavior=proration_behaviour,
         items=line_items,
     )
+
+    def execute(*args, **kwargs):
+        stripe.Subscription.modify(*args, **kwargs)
+
+    return [execute, args, kwargs]

@@ -825,17 +825,6 @@ class BatchUpdateSubscriptionsStatusView(
 
     def get_context_data(self, batch_id=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["batch_id"] = batch_id
-        return context
-
-
-class BatchUpdateSubscriptionsBatchTableView(
-    SuperUserCheck, LoginRequiredMixin, TemplateView
-):
-    template_name = "app/batch_update_subscriptions_batch_table.html"
-
-    def get_context_data(self, batch_id=None, **kwargs):
-        context = super().get_context_data(**kwargs)
         retry_job_id = self.request.GET.get("retry_job_id", None)
         if retry_job_id is not None:
             self.retry_job(retry_job_id)
@@ -846,7 +835,9 @@ class BatchUpdateSubscriptionsBatchTableView(
         return context
 
     def retry_job(self, retry_job_id):
-        job = Job.objects.get(id=retry_job_id)
+        job = Job.objects.filter(id=retry_job_id, workspace__retry_job_id=None).first()
+        if job is None:
+            return
         new_job = Job.objects.create(
             name=job.name,
             workspace={**job.workspace, "original_job_id": str(retry_job_id)},

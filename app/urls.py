@@ -18,7 +18,6 @@ from wagtail_transfer import urls as wagtailtransfer_urls
 from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 
 from app.views import (
-    BatchUpdateSubscriptionsBatchTableView,
     BatchUpdateSubscriptionsStatusView,
     BatchUpdateSubscriptionsView,
     CancellationView,
@@ -158,11 +157,6 @@ urlpatterns = [
         "batch-update-subscriptions/status/<str:batch_id>/",
         BatchUpdateSubscriptionsStatusView.as_view(),
         name="batch_update_subscriptions_batch_status",
-    ),
-    path(
-        "batch-update-subscriptions/status/table/<str:batch_id>/",
-        BatchUpdateSubscriptionsBatchTableView.as_view(),
-        name="batch_update_subscriptions_batch_table",
     ),
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),

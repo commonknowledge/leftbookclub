@@ -193,7 +193,7 @@ STRIPE_TEST_PUBLIC_KEY; // API key section: https://dashboard.stripe.com/test/ap
 
 #### Production
 
-Contact jan@commonknowledge.coop for an up to date list of env variables.
+Contact jan@commonknowledge.coop for an up to date list of env variables
 
 ```js
 DJANGO_SETTINGS_MODULE: "app.settings.production",

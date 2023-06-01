@@ -332,6 +332,7 @@ POSTHOG_DJANGO = {"distinct_id": lambda request: request.user and request.user.i
 
 # Google
 GOOGLE_TRACKING_ID = os.getenv("GOOGLE_TRACKING_ID", None)
+GOOGLE_EVENT_ID = os.getenv("GOOGLE_EVENT_ID", None)
 
 # Facebook
 FACEBOOK_PIXEL = os.getenv("FACEBOOK_PIXEL", None)

@@ -331,6 +331,7 @@ POSTHOG_URL = os.getenv("POSTHOG_URL", "https://app.posthog.com")
 POSTHOG_DJANGO = {"distinct_id": lambda request: request.user and request.user.id}
 
 # Google
+GOOGLE_TAG_MANAGER = os.getenv("GOOGLE_TAG_MANAGER", None)
 GOOGLE_TRACKING_ID = os.getenv("GOOGLE_TRACKING_ID", None)
 GOOGLE_EVENT_ID = os.getenv("GOOGLE_EVENT_ID", None)
 

@@ -1,8 +1,6 @@
 {% load setting %}
 {% setting 'GOOGLE_TRACKING_ID' as GOOGLE_TRACKING_ID %}
 {% if GOOGLE_TRACKING_ID %}
-
-
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={% setting 'GOOGLE_TRACKING_ID' %}"></script>
     <script>
@@ -13,9 +11,5 @@
     gtag('config', '{% setting "GOOGLE_TRACKING_ID" %}');
     </script>
 
-<!-- Event snippet for Subscribe conversion page -->
-<script>
-    gtag('event', 'conversion', {'send_to': '{% setting 'GOOGLE_EVENT_ID' %}'});
-  </script>
   
 {% endif %}

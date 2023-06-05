@@ -56,6 +56,7 @@
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-{{ GOOGLE_TAG_MANAGER }}');</script>
+    {% endif %}
     <!-- End Google Tag Manager -->
     </head>
     <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }}{% endif %} tw-min-h-screen d-flex flex-column"

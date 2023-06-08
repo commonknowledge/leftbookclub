@@ -25,8 +25,8 @@
                     </button>
                 {% endif %}
                 <div class='tw-mt-2 fs-5 tw-font-bold'>
-                    {% if variant.compare_at_price is not None and variant.price >  variant.compare_at_price %}
-                        <b>{% money_localize variant.compare_at_price "GBP" %}</b> <s>{% money_localize variant.price "GBP" %}</s>
+                    {% if variant.compare_at_price is not None and variant.price <  variant.compare_at_price %}
+                        <b>{% money_localize variant.price "GBP" %}</b> <s>{% money_localize variant.compare_at_price "GBP" %}</s>
                     {% else %}
                         {% money_localize variant.price "GBP" %}
                     {% endif %}

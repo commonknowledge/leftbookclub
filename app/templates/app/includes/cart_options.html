@@ -1,4 +1,5 @@
-{% load djmoney %}
+{% load djmoney books %}
+
 <div class='row'>
     {% if not product.variants %}
         <div>
@@ -25,11 +26,12 @@
                     </button>
                 {% endif %}
                 <div class='tw-mt-2 fs-5 tw-font-bold'>
-                    {% if variant.compare_at_price is not None and variant.price < variant.compare_at_price %}
+                 {% if variant.compare_at_price is not None %}
                         <b>{% money_localize variant.price "GBP" %}</b> <s>{% money_localize variant.compare_at_price "GBP" %}</s>
                     {% else %}
                         {% money_localize variant.price "GBP" %}
-                    {% endif %}
+                    {% endif %}  
+                 
                 </div>
             </div>
         {% endfor %}

@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% load setting %}
 {% block extra_js %}<script async src="https://js.stripe.com/v3/"></script>{% endblock %}
+{% block google analytics event %}
+gtag('event', 'purchase', {
+  currency: '{{ currency }}', value: '{{ value }}'
+});
+{% endblock %}
+
 {% block facebook_pixel_event %}
     {% if subscription %}
         fbq('track', 'Subscribe', { subscription_id: '{{ subscription.id }}', currency: '{{ currency }}', value: '{{ value }}' });

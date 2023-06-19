@@ -6,7 +6,6 @@
         {% user_data %}
         {% include "sentry/globals.html" %}
         {% include "posthog/globals.html" %}
-        {% include "googleanalytics/initialise.html" %}
         <meta charset="utf-8" />
         <meta name="description" content="" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -48,16 +47,15 @@
             </noscript>
             <!-- End Meta Pixel Code -->
         {% endif %}
-        {% setting "GOOGLE_TAG_MANAGER" as GOOGLE_TAG_MANAGER %}
-        {% if GOOGLE_TAG_MANAGER %}
-        <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-{{ GOOGLE_TAG_MANAGER }}');</script>
-    {% endif %}
-    <!-- End Google Tag Manager -->
+     <!-- Global site tag (gtag.js) - Google Analytics -->
+     <script async src="https://www.googletagmanager.com/gtag/js?id={% setting 'GOOGLE_TRACKING_ID' %}"></script>
+     <script>
+     window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+ 
+     gtag('config', '{% setting "GOOGLE_TRACKING_ID" %}, { 'debug_mode': true }');
+     </script>
     </head>
     <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }}{% endif %} tw-min-h-screen d-flex flex-column"
           data-controller="product"

@@ -20,8 +20,12 @@
                           aria-hidden="true"></span>
                     <span>Loading...</span>
                 {% else %}
-                    <button class="btn btn-outline-secondary btn-disable-strikethrough"
-                            {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add" data-product-variant-id-param="{{ variant.id }}" {% endif %}>
+                    <button onclick="gtag('event','add_to_cart'{
+                        transaction_id: {{variant.title}}',
+                        value: {{variant.price}},
+                        currency: 'GBP',
+                    });"  class="btn btn-outline-secondary btn-disable-strikethrough"
+                      {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add" data-product-variant-id-param="{{ variant.id }}" > 
                         Add to cart
                     </button>
                 {% endif %}

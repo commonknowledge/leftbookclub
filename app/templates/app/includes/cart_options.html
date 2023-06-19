@@ -22,7 +22,6 @@
                 {% else %}
                     <button onclick="gtag('event','add_to_cart', {
                         transaction_id: {{ variant.id }},
-                        product: {{variant.title}},
                         value: {{variant.price}},
                         currency: 'GBP',
                     });" 

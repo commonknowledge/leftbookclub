@@ -54,7 +54,7 @@
      function gtag(){dataLayer.push(arguments);}
      gtag('js', new Date());
  
-     gtag('config', '{% setting "GOOGLE_TRACKING_ID" %}, { 'debug_mode': true }');
+     gtag('config', '{% setting "GOOGLE_TRACKING_ID" %}', { 'debug_mode': true });
      </script>
     </head>
     <body class="{% block body_class %}{% endblock %} {% if self %} app-{{ self.content_type.app_label }} model-{{ self.content_type.model }}{% endif %} tw-min-h-screen d-flex flex-column"

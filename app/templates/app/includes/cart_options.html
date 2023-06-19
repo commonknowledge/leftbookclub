@@ -21,7 +21,7 @@
                     <span>Loading...</span>
                 {% else %}
                     <button onclick="gtag('event','add_to_cart', {
-                        transaction_id: {{variant.title}},
+                        transaction_id: {{ variant.id }},
                         value: {{variant.price}},
                         currency: 'GBP',
                     });" 

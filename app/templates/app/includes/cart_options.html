@@ -20,8 +20,8 @@
                           aria-hidden="true"></span>
                     <span>Loading...</span>
                 {% else %}
-                    <button onclick="gtag('event','add_to_cart'{
-                        transaction_id: {{variant.title}}',
+                    <button onclick="gtag('event','add_to_cart', {
+                        transaction_id: {{variant.title}},
                         value: {{variant.price}},
                         currency: 'GBP',
                     });" 

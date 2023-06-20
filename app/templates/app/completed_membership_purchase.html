@@ -4,7 +4,7 @@
     function() { 
         gtag('event', 'purchase', {
             "transaction_id": {{user.id}},
-            "value":    {{settings.app.MembershipPlanPrice.price}},
+            "value":    {{user.active_subscription.primary_product.name}},
             "currency": "GBP"
           });
     }, false)
@@ -18,7 +18,7 @@
     <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
         <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
         <p>You've successfully started a membership plan</p>
-     
+      
     </header>
     <div class="d-flex flex-column justify-content-center align-items-center mb-4">
         {% include "app/includes/membership_card.html" %}

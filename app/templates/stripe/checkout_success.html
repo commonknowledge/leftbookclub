@@ -1,13 +1,6 @@
 {% extends "base.html" %}
 {% load setting %}
 {% block extra_js %}<script async src="https://js.stripe.com/v3/"></script>{% endblock %}
-<script>
-gtag('event', 'purchase', {
-  "transaction_id": "transaction_id",
-  "value": "value",
-  "currency": "currency"
-});
-</script>
 {% block facebook_pixel_event %}
     {% if subscription %}
         fbq('track', 'Subscribe', { subscription_id: '{{ subscription.id }}', currency: '{{ currency }}', value: '{{ value }}' });

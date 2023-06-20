@@ -1,4 +1,14 @@
 {% extends "base.html" %}
+{% block extra_js %}<script>
+    window.addEventListener('load', 
+    function() { 
+        gtag('event', 'purchase', {
+            "transaction_id": {{user.id}},
+            "value":    {{settings.app.MembershipJourney.price}},
+            "currency": "GBP"
+          });
+    }, false)
+</script>{% endblock %}
 {% load wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% block head_title %}Welcome to the Left Book Club{% endblock %}
 {% block content %}
@@ -8,6 +18,7 @@
     <header class="pricing-header p-3 pb-md-4 mx-auto text-center">
         <h1 class="h2 fw-normal">Welcome to the Left Book Club, {% user_display user %}</h1>
         <p>You've successfully started a membership plan</p>
+     
     </header>
     <div class="d-flex flex-column justify-content-center align-items-center mb-4">
         {% include "app/includes/membership_card.html" %}

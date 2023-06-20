@@ -4,7 +4,7 @@
     function() { 
         gtag('event', 'purchase', {
             "transaction_id": {{user.id}},
-            "value":    {{settings.app.MembershipPlan.price}},
+            "value":    {{settings.app.MembershipPlanPrice.price}},
             "currency": "GBP"
           });
     }, false)

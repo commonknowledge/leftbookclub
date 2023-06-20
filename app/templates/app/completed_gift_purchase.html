@@ -3,9 +3,9 @@
     window.addEventListener('load', 
     function() { 
         gtag('event', 'purchase', {
-            transaction_id: {{user.stripe_customer.invoice_prefix }},
-            value: {{gift_giver_subscription}},
-            coupon: {{promo_code.code}},
+            transaction_id: "{{user.stripe_customer.invoice_prefix }}",
+            value: "{{gift_giver_subscription}}",
+            coupon: "{{promo_code.code}}",
           });
     }, false)
 </script>{% endblock %}

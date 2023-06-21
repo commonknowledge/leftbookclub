@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+
+{% block extra_js %}<script>
+
+    window.addEventListener('load', function() {
+ 
+        gtag('event', 'completed_gift_redemption', {
+            transaction_id: "",
+            user: "{{ user.username }}",
+            value: "{{user.active_subscription.membership_plan_price}}",
+            gift_user: "{{user.gift_giver}}"
+        });
+    }, false)
+</script>{% endblock %}
 {% load wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% block head_title %}Welcome to the Left Book Club{% endblock %}
 {% block content %}

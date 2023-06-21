@@ -3,8 +3,8 @@
     window.addEventListener('load', 
     function() { 
         gtag('event', 'purchase', {
-            transaction_id: "{{user.stripe_customer.invoice_prefix }}",
-            value: "{{gift_giver_subscription}}",
+            transaction_id: "",
+            value: "{{promo_code.coupon.percent_off}}% | {{subscription.promo_code.coupon.amount_off}}",
             coupon: "{{promo_code.code}}",
           });
     }, false)

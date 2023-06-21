@@ -3,11 +3,8 @@
     window.addEventListener('load', 
     function() { 
         gtag('event', 'purchase', {
-            transaction_id: "{{ user.stripe_customer.invoice_prefix }}",
+            transaction_id: "",
             value: "{{user.active_subscription.membership_plan_price}}",
-            items: [{
-            item_name: "{{user.active_subscription.name}}",
-     }],
           });
     }, false)
 </script>{% endblock %}

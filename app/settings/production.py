@@ -21,6 +21,8 @@ if os.getenv("AWS_S3_REGION_NAME"):
     DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"
     AWS_S3_ADDRESSING_STYLE = "virtual"
     # like `fra1`
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_QUERYSTRING_AUTH = False
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
     # like `leftbookclub`
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")

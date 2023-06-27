@@ -96,8 +96,7 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, RedirectView):
             # retreive the Stripe Customer.
             customer, is_new = user.get_or_create_customer()
             if customer is not None:
-                if session_args.get("customer_email", False):
-                    session_args.pop("customer_email")
+                session_args.pop("customer_email")
                 session_args["customer"] = customer.id
         except djstripe.models.Customer.DoesNotExist:
             pass
@@ -800,3 +799,48 @@ class DonationView(UpgradeSuccessDonationTrailerView):
                     self.request.user.active_subscription.donation_si.plan.amount
                 )
             return initial
+
+
+from .forms import BatchUpdateSubscriptionsForm
+
+
+class BatchUpdateSubscriptionsView(SuperUserCheck, LoginRequiredMixin, FormView):
+    form_class = BatchUpdateSubscriptionsForm
+    template_name = "app/batch_update_subscriptions.html"
+
+    def form_valid(self, form: BatchUpdateSubscriptionsForm):
+        form.process_request()
+        self.success_url = reverse(
+            "batch_update_subscriptions_batch_status",
+            kwargs={"batch_id": form.cleaned_data["batch_id"]},
+        )
+        print(self.success_url)
+        return super().form_valid(form)
+
+
+class BatchUpdateSubscriptionsStatusView(
+    SuperUserCheck, LoginRequiredMixin, TemplateView
+):
+    template_name = "app/batch_update_subscriptions_status.html"
+
+    def get_context_data(self, batch_id=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        retry_job_id = self.request.GET.get("retry_job_id", None)
+        if retry_job_id is not None:
+            self.retry_job(retry_job_id)
+        context["batch_id"] = batch_id
+        context["jobs"] = Job.objects.filter(workspace__batch_id=batch_id).order_by(
+            "-created"
+        )
+        return context
+
+    def retry_job(self, retry_job_id):
+        job = Job.objects.filter(id=retry_job_id, workspace__retry_job_id=None).first()
+        if job is None:
+            return
+        new_job = Job.objects.create(
+            name=job.name,
+            workspace={**job.workspace, "original_job_id": str(retry_job_id)},
+        )
+        job.workspace["retry_job_id"] = str(new_job.id)
+        job.save()

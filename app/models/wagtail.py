@@ -327,9 +327,15 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     def metadata(self):
         return {"wagtail_price": self.id}
 
-    def to_price_data(self, product):
+    def to_price_data(self, product=None, amount=None):
+        if product is None and self.products.count() == 1:
+            product = self.products.first()
+        if product is None:
+            raise ValueError("Cannot create line items without a valid product")
+
         return {
-            "unit_amount_decimal": self.price.amount * 100,
+            "unit_amount_decimal": (amount if amount is not None else self.price.amount)
+            * 100,
             "currency": self.price_currency,
             "product": product.id,
             "recurring": {
@@ -339,11 +345,14 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             "metadata": {**(self.metadata or {}), "primary": True},
         }
 
-    def to_shipping_price_data(self, zone):
+    def to_shipping_price_data(self, zone, amount=None):
         shipping_product = get_shipping_product()
         shipping_fee = self.shipping_fee(zone)
         return {
-            "unit_amount_decimal": shipping_fee.amount * 100,
+            "unit_amount_decimal": (
+                amount if amount is not None else shipping_fee.amount
+            )
+            * 100,
             "currency": shipping_fee.currency,
             "product": shipping_product.id,
             "recurring": {

@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@hotwired/stimulus": "^3.0.1",
-    "@hotwired/turbo": "^7.0.1",
+    "@hotwired/turbo": "^7.3.0",
     "@jvitela/mustache-wax": "^1.0.4",
     "@popperjs/core": "^2.10.2",
     "@sentry/browser": "^6.19.7",

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block head_title %}Batch sub update {{ batch_id }} | Left Book Club{% endblock %}
+{% comment %} {% block content_padding %}p-5{% endblock %}
+{% block content_width %}container-fluid{% endblock %}
+{% block content_extra_classes %}tw-bg-green-300{% endblock %} {% endcomment %}
+{% block content %}
+    <header class='text-center my-4'>
+        <h1>Subscription update queue</h1>
+        <h3>Batch ID: {{ batch_id }}</h3>
+        <p>(Refresh the page for updates)</p>
+        <ul class='tw-list-disc tw-max-w-2xl tw-text-left'>
+            {% if jobs.0.workspace.add_or_update_membership_fee %}<li>Updated member fees</li>{% endif %}
+            {% if jobs.0.workspace.optional_custom_membership_fee %}
+                <li>Custom fee: {{ jobs.0.workspace.optional_custom_membership_fee }}</li>
+            {% endif %}
+            {% if jobs.0.workspace.add_or_update_shipping %}<li>Added/updated shipping</li>{% endif %}
+            {% if jobs.0.workspace.optional_custom_shipping_fee %}
+                <li>Custom shipping: {{ jobs.0.workspace.optional_custom_shipping_fee }}</li>
+            {% endif %}
+        </ul>
+    </header>
+    <table class="table my-8">
+        <thead>
+            <tr>
+                <th scope="col">Stripe subscription</th>
+                <th scope="col">Status</th>
+                <th scope="col">Last changed</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+                <tr>
+                    <td>
+                        <a data-turbo-frame="_top"
+                           href="https://dashboard.stripe.com/subscriptions/{{ job.workspace.subscription_id }}">
+                            <span>{{ job.workspace.subscription_id }}</span>
+                        </a>
+                        {% if job.workspace.original_job_id %}<span>(Retry)</span>{% endif %}
+                    </td>
+                    <td>
+                        <span class='text-lowercase tw-lowercase'>
+                            {% if job.workspace.retry_job_id %}
+                                <span>RETRIED</span>
+                                <s>{{ job.state }}</s>
+                            {% elif job.state == "FAILED" %}
+                                <span class="text-danger">{{ job.state }}</span>
+                                {% if job.workspace.error %}<p class='tw-font-mono tw-text-xs'>{{ job.workspace.error }}</p>{% endif %}
+                            {% elif job.state == "COMPLETE" %}
+                                <span class="text-success">{{ job.state }}</span>
+                            {% elif job.state == "NEW" %}
+                                Not yet started
+                            {% else %}
+                                {{ job.state }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ job.modified|naturaltime }}</td>
+                    <td>
+                        {% if job.state == 'FAILED' and not job.workspace.retry_job_id %}
+                            <a href="{% url 'batch_update_subscriptions_batch_status' batch_id=batch_id %}?retry_job_id={{ job.id }}"
+                               data-turbo-frame="_self">
+                                Retry
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

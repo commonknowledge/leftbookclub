@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% block head_title %}Batch update subscriptions | Left Book Club{% endblock %}
+{% comment %} {% block content_padding %}p-5{% endblock %}
+{% block content_width %}container-fluid{% endblock %}
+{% block content_extra_classes %}tw-bg-green-300{% endblock %} {% endcomment %}
+{% block content %}
+    <div class='mx-auto' style="max-width: 500px">
+        <header class='text-center my-4'>
+            <h1>Batch update subscriptions</h1>
+        </header>
+        <form method='POST' data-turbo="false" id="batch-update-subscription-form">
+            {{ form.non_field_errors }}
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit" name="action">Start batch update</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

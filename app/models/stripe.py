@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -235,15 +236,51 @@ class LBCSubscription(djstripe.models.Subscription):
 
     @cached_property
     def shipping_zone(self):
+        zone = None
+
         if self.shipping_si is not None:
             code = self.shipping_si.metadata.get("shipping_zone", None)
             if code is not None:
-                result = ShippingZone.get_for_code(code)
-                if result is not None:
-                    return result
-        shipping_country = self.customer.subscriber.shipping_country()
-        if shipping_country is not None:
-            return ShippingZone.get_for_country(shipping_country)
+                zone = ShippingZone.get_for_code(code)
+
+        if zone is None:
+            shipping_country = self.customer.subscriber.shipping_country()
+            if shipping_country is not None:
+                zone = ShippingZone.get_for_country(shipping_country)
+
+        if zone is None and self.membership_si is not None:
+            # For legacy customers who haven't got shipping info on their Stripe profile
+            try:
+                price_name = None
+                if hasattr(self.membership_si.plan, "nickname"):
+                    price_name = self.membership_si.plan.nickname
+                elif hasattr(self.membership_si.plan, "name"):
+                    price_name = self.membership_si.plan.name
+                elif hasattr(self.membership_si.plan, "price") and hasattr(
+                    self.membership_si.plan.price, "nickname"
+                ):
+                    price_name = self.membership_si.plan.price.nickname
+                elif hasattr(self.membership_si.plan, "price") and hasattr(
+                    self.membership_si.plan.price, "name"
+                ):
+                    price_name = self.membership_si.plan.price.name
+                if price_name is not None:
+                    price_name = re.sub("_", " ", price_name).lower()
+                    if price_name.endswith(" uk"):
+                        zone = ShippingZone.get_for_code("UK")
+                    elif price_name.endswith(" eu"):
+                        zone = ShippingZone.get_for_code("EU")
+                    elif price_name.endswith(" us"):
+                        zone = ShippingZone.get_for_code("ROW")
+                    elif price_name.endswith(" row"):
+                        zone = ShippingZone.get_for_code("ROW")
+            except:
+                pass
+
+        if zone is None:
+            return ShippingZone.get_for_code("UK")
+        else:
+            return zone
 
     @cached_property
     def has_legacy_membership_price(self):

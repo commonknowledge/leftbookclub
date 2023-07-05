@@ -456,3 +456,6 @@ CACHES = {
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240

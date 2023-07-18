@@ -1,4 +1,14 @@
 {% extends "base.html" %}
+{% block extra_js %}<script>
+    window.addEventListener('load', 
+    function() { 
+        gtag('event', 'purchase', {
+            transaction_id: "",
+            value: "{{promo_code.coupon.percent_off}}% | {{subscription.promo_code.coupon.amount_off}}",
+            coupon: "{{promo_code.code}}",
+          });
+    }, false)
+</script>{% endblock %}
 {% load account setting django_bootstrap5 %}
 {% block head_title %}Welcome to the Left Book Club{% endblock %}
 {% block content %}

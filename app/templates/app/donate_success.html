@@ -1,4 +1,14 @@
 {% extends "base.html" %}
+{% block extra_js %}<script>
+    window.addEventListener('load', 
+    function() { 
+        gtag('event', 'donation', {
+            transaction_id: "",
+            user: "{{ user.username }}"
+            value: "{{ user.active_subscription.price_string }}",
+          });
+    }, false)
+</script>{% endblock %}
 {% load wagtailsettings_tags account setting date django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 {% block head_title %}Donation successful | Left Book Club{% endblock %}
 {% block content %}

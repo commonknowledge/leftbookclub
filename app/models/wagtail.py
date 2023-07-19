@@ -59,6 +59,7 @@ from app.utils.abstract_model_querying import abstract_page_query_filter
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
+import orjson
 
 from .stripe import LBCProduct, ShippingZone
 
@@ -713,7 +714,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
     @classmethod
     def get_args_for_page(cls, product, metafields):
-        images = product.attributes.get("images", [])
+        images = ensure_json_to_list(product.attributes.get("images", []))
         return dict(
             shopify_product_id=product.id,
             slug=product.attributes.get("handle"),
@@ -1199,6 +1200,8 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     @classmethod
     def get_root_page(cls):
         return BookIndexPage.objects.first()
+    
+    
 
     @classmethod
     def get_args_for_page(cls, product, metafields):
@@ -1206,8 +1209,8 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
         args.update(
             dict(
                 published_date=metafields.get("published_date", ""),
-                authors=metafields.get("author", []),
-                forward_by=metafields.get("forward_by", []),
+                authors=ensure_json_to_list(metafields.get("author", [])),
+                forward_by=ensure_json_to_list(metafields.get("forward_by", [])),
                 original_publisher=metafields.get("original_publisher", ""),
                 isbn=metafields.get("isbn", ""),
                 type=metafields.get("type", ""),
@@ -1218,6 +1221,11 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     class Meta:
         ordering = ["-published_date"]
 
+def ensure_json_to_list(arg):
+    if isinstance(arg, str):
+        return orjson.loads(arg)
+    else:
+        return arg
 
 @method_decorator(cache_page, name="serve")
 class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):

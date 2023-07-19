@@ -69,6 +69,7 @@ djlint = "^1.19.7"
 selenium = "^4.7.2"
 webdriver-manager = "^3.8.5"
 wagtail-cache = "^2.2.0"
+orjson = "^3.9.2"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

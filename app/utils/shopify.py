@@ -35,7 +35,7 @@ def parse_metafield(f):
             "volume",
             "weight",
         ]
-        or f.value_type == "json_string"
+        or (hasattr(f, "value_type") and f.value_type == "json_string")
     ):
         return json.loads(f.value)
     else:

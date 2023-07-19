@@ -1,4 +1,4 @@
-import json
+import orjson
 
 import pycountry
 import shopify
@@ -37,7 +37,7 @@ def parse_metafield(f):
         ]
         or (hasattr(f, "value_type") and f.value_type == "json_string")
     ):
-        return json.loads(f.value)
+        return orjson.loads(f.value)
     else:
         return f.value
 

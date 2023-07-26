@@ -28,9 +28,9 @@
   window.addEventListener('load', 
   function() { 
       gtag('event', 'purchase', {
-          transaction_id: {{ subscription.id }},
+          transaction_id: '{{ subscription.id }}',
           value: {{ value }},
-          currency: {{ currency }}
+          currency: '{{ currency }}'
         });
   }, false);
 

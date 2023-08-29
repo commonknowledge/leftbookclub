@@ -59,6 +59,7 @@ from app.utils.abstract_model_querying import abstract_page_query_filter
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
+import orjson
 
 from .stripe import LBCProduct, ShippingZone
 
@@ -713,16 +714,18 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
     @classmethod
     def get_args_for_page(cls, product, metafields):
-        images = product.attributes.get("images", [])
+        images = metafields_array_to_list(product.attributes.get("images", []))
+        image_urls = [image.src for image in images] if len(images) > 0 else []
         return dict(
             shopify_product_id=product.id,
             slug=product.attributes.get("handle"),
             title=product.attributes.get("title"),
             description=product.attributes.get("body_html"),
-            image_url=images[0].src if len(images) > 0 else "",
-            image_urls=[image.src for image in images] if len(images) > 0 else [],
-            cached_price=cls.get_lowest_price(product),
+            image_url=image_urls[0] if len(images) > 0 else "",
+            image_urls=image_urls,
+            cached_price=cls.get_lowest_price(product)
         )
+
 
     @classmethod
     def get_root_page(cls):
@@ -748,14 +751,13 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
     @classmethod
     def update_instance_for_product(cls, product, metafields):
-        cls.objects.filter(shopify_product_id=product.id).update(
-            **{
-                key: value
-                for key, value in cls.get_args_for_page(product, metafields).items()
-                # Keep the originally published page slug for SEO reasons
-                if key != "slug"
-            }
-        )
+        update_args = {
+            key: value
+            for key, value in cls.get_args_for_page(product, metafields).items()
+            # Keep the originally published page slug for SEO reasons
+            if key != "slug"
+        }
+        cls.objects.filter(shopify_product_id=product.id).update(**update_args)
         instance = cls.objects.filter(shopify_product_id=product.id).first()
         if instance is not None:
             if product.attributes.get("status", "draft") == "draft":
@@ -774,7 +776,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             metafields = metafields_to_dict(metafields)
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
                 return cls.update_instance_for_product(product, metafields)
-            else:
+            else:   
                 return cls.create_instance_for_product(product, metafields)
 
     @property
@@ -1181,10 +1183,10 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     parent_page_types = ["app.BookIndexPage"]
     subtitle = models.CharField(max_length=300, blank=True)
     authors = ArrayField(
-        models.CharField(max_length=300, blank=True), blank=True, default=list
+        models.CharField(max_length=300, blank=True), blank=True, null=True
     )
     forward_by = ArrayField(
-        models.CharField(max_length=300, blank=True), blank=True, default=list
+        models.CharField(max_length=300, blank=True), blank=True, null=True
     )
     original_publisher = models.CharField(max_length=300, blank=True)
     published_date = models.DateField(null=True, blank=True)
@@ -1206,8 +1208,8 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
         args.update(
             dict(
                 published_date=metafields.get("published_date", ""),
-                authors=metafields.get("author", []),
-                forward_by=metafields.get("forward_by", []),
+                authors=metafields_array_to_list(metafields.get("author", [])),
+                forward_by=metafields_array_to_list(metafields.get("forward_by", [])),
                 original_publisher=metafields.get("original_publisher", ""),
                 isbn=metafields.get("isbn", ""),
                 type=metafields.get("type", ""),
@@ -1218,6 +1220,16 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     class Meta:
         ordering = ["-published_date"]
 
+def metafields_array_to_list(arg):
+    value = []
+    if isinstance(arg, str):
+        value = orjson.loads(arg)
+    else:
+        value = arg
+    if isinstance(value, list):
+        return value
+    else:
+        return []
 
 @method_decorator(cache_page, name="serve")
 class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):

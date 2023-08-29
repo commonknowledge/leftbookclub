@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load setting %}
-{% block extra_js %}<script async src="https://js.stripe.com/v3/"></script>{% endblock %}
+{% block extra_js %}<script async src="https://js.stripe.com/v3/"></script>
+
+
+{% endblock %}
 {% block facebook_pixel_event %}
     {% if subscription %}
         fbq('track', 'Subscribe', { subscription_id: '{{ subscription.id }}', currency: '{{ currency }}', value: '{{ value }}' });
@@ -21,7 +24,16 @@
        data-turbo-action="replace">Click this link if the page doesn't automatically redirect</a>
 {% endblock %}
 {% block bottom_of_page %}
-    <script>
+<script>
+  window.addEventListener('load', 
+  function() { 
+      gtag('event', 'purchase', {
+          transaction_id: '{{ subscription.id }}',
+          value: {{ value }},
+          currency: '{{ currency }}'
+        });
+  }, false);
+
   try {
     Turbo.visit("{{next}}", { action: "replace" })
   } catch(e) {
@@ -31,7 +43,7 @@
     }
     document.addEventListener("turbo:load", fn)
   }
-    </script>
+    </script> 
 {% endblock %}
 {% block footer %}
     {% comment %} Blank page {% endcomment %}

@@ -1,7 +1,12 @@
-app = "lbc-staging"
+# fly.toml app configuration file generated for lbc-staging on 2023-10-17T13:13:20+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
+app = "lbc-staging"
 kill_signal = "SIGINT"
-kill_timeout = 5
+primary_region = "lhr"
+kill_timeout = "5s"
 
 [deploy]
   release_command = "make release"
@@ -13,10 +18,18 @@ kill_timeout = 5
 [[services]]
   internal_port = 8080
   protocol = "tcp"
-
   [services.concurrency]
     hard_limit = 25
     soft_limit = 20
+    type = "connections"
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
 
   [[services.http_checks]]
     grace_period = "5s"
@@ -25,14 +38,6 @@ kill_timeout = 5
     path = "/"
     protocol = "http"
     timeout = 2000
-
-  [[services.ports]]
-    handlers = ["http"]
-    port = "80"
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = "443"
 
 [[statics]]
   guest_path = "/app/static"

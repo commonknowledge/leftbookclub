@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
+{% block facebook_pixel_event %}fbq('track', 'InitiateCheckout');{% endblock %}
+{% block content %}
+    {% with request.GET.annual as annual %}
+        {% with request.GET.gift_mode as gift_mode %}
+            {% qs_link as qs %}
+            {% signup_header steps=steps %}
+            <div class="row justify-content-center">
+                <section class='col-12 col-md-6 col-lg-4 mb-5'>
+                    <div class='max-width-card mx-auto'>{% include "app/includes/donation_form.html" with confirm_text="Continue" %}</div>
+                </section>
+            </div>
+        {% endwith %}
+    {% endwith %}
+{% endblock %}

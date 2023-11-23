@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
+{% block facebook_pixel_event %}fbq('track', 'InitiateCheckout');{% endblock %}
+{% block content %}
+    {% with request.GET.gift_mode as gift_mode %}
+        {% comment %} TODO: Template-ify the header {% endcomment %}
+        {% qs_link as qs %}
+        {% signup_header steps=steps %}
+        {% comment %}  {% endcomment %}
+        <div class="row justify-content-center tw-flex">
+            <form data-turbo="false" method="POST" class="tw-mx-auto tw-max-w-lg">
+                {% csrf_token %}
+                <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
+                    {% for option in delivery_options %}
+                        <li>
+                            <input type="radio"
+                                   id="option-{{ option.id }}"
+                                   name="{{ field_name }}"
+                                   {% if option.id|slugify == field_value|slugify %}checked="checked"{% endif %}
+                                   value="{{ option.id }}"
+                                   class="tw-hidden tw-peer"
+                                   required/>
+                            <label for="option-{{ option.id }}"
+                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-5 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
+                                <div class="tw-block">
+                                    <div class="tw-w-full tw-text-lg tw-font-semibold">{{ option.title }}</div>
+                                    <div class="tw-w-full">{{ option.monthly_price.price_string_uk_pp }} including shipping</div>
+                                    <div class="tw-w-full">{{ option.description|richtext }}</div>
+                                </div>
+                                <svg class="tw-w-5 tw-h-5 tw-ms-3 rtl:tw-rotate-180"
+                                     aria-hidden="true"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     fill="none"
+                                     viewBox="0 0 14 10">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                                </svg>
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% if user.is_member and not request.GET.gift_mode %}
+                    <div class='justify-content-center'>
+                        <div class="form-check max-width-card w-100">
+                            <input required
+                                   class="form-check-input"
+                                   type="checkbox"
+                                   value=""
+                                   id='confirm_cancel_current_subscriptions'
+                                   name='confirm_cancel_current_subscriptions'/>
+                            <label class="form-check-label" for="confirm_cancel_current_subscriptions">
+                                <p>
+                                    I understand that my existing membership plan ({{ user.primary_product.name }}) will be <u>immediately cancelled</u> and replaced with this new subscription
+                                </p>
+                            </label>
+                        </div>
+                    </div>
+                {% endif %}
+                {% comment %} {% bootstrap_form form %} {% endcomment %}
+                {% bootstrap_button button_type="submit" content="Continue" %}
+            </form>
+        </div>
+    {% endwith %}
+{% endblock %}

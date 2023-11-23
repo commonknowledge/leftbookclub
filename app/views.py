@@ -1,7 +1,10 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import urllib.parse
 from datetime import datetime
+
+## v2
+from enum import Enum
 from importlib.metadata import metadata
 from multiprocessing.sharedctypes import Value
 from pipes import Template
@@ -21,6 +24,7 @@ from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import include, path, re_path, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.functional import cached_property
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import RedirectView, TemplateView, View
 from django.views.generic.edit import FormView
@@ -34,6 +38,9 @@ from app.forms import (
     CountrySelectorForm,
     DonationForm,
     GiftCodeForm,
+    SelectDeliveriesForm,
+    SelectPaymentPlanForm,
+    SelectSyllabusForm,
     StripeShippingForm,
     UpgradeForm,
 )
@@ -44,10 +51,21 @@ from app.utils.mailchimp import tag_user_in_mailchimp
 from app.utils.shopify import create_shopify_order
 from app.utils.stripe import (
     configure_gift_giver_subscription_and_code,
+    create_donation_line_item,
     create_gift_recipient_subscription,
     gift_giver_subscription_from_code,
-    gift_recipient_subscription_from_code,
 )
+
+
+class SessionKey(Enum):
+    delivery_plan_id = "v2signupflow_delivery_plan_id"
+    syllabus_id = "v2signupflow_syllabus_id"
+    country = "v2signupflow_country"
+    payment_plan_id = "v2signupflow_payment_plan_id"
+    donation_amount = "v2signupflow_donation_amount"
+
+
+##
 
 
 class MemberSignupUserRegistrationMixin(LoginRequiredMixin):
@@ -116,6 +134,11 @@ class StripeCheckoutSuccessView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         session_id = self.request.GET.get("session_id", None)
+
+        # v2
+        for key in SessionKey:
+            self.request.session[key.value] = None
+        #
 
         # Construct `next` URL to redirect to
         # including session_id, so that context can be built up in the view
@@ -844,3 +867,363 @@ class BatchUpdateSubscriptionsStatusView(
         )
         job.workspace["retry_job_id"] = str(new_job.id)
         job.save()
+
+
+"""
+### V2 flow 
+
+CreateMembershipView (alias) ->
+
+SelectDeliveriesView
+- List of MembershipPlanPage.filter(display_in_quiz_flow=True)
+
+SelectSyllabusView
+- TEST: (if only one syllabus, send straight on to shipping)
+
+SelectShippingCountryView
+- Cannibalise ShippingForProductView to just get the country
+
+SelectBillingPlanView
+- Requires delivery plan + shipping country
+
+SelectDonationView
+
+StripeCheckoutView
+- Requires payment plan + shipping country + donation config
+
+WelcomeView
+"""
+
+
+class OneAtATimeFormViewStoredToSession(FormView):
+    session_key: SessionKey
+    default_value = None
+    require: List[SessionKey] = []
+    require_redirect = "signup"
+
+    def dispatch(self, request, *args, **kwargs):
+        for key in self.require:
+            if not self.request.session.get(key.value, False):
+                return redirect(self.require_redirect)
+        return super().dispatch(request, *args, **kwargs)
+
+    def initial_form_value(self):
+        saved_value = self.request.session.get(self.session_key.value, None)
+        if saved_value is not None:
+            return saved_value
+        else:
+            return self.default_value
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial[self.session_key.name] = self.initial_form_value()
+        return initial
+
+    def serialize_value(self, value):
+        return value
+
+    def form_valid(self, form: SelectPaymentPlanForm):
+        self.request.session[self.session_key.value] = self.serialize_value(
+            form.cleaned_data[self.session_key.name]
+        )
+        return super().form_valid(form)
+
+    @cached_property
+    def plan(self):
+        plan_id = self.request.session.get(SessionKey.delivery_plan_id.value, False)
+        if plan_id:
+            from app.models.wagtail import MembershipPlanPage
+
+            return MembershipPlanPage.objects.get(id=plan_id)
+
+    @cached_property
+    def syllabus(self):
+        syllabus_id = self.request.session.get(SessionKey.syllabus_id.value, False)
+        if syllabus_id:
+            from app.models.wagtail import SyllabusPage
+
+            return SyllabusPage.objects.get(id=syllabus_id)
+
+    @cached_property
+    def price(self):
+        price_id = self.request.session.get(SessionKey.payment_plan_id.value, False)
+        if price_id:
+            from app.models.wagtail import MembershipPlanPrice
+
+            return MembershipPlanPrice.objects.get(id=price_id)
+
+    @cached_property
+    def country(self):
+        country_code = self.request.session.get(SessionKey.country.value, False)
+        return country_code
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["plan"] = self.plan
+        context["field_name"] = self.session_key.name
+        context["field_value"] = self.initial_form_value()
+        return context
+
+
+class SelectDeliveriesView(OneAtATimeFormViewStoredToSession):
+    template_name = "app/signup/select_deliveries.html"
+    form_class = SelectDeliveriesForm
+    success_url = reverse_lazy("signup_syllabus")
+    session_key = SessionKey.delivery_plan_id
+
+    def get_context_data(self, **kwargs):
+        from app.models.wagtail import MembershipPlanPage
+
+        context = super().get_context_data(**kwargs)
+        context["delivery_options"] = MembershipPlanPage.objects.filter(
+            display_in_quiz_flow=True
+        )
+        context["steps"] = [
+            {"title": "Select your schedule", "current": True},
+            {"title": "Syllabus", "current": False},
+            {"title": "Shipping", "current": False},
+            {"title": "Billing", "current": False},
+            {"title": "Checkout", "current": False},
+        ]
+        return context
+
+
+class CreateMembershipView(SelectDeliveriesView):
+    pass
+
+
+class SelectSyllabusView(OneAtATimeFormViewStoredToSession):
+    template_name = "app/signup/select_syllabus.html"
+    form_class = SelectSyllabusForm
+    success_url = reverse_lazy("signup_shipping")
+    session_key = SessionKey.syllabus_id
+    require = [SessionKey.delivery_plan_id]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["syllabus_options"] = context.get("plan").syllabi.all()
+        context["steps"] = [
+            {
+                "title": "Schedule",
+                "current": False,
+                "href": reverse_lazy("signup_deliveries"),
+            },
+            {"title": "Pick your syllabus", "current": True},
+            {"title": "Shipping", "current": False},
+            {"title": "Billing", "current": False},
+            {"title": "Checkout", "current": False},
+        ]
+        return context
+
+
+class SelectShippingCountryView(OneAtATimeFormViewStoredToSession):
+    template_name = "app/signup/select_shipping.html"
+    form_class = CountrySelectorForm
+    success_url = reverse_lazy("signup_billing")
+    session_key = SessionKey.country
+    default_value = "GB"
+    require = [
+        SessionKey.delivery_plan_id,
+        SessionKey.syllabus_id,
+    ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["steps"] = [
+            {
+                "title": "Schedule",
+                "current": False,
+                "href": reverse_lazy("signup_deliveries"),
+            },
+            {
+                "title": "Syllabus",
+                "current": False,
+                "href": reverse_lazy("signup_syllabus"),
+            },
+            {"title": "Your shipping country", "current": True},
+            {"title": "Billing", "current": False},
+            {"title": "Checkout", "current": False},
+        ]
+        return context
+
+
+class SelectBillingPlanView(OneAtATimeFormViewStoredToSession):
+    template_name = "app/signup/select_billing.html"
+    form_class = SelectPaymentPlanForm
+    success_url = reverse_lazy("signup_donation")
+    session_key = SessionKey.payment_plan_id
+    require = [
+        SessionKey.delivery_plan_id,
+        SessionKey.syllabus_id,
+        SessionKey.country,
+    ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["payment_options"] = [
+            {
+                "plan": plan,
+                "price_with_shipping": plan.price_string_including_shipping(
+                    ShippingZone.get_for_country(iso_a2=self.country)
+                ),
+            }
+            for plan in context.get("plan").prices.all()
+        ]
+        context["steps"] = [
+            {
+                "title": "Schedule",
+                "current": False,
+                "href": reverse_lazy("signup_deliveries"),
+            },
+            {
+                "title": "Syllabus",
+                "current": False,
+                "href": reverse_lazy("signup_syllabus"),
+            },
+            {
+                "title": "Shipping",
+                "current": False,
+                "href": reverse_lazy("signup_shipping"),
+            },
+            {"title": "Billing options", "current": True},
+            {"title": "Checkout", "current": False},
+        ]
+        return context
+
+
+class SelectDonationView(OneAtATimeFormViewStoredToSession):
+    form_class = DonationForm
+    template_name = "app/signup/select_donation.html"
+    success_url = reverse_lazy("v2_stripe_checkout")
+    session_key = SessionKey.donation_amount
+    default_value = 5
+    require = [
+        SessionKey.delivery_plan_id,
+        SessionKey.syllabus_id,
+        SessionKey.payment_plan_id,
+        SessionKey.country,
+    ]
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["donation_amount_options"] = [2, 5, 7]
+        context["steps"] = [
+            {
+                "title": "Schedule",
+                "current": False,
+                "href": reverse_lazy("signup_deliveries"),
+            },
+            {
+                "title": "Syllabus",
+                "current": False,
+                "href": reverse_lazy("signup_syllabus"),
+            },
+            {
+                "title": "Shipping",
+                "current": False,
+                "href": reverse_lazy("signup_shipping"),
+            },
+            {
+                "title": "Billing",
+                "current": False,
+                "href": reverse_lazy("signup_billing"),
+            },
+            {"title": "Add a donation", "current": True},
+            {"title": "Checkout", "current": False},
+        ]
+        return context
+
+    def serialize_value(self, value):
+        return int(value)
+
+
+class V2SubscriptionCheckoutView(TemplateView):
+    @classmethod
+    def create_checkout_context(
+        cls,
+        product: LBCProduct,
+        price: MembershipPlanPrice,
+        zone: ShippingZone,
+        gift_mode: bool = False,
+        donation_amount: int = 0,
+    ) -> dict:
+        if product is None:
+            raise ValueError("product required to create checkout")
+        if price is None:
+            raise ValueError("price required to create checkout")
+        if zone is None:
+            raise ValueError("zone required to create checkout")
+
+        checkout_args = dict(
+            mode="subscription",
+            allow_promotion_codes=True,
+            line_items=price.to_checkout_line_items(product=product, zone=zone),
+            # By default, customer details aren't updated, but we want them to be.
+            customer_update={
+                "shipping": "auto",
+                "address": "auto",
+                "name": "auto",
+            },
+            shipping_address_collection={"allowed_countries": zone.country_codes},
+            metadata={"primary_product": product.id},
+        )
+
+        if donation_amount > 0:
+            checkout_args["line_items"].append(
+                create_donation_line_item(
+                    amount=donation_amount,
+                    interval=price.interval,
+                    currency=price.price.currency,
+                    interval_count=price.interval_count,
+                )
+            )
+
+        next = "/"
+        if gift_mode:
+            checkout_args["metadata"]["gift_mode"] = True
+            next = reverse_lazy("completed_gift_purchase")
+        else:
+            next = reverse_lazy("completed_membership_purchase")
+
+        return {
+            "checkout_args": checkout_args,
+            "next": next,
+            "cancel_url": price.plan.url,
+            "breadcrumbs": {
+                "price": price,
+                "product": product,
+                "zone": zone,
+                "gift_mode": gift_mode,
+            },
+        }
+
+    def get(
+        self,
+        request: HttpRequest,
+        *args: Any,
+        **kwargs: Any,
+    ):
+        from app.models.wagtail import SyllabusPage
+
+        country = request.session.get(SessionKey.country.value, "GB")
+        zone = ShippingZone.get_for_country(country)
+        # TODO:
+        # gift_mode = request.GET.get("gift_mode", None)
+        # gift_mode = gift_mode is not None and gift_mode is not False
+        gift_mode = False
+        syllabus_id = request.session.get(SessionKey.syllabus_id.value)
+        syllabus = SyllabusPage.objects.get(id=syllabus_id)
+        product = syllabus.stripe_product
+        price_id = request.session.get(SessionKey.payment_plan_id.value)
+        price = MembershipPlanPrice.objects.get(id=price_id)
+        donation_amount = request.session.get(SessionKey.donation_amount.value, 0)
+
+        checkout_context = V2SubscriptionCheckoutView.create_checkout_context(
+            product=product,
+            price=price,
+            zone=zone,
+            gift_mode=gift_mode,
+            donation_amount=donation_amount,
+        )
+
+        return StripeCheckoutView.as_view(context=checkout_context)(request)

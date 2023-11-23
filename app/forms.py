@@ -578,7 +578,7 @@ class UpgradeForm(forms.Form):
 
 # Create a form with a field for user_id, donation_amount, and on submission add a donation product to the subscription
 class DonationForm(forms.Form):
-    user_id = forms.IntegerField(widget=forms.HiddenInput)
+    user_id = forms.IntegerField(widget=forms.HiddenInput, required=False)
     donation_amount = forms.DecimalField(
         min_value=0,
         max_value=1000,
@@ -714,3 +714,18 @@ class BatchUpdateSubscriptionsForm(forms.Form):
                         else None,
                     },
                 )
+
+
+### V2 flow forms
+
+
+class SelectDeliveriesForm(forms.Form):
+    delivery_plan_id = forms.CharField(widget=forms.HiddenInput)
+
+
+class SelectSyllabusForm(forms.Form):
+    syllabus_id = forms.CharField(widget=forms.HiddenInput)
+
+
+class SelectPaymentPlanForm(forms.Form):
+    payment_plan_id = forms.CharField(widget=forms.HiddenInput)

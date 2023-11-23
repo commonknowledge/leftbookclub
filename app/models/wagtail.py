@@ -7,6 +7,7 @@ from importlib.metadata import metadata
 from urllib.parse import urlencode
 
 import djstripe.models
+import orjson
 import shopify
 import stripe
 from django.conf import settings
@@ -59,7 +60,6 @@ from app.utils.abstract_model_querying import abstract_page_query_filter
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
-import orjson
 
 from .stripe import LBCProduct, ShippingZone
 
@@ -187,6 +187,16 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
 
     interval_count = models.IntegerField(default=1, null=False, blank=True)
 
+    ### v2 flow
+    title = models.CharField(max_length=150, blank=True, null=True)
+    benefits = RichTextField(
+        features=["ul"],
+        help_text="List of pithy beneficial features of this plan",
+        null=True,
+        blank=True,
+    )
+    ### /v2
+
     description = RichTextField(null=True, blank=True)
 
     free_shipping_zones = ParentalManyToManyField(
@@ -204,20 +214,15 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     products = ParentalManyToManyField(
         LBCProduct,
         blank=True,
-        help_text="The stripe product that the user will be subscribed to. If multiple products are set here, then the user will be asked to pick which one they want, e.g. Classic or Contemporary books.",
+        help_text="(For V1-only signup flow.) The stripe product that the user will be subscribed to. If multiple products are set here, then the user will be asked to pick which one they want, e.g. Classic or Contemporary books.",
     )
 
     panels = [
+        FieldPanel("title", classname="full title"),
         FieldRowPanel(
             [
                 FieldPanel("price"),
             ]
-        ),
-        MultiFieldPanel(
-            [
-                AutocompletePanel("products", target_model=LBCProduct),
-            ],
-            heading="Product",
         ),
         FieldRowPanel(
             [
@@ -237,6 +242,14 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             "description",
             classname="full",
             help_text="Displayed to visitors who are considering purchasing a plan at this price.",
+        ),
+        FieldPanel("benefits"),
+        MultiFieldPanel(
+            [
+                AutocompletePanel("products", target_model=LBCProduct),
+            ],
+            heading="V1 signup flow",
+            classname="collapsible collapsed",
         ),
     ]
 
@@ -320,6 +333,12 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         if self.should_advertise_postage_price:
             return f"{s} + p&p"
         return s
+
+    @property
+    def price_string_uk_pp(self) -> str:
+        return self.price_string_including_shipping(
+            ShippingZone.get_for_country(iso_a2="GB")
+        )
 
     def __str__(self) -> str:
         return f"{self.price_string} on {self.plan}"
@@ -469,6 +488,40 @@ class Upsell(Orderable, ClusterableModel):
         )
 
 
+book_types = [
+    ("classic", "classic"),
+    ("contemporary", "contemporary"),
+    ("all-books", "all-books"),
+]
+
+
+@register_snippet
+class SyllabusPage(Page, Orderable, ClusterableModel):
+    # title
+    description = RichTextField(null=True, blank=True)
+    book_types = models.CharField(
+        max_length=100,
+        choices=book_types,
+        default="all-books",
+        help_text="Used to display relevant books",
+        blank=True,
+    )
+    stripe_product = models.ForeignKey(
+        LBCProduct,
+        on_delete=models.CASCADE,
+        related_name="syllabi",
+        help_text="The stripe product that the user will be subscribed to.",
+    )
+
+    # plan = ParentalManyToManyField("app.MembershipPlanPage", related_name="syllabi", help_text="The delivery plans that this syllabus is available on.")
+
+    content_panels = Page.content_panels + [
+        FieldPanel("description"),
+        FieldPanel("book_types"),
+        AutocompletePanel("stripe_product", target_model=LBCProduct),
+    ]
+
+
 class PlanTitleBlock(blocks.StructBlock):
     class Meta:
         template = "app/blocks/plan_title_block.html"
@@ -490,11 +543,7 @@ class PlanPricingBlock(blocks.StructBlock):
 
 
 class BookTypeChoice(blocks.ChoiceBlock):
-    choices = [
-        ("classic", "classic"),
-        ("contemporary", "contemporary"),
-        ("all-books", "all-books"),
-    ]
+    choices = book_types
 
     class Meta:
         default = "all-books"
@@ -723,9 +772,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             description=product.attributes.get("body_html"),
             image_url=image_urls[0] if len(images) > 0 else "",
             image_urls=image_urls,
-            cached_price=cls.get_lowest_price(product)
+            cached_price=cls.get_lowest_price(product),
         )
-
 
     @classmethod
     def get_root_page(cls):
@@ -776,7 +824,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             metafields = metafields_to_dict(metafields)
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
                 return cls.update_instance_for_product(product, metafields)
-            else:   
+            else:
                 return cls.create_instance_for_product(product, metafields)
 
     @property
@@ -1220,6 +1268,7 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     class Meta:
         ordering = ["-published_date"]
 
+
 def metafields_array_to_list(arg):
     value = []
     if isinstance(arg, str):
@@ -1231,9 +1280,25 @@ def metafields_array_to_list(arg):
     else:
         return []
 
+
 @method_decorator(cache_page, name="serve")
 class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
+
+    ### v2 signup flow fields
+    display_in_quiz_flow = models.BooleanField(default=False)
+    benefits = RichTextField(
+        features=["ul"],
+        help_text="List of pithy beneficial features of this plan",
+        null=True,
+        blank=True,
+    )
+    syllabi = ParentalManyToManyField(
+        SyllabusPage,
+        related_name="plans",
+        help_text="The syllabi available for this plan",
+    )
+    ### /v2
 
     deliveries_per_year = models.PositiveIntegerField(
         default=0, validators=[MinValueValidator(0)]
@@ -1258,12 +1323,27 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     )
 
     panels = content_panels = Page.content_panels + [
-        FieldPanel("deliveries_per_year"),
-        FieldPanel("description"),
-        InlinePanel("prices", min_num=1, label="Subscription Pricing Options"),
-        InlinePanel("upsells", heading="Upsell options", label="Upsell option"),
-        FieldPanel("pick_product_title", classname="full title"),
-        FieldPanel("pick_product_text"),
+        FieldPanel("deliveries_per_year", heading="[v1+v2] Deliveries per year"),
+        MultiFieldPanel(
+            [
+                FieldPanel("display_in_quiz_flow"),
+                FieldPanel("description"),
+                FieldPanel("benefits"),
+                AutocompletePanel("syllabi", target_model=SyllabusPage),
+            ],
+            heading="V2 signup flow",
+            classname="collapsible",
+        ),
+        MultiFieldPanel(
+            [
+                InlinePanel("prices", min_num=1, label="Prices"),
+                InlinePanel("upsells", label="Upsell prices"),
+                FieldPanel("pick_product_title", classname="full title"),
+                FieldPanel("pick_product_text"),
+            ],
+            heading="V1 signup flow",
+            classname="collapsible collapsed",
+        ),
         StreamFieldPanel("layout"),
     ]
 

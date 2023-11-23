@@ -7,8 +7,11 @@
 {% block modal_content %}
     {% get_providers as socialaccount_providers %}
     <h1 class='text-center h2'>{% trans "Let's get you set up" %}</h1>
-    {% url_test includes="/checkout" as checkout_flow %}
-    {% if checkout_flow %}
+    {% url_test includes="/checkout" as v2_checkout_flow %}
+    {% url_test includes="/checkout" as v1_checkout_flow %}
+    {% if v2_checkout_flow %}
+        {% signup_header title="Let's get you set up" step="Create account" %}
+    {% elif v1_checkout_flow %}
         <nav style="--bs-breadcrumb-divider: url(&#34;
                     data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;
                     )"

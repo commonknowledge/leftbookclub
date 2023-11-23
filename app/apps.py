@@ -17,6 +17,10 @@ class LeftBookClub(AppConfig):
         self.configure_posthog()
         self.configure_shopify()
 
+        from .slippers_autoload_components import register
+
+        register()
+
     def configure_shopify(self):
         stripe.api_key = djstripe.settings.djstripe_settings.STRIPE_SECRET_KEY
         stripe.api_version = "2020-08-27"

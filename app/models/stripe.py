@@ -26,7 +26,7 @@ from app.utils.python import diff_month
 from app.utils.stripe import (
     DONATION_PRODUCT_NAME,
     SHIPPING_PRODUCT_NAME,
-    get_donation_product,
+    create_donation_line_item,
     get_primary_product_for_djstripe_subscription,
 )
 
@@ -127,20 +127,13 @@ class LBCSubscription(djstripe.models.Subscription):
             # Create a new donation SI with the amount arg
             plan = self.items.first().plan
             items.append(
-                {
-                    "price_data": {
-                        "unit_amount_decimal": int(amount * 100),
-                        "product": get_donation_product().id,
-                        "metadata": {**metadata},
-                        # Mirror details from another SI
-                        "currency": plan.currency,
-                        "recurring": {
-                            "interval": plan.interval,
-                            "interval_count": plan.interval_count,
-                        },
-                    },
-                    "quantity": 1,
-                }
+                create_donation_line_item(
+                    amount=amount,
+                    interval_count=plan.interval_count,
+                    interval=plan.interval,
+                    currency=plan.currency,
+                    metadata=metadata,
+                )
             )
 
         subscription = stripe.Subscription.modify(
@@ -330,6 +323,10 @@ add_proxy_method(djstripe.models.Subscription, LBCSubscription, "lbc")
 
 @register_snippet
 class LBCProduct(djstripe.models.Product):
+    """
+    Prices are for v1 flow; not applicable to v2 flow
+    """
+
     class Meta:
         proxy = True
 
@@ -360,12 +357,12 @@ class LBCProduct(djstripe.models.Product):
     autocomplete_search_field = "name"
 
     def autocomplete_label(self):
-        from app.models import MembershipPlanPrice
+        # from app.models import MembershipPlanPrice
 
-        price = MembershipPlanPrice.objects.filter(products=self).first()
+        # price = MembershipPlanPrice.objects.filter(products=self).first()
         s = getattr(self, self.autocomplete_search_field)
-        if price:
-            return f"{s} (applies to price: {price})"
+        # if price:
+        #     return f"{s} (applies to price: {price})"
         return s
 
     def get_prices_for_country(self, iso_a2: str, **kwargs):

@@ -43,5 +43,12 @@
     </div>
     <div class="form-actions">
         <button class="btn btn-primary" type="submit" name="action">{% firstof confirm_text "Confirm donation" %}</button>
+        {% if continue_without %}
+            {% comment %} Button {% endcomment %}
+            <button class="btn btn-outline-primary tw-w-full"
+                    data-action="click->donation#submitWithoutDonation">
+                {% firstof continue_without_text "Continue without donating" %}
+            </button>
+        {% endif %}
     </div>
 </form>

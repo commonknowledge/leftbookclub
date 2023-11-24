@@ -5,7 +5,37 @@
     {% with request.GET.annual as annual %}
         {% with request.GET.gift_mode as gift_mode %}
             {% qs_link as qs %}
-            {% #signup_header %}
+            <header class="pricing-header my-4 my-lg-5 text-center">
+                <h1 class="h2 fw-bold text-center">
+                    {% if gift_mode %}
+                        You're buying a membership gift card
+                    {% else %}
+                        You're joining the Left Book Club
+                    {% endif %}
+                </h1>
+                <nav style="--bs-breadcrumb-divider: url(&#34;
+                            data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;
+                            )"
+                     aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center">
+                        <li class="breadcrumb-item">
+                            <a class='text-muted tw-no-underline' href="/join">Select plan</a>
+                        </li>
+                        {% if price.plan.prices|length > 1 %}
+                            <li class="breadcrumb-item">
+                                <a class='text-muted tw-no-underline' href="{% pageurl price.plan %}">Select book series</a>
+                            </li>
+                        {% endif %}
+                        <li class="breadcrumb-item active text-black tw-underline"
+                            aria-current="page">Shipping</li>
+                        {% if not user.is_authenticated %}<li class="breadcrumb-item">Create account</li>{% endif %}
+                        <li class="breadcrumb-item">Checkout</li>
+                    </ol>
+                </nav>
+                <div>
+                    {% if upsell %}<a href="{{ upsell.url }}">{{ upsell.description }}</a>{% endif %}
+                </div>
+            </header>
             <div class="row justify-content-center">
                 {% comment %} Shipping form {% endcomment %}
                 <section class='col-12 col-md-6 col-lg-4 mb-5'>

@@ -1,5 +1,5 @@
 <article class="{{ class }} d-flex flex-col tw-justify-items-stretch tw-leading-4">
-    <a {% if link %}href="{{ book.url }}"{% endif %}
+    <a {% if link is not False %}href="{{ book.url }}"{% endif %}
        title="{{ book.title }}"
        class='w-100 h-100 bg-white d-block position-relative text-decoration-none'>
         <img alt="Book cover for {{ book.title }}"

@@ -957,9 +957,19 @@ class OneAtATimeFormViewStoredToSession(FormView):
         country_code = self.request.session.get(SessionKey.country.value, False)
         return country_code
 
+    @cached_property
+    def zone(self):
+        if self.country is None:
+            return ShippingZone.default_zone
+        return ShippingZone.get_for_country(iso_a2=self.country)
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["plan"] = self.plan
+        context["zone"] = self.zone
+        context["syllabus"] = self.syllabus
+        context["price"] = self.price
+        context["country"] = self.country
         context["field_name"] = self.session_key.name
         context["field_value"] = self.initial_form_value()
         return context
@@ -979,7 +989,7 @@ class SelectDeliveriesView(OneAtATimeFormViewStoredToSession):
             display_in_quiz_flow=True
         )
         context["steps"] = [
-            {"title": "Select your schedule", "current": True},
+            {"title": "Reading speed", "current": True},
             {"title": "Syllabus", "current": False},
             {"title": "Shipping", "current": False},
             {"title": "Billing", "current": False},
@@ -1004,11 +1014,11 @@ class SelectSyllabusView(OneAtATimeFormViewStoredToSession):
         context["syllabus_options"] = context.get("plan").syllabi.all()
         context["steps"] = [
             {
-                "title": "Schedule",
+                "title": "Reading speed",
                 "current": False,
                 "href": reverse_lazy("signup_deliveries"),
             },
-            {"title": "Pick your syllabus", "current": True},
+            {"title": "Syllabus", "current": True},
             {"title": "Shipping", "current": False},
             {"title": "Billing", "current": False},
             {"title": "Checkout", "current": False},
@@ -1031,7 +1041,7 @@ class SelectShippingCountryView(OneAtATimeFormViewStoredToSession):
         context = super().get_context_data(**kwargs)
         context["steps"] = [
             {
-                "title": "Schedule",
+                "title": "Reading speed",
                 "current": False,
                 "href": reverse_lazy("signup_deliveries"),
             },
@@ -1040,7 +1050,7 @@ class SelectShippingCountryView(OneAtATimeFormViewStoredToSession):
                 "current": False,
                 "href": reverse_lazy("signup_syllabus"),
             },
-            {"title": "Your shipping country", "current": True},
+            {"title": "Shipping", "current": True},
             {"title": "Billing", "current": False},
             {"title": "Checkout", "current": False},
         ]
@@ -1062,16 +1072,19 @@ class SelectBillingPlanView(OneAtATimeFormViewStoredToSession):
         context = super().get_context_data(**kwargs)
         context["payment_options"] = [
             {
-                "plan": plan,
-                "price_with_shipping": plan.price_string_including_shipping(
-                    ShippingZone.get_for_country(iso_a2=self.country)
+                "price": price,
+                "shipping_price": price.shipping_fee(self.zone),
+                "price_with_shipping": price.price_string_including_shipping(self.zone),
+                "equivalent_monthly_price_including_shipping": price.equivalent_monthly_price_string_including_shipping(
+                    self.zone
                 ),
+                "equivalent_monthly_shipping_price": self.zone.rate,
             }
-            for plan in context.get("plan").prices.all()
+            for price in context.get("plan").prices.all()
         ]
         context["steps"] = [
             {
-                "title": "Schedule",
+                "title": "Reading speed",
                 "current": False,
                 "href": reverse_lazy("signup_deliveries"),
             },
@@ -1085,7 +1098,7 @@ class SelectBillingPlanView(OneAtATimeFormViewStoredToSession):
                 "current": False,
                 "href": reverse_lazy("signup_shipping"),
             },
-            {"title": "Billing options", "current": True},
+            {"title": "Billing", "current": True},
             {"title": "Checkout", "current": False},
         ]
         return context
@@ -1096,7 +1109,7 @@ class SelectDonationView(OneAtATimeFormViewStoredToSession):
     template_name = "app/signup/select_donation.html"
     success_url = reverse_lazy("v2_stripe_checkout")
     session_key = SessionKey.donation_amount
-    default_value = 5
+    default_value = 3
     require = [
         SessionKey.delivery_plan_id,
         SessionKey.syllabus_id,
@@ -1106,10 +1119,10 @@ class SelectDonationView(OneAtATimeFormViewStoredToSession):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["donation_amount_options"] = [2, 5, 7]
+        context["donation_amount_options"] = [1, 3, 5]
         context["steps"] = [
             {
-                "title": "Schedule",
+                "title": "Reading speed",
                 "current": False,
                 "href": reverse_lazy("signup_deliveries"),
             },
@@ -1128,7 +1141,7 @@ class SelectDonationView(OneAtATimeFormViewStoredToSession):
                 "current": False,
                 "href": reverse_lazy("signup_billing"),
             },
-            {"title": "Add a donation", "current": True},
+            {"title": "Donation", "current": True},
             {"title": "Checkout", "current": False},
         ]
         return context

@@ -10,9 +10,7 @@
                 <section class='col-12 col-md-6 col-lg-4 mb-5'>
                     <div class='max-width-card mx-auto'>
                         <form data-turbo="false" method="POST">
-                            <div class='d-none'>
-                                {% if gift_mode %}<input type='hidden' name='gift_mode' value="{{ gift_mode }}" />{% endif %}
-                            </div>
+                            <h2 class='h4 fw-bold text-center tw-mb-4'>What country are we shipping to?</h2>
                             {% csrf_token %}
                             <div class='position-relative'>{% bootstrap_field form.country %}</div>
                             {% bootstrap_button button_type="submit" content="Continue" %}

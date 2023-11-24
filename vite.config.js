@@ -1,5 +1,4 @@
 import { defineConfig } from "vite";
-import purgecss from "@fullhuman/postcss-purgecss";
 import tailwindcss from "tailwindcss";
 import tailwindNesting from "tailwindcss/nesting";
 import postcssImport from "postcss-import";
@@ -18,7 +17,9 @@ export default defineConfig(({ command }) => {
     build: {
       manifest: true,
       emptyOutDir: true,
-      polyfillModulePreload: false,
+      modulePreload: {
+        polyfill: command === "build",
+      },
       rollupOptions: {
         output: {
           dir: "vite/",
@@ -39,13 +40,6 @@ export default defineConfig(({ command }) => {
                 tailwindNesting,
                 tailwindcss,
                 autoprefixer,
-                // purgecss({
-                //   content: [
-                //     "./app/**/*.{py,html,js,ts}",
-                //     "./frontend/**/*.{html,js,ts}",
-                //     "./static/**/*.{html,js,ts}",
-                //   ],
-                // }),
               ],
             },
           }

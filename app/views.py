@@ -31,7 +31,7 @@ from django.views.generic.edit import FormView
 from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 from sentry_sdk import capture_exception, capture_message
-from wagtail.core.models import Page
+from wagtail.models import Page
 
 from app import analytics
 from app.forms import (

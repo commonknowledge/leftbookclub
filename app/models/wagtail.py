@@ -27,11 +27,9 @@ from wagtail.admin.panels import (
     HelpPanel,
     InlinePanel,
     MultiFieldPanel,
-    StreamFieldPanel,
 )
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.fields import RichTextField
-from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.images.models import AbstractImage, AbstractRendition
 from wagtail.models import Orderable, Page, Site
 from wagtail.rich_text import get_text_for_indexing
@@ -126,25 +124,26 @@ class ArticleSeoMixin(SeoMetadataMixin):
 #     product = SnippetChooserBlock(djstripe.models.LBCProduct)
 
 
+class Interval(models.TextChoices):
+    year = "year"
+    month = "month"
+    week = "week"
+    day = "day"
+
+
 @register_snippet
 class MembershipPlanPrice(Orderable, ClusterableModel):
     # name = models.CharField(max_length=150, blank=True)
     plan = ParentalKey("app.MembershipPlanPage", related_name="prices")
 
     price = MoneyField(
-        default=Money(0, "GBP"),
+        default=0,
         max_digits=14,
         decimal_places=2,
         default_currency="GBP",
         null=False,
         blank=False,
     )
-
-    class Interval(models.TextChoices):
-        year = "year"
-        month = "month"
-        week = "week"
-        day = "day"
 
     interval = models.CharField(
         max_length=10,
@@ -189,11 +188,7 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
 
     panels = [
         FieldPanel("title", classname="full title"),
-        FieldRowPanel(
-            [
-                FieldPanel("price"),
-            ]
-        ),
+        FieldPanel("price", classname="collapsibl collapsed"),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),
@@ -495,6 +490,10 @@ class Upsell(Orderable, ClusterableModel):
         )
 
 
+def create_default_layout_syllabus():
+    return {"id": uuid.uuid4(), "type": "syllabus_title", "value": {}}
+
+
 @register_snippet
 class SyllabusPage(Page, Orderable, ClusterableModel):
     # title
@@ -508,20 +507,18 @@ class SyllabusPage(Page, Orderable, ClusterableModel):
     )
     stripe_product = models.ForeignKey(
         LBCProduct,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        blank=False,
+        null=True,
         related_name="syllabi",
         help_text="The stripe product that the user will be subscribed to.",
     )
-
-    @classmethod
-    def create_default_layout(cls):
-        return {"id": uuid.uuid4(), "type": "syllabus_title", "value": {}}
 
     layout = create_streamfield(
         [
             ("syllabus_title", SyllabusTitleBlock()),
         ],
-        default=create_default_layout,
+        default=create_default_layout_syllabus,
     )
 
     content_panels = Page.content_panels + [
@@ -599,8 +596,8 @@ class BlogPage(WagtailCacheMixin, ArticleSeoMixin, Page):
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
-        StreamFieldPanel("body", classname="full"),
-        ImageChooserPanel("feed_image"),
+        FieldPanel("body", classname="full"),
+        FieldPanel("feed_image"),
     ]
 
     seo_description_sources = ArticleSeoMixin.seo_description_sources + ["intro"]
@@ -795,7 +792,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 class MerchandiseIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")
@@ -825,9 +822,7 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     type = models.CharField(max_length=300, blank=True)
     layout = create_streamfield()
 
-    content_panels = BaseShopifyProductPage.content_panels + [
-        StreamFieldPanel("layout")
-    ]
+    content_panels = BaseShopifyProductPage.content_panels + [FieldPanel("layout")]
 
     @classmethod
     def get_root_page(cls):
@@ -862,6 +857,13 @@ def metafields_array_to_list(arg):
         return value
     else:
         return []
+
+
+def create_default_layout_plan():
+    return (
+        {"id": uuid.uuid4(), "type": "plan_title", "value": {}},
+        {"id": uuid.uuid4(), "type": "plan_pricing", "value": {}},
+    )
 
 
 @method_decorator(cache_page, name="serve")
@@ -901,21 +903,16 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
         blank=True,
     )
 
-    @classmethod
-    def create_default_layout(cls):
-        return (
-            {"id": uuid.uuid4(), "type": "plan_title", "value": {}},
-            {"id": uuid.uuid4(), "type": "plan_pricing", "value": {}},
-        )
-
     layout = create_streamfield(
         [("plan_title", PlanTitleBlock()), ("plan_pricing", PlanPricingBlock())],
-        default=create_default_layout,
+        default=create_default_layout_plan,
     )
 
     panels = content_panels = Page.content_panels + [
         FieldPanel("deliveries_per_year", heading="[v1+v2] Deliveries per year"),
-        InlinePanel("prices", min_num=1, label="Prices"),
+        InlinePanel(
+            "prices", min_num=1, label="Prices", classname="collapsible collapsed"
+        ),
         MultiFieldPanel(
             [
                 FieldPanel("display_in_quiz_flow"),
@@ -935,7 +932,7 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
             heading="V1 signup flow",
             classname="collapsible collapsed",
         ),
-        StreamFieldPanel("layout"),
+        FieldPanel("layout"),
     ]
 
     @property
@@ -993,21 +990,21 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
 class HomePage(WagtailCacheMixin, IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")
 class InformationPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")
 class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")

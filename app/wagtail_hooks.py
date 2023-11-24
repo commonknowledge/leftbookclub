@@ -26,6 +26,7 @@ def global_admin_css():
 
 class MembershipOptionsAdmin(ModelAdmin):
     model = MembershipPlanPage
+    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
     menu_icon = "fa-money"
     menu_label = "Plans"
 
@@ -33,17 +34,9 @@ class MembershipOptionsAdmin(ModelAdmin):
 modeladmin_register(MembershipOptionsAdmin)
 
 
-class PriceOptionsAdmin(ModelAdmin):
-    model = MembershipPlanPrice
-    menu_label = "Prices"
-    menu_icon = "fa-money"
-
-
-modeladmin_register(PriceOptionsAdmin)
-
-
 class SyllabiOptionsAdmin(ModelAdmin):
     model = SyllabusPage
+    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
     menu_label = "Syllabi"
     menu_icon = "fa-info"
 
@@ -193,7 +186,7 @@ class EventAdmin(ModelAdmin):
     )
     menu_label = "Events"  # ditch this to use verbose_name_plural from model
     menu_icon = "date"
-    menu_order = 500  # will put in 3rd place (000 being 1st, 100 2nd)
+    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
     ordering = ("-starts_at",)
     add_to_settings_menu = False  # or True to add your model to the Settings sub-menu
     exclude_from_explorer = (

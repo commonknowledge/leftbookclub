@@ -2,8 +2,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from wagtail import hooks
 from wagtail.admin.menu import MenuItem
-from wagtail.admin.panels import StreamFieldPanel
-from wagtail.contrib.settings.models import BaseSetting, register_setting
+from wagtail.admin.panels import FieldPanel
+from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 from wagtail.fields import RichTextField
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 
@@ -16,23 +16,23 @@ from app.models.wagtail import (
 
 
 @register_setting(icon="users")
-class MembershipJourney(BaseSetting):
+class MembershipJourney(BaseSiteSetting):
     welcome_content = create_streamfield()
-    panels = [StreamFieldPanel("welcome_content")]
+    panels = [FieldPanel("welcome_content")]
 
 
 @register_setting(icon="users")
-class MemberProfilePage(BaseSetting):
+class MemberProfilePage(BaseSiteSetting):
     profile_page_content = create_streamfield(
         [
             ("your_book_list", YourBooks()),
         ]
     )
-    panels = [StreamFieldPanel("profile_page_content")]
+    panels = [FieldPanel("profile_page_content")]
 
 
 @register_setting(icon="money")
-class UpsellPlanSettings(BaseSetting):
+class UpsellPlanSettings(BaseSiteSetting):
     class Meta:
         verbose_name = _("Review Fee Settings")
 
@@ -56,13 +56,12 @@ class UpsellPlanSettings(BaseSetting):
 
     upgrade_membership_text = RichTextField(
         blank=False,
-        features=["bold", "italic", "blockquote"],        
+        features=["bold", "italic", "blockquote"],
         default="""
     <p>You’re currently paying {{ old_price }}. Select this option if it’s all you can afford right now — that is totally OK.</p>
     <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>
     """,
     )
-
 
     upsell_plan = models.ForeignKey(
         MembershipPlanPage,

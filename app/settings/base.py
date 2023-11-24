@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "django_countries",
     "django_gravatar",
     "active_link",
-    "wagtailfontawesome",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",

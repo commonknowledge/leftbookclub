@@ -46,7 +46,10 @@ def register():
     slippers_dirs = []
 
     for templates_dir in template_dirs:
-        print("Registering slippers components from", templates_dir / SLIPPERS_SUBDIR)
+        if settings.DEBUG:
+            print(
+                "Registering slippers components from", templates_dir / SLIPPERS_SUBDIR
+            )
         if templates_dir.exists():
             templates_path = Path(templates_dir)
             slippers_dir = templates_path / SLIPPERS_SUBDIR

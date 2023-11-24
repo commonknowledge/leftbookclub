@@ -8,11 +8,14 @@ python-versions = ">=3.3"
 
 [[package]]
 name = "asgiref"
-version = "3.5.2"
+version = "3.7.2"
 description = "ASGI specs, helper code, and adapters"
 category = "main"
 optional = false
 python-versions = ">=3.7"
+
+[package.dependencies]
+typing-extensions = {version = ">=4", markers = "python_version < \"3.11\""}
 
 [package.extras]
 tests = ["mypy (>=0.800)", "pytest", "pytest-asyncio"]
@@ -381,16 +384,16 @@ postgres = ["psycopg2 (>=2.8.5,<3.0.0)"]
 
 [[package]]
 name = "django"
-version = "4.0.8"
+version = "4.2"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 
 [package.dependencies]
-asgiref = ">=3.4.1,<4"
+asgiref = ">=3.6.0,<4"
 bcrypt = {version = "*", optional = true, markers = "extra == \"bcrypt\""}
-sqlparse = ">=0.2.2"
+sqlparse = ">=0.3.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
@@ -515,14 +518,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-filter"
-version = "21.1"
+version = "23.4"
 description = "Django-filter is a reusable Django application for allowing users to filter querysets dynamically."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
-Django = ">=2.2"
+Django = ">=3.2"
 
 [[package]]
 name = "django-gravatar2"
@@ -569,49 +572,49 @@ python-versions = "*"
 
 [[package]]
 name = "django-mjml"
-version = "0.12.0"
+version = "1.1"
 description = "Use MJML in Django templates"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-django = ">=1.8,<4.1"
-
-[package.extras]
-requests = ["requests (>=2.20)", "requests[security] (>=2.20)"]
-
-[[package]]
-name = "django-modelcluster"
-version = "6.0"
-description = "Django extension to allow working with 'clusters' of models as a single unit, independently of the database"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-django = ">=2.2"
-pytz = ">=2015.2"
-
-[package.extras]
-taggit = ["django-taggit (>=0.20)"]
-
-[[package]]
-name = "django-money"
-version = "2.1.1"
-description = "Adds support for using money and currency fields in django models and forms. Uses py-moneyed as the money implementation."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
+django = ">=2.2,<5.0"
+
+[package.extras]
+requests = ["requests (>=2.24)"]
+
+[[package]]
+name = "django-modelcluster"
+version = "6.1"
+description = "Django extension to allow working with 'clusters' of models as a single unit, independently of the database"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+django = ">=3.2"
+pytz = ">=2022.4"
+
+[package.extras]
+taggit = ["django-taggit (>=2.0)"]
+
+[[package]]
+name = "django-money"
+version = "3.4.0"
+description = "Adds support for using money and currency fields in django models and forms. Uses py-moneyed as the money implementation."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
 Django = ">=2.2"
-py-moneyed = ">=1.2,<2.0"
+py-moneyed = ">=2.0,<3.1"
 setuptools = "*"
 
 [package.extras]
 exchange = ["certifi"]
-test = ["mixer", "pytest (>=3.1.0)", "pytest-cov", "pytest-django", "pytest-pythonpath"]
+test = ["django-stubs", "mixer", "mypy", "pytest (>=3.1.0)", "pytest-cov", "pytest-django", "pytest-pythonpath"]
 
 [[package]]
 name = "django-oauth-toolkit"
@@ -865,6 +868,14 @@ python-versions = ">=3.7"
 [package.extras]
 docs = ["furo (>=2022.9.29)", "sphinx (>=5.3)", "sphinx-autodoc-typehints (>=1.19.5)"]
 testing = ["covdefaults (>=2.2.2)", "coverage (>=6.5)", "pytest (>=7.2)", "pytest-cov (>=4)", "pytest-timeout (>=2.1)"]
+
+[[package]]
+name = "filetype"
+version = "1.2.0"
+description = "Infer file type and MIME type of any file/buffer. No external dependencies."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "gitdb"
@@ -1273,6 +1284,23 @@ docs = ["furo", "olefile", "sphinx (>=2.4)", "sphinx-copybutton", "sphinx-issues
 tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
+name = "pillow-heif"
+version = "0.13.1"
+description = "Python interface for libheif library"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+pillow = ">=9.1.1"
+
+[package.extras]
+dev = ["coverage", "defusedxml", "numpy", "opencv-python (==4.8.1.78)", "packaging", "pre-commit", "pylint", "pympler", "pytest"]
+docs = ["sphinx (>=4.4)", "sphinx-issues (>=3.0.1)", "sphinx-rtd-theme (>=1.0)"]
+tests = ["defusedxml", "numpy", "packaging", "pympler", "pytest"]
+tests-min = ["defusedxml", "packaging", "pytest"]
+
+[[package]]
 name = "platformdirs"
 version = "2.6.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
@@ -1350,17 +1378,19 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "py-moneyed"
-version = "1.2"
+version = "3.0"
 description = "Provides Currency and Money classes for use in your Python code."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 
 [package.dependencies]
 babel = ">=2.8.0"
+typing-extensions = ">=3.7.4.3"
 
 [package.extras]
 tests = ["pytest (>=2.3.0)", "tox (>=1.6.0)"]
+type-tests = ["mypy (>=0.812)", "pytest (>=2.3.0)", "pytest-mypy-plugins"]
 
 [[package]]
 name = "pyactiveresource"
@@ -2021,35 +2051,34 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 
 [[package]]
 name = "wagtail"
-version = "3.0.3"
+version = "5.2.1"
 description = "A Django content management system."
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 
 [package.dependencies]
 anyascii = ">=0.1.5"
-beautifulsoup4 = ">=4.8,<4.10"
-Django = ">=3.2,<4.1"
-django-filter = ">=2.2,<22"
-django-modelcluster = ">=6.0,<7.0"
+beautifulsoup4 = ">=4.8,<4.12"
+Django = ">=3.2,<4.3"
+django-filter = ">=23.3,<24"
+django-modelcluster = ">=6.1,<7.0"
 django-permissionedforms = ">=0.1,<1.0"
-django-taggit = ">=2.0,<3.0"
+django-taggit = ">=2.0,<5.0"
 django-treebeard = ">=4.5.1,<5.0"
 djangorestframework = ">=3.11.1,<4.0"
 draftjs-exporter = ">=2.1.5,<3.0"
 html5lib = ">=0.999,<2"
 l18n = ">=2018.5"
-Pillow = ">=4.0.0,<10.0.0"
+openpyxl = ">=3.0.10,<4.0"
+Pillow = ">=9.1.0,<11.0.0"
 requests = ">=2.11.1,<3.0"
-tablib = {version = ">=0.14.0", extras = ["xls", "xlsx"]}
 telepath = ">=0.1.1,<1"
-Willow = ">=1.4,<1.5"
-xlsxwriter = ">=1.2.8,<4.0"
+Willow = {version = ">=1.6.2,<1.7", extras = ["heif"]}
 
 [package.extras]
-docs = ["Sphinx (>=1.5.2)", "myst-parser (==0.17.0)", "pyenchant (>=3.1.1,<4)", "sphinx-autobuild (>=0.6.0)", "sphinx-wagtail-theme (==5.1.1)", "sphinxcontrib-spelling (>=5.4.0,<6)"]
-testing = ["Jinja2 (>=3.0,<3.2)", "azure-mgmt-cdn (>=5.1,<6.0)", "azure-mgmt-frontdoor (>=0.3,<0.4)", "black (==22.3.0)", "boto3 (>=1.16,<1.17)", "coverage (>=3.7.0)", "curlylint (==0.13.1)", "django-pattern-library (>=0.7,<0.8)", "djhtml (==1.4.13)", "doc8 (==0.8.1)", "elasticsearch (>=5.0,<6.0)", "flake8 (>=3.6.0)", "flake8-assertive (==2.0.0)", "flake8-blind-except (==0.1.1)", "flake8-comprehensions (==3.8.0)", "flake8-print (==5.0.0)", "freezegun (>=0.3.8)", "isort (==5.6.4)", "openpyxl (>=2.6.4)", "polib (>=1.1,<2.0)", "python-dateutil (>=2.7)", "pytz (>=2014.7)"]
+docs = ["Sphinx (>=1.5.2)", "myst-parser (==0.18.1)", "pyenchant (>=3.1.1,<4)", "sphinx-autobuild (>=0.6.0)", "sphinx-copybutton (>=0.5,<1.0)", "sphinx-wagtail-theme (==6.1.1)", "sphinxcontrib-spelling (>=5.4.0,<6)"]
+testing = ["Jinja2 (>=3.0,<3.2)", "azure-mgmt-cdn (>=12.0,<13.0)", "azure-mgmt-frontdoor (>=1.0,<1.1)", "black (==22.3.0)", "boto3 (>=1.28,<2)", "coverage (>=3.7.0)", "curlylint (==0.13.1)", "django-pattern-library (>=0.7,<0.8)", "djhtml (==1.5.2)", "doc8 (==0.8.1)", "factory-boy (>=3.2)", "freezegun (>=0.3.8)", "polib (>=1.1,<2.0)", "python-dateutil (>=2.7)", "pytz (>=2014.7)", "ruff (==0.0.290)", "semgrep (==1.40.0)", "tblib (>=2.0,<3.0)"]
 
 [[package]]
 name = "wagtail-admin-list-controls"
@@ -2076,25 +2105,25 @@ test = ["beautifulsoup4 (>=4.8)", "html5lib (>=0.999999999)", "pytest (>=3.5)", 
 
 [[package]]
 name = "wagtail-cache"
-version = "2.2.0"
+version = "2.3.0"
 description = "A simple page cache for Wagtail based on the Django cache middleware."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-wagtail = ">=3.0,<5.0"
+wagtail = ">=3.0,<6"
 
 [[package]]
 name = "wagtail-seo"
-version = "2.3.0"
+version = "2.4.1"
 description = "Search engine and social media optimization for Wagtail."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 
 [package.dependencies]
-wagtail = ">=3.0,<5.0"
+wagtail = ">=3.0,<6.0"
 
 [[package]]
 name = "wagtail-transfer"
@@ -2108,39 +2137,20 @@ python-versions = ">=3.6"
 docs = ["mkdocs (>=1.0,<1.1)", "mkdocs-material (>=4.6,<4.7)"]
 
 [[package]]
-name = "wagtailfontawesome"
-version = "1.2.1"
-description = "Add FontAwesome icons to StreamField."
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-Django = ">=1.7.1"
-wagtail = ">=1.4.0"
-
-[[package]]
 name = "wagtailmenus"
-version = "3.1.1"
+version = "3.1.9"
 description = "An app to help you manage menus in your Wagtail projects more consistently."
 category = "main"
 optional = false
-python-versions = ">=3.7"
-develop = false
+python-versions = ">=3.8"
 
 [package.dependencies]
 django-cogwheels = "0.3"
 
 [package.extras]
-development = ["beautifulsoup4 (>=4.8,<4.10)", "coverage (>=4.5)", "django-debug-toolbar", "django-extensions", "django-webtest (>=1.9,<1.10)", "ipdb", "wagtail (>=2.15)", "werkzeug"]
-docs = ["Sphinx (>=1.7.4)", "pyenchant (>=2.0)", "sphinx_rtd_theme (>=0.3)", "sphinxcontrib-spelling (>=1.4)"]
+development = ["beautifulsoup4 (>=4.8,<4.10)", "coverage (>=4.5)", "django-debug-toolbar", "django-extensions", "django-webtest (>=1.9,<1.10)", "ipdb", "wagtail (>=2.15)", "wagtail-modeladmin (>=1.0)", "werkzeug"]
+docs = ["Sphinx (>=1.7.4)", "pyenchant (>=2.0)", "sphinx-rtd-theme (>=0.3)", "sphinxcontrib-spelling (>=1.4)"]
 testing = ["beautifulsoup4 (>=4.8,<4.10)", "coverage (>=4.5)", "django-webtest (>=1.9,<1.10)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/commonknowledge/wagtailmenus"
-reference = "master"
-resolved_reference = "68d6d2179f7e87be45caef2f6844e97da0db2519"
 
 [[package]]
 name = "webdriver-manager"
@@ -2166,14 +2176,21 @@ python-versions = "*"
 
 [[package]]
 name = "willow"
-version = "1.4.1"
+version = "1.6.2"
 description = "A Python image library that sits on top of Pillow, Wand and OpenCV"
 category = "main"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
+python-versions = ">=3.8"
+
+[package.dependencies]
+defusedxml = ">=0.7,<1.0"
+filetype = ">=1.0.10,<1.1.0 || >1.1.0"
+pillow-heif = {version = ">=0.10.0,<1.0.0", optional = true, markers = "extra == \"heif\""}
 
 [package.extras]
-testing = ["Pillow (>=6.0.0,<10.0.0)", "Wand (>=0.6,<1.0)", "mock (>=3.0,<4.0)"]
+docs = ["Sphinx (>=7.0)", "sphinx-wagtail-theme (==6.0.0)", "sphinx_copybutton (>=0.5)", "sphinxcontrib-spelling (>=8.0,<9.0)"]
+heif = ["pillow-heif (>=0.10.0,<1.0.0)"]
+testing = ["Pillow (>=9.1.0,<11.0.0)", "Wand (>=0.6,<1.0)", "black (==22.3.0)", "coverage[toml] (>=7.2.7,<8.0)", "mock (>=3.0,<4.0)", "pillow-heif (>=0.10.0,<1.0.0)", "ruff (==0.0.275)"]
 
 [[package]]
 name = "wrapt"
@@ -2208,14 +2225,6 @@ docs = ["sphinx"]
 test = ["pytest", "pytest-cov"]
 
 [[package]]
-name = "xlsxwriter"
-version = "3.0.3"
-description = "A Python module for creating Excel XLSX files."
-category = "main"
-optional = false
-python-versions = ">=3.4"
-
-[[package]]
 name = "xlwt"
 version = "1.3.0"
 description = "Library to create spreadsheet files compatible with MS Excel 97/2000/XP/2003 XLS files, on any platform, with Python 2.6, 2.7, 3.3+"
@@ -2238,7 +2247,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7f839ee1d493ccbd033facc28065334982a081fad83a921a4d505bdc5b960f16"
+content-hash = "9955ab65a8a387fcae78ba5d51ab35b09b3dcc2dd88767cc23de57a2f3550378"
 
 [metadata.files]
 anyascii = [
@@ -2246,8 +2255,8 @@ anyascii = [
     {file = "anyascii-0.3.1.tar.gz", hash = "sha256:dedf57728206e286c91eed7c759505a5e45c8cd01367dd40c2f7248bb15c11f6"},
 ]
 asgiref = [
-    {file = "asgiref-3.5.2-py3-none-any.whl", hash = "sha256:1d2880b792ae8757289136f1db2b7b99100ce959b2aa57fd69dab783d05afac4"},
-    {file = "asgiref-3.5.2.tar.gz", hash = "sha256:4a29362a6acebe09bf1d6640db38c1dc3d9217c68e6f9f6204d72667fc19a424"},
+    {file = "asgiref-3.7.2-py3-none-any.whl", hash = "sha256:89b2ef2247e3b562a16eef663bc0e2e703ec6468e2fa8a5cd61cd449786d4f6e"},
+    {file = "asgiref-3.7.2.tar.gz", hash = "sha256:9e0ce3aa93a819ba5b45120216b23878cf6e8525eb3848653452b4192b92afed"},
 ]
 astroid = [
     {file = "astroid-2.12.13-py3-none-any.whl", hash = "sha256:10e0ad5f7b79c435179d0d0f0df69998c4eef4597534aae44910db060baeb907"},
@@ -2484,8 +2493,8 @@ dj-stripe = [
     {file = "dj_stripe-2.7.3.tar.gz", hash = "sha256:88b584ff2940b0b87ec337df1e7f4974d739a48cdfc81c3b25e4247c541c75ec"},
 ]
 django = [
-    {file = "Django-4.0.8-py3-none-any.whl", hash = "sha256:27cb08fa6458c1eff8b97c4c2d03774646fb26feeaa4587dca10c49e6d4fc6a3"},
-    {file = "Django-4.0.8.tar.gz", hash = "sha256:07e6433f263c3839939cfabeb6d7557841e0419e47759a7b7d37f6d44d40adcb"},
+    {file = "Django-4.2-py3-none-any.whl", hash = "sha256:ad33ed68db9398f5dfb33282704925bce044bef4261cd4fb59e4e7f9ae505a78"},
+    {file = "Django-4.2.tar.gz", hash = "sha256:c36e2ab12824e2ac36afa8b2515a70c53c7742f0d6eaefa7311ec379558db997"},
 ]
 django-active-link = [
     {file = "django-active-link-0.1.8.tar.gz", hash = "sha256:87aac58cc89913ff3b017b91cb24cda0dbb05945aa46c6a1428d0744b56a3e1f"},
@@ -2523,8 +2532,8 @@ django-extensions = [
     {file = "django_extensions-3.2.1-py3-none-any.whl", hash = "sha256:421464be390289513f86cb5e18eb43e5dc1de8b4c27ba9faa3b91261b0d67e09"},
 ]
 django-filter = [
-    {file = "django-filter-21.1.tar.gz", hash = "sha256:632a251fa8f1aadb4b8cceff932bb52fe2f826dd7dfe7f3eac40e5c463d6836e"},
-    {file = "django_filter-21.1-py3-none-any.whl", hash = "sha256:f4a6737a30104c98d2e2a5fb93043f36dd7978e0c7ddc92f5998e85433ea5063"},
+    {file = "django-filter-23.4.tar.gz", hash = "sha256:bed070b38359dce7d2dbe057b165d59773057986356cb809ded983b36c77a976"},
+    {file = "django_filter-23.4-py3-none-any.whl", hash = "sha256:526954f18bd7d6423f232a9a7974f58fbc6863908b9fc160de075e01adcc2a5f"},
 ]
 django-gravatar2 = [
     {file = "django-gravatar2-1.4.4.tar.gz", hash = "sha256:c813280967511ced93eea0359f60e5369c35b3311efe565c3e5d4ab35c10c9ee"},
@@ -2543,16 +2552,16 @@ django-mathfilters = [
     {file = "django_mathfilters-1.0.0-py3-none-any.whl", hash = "sha256:64200a21bb249fbf27be601d4bbb788779e09c6e063170c097cd82c4d18ebb83"},
 ]
 django-mjml = [
-    {file = "django-mjml-0.12.0.tar.gz", hash = "sha256:326d4e6ec17e3f1ff7b4ef506b6f70756542d89916f980f41491a87d27a200d8"},
-    {file = "django_mjml-0.12.0-py2.py3-none-any.whl", hash = "sha256:5de85d8758c6d7ffa7278f578c5ea3b4ca9a1921e82de23c26e6c5c8149c4ffd"},
+    {file = "django-mjml-1.1.tar.gz", hash = "sha256:1a057d790227ea30fe4088eebfcfd5993e4e92840021034a1415d5b5c7997841"},
+    {file = "django_mjml-1.1-py3-none-any.whl", hash = "sha256:30a57d83c2257a998530032bb5f8fe2c1ca582ec021f884fed2798ec7ab993a9"},
 ]
 django-modelcluster = [
-    {file = "django-modelcluster-6.0.tar.gz", hash = "sha256:cdcffef5baf5d3759ee04c5b60ffaf1a0c95fc0f265e762f3ddfadde3394e5db"},
-    {file = "django_modelcluster-6.0-py2.py3-none-any.whl", hash = "sha256:4ae46f86c43702020f24f212222eef0a2588df937bbb523a5447da247b5fb130"},
+    {file = "django-modelcluster-6.1.tar.gz", hash = "sha256:3b1791638046c73ae7415327cf54bfa0adad9d89d342a5b86d0ec29a2504e067"},
+    {file = "django_modelcluster-6.1-py2.py3-none-any.whl", hash = "sha256:8ce72635db4b90b34993afda5021ed8676ef94f1d4c607466d0f8d3f676c5b64"},
 ]
 django-money = [
-    {file = "django-money-2.1.1.tar.gz", hash = "sha256:4d06041fac5c565ad049a7f8fb4bc33de5c68047b0693efa18a9931cebffb606"},
-    {file = "django_money-2.1.1-py3-none-any.whl", hash = "sha256:60a605d5b999e1756a18008dd7e0c5a860fd64c018a140c7a7675a4209ec3782"},
+    {file = "django-money-3.4.0.tar.gz", hash = "sha256:d2719b0ed8f7f54d6310018b9906bc13ac05b397de576c763d9b0722097a4e04"},
+    {file = "django_money-3.4.0-py3-none-any.whl", hash = "sha256:09e6008a224a78911574ff82ffa3445d1d5fa3cd7a74955469b2f11ad175651a"},
 ]
 django-oauth-toolkit = [
     {file = "django-oauth-toolkit-2.2.0.tar.gz", hash = "sha256:46890decb24a34e2a5382debeaf7752e50d90b7a11716cf2a9fd067097ec0963"},
@@ -2624,6 +2633,10 @@ exceptiongroup = [
 filelock = [
     {file = "filelock-3.8.2-py3-none-any.whl", hash = "sha256:8df285554452285f79c035efb0c861eb33a4bcfa5b7a137016e32e6a90f9792c"},
     {file = "filelock-3.8.2.tar.gz", hash = "sha256:7565f628ea56bfcd8e54e42bdc55da899c85c1abfe1b5bcfd147e9188cebb3b2"},
+]
+filetype = [
+    {file = "filetype-1.2.0-py2.py3-none-any.whl", hash = "sha256:7ce71b6880181241cf7ac8697a2f1eb6a8bd9b429f7ad6d27b8db9ba5f1c2d25"},
+    {file = "filetype-1.2.0.tar.gz", hash = "sha256:66b56cd6474bf41d8c54660347d37afcc3f7d1970648de365c102ef77548aadb"},
 ]
 gitdb = [
     {file = "gitdb-4.0.10-py3-none-any.whl", hash = "sha256:c286cf298426064079ed96a9e4a9d39e7f3e9bf15ba60701e95f5492f28415c7"},
@@ -2935,6 +2948,59 @@ pillow = [
     {file = "Pillow-9.3.0-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:073adb2ae23431d3b9bcbcff3fe698b62ed47211d0716b067385538a1b0f28b8"},
     {file = "Pillow-9.3.0.tar.gz", hash = "sha256:c935a22a557a560108d780f9a0fc426dd7459940dc54faa49d83249c8d3e760f"},
 ]
+pillow-heif = [
+    {file = "pillow_heif-0.13.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:62a0269a06119ae1395e28803677d46d4895410a360133d244dcffa6ecfdd4b9"},
+    {file = "pillow_heif-0.13.1-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:ba6f634008762818033e7df942e0fa6649dec95fbbaaf8de498d7e43ff136435"},
+    {file = "pillow_heif-0.13.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f9e7964e54b65bb7fb9b60e606dcb21582d7eea1046364d380a74081bec61478"},
+    {file = "pillow_heif-0.13.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7925f04312f39b7ef1334f1d676f901ba09615d1ccbec95b49c87af80677f383"},
+    {file = "pillow_heif-0.13.1-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:c02598f2103d385366dbd0c29da8a2bd30521d9cfc2f7342698839bf0c69e15a"},
+    {file = "pillow_heif-0.13.1-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:3239390575a25b1fd1bc8f41f0d3783c1aa26c77a467731fa301175d542f5e8b"},
+    {file = "pillow_heif-0.13.1-cp310-cp310-win_amd64.whl", hash = "sha256:24a8c78a5fc2e5efa3650a10c061cd507888896d583c4e63a54549b34cb84d05"},
+    {file = "pillow_heif-0.13.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:779af08dc4dc0e787608ef035a525de40bf98e946ab194e3f702510c07af5f80"},
+    {file = "pillow_heif-0.13.1-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:df4eba9bd64bb50656eda31acddac58f53bc3f2c5b35ea8c90438a7e2763bce7"},
+    {file = "pillow_heif-0.13.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b586ba25c003bc2b608fe5cd1396b738b838ad4277348a5ca4525aac1f28e7b9"},
+    {file = "pillow_heif-0.13.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5389574c874805bd6a3f2d5ef14ef90b61fdbebd75b58798677e84018caac6c1"},
+    {file = "pillow_heif-0.13.1-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:736800774f9754ebfeba21ae137db0aa9f19df17521aee70ceeb68e569a5fb00"},
+    {file = "pillow_heif-0.13.1-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:86f47db53eb719bccddb14cadd91fe9fa38b57aa07e3823ffe74b796a2bc50f2"},
+    {file = "pillow_heif-0.13.1-cp311-cp311-win_amd64.whl", hash = "sha256:4f0eb2babec34900367384feaacff9a2f42e959767ba5df214560ef579b657b1"},
+    {file = "pillow_heif-0.13.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:14787322b70e9cb02e599ef836f33181f981383f4848206f9fe5a272821806cb"},
+    {file = "pillow_heif-0.13.1-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:f483c68895faad5af313e30c546cd935389ee99e59522d12f53225b46dcb9753"},
+    {file = "pillow_heif-0.13.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ae9169e1ec94793d1b9ffe98ee39f856ca002e3ac476eaef0b524fedc81d2304"},
+    {file = "pillow_heif-0.13.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c8e11c2a564663ce52f56851f3b9653abb254ec520191d3cf7841fcd02c29e3a"},
+    {file = "pillow_heif-0.13.1-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:023ec7a6f085be0cf33e1b4458575579e3952da36b9c32956dbb2749b53e63b3"},
+    {file = "pillow_heif-0.13.1-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:459b8536e86df2f957998f9ba830ae3e8a51177db67d1a9cb7243402bb70b576"},
+    {file = "pillow_heif-0.13.1-cp312-cp312-win_amd64.whl", hash = "sha256:6fa3661f6f8c6c28e4e565c7aa9e4a1ae2507aa1f3691f831d3a9bfd465ceea4"},
+    {file = "pillow_heif-0.13.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:b78e59d89d57dbfa27b346ea5841bd80c61441d5dddfbaa135007dea81a24a53"},
+    {file = "pillow_heif-0.13.1-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:52b26bd99c1604fcd2760b0826e79a3301b6269ff6c129750e0e6ef4e4980f96"},
+    {file = "pillow_heif-0.13.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a4f03ee12b249725144cf01bbacaf99029e54a67495fd2df6c29c493c44cdb15"},
+    {file = "pillow_heif-0.13.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a23e660c73739e2e4e3b18667bc478c4d62b31dfba07d962f1e8256bd37148b3"},
+    {file = "pillow_heif-0.13.1-cp38-cp38-musllinux_1_2_aarch64.whl", hash = "sha256:e72ee2971b722110fa6eb4b0ff640fc3854d9959f9a61f93eba62a16c6c40b75"},
+    {file = "pillow_heif-0.13.1-cp38-cp38-musllinux_1_2_x86_64.whl", hash = "sha256:403a652a6665b1672590890edf2489686dc343c05fa2cae320ffc551de315392"},
+    {file = "pillow_heif-0.13.1-cp38-cp38-win_amd64.whl", hash = "sha256:385b93f575c98bd69bcefe2b013af324ed9c50d4600449f46fe784e909ac370e"},
+    {file = "pillow_heif-0.13.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:b56974c11e63ef1cda133bdd2eac2b4a992448a92dab3fcd20c5ec3195958952"},
+    {file = "pillow_heif-0.13.1-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:426662a4c3da6c499627303b858accb482583f7f1c5874d40057a8c843a3d53f"},
+    {file = "pillow_heif-0.13.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bce196e134b1dec0b82c157b27d665deb2193cbcce5a338a06766819a1878df9"},
+    {file = "pillow_heif-0.13.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:97154e03be732005b51130aedff30229e9ae5038fa717afaca30e22d3e49d69e"},
+    {file = "pillow_heif-0.13.1-cp39-cp39-musllinux_1_2_aarch64.whl", hash = "sha256:1ac0bbcacb84e270c4accb519bf115dc18b80d7b3e283ddbb98bb77af613f5f4"},
+    {file = "pillow_heif-0.13.1-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:6312ee1730e742851e0f2fec60b1390db9ffd831a26fd967fb3c7ed8a3f61197"},
+    {file = "pillow_heif-0.13.1-cp39-cp39-win_amd64.whl", hash = "sha256:894caef12129966df326605b8ce7a18b88fabf50dcf3bdd4595ddf76c8543b9e"},
+    {file = "pillow_heif-0.13.1-pp310-pypy310_pp73-macosx_10_9_x86_64.whl", hash = "sha256:e7651354c30a4e2fb075df2a0e48ae3193a0b378ee2c262dea63b5b3013ec9b5"},
+    {file = "pillow_heif-0.13.1-pp310-pypy310_pp73-macosx_12_0_arm64.whl", hash = "sha256:9998235d3f1edfec3691161dbe83501b7139840d80caef640a9c87d7d5934b69"},
+    {file = "pillow_heif-0.13.1-pp310-pypy310_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2c8f070fe3705a52ef34c6b8cd39c29529972b5d7e2388a80530421e6d042b38"},
+    {file = "pillow_heif-0.13.1-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:64b6ab214fa5ec6f709ec79b7bc2abaecba1553849ef0f04cd8ab1cf3b0aaf94"},
+    {file = "pillow_heif-0.13.1-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:2fd56909022dfff4e02397585dda6b3ae25cd11adf1123c5617224947734205b"},
+    {file = "pillow_heif-0.13.1-pp38-pypy38_pp73-macosx_10_9_x86_64.whl", hash = "sha256:b3bd97b4ce968a776eb04c1085f20834d100021407398d1ea6db2c9fa4167fed"},
+    {file = "pillow_heif-0.13.1-pp38-pypy38_pp73-macosx_12_0_arm64.whl", hash = "sha256:c4f6125b5d3d18a17e43318ceaadc0eaad12ec37948bb7cc3ffee016c9d62ea4"},
+    {file = "pillow_heif-0.13.1-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9c0a9763fb132b606c3fc1f749f3c4b94e01453a96366b9746d61c431626af12"},
+    {file = "pillow_heif-0.13.1-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:441751e7a09d4f253f48a4076fdf4778eea6d90fd8a57f0afde27236ba535eb1"},
+    {file = "pillow_heif-0.13.1-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:6edc64c8e7172364bbeff09745cd76e443e673f68bd84708904dcdedab2645fd"},
+    {file = "pillow_heif-0.13.1-pp39-pypy39_pp73-macosx_10_9_x86_64.whl", hash = "sha256:1f61ebf35ad81994fcde3e7a7ebd15adc9dc9419aab97c6e4a535c04940daa20"},
+    {file = "pillow_heif-0.13.1-pp39-pypy39_pp73-macosx_12_0_arm64.whl", hash = "sha256:a7745c019f954aab611299908089e3e53f45ed4eda057cb32782b90cbf5c1ef9"},
+    {file = "pillow_heif-0.13.1-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:99235d323388de1bef001f06f6a35f20a1d6954896d79e44f4dc4d2bb6f3229c"},
+    {file = "pillow_heif-0.13.1-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2e360c0c533345b34e05b923b49abbf08ec7ebe8e17f6cca6b446d386b7fd8b3"},
+    {file = "pillow_heif-0.13.1-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:d9cf0b1a18e660b829fb9c618b5539c3c741301009ff06e8438b89211e890a13"},
+    {file = "pillow_heif-0.13.1.tar.gz", hash = "sha256:0d46adc8a8afb515297fd47fc0b15657b8927f7ec52ad1fb8d63250413d4c6ba"},
+]
 platformdirs = [
     {file = "platformdirs-2.6.0-py3-none-any.whl", hash = "sha256:1a89a12377800c81983db6be069ec068eee989748799b946cce2a6e80dcc54ca"},
     {file = "platformdirs-2.6.0.tar.gz", hash = "sha256:b46ffafa316e6b83b47489d240ce17173f123a9b9c83282141c3daf26ad9ac2e"},
@@ -2971,8 +3037,8 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 py-moneyed = [
-    {file = "py-moneyed-1.2.tar.gz", hash = "sha256:d745a52819604f42b3666f9b2504b71c27c1645d6d5027d95ec5ed1f28ca86e3"},
-    {file = "py_moneyed-1.2-py2.py3-none-any.whl", hash = "sha256:c6131c7b7c1f8503552afe44d15c343ea50282d1d9e6fa8b3f1bd2affc1dae1e"},
+    {file = "py-moneyed-3.0.tar.gz", hash = "sha256:4906f0f02cf2b91edba2e156f2d4e9a78f224059ab8c8fa2ff26230c75d894e8"},
+    {file = "py_moneyed-3.0-py3-none-any.whl", hash = "sha256:9583a14f99c05b46196193d8185206e9b73c8439fc8a5eee9cfc7e733676d9bb"},
 ]
 pyactiveresource = [
     {file = "pyactiveresource-2.2.2.tar.gz", hash = "sha256:2f03844652dc206d9a086b0b15564d78dcec55786fa5fe0055dd2119e0dffdd8"},
@@ -3318,8 +3384,8 @@ virtualenv = [
     {file = "virtualenv-20.17.1.tar.gz", hash = "sha256:f8b927684efc6f1cc206c9db297a570ab9ad0e51c16fa9e45487d36d1905c058"},
 ]
 wagtail = [
-    {file = "wagtail-3.0.3-py3-none-any.whl", hash = "sha256:111ed9a0a6ff26d5d881d52deb4bf52b627d79a53c43829611752dbb68a9192f"},
-    {file = "wagtail-3.0.3.tar.gz", hash = "sha256:23b3e541401355ea183372582050ea52b049c956dd5b506197f957bb68423ab3"},
+    {file = "wagtail-5.2.1-py3-none-any.whl", hash = "sha256:fde8055e6988b5d88ff561535acfe1d10ca42334eea22bb5acd194f331f887e3"},
+    {file = "wagtail-5.2.1.tar.gz", hash = "sha256:1186b2baa74eee858f4b6b573324990f37a667c91afc439ba2651d8ac4be1a8d"},
 ]
 wagtail-admin-list-controls = [
     {file = "wagtail-admin-list-controls-0.1.7.tar.gz", hash = "sha256:e56a88036072321f9200d402de639260b8a878a87637aad90cefeeeba493105c"},
@@ -3330,22 +3396,21 @@ wagtail-autocomplete = [
     {file = "wagtail_autocomplete-0.9.0-py3-none-any.whl", hash = "sha256:d85789543308d344447656725b9aac8d1c4c6fb271221a3340008a3c9f2ab6fa"},
 ]
 wagtail-cache = [
-    {file = "wagtail-cache-2.2.0.tar.gz", hash = "sha256:e9e6a8391795d5faab877183c025451c82905ea94b7a0d5eb4aca29ea136499f"},
-    {file = "wagtail_cache-2.2.0-py3-none-any.whl", hash = "sha256:a231bc3941eb3ce3e8c73b9aea5d9a54e2f580009a0c87bf86ac59a6545a9609"},
+    {file = "wagtail-cache-2.3.0.tar.gz", hash = "sha256:fbb0c04f8238ed688b5f58ad8644366d017d0ebdcaf84d12be33ad85624f0a25"},
+    {file = "wagtail_cache-2.3.0-py3-none-any.whl", hash = "sha256:3d4fd0c6f8b5fc30e6a110ebe4e4a144df72a011fb79703e601a753895fc0713"},
 ]
 wagtail-seo = [
-    {file = "wagtail-seo-2.3.0.tar.gz", hash = "sha256:cefd8c1b011d55a95dbe8b6c75a504fb441df089f594e2b06d92e3d5b95f3609"},
-    {file = "wagtail_seo-2.3.0-py3-none-any.whl", hash = "sha256:052c1cd56f13ad04ff8dd37c3937085f8f79677241e30ef5900a06c596c283c6"},
+    {file = "wagtail-seo-2.4.1.tar.gz", hash = "sha256:fd9ff0f840a2800f30421182bd101615da236bc8431227f9aeb19bcc7adb87ac"},
+    {file = "wagtail_seo-2.4.1-py3-none-any.whl", hash = "sha256:bf187ad4c2e4c270d11eb93f59f109a5c5f8bde9c52e6b3d869d03581dd3bf76"},
 ]
 wagtail-transfer = [
     {file = "wagtail-transfer-0.8.5.tar.gz", hash = "sha256:8e32806cfc175c5a9ac2573f0ad09b7a6c273002aaf1efb44c01519e385ac827"},
     {file = "wagtail_transfer-0.8.5-py3-none-any.whl", hash = "sha256:1ec0847adc385f226d292532077e32a019fe2ba5c0ddf7819cac9c66c8e85a77"},
 ]
-wagtailfontawesome = [
-    {file = "wagtailfontawesome-1.2.1-py2.py3-none-any.whl", hash = "sha256:76b1c64c4f1042d468a83e4352f74b57bda4a4aa09cdfeeb8663dead5ed632be"},
-    {file = "wagtailfontawesome-1.2.1.tar.gz", hash = "sha256:6c1bd2d6061880848de6374ceb75d38a8c9b0debb1d4aef8a2fdc9d565a8f417"},
+wagtailmenus = [
+    {file = "wagtailmenus-3.1.9-py3-none-any.whl", hash = "sha256:cfcaa942474c20383eed6e01a1ddf1249c7a18bb1a2faa25a744fc28c57a745b"},
+    {file = "wagtailmenus-3.1.9.tar.gz", hash = "sha256:ce484d06cf901402238ad337fc09ba8842ceff3baa08b4cafaddbb158878cda3"},
 ]
-wagtailmenus = []
 webdriver-manager = [
     {file = "webdriver_manager-3.8.5-py2.py3-none-any.whl", hash = "sha256:2d807ec270d2d990022b86efabd4096053e0a1e7a34c6174f9937320dfdc6826"},
     {file = "webdriver_manager-3.8.5.tar.gz", hash = "sha256:e671f3b738af52351341d6df6674c2f0b959db0fe978e9a7135cfa36d1ad9560"},
@@ -3355,8 +3420,8 @@ webencodings = [
     {file = "webencodings-0.5.1.tar.gz", hash = "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"},
 ]
 willow = [
-    {file = "Willow-1.4.1-py2.py3-none-any.whl", hash = "sha256:fc4042696d090e75aef922fa1ed26d483c764f005b36cf523cf7c34e69d5dd7a"},
-    {file = "Willow-1.4.1.tar.gz", hash = "sha256:0df8ff528531e00b48d40bf72ed81beac1dc82f2d42e5bbed4aff0218bef8c0d"},
+    {file = "willow-1.6.2-py3-none-any.whl", hash = "sha256:957a4af8a7733e116a65eca34da11afe3fd52ffdb397494c8823901c25863787"},
+    {file = "willow-1.6.2.tar.gz", hash = "sha256:e2d0450fd78ab19052d0478b888ef163e3264e8dcd1af002dd691458db98056f"},
 ]
 wrapt = [
     {file = "wrapt-1.14.1-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:1b376b3f4896e7930f1f772ac4b064ac12598d1c38d04907e696cc4d794b43d3"},
@@ -3431,10 +3496,6 @@ wsproto = [
 xlrd = [
     {file = "xlrd-2.0.1-py2.py3-none-any.whl", hash = "sha256:6a33ee89877bd9abc1158129f6e94be74e2679636b8a205b43b85206c3f0bbdd"},
     {file = "xlrd-2.0.1.tar.gz", hash = "sha256:f72f148f54442c6b056bf931dbc34f986fd0c3b0b6b5a58d013c9aef274d0c88"},
-]
-xlsxwriter = [
-    {file = "XlsxWriter-3.0.3-py3-none-any.whl", hash = "sha256:df0aefe5137478d206847eccf9f114715e42aaea077e6a48d0e8a2152e983010"},
-    {file = "XlsxWriter-3.0.3.tar.gz", hash = "sha256:e89f4a1d2fa2c9ea15cde77de95cd3fd8b0345d0efb3964623f395c8c4988b7f"},
 ]
 xlwt = [
     {file = "xlwt-1.3.0-py2.py3-none-any.whl", hash = "sha256:a082260524678ba48a297d922cc385f58278b8aa68741596a87de01a9c628b2e"},

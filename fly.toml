@@ -8,6 +8,7 @@ primary_region = "lhr"
 kill_signal = "SIGTERM"
 console_command = "poetry run python manage.py shell"
 
+
 [build]
 
 [deploy]

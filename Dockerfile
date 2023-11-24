@@ -40,4 +40,4 @@ RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 
 EXPOSE 8080
 
-CMD ["bash", "-c", "poetry", "run", "gunicorn", "--bind", ":8080", "--workers", "2", "app.wsgi"]
+CMD ["poetry", "run", "gunicorn", "--bind", ":8080", "--workers", "2", "app.wsgi"]

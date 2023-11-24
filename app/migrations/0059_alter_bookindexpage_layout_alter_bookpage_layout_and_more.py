@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                                 (
                                     "plans",
                                     wagtail.blocks.ListBlock(
-                                        app.models.wagtail.PlanBlock
+                                        app.models.blocks.PlanBlock
                                     ),
                                 ),
                             ]
@@ -1029,7 +1029,7 @@ class Migration(migrations.Migration):
                                 (
                                     "plans",
                                     wagtail.blocks.ListBlock(
-                                        app.models.wagtail.PlanBlock
+                                        app.models.blocks.PlanBlock
                                     ),
                                 ),
                             ]
@@ -2014,7 +2014,7 @@ class Migration(migrations.Migration):
                                 (
                                     "plans",
                                     wagtail.blocks.ListBlock(
-                                        app.models.wagtail.PlanBlock
+                                        app.models.blocks.PlanBlock
                                     ),
                                 ),
                             ]
@@ -2999,7 +2999,7 @@ class Migration(migrations.Migration):
                                 (
                                     "plans",
                                     wagtail.blocks.ListBlock(
-                                        app.models.wagtail.PlanBlock
+                                        app.models.blocks.PlanBlock
                                     ),
                                 ),
                             ]
@@ -3984,7 +3984,7 @@ class Migration(migrations.Migration):
                                 (
                                     "plans",
                                     wagtail.blocks.ListBlock(
-                                        app.models.wagtail.PlanBlock
+                                        app.models.blocks.PlanBlock
                                     ),
                                 ),
                             ]
@@ -4986,7 +4986,7 @@ class Migration(migrations.Migration):
                                 (
                                     "plans",
                                     wagtail.blocks.ListBlock(
-                                        app.models.wagtail.PlanBlock
+                                        app.models.blocks.PlanBlock
                                     ),
                                 ),
                             ]
@@ -5971,7 +5971,7 @@ class Migration(migrations.Migration):
                                 (
                                     "plans",
                                     wagtail.blocks.ListBlock(
-                                        app.models.wagtail.PlanBlock
+                                        app.models.blocks.PlanBlock
                                     ),
                                 ),
                             ]
@@ -7779,7 +7779,7 @@ class Migration(migrations.Migration):
                                         (
                                             "plans",
                                             wagtail.blocks.ListBlock(
-                                                app.models.wagtail.PlanBlock
+                                                app.models.blocks.PlanBlock
                                             ),
                                         ),
                                     ]

@@ -1,4 +1,5 @@
 import "./scss/main.scss";
+import "./scss/tailwind.scss";
 import "@hotwired/turbo";
 import * as Turbo from "@hotwired/turbo";
 import "bootstrap";

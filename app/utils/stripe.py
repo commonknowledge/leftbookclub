@@ -127,6 +127,32 @@ def get_donation_product() -> djstripe.models.Product:
     return dj_donation_product
 
 
+def create_donation_line_item(
+    amount: float = 0,
+    interval_count: int = 1,
+    interval: str = "month",
+    metadata: dict = {},
+    currency: str = "gbp",
+):
+    if amount < 0:
+        raise ValueError("Donation amount must be 0 or greater.")
+
+    return {
+        "price_data": {
+            "unit_amount_decimal": int(amount * 100),
+            "product": get_donation_product().id,
+            "metadata": metadata,
+            # Mirror details from another SI
+            "currency": currency,
+            "recurring": {
+                "interval": interval,
+                "interval_count": interval_count,
+            },
+        },
+        "quantity": 1,
+    }
+
+
 def get_gift_card_coupon(
     product: Union[djstripe.models.Product, str]
 ) -> djstripe.models.Coupon:

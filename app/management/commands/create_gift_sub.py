@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.urls import reverse
 from djmoney.money import Money
-from wagtail.core.models import Page
+from wagtail.models import Page
 
 from app.models import MembershipPlanPage, MembershipPlanPrice, User
 from app.utils.python import uid

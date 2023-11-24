@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load books wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
+{% block facebook_pixel_event %}fbq('track', 'InitiateCheckout');{% endblock %}
+{% block content %}
+    {% if syllabus_options|length is 1 %}
+        {% var single_option=True %}
+    {% endif %}
+    {% with request.GET.gift_mode as gift_mode %}
+        {% comment %} TODO: Template-ify the header {% endcomment %}
+        {% qs_link as qs %}
+        {% signup_header steps=steps %}
+        {% comment %}  {% endcomment %}
+        <div class="row justify-content-center tw-flex">
+            <form data-turbo="false" method="POST" class="tw-mx-auto tw-max-w-lg">
+                {% if single_option %}
+                    <h2 class='h4 fw-bold text-center'>Here's your syllabus!</h2>
+                {% else %}
+                    <h2 class='h4 fw-bold text-center'>Pick your syllabus.</h2>
+                    <p class='tw-mb-4 text-center'>We regularly publish a new book for each syllabus.</p>
+                {% endif %}
+                {% csrf_token %}
+                <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
+                    {% for option in syllabus_options %}
+                        <li>
+                            <input type="radio"
+                                   id="option-{{ option.id }}"
+                                   name="{{ field_name }}"
+                                   {% if single_option or option.id|slugify == field_value|slugify %}checked="checked"{% endif %}
+                                   value="{{ option.id }}"
+                                   class="tw-hidden tw-peer"
+                                   required/>
+                            <label for="option-{{ option.id }}"
+                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
+                                <div class="tw-block">
+                                    <div class='tw-px-4 tw-pt-4'>
+                                        <div class="tw-w-full tw-text-lg tw-font-semibold  tw-text-black">{{ option.title }}</div>
+                                        <div class="tw-w-full">{{ option.description|richtext }}</div>
+                                    </div>
+                                    {% get_books types=option.book_types limit=4 as books %}
+                                    {% include "app/blocks/book_grid_block.html" with link=False date=False label=False books=books column_width="small" %}
+                                </div>
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% comment %} {% bootstrap_form form %} {% endcomment %}
+                {% bootstrap_button button_type="submit" content="Continue" %}
+            </form>
+        </div>
+    {% endwith %}
+{% endblock %}

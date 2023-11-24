@@ -10,9 +10,9 @@ const {
 module.exports = {
   prefix: "tw-",
   content: [
-    "./app/**/*.{py,html,js,ts,tsx}",
+    "./app/templates/**/*.html",
     "./frontend/**/*.{html,js,ts,tsx}",
-    "./static/**/*.{html,js,ts,tsx}",
+    // "./static/**/*.{html,js,ts,tsx}",
   ],
   theme: {
     /*

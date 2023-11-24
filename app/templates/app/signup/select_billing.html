@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting mathfilters djmoney %}
+{% block facebook_pixel_event %}fbq('track', 'InitiateCheckout');{% endblock %}
+{% block content %}
+    {% with request.GET.gift_mode as gift_mode %}
+        {% comment %} TODO: Template-ify the header {% endcomment %}
+        {% qs_link as qs %}
+        {% signup_header steps=steps %}
+        {% comment %}  {% endcomment %}
+        <div class="row justify-content-center tw-flex">
+            <form data-turbo="false" method="POST" class="tw-mx-auto tw-max-w-lg">
+                <h2 class='h4 fw-bold text-center tw-mb-4'>Pick a billing plan</h2>
+                {% csrf_token %}
+                <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
+                    {% for option in payment_options %}
+                        <li>
+                            <input type="radio"
+                                   id="option-{{ option.price.id }}"
+                                   name="{{ field_name }}"
+                                   {% if option.price.id|slugify == field_value|slugify %}checked="checked"{% endif %}
+                                   value="{{ option.price.id }}"
+                                   class="tw-hidden tw-peer"
+                                   required/>
+                            <label for="option-{{ option.price.id }}"
+                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-4 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
+                                <div class="tw-block">
+                                    <div class="tw-w-full tw-text-lg tw-font-semibold tw-text-black">
+                                        {{ option.price.title }}
+                                        {% if option.price.interval == 'year' and option.price.plan.annual_percent_off_per_month is not None %}
+                                            <span class="badge rounded-pill tw-bg-amber-300 tw-text-black">
+                                                {% widthratio option.price.plan.annual_percent_off_per_month -1 100 %}% off
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    {% if option.price.interval == 'year' %}
+                                        <div class="tw-w-full tw-text-gray-500">
+                                            Equivalent to <span class='tw-text-black tw-font-bold'>{{ option.equivalent_monthly_price_including_shipping }}</span>
+                                            (including {{ option.equivalent_monthly_shipping_price }} shipping)
+                                        </div>
+                                    {% endif %}
+                                    <div class="tw-w-full tw-text-gray-500">
+                                        Totalling <span class='tw-text-black tw-font-bold'>{{ option.price_with_shipping }}</span>
+                                        {% if option.price.interval != 'year' %}
+                                            (including {% money_localize option.shipping_price %} shipping)
+                                        {% endif %}
+                                    </div>
+                                    <div class="tw-w-full -tw-mb-3">{{ option.price.description|richtext }}</div>
+                                    <div class="tw-w-full [&>ul]:tw-pl-4 tw-list-image-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNCAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMzhiZGY4Ij48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy42ODUuMTUzYS43NTIuNzUyIDAgMCAxIC4xNDMgMS4wNTJsLTggMTAuNWEuNzUuNzUgMCAwIDEtMS4xMjcuMDc1bC00LjUtNC41YS43NS43NSAwIDAgMSAxLjA2LTEuMDZsMy44OTQgMy44OTMgNy40OC05LjgxN2EuNzUuNzUgMCAwIDEgMS4wNS0uMTQzWiIgLz48L3N2Zz4=')]">
+                                        {{ option.price.benefits|richtext }}
+                                    </div>
+                                </div>
+                                <svg class="tw-w-5 tw-h-5 tw-ms-3 rtl:tw-rotate-180"
+                                     aria-hidden="true"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     fill="none"
+                                     viewBox="0 0 14 10">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                                </svg>
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% comment %} {% bootstrap_form form %} {% endcomment %}
+                {% bootstrap_button button_type="submit" content="Continue" %}
+            </form>
+        </div>
+    {% endwith %}
+{% endblock %}

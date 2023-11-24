@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "django_countries",
     "django_gravatar",
     "active_link",
-    "wagtailfontawesome",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
@@ -68,6 +67,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "django.contrib.humanize",
     "django_dbq",
+    "slippers",
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -112,8 +112,9 @@ TEMPLATES = [
                 "wagtailmenus.context_processors.wagtailmenus",
                 # "app.context_processors.user_data",
             ],
+            "builtins": ["slippers.templatetags.slippers"],
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "app.wsgi.application"
@@ -459,3 +460,5 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"

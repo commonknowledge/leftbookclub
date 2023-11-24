@@ -4,9 +4,11 @@
 #
 
 app = "lbc-staging"
-kill_signal = "SIGINT"
-primary_region = "lhr"
-kill_timeout = "5s"
+kill_signal = "SIGTERM"
+primary_region = "ams"
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 1
 
 [deploy]
   release_command = "make release"

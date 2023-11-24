@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-
+USE_WHITENOISE = os.getenv("USE_WHITENOISE", False) in (True, "True", "true", "t", 1)
 # Application definition
 
 INSTALLED_APPS = [
@@ -82,7 +82,14 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+]
+
+if USE_WHITENOISE:
+    MIDDLEWARE += [
+        "whitenoise.middleware.WhiteNoiseMiddleware",
+    ]
+
+MIDDLEWARE += [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

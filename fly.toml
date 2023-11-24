@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "lbc-staging-2"
+app = "lbc-staging"
 primary_region = "lhr"
 kill_signal = "SIGTERM"
 console_command = "poetry run python manage.py shell"

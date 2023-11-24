@@ -491,7 +491,7 @@ class Upsell(Orderable, ClusterableModel):
 
 
 def create_default_layout_syllabus():
-    return {"id": uuid.uuid4(), "type": "syllabus_title", "value": {}}
+    return (("syllabus_title", {}),)
 
 
 @register_snippet
@@ -861,8 +861,8 @@ def metafields_array_to_list(arg):
 
 def create_default_layout_plan():
     return (
-        {"id": uuid.uuid4(), "type": "plan_title", "value": {}},
-        {"id": uuid.uuid4(), "type": "plan_pricing", "value": {}},
+        ("plan_title", {}),
+        ("plan_pricing", {}),
     )
 
 

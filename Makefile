@@ -93,15 +93,15 @@ release: migrate setup-cms
 
 .PHONY: runserver
 runserver: release
-	poetry run gunicorn -b 0.0.0.0:80 app.wsgi
+	poetry run gunicorn -b 0.0.0.0:8080 app.wsgi
 
 .PHONY: run_wsgi
 run_wsgi: release
-	poetry run gunicorn -b 0.0.0.0:80 app.wsgi
+	poetry run gunicorn -b 0.0.0.0:8080 app.wsgi
 
 .PHONY: run_production
 run_production: release
-	DJANGO_SETTINGS_MODULE=app.settings.production poetry run gunicorn -b 0.0.0.0:80 app.wsgi
+	DJANGO_SETTINGS_MODULE=app.settings.production poetry run gunicorn -b 0.0.0.0:8080 app.wsgi
 
 .PHONY: testproduction
 testproduction: release

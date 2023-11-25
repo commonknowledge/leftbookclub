@@ -525,6 +525,7 @@ class SyllabusPage(Page, Orderable, ClusterableModel):
         FieldPanel("description"),
         FieldPanel("book_types"),
         AutocompletePanel("stripe_product", target_model=LBCProduct),
+        FieldPanel("layout"),
     ]
 
 

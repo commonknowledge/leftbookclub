@@ -1141,7 +1141,6 @@ class SelectDonationView(OneAtATimeFormViewStoredToSession):
                 "current": False,
                 "href": reverse_lazy("signup_billing"),
             },
-            {"title": "Donation", "current": True},
             {"title": "Checkout", "current": False},
         ]
         return context

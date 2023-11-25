@@ -1,7 +1,7 @@
 {% if reverse_url %}
     {% url reverse_url as href %}
 {% endif %}
-<li class="breadcrumb-item {% if current %} active text-black tw-underline {% else %} text-muted {% endif %}"
+<li class="breadcrumb-item tw-text-sm tw-uppercase {% if current %} text-black {% else %} tw-text-brown {% endif %}"
     {% if current %} aria-current="page"{% endif %}>
     {% if href %}
         <a class='tw-no-underline' href="{{ href }}">{{ label }}</a>

@@ -1,24 +1,17 @@
 {% with request.GET.gift_mode as gift_mode %}
-    <header class="pricing-header my-3 my-lg-4 text-center">
-        <h1 class="h3 tw-font-normal text-center">
-            {% comment %} {% if gift_mode %}
-                Gift a Left Book Club membership
-        {% else %} {% endcomment %}
-            Join the Left Book Club
-            {% comment %} {% endif %} {% endcomment %}
-        </h1>
-        <nav style="--bs-breadcrumb-divider: url(&#34;
-                    data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;
-                    )"
-             aria-label="breadcrumb">
-            <ol class="breadcrumb justify-content-center">
-                {% for step in steps %}
-                    {% breadcrumb_item label=step.title href=step.href current=step.current %}
-                {% endfor %}
-            </ol>
-        </nav>
-        <div>
-            {% if upsell %}<a href="{{ upsell.url }}">{{ upsell.description }}</a>{% endif %}
+    <header class="pricing-header py-3 py-lg-4 mb-4 bg-white">
+        <div class='tw-mx-auto tw-max-w-lg tw-px-3'>
+            <h1 class="tw-text-md">Join the Left Book Club</h1>
+            <nav style="--bs-breadcrumb-divider: url(&#34;
+                        data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;
+                        )"
+                 aria-label="breadcrumb">
+                <ol class="breadcrumb justify-content-start tw-m-0">
+                    {% for step in steps %}
+                        {% breadcrumb_item label=step.title href=step.href current=step.current %}
+                    {% endfor %}
+                </ol>
+            </nav>
         </div>
     </header>
 {% endwith %}

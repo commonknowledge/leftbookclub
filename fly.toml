@@ -23,7 +23,7 @@ console_command = "poetry run python manage.py shell"
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ["app"]
 
 [[services]]

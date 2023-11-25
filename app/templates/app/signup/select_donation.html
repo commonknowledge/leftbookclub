@@ -1,22 +1,21 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
-{% block facebook_pixel_event %}fbq('track', 'InitiateCheckout');{% endblock %}
+{% block content_width %}tw-p-0{% endblock %}
+{% block content_padding %}tw-pb-5{% endblock %}
 {% block content %}
     {% with request.GET.annual as annual %}
         {% with request.GET.gift_mode as gift_mode %}
             {% qs_link as qs %}
             {% signup_header steps=steps %}
-            <div class="row justify-content-center">
-                <section class='col-12 col-md-6 col-lg-4 mb-5'>
-                    <div class='max-width-card mx-auto'>
-                        <h2 class='h4 fw-bold text-center'>Can you add a {{ price.interval }}ly donation?</h2>
-                        <p class='tw-mb-4 text-center'>
-                            LBC is a not-for-profit political education project. <a href='/about' target='_blank' rel='noopener noreferrer'>Learn more</a>
-                            We rely on donations from our supporters to keep our membership affordable to all.
-                        </p>
-                        {% include "app/includes/donation_form.html" with confirm_text="Continue" continue_without=True %}
-                    </div>
-                </section>
+            <div class="justify-content-center tw-flex">
+                <div class='tw-mx-auto tw-max-w-lg tw-w-full tw-px-3'>
+                    <h2 class='tw-text-lg'>Add a {{ price.interval }}ly donation?</h2>
+                    <p class='tw-mb-4'>
+                        LBC is a not-for-profit political education project. <a href='/about' target='_blank' rel='noopener noreferrer'>Learn more</a>
+                        We rely on donations from our supporters to keep our membership affordable to all.
+                    </p>
+                    {% include "app/includes/donation_form.html" with confirm_text="Continue" continue_without=True %}
+                </div>
             </div>
         {% endwith %}
     {% endwith %}

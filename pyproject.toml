@@ -49,7 +49,7 @@ django-active-link = "^0.1.8"
 wagtailmenus = { git = "https://github.com/commonknowledge/wagtailmenus", rev = "master" }
 django-mjml = "^0.12.0"
 wagtail-seo = "^2.0.0"
-ShopifyAPI = "^11.0.0"
+ShopifyAPI = "12.3.0"
 python-dateutil = "^2.8.2"
 Django = {extras = ["bcrypt"], version = "^4.0.4"}
 django-import-export = "^2.8.0"

@@ -815,7 +815,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             settings.SHOPIFY_DOMAIN, "2021-10", settings.SHOPIFY_PRIVATE_APP_PASSWORD
         ):
             cache.clear()
-            product_ids = shopify.CollectionListing.find(collection_id).product_ids()
+            collection_listing = shopify.CollectionListing.find(collection_id)
+            product_ids = collection_listing.product_ids(limit=250)
             for product_id in product_ids:
                 cls.sync_from_shopify_product_id(product_id)
                 # Very simple solution to Shopify 2 calls/second ratelimiting

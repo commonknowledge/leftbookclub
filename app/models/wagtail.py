@@ -884,6 +884,13 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
 
     ### v2 signup flow fields
+    product_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
     display_in_quiz_flow = models.BooleanField(
         default=False, verbose_name="Display in v2 signup flow"
     )
@@ -927,6 +934,7 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
             [
                 # FieldPanel("display_in_quiz_flow"),
                 FieldPanel("book_types"),
+                FieldPanel("product_image"),
                 FieldPanel("description"),
             ],
             heading="V2 signup flow",

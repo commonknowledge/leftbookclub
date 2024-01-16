@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load books wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
+{% load books wagtailcore_tags wagtailimages_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
 {% block content_width %}tw-p-0{% endblock %}
 {% block content_padding %}tw-pb-5{% endblock %}
 {% block content %}
@@ -33,14 +33,13 @@
                                    class="tw-hidden tw-peer"
                                    required/>
                             <label for="option-{{ option.id }}"
-                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
+                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100 tw-overflow-hidden">
                                 <div class="tw-block">
+                                    {% image option.product_image fill-600x300 class='tw-max-w-full tw-h-auto' %}
                                     <div class='tw-px-4 tw-pt-4'>
                                         <div class="tw-w-full tw-text-md tw-text-black">{{ option.title }}</div>
                                         {% if option.description %}<div class="tw-w-full">{{ option.description|richtext }}</div>{% endif %}
                                     </div>
-                                    {% get_books types=option.book_types limit=4 as books %}
-                                    {% include "app/blocks/book_grid_block.html" with link=False date=False label=False books=books column_width="small" %}
                                 </div>
                             </label>
                         </li>

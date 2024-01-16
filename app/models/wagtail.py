@@ -176,6 +176,7 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
 
     ### v2 flow
     title = models.CharField(max_length=150, blank=True, null=True)
+    skip_donation_ask = models.BooleanField(default=False, blank=True, null=True)
     ### /v2
 
     description = RichTextField(null=True, blank=True)
@@ -202,6 +203,7 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     panels = [
         TitleFieldPanel("title", targets=[]),
         FieldPanel("price", classname="collapsible collapsed"),
+        FieldPanel("skip_donation_ask"),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),

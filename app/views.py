@@ -1072,6 +1072,13 @@ class SelectBillingPlanView(OneAtATimeFormViewStoredToSession):
         SessionKey.country,
     ]
 
+    def get_success_url(self) -> str:
+        if not self.membership_plan_price:
+            return reverse_lazy("signup")
+        if self.membership_plan_price.skip_donation_ask:
+            return reverse_lazy("v2_stripe_checkout")
+        return reverse_lazy("signup_donation")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["payment_options"] = [

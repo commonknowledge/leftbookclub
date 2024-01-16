@@ -10,8 +10,8 @@
         {% if single_option %}
             <h2 class='tw-text-lg tw-mb-4'>Here's your syllabus!</h2>
         {% else %}
-            <h2 class='tw-text-lg'>Pick your syllabus.</h2>
-            <p class='tw-mb-4 tw-text-body'>We regularly publish a new book for each syllabus.</p>
+            <h2 class='tw-text-lg'>{{ settings.app.V2SignupFlow.select_syllabus_title }}</h2>
+            <p class='tw-mb-4 tw-text-body'>{{ settings.app.V2SignupFlow.select_syllabus_intro|richtext }}</p>
         {% endif %}
         {% csrf_token %}
         <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
@@ -38,6 +38,6 @@
             {% endfor %}
         </ul>
         {% comment %} {% bootstrap_form form %} {% endcomment %}
-        <button class="btn btn-primary tw-text-md" type="submit">Continue</button>
+        <button class="btn btn-primary tw-text-md" type="submit">{{ settings.app.V2SignupFlow.continue_button_label }}</button>
     </form>
 {% endblock %}

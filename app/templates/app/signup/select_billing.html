@@ -21,7 +21,7 @@
           method="POST"
           class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3">
         <div>
-            <h2 class='tw-text-lg tw-mb-4'>Pick a billing plan.</h2>
+            <h2 class='tw-text-lg tw-mb-4'>{{ settings.app.V2SignupFlow.select_billing_title }}</h2>
             {% csrf_token %}
             <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
                 {% for option in payment_options %}
@@ -88,7 +88,7 @@
                 </div>
             {% endif %}
             {% comment %} {% bootstrap_form form %} {% endcomment %}
-            <button class="btn btn-primary tw-text-md" type="submit">Continue</button>
+            <button class="btn btn-primary tw-text-md" type="submit">{{ settings.app.V2SignupFlow.continue_button_label }}</button>
             <p class='text-muted text-center my-0'>(Got a promo code? Add it at the next step)</p>
         </div>
         {% comment %} <article>

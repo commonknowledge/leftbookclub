@@ -3,10 +3,7 @@
 {% block join_step %}
     <div class='tw-mx-auto tw-max-w-lg tw-w-full tw-px-3'>
         <h2 class='tw-text-lg'>Add a {{ membership_plan_price.interval }}ly donation?</h2>
-        <p class='tw-mb-4'>
-            LBC is a not-for-profit political education project. <a href='/about' target='_blank' rel='noopener noreferrer'>Learn more</a>
-            We rely on donations from our supporters to keep our membership affordable to all.
-        </p>
+        <p class='tw-mb-4'>{{ settings.app.V2SignupFlow.select_donation_intro|richtext }}</p>
         {% include "app/includes/donation_form.html" with confirm_text="Continue with donation" continue_without=True %}
     </div>
 {% endblock %}

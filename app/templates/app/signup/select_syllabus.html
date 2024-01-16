@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load books wagtailcore_tags wagtailimages_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
 {% block content_width %}tw-p-0{% endblock %}
-{% block content_padding %}tw-pb-5{% endblock %}
+{% block content_padding %}tw-pb-0{% endblock %}
 {% block content %}
     {% if syllabus_options|length is 1 %}
         {% var single_option=True %}
@@ -11,7 +11,7 @@
         {% qs_link as qs %}
         {% signup_header steps=steps %}
         {% comment %}  {% endcomment %}
-        <div class="justify-content-center tw-flex">
+        <div class="tw-py-5 justify-content-center tw-flex">
             <form data-turbo="false"
                   method="POST"
                   class="tw-mx-auto tw-max-w-lg tw-full tw-px-3">

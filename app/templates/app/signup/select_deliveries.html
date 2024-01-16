@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags static wagtailroutablepage_tags wagtailimages_tags django_bootstrap5 url setting %}
 {% block content_width %}tw-p-0{% endblock %}
-{% block content_padding %}tw-pb-5{% endblock %}
+{% block content_padding %}tw-pb-0{% endblock %}
 {% block content %}
     {% with request.GET.gift_mode as gift_mode %}
         {% comment %} TODO: Template-ify the header {% endcomment %}
         {% qs_link as qs %}
         {% signup_header steps=steps %}
         {% comment %}  {% endcomment %}
-        <div class="justify-content-center tw-flex">
+        <div class="tw-py-5 justify-content-center tw-flex">
             <form data-turbo="false"
                   method="POST"
                   class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3">

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
 {% block content_width %}tw-p-0{% endblock %}
-{% block content_padding %}tw-pb-5{% endblock %}
+{% block content_padding %}tw-pb-0{% endblock %}
 {% block content %}
     {% with request.GET.annual as annual %}
         {% with request.GET.gift_mode as gift_mode %}
             {% qs_link as qs %}
             {% signup_header steps=steps %}
-            <div class="justify-content-center tw-flex">
+            <div class="tw-py-5 justify-content-center tw-flex">
                 <div class='tw-mx-auto tw-max-w-lg tw-w-full tw-px-3'>
-                    <h2 class='tw-text-lg'>Add a {{ price.interval }}ly donation?</h2>
+                    <h2 class='tw-text-lg'>Add a {{ membership_plan_price.interval }}ly donation?</h2>
                     <p class='tw-mb-4'>
                         LBC is a not-for-profit political education project. <a href='/about' target='_blank' rel='noopener noreferrer'>Learn more</a>
                         We rely on donations from our supporters to keep our membership affordable to all.

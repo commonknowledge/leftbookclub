@@ -1,14 +1,17 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 url setting mathfilters djmoney %}
+{% load wagtailcore_tags wagtailimages_tags static wagtailroutablepage_tags django_bootstrap5 url setting mathfilters djmoney %}
 {% block content_width %}tw-p-0{% endblock %}
-{% block content_padding %}tw-pb-5{% endblock %}
+{% block content_padding %}tw-pb-0{% endblock %}
+{% block content_extra_classes %}tw-flex tw-flex-col{% endblock %}
 {% block content %}
     {% with request.GET.gift_mode as gift_mode %}
         {% comment %} TODO: Template-ify the header {% endcomment %}
         {% qs_link as qs %}
         {% signup_header steps=steps %}
         {% comment %}  {% endcomment %}
-        <div class="justify-content-center tw-flex">
+        {% image membership_plan.background_image original as bg_url %}
+        <div class="tw-py-5 justify-content-center tw-flex tw-bg-cover tw-bg-center tw-grow tw-shrink-0"
+             style="background-image: url('{{ bg_url.url }}')">
             <form data-turbo="false"
                   method="POST"
                   class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3">
@@ -48,7 +51,9 @@
                                         {% endif %}
                                     </div>
                                     {% if option.price.description %}
-                                        <div class="tw-w-full -tw-mb-3 [&>ul]:tw--mt-3 [&>ul]:tw-pb-3 ">{{ option.price.description|richtext }}</div>
+                                        <div class="tw-w-full [&>ul]:tw-pl-4 tw-list-image-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNCAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMzhiZGY4Ij48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy42ODUuMTUzYS43NTIuNzUyIDAgMCAxIC4xNDMgMS4wNTJsLTggMTAuNWEuNzUuNzUgMCAwIDEtMS4xMjcuMDc1bC00LjUtNC41YS43NS43NSAwIDAgMSAxLjA2LTEuMDZsMy44OTQgMy44OTMgNy40OC05LjgxN2EuNzUuNzUgMCAwIDEgMS4wNS0uMTQzWiIgLz48L3N2Zz4=')]">
+                                            {{ option.price.description|richtext }}
+                                        </div>
                                     {% endif %}
                                 </div>
                                 <svg class="tw-w-5 tw-h-5 tw-ms-3 rtl:tw-rotate-180"

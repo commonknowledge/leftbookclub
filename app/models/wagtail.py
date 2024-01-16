@@ -890,6 +890,15 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="+",
+        help_text="600 x 300 optimal resolution.",
+    )
+    background_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="1400 x 1024 optimal resolution.",
     )
     display_in_quiz_flow = models.BooleanField(
         default=False, verbose_name="Display in v2 signup flow"
@@ -935,6 +944,7 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
                 # FieldPanel("display_in_quiz_flow"),
                 FieldPanel("book_types"),
                 FieldPanel("product_image"),
+                FieldPanel("background_image"),
                 FieldPanel("description"),
             ],
             heading="V2 signup flow",

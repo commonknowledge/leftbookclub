@@ -7,6 +7,6 @@
         <h2 class='tw-text-lg tw-mb-4'>Where should we deliver to?</h2>
         {% csrf_token %}
         <div class='position-relative'>{% bootstrap_field form.country show_label=False %}</div>
-        {% bootstrap_button button_type="submit" content="Continue" %}
+        <button class="btn btn-primary tw-text-md" type="submit">Continue</button>
     </form>
 {% endblock %}

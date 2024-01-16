@@ -8,13 +8,13 @@
         {% csrf_token %}
         <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
             {% for option in reading_options %}
-                <li>
+                <li class='lbc-selection'>
                     <input type="radio"
                            id="option-{{ option.id }}"
                            name="{{ field_name }}"
                            {% if option.id|slugify == field_value|slugify %}checked="checked"{% endif %}
                            value="{{ option.id }}"
-                           class="tw-hidden tw-peer"
+                           class="tw-peer"
                            required/>
                     <label for="option-{{ option.id }}"
                            class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-4 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
@@ -27,18 +27,14 @@
                                 </div>
                             {% endif %}
                         </div>
-                        <svg class="tw-w-5 tw-h-5 tw-ms-3 rtl:tw-rotate-180"
-                             aria-hidden="true"
-                             xmlns="http://www.w3.org/2000/svg"
-                             fill="none"
-                             viewBox="0 0 14 10">
+                        {% comment %} <svg class="tw-w-5 tw-h-5 tw-ms-3 rtl:tw-rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-                        </svg>
+                        </svg> {% endcomment %}
                     </label>
                 </li>
             {% endfor %}
         </ul>
         {% comment %} {% bootstrap_form form %} {% endcomment %}
-        {% bootstrap_button button_type="submit" content="Continue" %}
+        <button class="btn btn-primary tw-text-md" type="submit">Continue</button>
     </form>
 {% endblock %}

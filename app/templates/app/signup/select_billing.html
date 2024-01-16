@@ -25,13 +25,13 @@
             {% csrf_token %}
             <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
                 {% for option in payment_options %}
-                    <li>
+                    <li class='lbc-selection'>
                         <input type="radio"
                                id="option-{{ option.price.id }}"
                                name="{{ field_name }}"
                                {% if option.price.id|slugify == field_value|slugify %}checked="checked"{% endif %}
                                value="{{ option.price.id }}"
-                               class="tw-hidden tw-peer"
+                               class="tw-peer"
                                required/>
                         <label for="option-{{ option.price.id }}"
                                class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-4 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
@@ -88,7 +88,7 @@
                 </div>
             {% endif %}
             {% comment %} {% bootstrap_form form %} {% endcomment %}
-            {% bootstrap_button button_type="submit" content="Continue" %}
+            <button class="btn btn-primary tw-text-md" type="submit">Continue</button>
             <p class='text-muted text-center my-0'>(Got a promo code? Add it at the next step)</p>
         </div>
         {% comment %} <article>

@@ -1136,9 +1136,27 @@ class SelectDonationView(OneAtATimeFormViewStoredToSession):
         SessionKey.country,
     ]
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["donation_amount"] = 2
+        if self.membership_plan_price.default_donation_amount:
+            initial["donation_amount"] = int(
+                self.membership_plan_price.default_donation_amount.amount
+            )
+        return initial
+
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
+
         context["donation_amount_options"] = [1, 3, 5]
+        if (
+            self.membership_plan_price.suggested_donation_amounts is not None
+            and len(self.membership_plan_price.suggested_donation_amounts) > 0
+        ):
+            context[
+                "donation_amount_options"
+            ] = self.membership_plan_price.suggested_donation_amounts
+
         context["steps"] = [
             {
                 "title": "Reading speed",

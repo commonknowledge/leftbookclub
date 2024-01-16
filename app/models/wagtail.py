@@ -177,6 +177,16 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     ### v2 flow
     title = models.CharField(max_length=150, blank=True, null=True)
     skip_donation_ask = models.BooleanField(default=False, blank=True, null=True)
+    suggested_donation_amounts = ArrayField(
+        models.IntegerField(), blank=True, null=True
+    )
+    default_donation_amount = MoneyField(
+        max_digits=14,
+        decimal_places=2,
+        default_currency="GBP",
+        null=True,
+        blank=True,
+    )
     ### /v2
 
     description = RichTextField(null=True, blank=True)
@@ -203,7 +213,14 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     panels = [
         TitleFieldPanel("title", targets=[]),
         FieldPanel("price", classname="collapsible collapsed"),
-        FieldPanel("skip_donation_ask"),
+        MultiFieldPanel(
+            [
+                FieldPanel("skip_donation_ask"),
+                FieldPanel("suggested_donation_amounts"),
+                FieldPanel("default_donation_amount"),
+            ],
+            heading="[V2] Donation upsell",
+        ),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),

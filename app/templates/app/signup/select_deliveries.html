@@ -1,54 +1,44 @@
-{% extends "base.html" %}
-{% load wagtailcore_tags static wagtailroutablepage_tags wagtailimages_tags django_bootstrap5 url setting %}
-{% block content_width %}tw-p-0{% endblock %}
-{% block content_padding %}tw-pb-0{% endblock %}
-{% block content %}
-    {% with request.GET.gift_mode as gift_mode %}
-        {% comment %} TODO: Template-ify the header {% endcomment %}
-        {% qs_link as qs %}
-        {% signup_header steps=steps %}
-        {% comment %}  {% endcomment %}
-        <div class="tw-py-5 justify-content-center tw-flex">
-            <form data-turbo="false"
-                  method="POST"
-                  class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3">
-                <h2 class='tw-text-lg tw-mb-4'>How often do you want a new book?</h2>
-                {% csrf_token %}
-                <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
-                    {% for option in reading_options %}
-                        <li>
-                            <input type="radio"
-                                   id="option-{{ option.id }}"
-                                   name="{{ field_name }}"
-                                   {% if option.id|slugify == field_value|slugify %}checked="checked"{% endif %}
-                                   value="{{ option.id }}"
-                                   class="tw-hidden tw-peer"
-                                   required/>
-                            <label for="option-{{ option.id }}"
-                                   class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-4 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
-                                <div class="tw-block">
-                                    <div class="tw-w-full tw-text-md tw-text-black">{{ option.title }}</div>
-                                    {% comment %} <div class="tw-w-full">From {{ option.monthly_price.monthly_price_string }} + shipping</div> {% endcomment %}
-                                    {% if option.description %}
-                                        <div class="tw-w-full -tw-mb-3 [&>ul]:tw-pl-4 [&>ul]:tw--mt-3 [&>ul]:tw-pb-3 tw-list-image-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNCAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMzhiZGY4Ij48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy42ODUuMTUzYS43NTIuNzUyIDAgMCAxIC4xNDMgMS4wNTJsLTggMTAuNWEuNzUuNzUgMCAwIDEtMS4xMjcuMDc1bC00LjUtNC41YS43NS43NSAwIDAgMSAxLjA2LTEuMDZsMy44OTQgMy44OTMgNy40OC05LjgxN2EuNzUuNzUgMCAwIDEgMS4wNS0uMTQzWiIgLz48L3N2Zz4=')]">
-                                            {{ option.description|richtext }}
-                                        </div>
-                                    {% endif %}
+{% extends "app/signup/join_flow_base.html" %}
+{% load wagtailcore_tags django_bootstrap5 %}
+{% block join_step %}
+    <form data-turbo="false"
+          method="POST"
+          class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3">
+        <h2 class='tw-text-lg tw-mb-4'>How often do you want a new book?</h2>
+        {% csrf_token %}
+        <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
+            {% for option in reading_options %}
+                <li>
+                    <input type="radio"
+                           id="option-{{ option.id }}"
+                           name="{{ field_name }}"
+                           {% if option.id|slugify == field_value|slugify %}checked="checked"{% endif %}
+                           value="{{ option.id }}"
+                           class="tw-hidden tw-peer"
+                           required/>
+                    <label for="option-{{ option.id }}"
+                           class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-4 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
+                        <div class="tw-block">
+                            <div class="tw-w-full tw-text-md tw-text-black">{{ option.title }}</div>
+                            {% comment %} <div class="tw-w-full">From {{ option.monthly_price.monthly_price_string }} + shipping</div> {% endcomment %}
+                            {% if option.description %}
+                                <div class="tw-w-full -tw-mb-3 [&>ul]:tw-pl-4 [&>ul]:tw--mt-3 [&>ul]:tw-pb-3 tw-list-image-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNCAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMzhiZGY4Ij48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy42ODUuMTUzYS43NTIuNzUyIDAgMCAxIC4xNDMgMS4wNTJsLTggMTAuNWEuNzUuNzUgMCAwIDEtMS4xMjcuMDc1bC00LjUtNC41YS43NS43NSAwIDAgMSAxLjA2LTEuMDZsMy44OTQgMy44OTMgNy40OC05LjgxN2EuNzUuNzUgMCAwIDEgMS4wNS0uMTQzWiIgLz48L3N2Zz4=')]">
+                                    {{ option.description|richtext }}
                                 </div>
-                                <svg class="tw-w-5 tw-h-5 tw-ms-3 rtl:tw-rotate-180"
-                                     aria-hidden="true"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     fill="none"
-                                     viewBox="0 0 14 10">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-                                </svg>
-                            </label>
-                        </li>
-                    {% endfor %}
-                </ul>
-                {% comment %} {% bootstrap_form form %} {% endcomment %}
-                {% bootstrap_button button_type="submit" content="Continue" %}
-            </form>
-        </div>
-    {% endwith %}
+                            {% endif %}
+                        </div>
+                        <svg class="tw-w-5 tw-h-5 tw-ms-3 rtl:tw-rotate-180"
+                             aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 14 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                        </svg>
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        {% comment %} {% bootstrap_form form %} {% endcomment %}
+        {% bootstrap_button button_type="submit" content="Continue" %}
+    </form>
 {% endblock %}

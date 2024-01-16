@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
 import djstripe.enums
 import djstripe.models
+import pycountry
 import stripe
 from dateutil.relativedelta import relativedelta
 from django import forms
@@ -964,6 +965,12 @@ class OneAtATimeFormViewStoredToSession(FormView):
         return country_code
 
     @cached_property
+    def country_name(self):
+        if self.country is None:
+            return None
+        return pycountry.countries.search_fuzzy(self.country)[0].name
+
+    @cached_property
     def zone(self):
         if self.country is None:
             return ShippingZone.default_zone
@@ -976,6 +983,7 @@ class OneAtATimeFormViewStoredToSession(FormView):
         context["membership_plan"] = self.membership_plan
         context["membership_plan_price"] = self.membership_plan_price
         context["country"] = self.country
+        context["country_name"] = self.country_name
         context["field_name"] = self.session_key.name
         context["field_value"] = self.initial_form_value()
         return context

@@ -15,13 +15,23 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
 
 from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
-from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice, SyllabusPage
+from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice, ReadingOption
 from app.utils import ensure_list
 
 
 @hooks.register("insert_global_admin_css")
 def global_admin_css():
     return format_html('<link rel="stylesheet" href="{}">', static("wagtailadmin.css"))
+
+
+class ReadingOptionsAdmin(ModelAdmin):
+    model = ReadingOption
+    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
+    menu_label = "Delivery options"
+    menu_icon = "fa-envelop"
+
+
+modeladmin_register(ReadingOptionsAdmin)
 
 
 class MembershipOptionsAdmin(ModelAdmin):
@@ -32,16 +42,6 @@ class MembershipOptionsAdmin(ModelAdmin):
 
 
 modeladmin_register(MembershipOptionsAdmin)
-
-
-class SyllabiOptionsAdmin(ModelAdmin):
-    model = SyllabusPage
-    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
-    menu_label = "Syllabi"
-    menu_icon = "fa-info"
-
-
-modeladmin_register(SyllabiOptionsAdmin)
 
 
 class ShippingAdmin(ModelAdmin):

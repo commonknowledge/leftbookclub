@@ -27,6 +27,7 @@ from wagtail.admin.panels import (
     HelpPanel,
     InlinePanel,
     MultiFieldPanel,
+    TitleFieldPanel,
 )
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from wagtail.fields import RichTextField
@@ -48,6 +49,24 @@ from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
 
 from .stripe import LBCProduct, ShippingZone
+
+
+class CustomImage(AbstractImage):
+
+    # Making blank / null explicit because you *really* need alt text
+    alt_text = models.CharField(
+        max_length=1024,
+        blank=False,
+        null=False,
+        default="",
+        help_text="Describe this image as literally as possible. If you can close your eyes, have someone read the alt text to you, and imagine a reasonably accurate version of the image, you're on the right track.",
+    )
+
+    admin_form_fields = (
+        "file",
+        "alt_text",
+        "title",
+    )
 
 
 class SeoMetadataMixin(SeoMixin, Page):
@@ -157,12 +176,6 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
 
     ### v2 flow
     title = models.CharField(max_length=150, blank=True, null=True)
-    benefits = RichTextField(
-        features=["ul"],
-        help_text="List of pithy beneficial features of this plan",
-        null=True,
-        blank=True,
-    )
     ### /v2
 
     description = RichTextField(null=True, blank=True)
@@ -182,19 +195,19 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     products = ParentalManyToManyField(
         LBCProduct,
         blank=True,
-        help_text="(For V1-only signup flow.) The stripe product that the user will be subscribed to. If multiple products are set here, then the user will be asked to pick which one they want, e.g. Classic or Contemporary books.",
-        verbose_name="[V1] stripe products",
+        help_text="The stripe product that the user will be subscribed to.",
+        verbose_name="Stripe product",
     )
 
     panels = [
-        FieldPanel("title", classname="full title"),
-        FieldPanel("price", classname="collapsibl collapsed"),
+        TitleFieldPanel("title", targets=[]),
+        FieldPanel("price", classname="collapsible collapsed"),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),
                 FieldPanel("interval"),
             ],
-            heading="billing schedule",
+            heading="Billing schedule",
         ),
         MultiFieldPanel(
             [
@@ -208,7 +221,6 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             classname="full",
             help_text="Displayed to visitors who are considering purchasing a plan at this price.",
         ),
-        FieldPanel("benefits"),
         MultiFieldPanel(
             [
                 AutocompletePanel("products", target_model=LBCProduct),
@@ -495,56 +507,56 @@ def create_default_layout_syllabus():
 
 
 @register_snippet
-class SyllabusPage(Page, Orderable, ClusterableModel):
-    # title
-    description = RichTextField(null=True, blank=True)
-    book_types = models.CharField(
-        max_length=100,
-        choices=book_types,
-        default="all-books",
-        help_text="Used to display relevant books",
+class ReadingOption(Orderable, ClusterableModel):
+    """
+    A simple way to group together multiple plans, e.g. "every month" and "every two months"
+    """
+
+    title = models.CharField(max_length=150, help_text="Visible to potential customers")
+    banner_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    description = RichTextField(
+        features=["ul"],
+        help_text="Bullet points will appear as ticks.",
+        null=True,
         blank=True,
     )
-    stripe_product = models.ForeignKey(
-        LBCProduct,
-        on_delete=models.SET_NULL,
-        blank=False,
-        null=True,
-        related_name="syllabi",
-        help_text="The stripe product that the user will be subscribed to.",
-    )
-
-    layout = create_streamfield(
-        [
-            ("syllabus_title", SyllabusTitleBlock()),
-        ],
-        default=create_default_layout_syllabus,
-    )
-
-    content_panels = Page.content_panels + [
-        FieldPanel("description"),
-        FieldPanel("book_types"),
-        AutocompletePanel("stripe_product", target_model=LBCProduct),
-        FieldPanel("layout"),
-    ]
-
-
-class CustomImage(AbstractImage):
-
-    # Making blank / null explicit because you *really* need alt text
-    alt_text = models.CharField(
-        max_length=1024,
-        blank=False,
+    interval = models.CharField(
+        max_length=10,
+        choices=Interval.choices,
+        default=Interval.month,
         null=False,
-        default="",
-        help_text="Describe this image as literally as possible. If you can close your eyes, have someone read the alt text to you, and imagine a reasonably accurate version of the image, you're on the right track.",
+        blank=True,
+    )
+    interval_count = models.IntegerField(default=1, null=False, blank=True)
+
+    plans = ParentalManyToManyField(
+        "app.MembershipPlanPage",
+        related_name="plans",
+        help_text="The plans available under this option",
     )
 
-    admin_form_fields = (
-        "file",
-        "alt_text",
-        "title",
-    )
+    def __str__(self) -> str:
+        return self.title
+
+    panels = [
+        TitleFieldPanel("title", targets=[]),
+        FieldPanel("description"),
+        FieldRowPanel(
+            [
+                FieldPanel("interval_count"),
+                FieldPanel("interval"),
+            ],
+            heading="Delivery schedule",
+        ),
+        FieldPanel("banner_image"),
+        AutocompletePanel("plans", target_model="app.MembershipPlanPage"),
+    ]
 
 
 class ImageRendition(AbstractRendition):
@@ -875,15 +887,12 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     display_in_quiz_flow = models.BooleanField(
         default=False, verbose_name="Display in v2 signup flow"
     )
-    benefits = RichTextField(
-        help_text="List of pithy beneficial features of this plan. Bullet points are automatically formatted as ticks.",
-        null=True,
+    book_types = models.CharField(
+        choices=book_types,
+        max_length=150,
         blank=True,
-    )
-    syllabi = ParentalManyToManyField(
-        SyllabusPage,
-        related_name="plans",
-        help_text="The syllabi available for this plan",
+        null=True,
+        help_text="Which types of books are included in this plan? Used for displaying things.",
     )
     ### /v2
 
@@ -916,10 +925,9 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
         ),
         MultiFieldPanel(
             [
-                FieldPanel("display_in_quiz_flow"),
+                # FieldPanel("display_in_quiz_flow"),
+                FieldPanel("book_types"),
                 FieldPanel("description"),
-                FieldPanel("benefits"),
-                AutocompletePanel("syllabi", target_model=SyllabusPage),
             ],
             heading="V2 signup flow",
             classname="collapsible",

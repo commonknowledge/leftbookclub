@@ -720,12 +720,12 @@ class BatchUpdateSubscriptionsForm(forms.Form):
 
 
 class SelectDeliveriesForm(forms.Form):
-    delivery_plan_id = forms.CharField(widget=forms.HiddenInput)
+    reading_option_id = forms.CharField(widget=forms.HiddenInput)
 
 
 class SelectSyllabusForm(forms.Form):
-    syllabus_id = forms.CharField(widget=forms.HiddenInput)
+    membership_plan_id = forms.CharField(widget=forms.HiddenInput)
 
 
 class SelectPaymentPlanForm(forms.Form):
-    payment_plan_id = forms.CharField(widget=forms.HiddenInput)
+    membership_plan_price = forms.CharField(widget=forms.HiddenInput)

@@ -36,7 +36,7 @@ repos:
         args: [--lint]
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+    rev: 5.13.2
     hooks:
       # Sort ordering of python imports
       - id: isort

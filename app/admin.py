@@ -11,20 +11,21 @@ class UserResource(resources.ModelResource):
     class Meta:
         model = models.User
 
+    algo_prefix = "bcrypt$"
+
     def before_import_row(self, row, *args, **kwargs):
         if "id" in row:
             row["old_id"] = row["id"]
             row.pop("id", None)
 
-        algo_prefix = "bcrypt$"
-        if "password" in row and algo_prefix not in row["password"]:
-            row["password"] = algo_prefix + row["password"]
+        if "password" in row and self.algo_prefix not in row["password"]:
+            row["password"] = self.algo_prefix + row["password"]
 
         if "username" not in row:
             row["username"] = row["email"]
 
         if "country" in row:
-            countries = pycountry.countries.search_fuzzy(row["country"])
+            countries = pycountry.countries.search_fuzzy(str(row["country"]))
             if len(countries) > 0:
                 row["country"] = countries[0].alpha_2
             else:

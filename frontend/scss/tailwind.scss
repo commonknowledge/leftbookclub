@@ -58,3 +58,19 @@ p {
 .btn-primary {
   @apply tw-bg-yellow tw-w-full tw-text-black tw-border-0;
 }
+
+li.lbc-selection {
+  position: relative;
+
+  input[type="radio"] {
+    z-index: 999;
+    zoom: 1.5;
+    position: absolute;
+    top: 17px;
+    left: 13px;
+  }
+
+  label > div:first-child:not(.lbc-selection-no-indent) {
+    margin-left: 30px;
+  }
+}

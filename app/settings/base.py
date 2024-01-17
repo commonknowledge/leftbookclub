@@ -99,6 +99,7 @@ MIDDLEWARE += [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "livereload.middleware.LiveReloadScript",
     "app.middleware.update_stripe_customer_subscription",
+    "app.middleware.frontend_backend_posthog_identity_linking",
 ]
 
 ROOT_URLCONF = "app.urls"

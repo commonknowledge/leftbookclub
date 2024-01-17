@@ -42,11 +42,13 @@
         <span class="input-group-text">{{ interval_text }}</span>
     </div>
     <div class="form-actions">
-        <button class="btn btn-primary" type="submit" name="action">{% firstof confirm_text "Confirm donation" %}</button>
+        <button class="btn btn-outline-primary tw-text-md tw-w-full tw-bg-yellow tw-text-black tw-border-none"
+                type="submit">
+            {% firstof confirm_text "Confirm donation" %}
+        </button>
         {% if continue_without %}
-            {% comment %} Button {% endcomment %}
-            <button class="btn btn-outline-primary tw-w-full"
-                    data-action="click->donation#submitWithoutDonation">
+            <button class="btn btn-outline-primary tw-text-md tw-w-full mt-2"
+                    type="submit">
                 {% firstof continue_without_text "Continue without donating" %}
             </button>
         {% endif %}

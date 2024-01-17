@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags static wagtailroutablepage_tags django_bootstrap5 url setting %}
+{% block content_width %}tw-p-0{% endblock %}
+{% block content_padding %}tw-pb-0{% endblock %}
+{% block content_extra_classes %}tw-flex tw-flex-col{% endblock %}
+{% block content %}
+    {% with request.GET.gift_mode as gift_mode %}
+        <header class="pricing-header py-3 py-lg-4 bg-white">
+            <div class='tw-mx-auto tw-max-w-lg tw-px-3'>
+                <h1 class="tw-text-md">Join the Left Book Club</h1>
+                <nav style="--bs-breadcrumb-divider: url(&#34;
+                            data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;
+                            )"
+                     aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-start tw-m-0">
+                        {% for step in steps %}
+                            {% breadcrumb_item label=step.title href=step.href current=step.current %}
+                        {% endfor %}
+                    </ol>
+                </nav>
+                {% comment %} <ul>
+                {% if membership_plan %}                  <li>Syllabus: <b>{{ membership_plan.title }}</b></li>{% endif %}
+                {% if membership_plan %}
+                  <li>A book every <b>{{ membership_plan.delivery_frequency }}</b></li>
+                {% endif %}
+                {% if country_name %}                  <li>Delivering to <b>{{ country_name }}</b></li>{% endif %}
+                </ul> {% endcomment %}
+                {% block join_preview %}
+                    {% if membership_plan %}
+                        <a href="{% url "signup_syllabus" %}"
+                           class='tw-px-2 tw-py-1 tw-bg-background tw-no-underline tw-text-gray-700 tw-rounded-md tw-overflow-hidden my-2 tw-text-sm md:tw-text-base tw-font-normal tw-block'>
+                            Your syllabus: <b>{{ membership_plan.title }}</b> (delivering {{ membership_plan.delivery_frequency }})
+                        </a>
+                    {% endif %}
+                    {% if country_name %}
+                        <a href="{% url "signup_shipping" %}"
+                           class='tw-px-2 tw-py-1 tw-bg-background tw-no-underline tw-text-gray-700 tw-rounded-md tw-overflow-hidden my-2 tw-text-sm md:tw-text-base tw-font-normal tw-block'>
+                            Delivering to <b>{{ country_name }}</b>
+                        </a>
+                    {% endif %}
+                {% endblock %}
+            </div>
+        </header>
+        {% image membership_plan.background_image original as bg_url %}
+        <div class="tw-py-5 justify-content-center tw-flex tw-bg-cover tw-bg-center tw-grow tw-shrink-0"
+             style="background-image: url('{{ bg_url.url }}')">
+            {% block join_step %}{% endblock %}
+        </div>
+    {% endwith %}
+{% endblock %}

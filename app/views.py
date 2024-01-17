@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
 import djstripe.enums
 import djstripe.models
+import posthog
 import pycountry
 import stripe
 from dateutil.relativedelta import relativedelta
@@ -19,7 +20,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
-from django.http import HttpRequest, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.http.response import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
@@ -39,8 +40,8 @@ from app.forms import (
     CountrySelectorForm,
     DonationForm,
     GiftCodeForm,
-    SelectDeliveriesForm,
     SelectPaymentPlanForm,
+    SelectReadingSpeedForm,
     SelectSyllabusForm,
     StripeShippingForm,
     UpgradeForm,
@@ -875,7 +876,7 @@ class BatchUpdateSubscriptionsStatusView(
 
 CreateMembershipView (alias) ->
 
-SelectDeliveriesView
+SelectReadpingSpeedView
 - List of MembershipPlanPage.filter(display_in_quiz_flow=True)
 
 SelectSyllabusView
@@ -968,7 +969,11 @@ class OneAtATimeFormViewStoredToSession(FormView):
     def country_name(self):
         if self.country is None:
             return None
-        return pycountry.countries.search_fuzzy(self.country)[0].name
+        try:
+            name = pycountry.countries.search_fuzzy(str(self.country))[0].name
+            return name
+        except:
+            return None
 
     @cached_property
     def zone(self):
@@ -989,9 +994,9 @@ class OneAtATimeFormViewStoredToSession(FormView):
         return context
 
 
-class SelectDeliveriesView(OneAtATimeFormViewStoredToSession):
-    template_name = "app/signup/select_deliveries.html"
-    form_class = SelectDeliveriesForm
+class SelectReadpingSpeedView(OneAtATimeFormViewStoredToSession):
+    template_name = "app/signup/select_reading_speed.html"
+    form_class = SelectReadingSpeedForm
     success_url = reverse_lazy("signup_syllabus")
     session_key = SessionKey.reading_option_id
 
@@ -1010,8 +1015,20 @@ class SelectDeliveriesView(OneAtATimeFormViewStoredToSession):
         return context
 
 
-class CreateMembershipView(SelectDeliveriesView):
-    pass
+class CreateMembershipView(SelectReadpingSpeedView):
+    def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
+        # Because sometimes the session hasn't been initialised
+        # https://stackoverflow.com/a/39188274/1053937
+        if not request.session.session_key:
+            request.session.save()
+
+        user_id = request.session.session_key
+        enabled_variant = posthog.get_feature_flag("new-signup-flow", user_id)
+
+        if enabled_variant == "v2":
+            return redirect("signup_reading_speed")
+        else:
+            return redirect("/join")
 
 
 class SelectSyllabusView(OneAtATimeFormViewStoredToSession):
@@ -1028,7 +1045,7 @@ class SelectSyllabusView(OneAtATimeFormViewStoredToSession):
             {
                 "title": "Reading speed",
                 "current": False,
-                "href": reverse_lazy("signup_deliveries"),
+                "href": reverse_lazy("signup_reading_speed"),
             },
             {"title": "Syllabus", "current": True},
             {"title": "Shipping", "current": False},
@@ -1055,7 +1072,7 @@ class SelectShippingCountryView(OneAtATimeFormViewStoredToSession):
             {
                 "title": "Reading speed",
                 "current": False,
-                "href": reverse_lazy("signup_deliveries"),
+                "href": reverse_lazy("signup_reading_speed"),
             },
             {
                 "title": "Syllabus",
@@ -1105,7 +1122,7 @@ class SelectBillingPlanView(OneAtATimeFormViewStoredToSession):
             {
                 "title": "Reading speed",
                 "current": False,
-                "href": reverse_lazy("signup_deliveries"),
+                "href": reverse_lazy("signup_reading_speed"),
             },
             {
                 "title": "Syllabus",
@@ -1161,7 +1178,7 @@ class SelectDonationView(OneAtATimeFormViewStoredToSession):
             {
                 "title": "Reading speed",
                 "current": False,
-                "href": reverse_lazy("signup_deliveries"),
+                "href": reverse_lazy("signup_reading_speed"),
             },
             {
                 "title": "Syllabus",

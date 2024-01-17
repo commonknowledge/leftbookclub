@@ -719,7 +719,7 @@ class BatchUpdateSubscriptionsForm(forms.Form):
 ### V2 flow forms
 
 
-class SelectDeliveriesForm(forms.Form):
+class SelectReadingSpeedForm(forms.Form):
     reading_option_id = forms.CharField(widget=forms.HiddenInput)
 
 

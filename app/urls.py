@@ -161,7 +161,7 @@ urlpatterns = [
     ),
     ### V2 signup flow
     # CreateMembershipView
-    # SelectDeliveriesView
+    # SelectReadpingSpeedView
     # SelectSyllabusView
     # SelectShippingCountryView
     # SelectBillingPlanView
@@ -173,9 +173,9 @@ urlpatterns = [
         name="signup",
     ),
     path(
-        "signup/deliveries/",
-        views.SelectDeliveriesView.as_view(),
-        name="signup_deliveries",
+        "signup/reading-speed/",
+        views.SelectReadpingSpeedView.as_view(),
+        name="signup_reading_speed",
     ),
     path(
         "signup/syllabus/",

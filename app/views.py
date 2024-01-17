@@ -876,7 +876,7 @@ class BatchUpdateSubscriptionsStatusView(
 
 CreateMembershipView (alias) ->
 
-SelectReadpingSpeedView
+SelectReadingSpeedView
 - List of MembershipPlanPage.filter(display_in_quiz_flow=True)
 
 SelectSyllabusView
@@ -994,7 +994,7 @@ class OneAtATimeFormViewStoredToSession(FormView):
         return context
 
 
-class SelectReadpingSpeedView(OneAtATimeFormViewStoredToSession):
+class SelectReadingSpeedView(OneAtATimeFormViewStoredToSession):
     template_name = "app/signup/select_reading_speed.html"
     form_class = SelectReadingSpeedForm
     success_url = reverse_lazy("signup_syllabus")
@@ -1002,6 +1002,15 @@ class SelectReadpingSpeedView(OneAtATimeFormViewStoredToSession):
 
     def get_context_data(self, **kwargs):
         from app.models.wagtail import ReadingOption
+
+        for key in [
+            # SessionKey.reading_option_id,
+            SessionKey.membership_plan_id,
+            # SessionKey.country,
+            SessionKey.membership_plan_price,
+            # SessionKey.donation_amount,
+        ]:
+            self.request.session[key.value] = None
 
         context = super().get_context_data(**kwargs)
         context["reading_options"] = ReadingOption.objects.all()
@@ -1015,7 +1024,7 @@ class SelectReadpingSpeedView(OneAtATimeFormViewStoredToSession):
         return context
 
 
-class CreateMembershipView(SelectReadpingSpeedView):
+class CreateMembershipView(SelectReadingSpeedView):
     def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
         # Because sometimes the session hasn't been initialised
         # https://stackoverflow.com/a/39188274/1053937
@@ -1040,6 +1049,16 @@ class SelectSyllabusView(OneAtATimeFormViewStoredToSession):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        for key in [
+            # SessionKey.reading_option_id,
+            # SessionKey.membership_plan_id,
+            # SessionKey.country,
+            SessionKey.membership_plan_price,
+            # SessionKey.donation_amount,
+        ]:
+            self.request.session[key.value] = None
+
         context["syllabus_options"] = self.reading_option.plans.all()
         context["steps"] = [
             {

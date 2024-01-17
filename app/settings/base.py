@@ -471,3 +471,5 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+
+SLIPPERS_COMPONENT_TEMPLATE_SUBDIR = "components"

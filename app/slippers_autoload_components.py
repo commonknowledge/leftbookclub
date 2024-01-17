@@ -3,8 +3,6 @@ from pathlib import Path
 from django.conf import settings
 from slippers.templatetags.slippers import register_components
 
-SLIPPERS_SUBDIR = "components"
-
 
 def find_slipper_dirs():
     dirs = []
@@ -16,7 +14,9 @@ def find_slipper_dirs():
                 continue
             for templates_dir in loader.get_dirs():
                 templates_path = Path(templates_dir)
-                slippers_dir = templates_path / SLIPPERS_SUBDIR
+                slippers_dir = (
+                    templates_path / settings.SLIPPERS_COMPONENT_TEMPLATE_SUBDIR
+                )
                 if slippers_dir.exists():
                     dirs.append(templates_path)
     return dirs
@@ -48,11 +48,12 @@ def register():
     for templates_dir in template_dirs:
         if settings.DEBUG:
             print(
-                "Registering slippers components from", templates_dir / SLIPPERS_SUBDIR
+                "Registering slippers components from",
+                templates_dir / settings.SLIPPERS_COMPONENT_TEMPLATE_SUBDIR,
             )
         if templates_dir.exists():
             templates_path = Path(templates_dir)
-            slippers_dir = templates_path / SLIPPERS_SUBDIR
+            slippers_dir = templates_path / settings.SLIPPERS_COMPONENT_TEMPLATE_SUBDIR
             register_dir_components(slippers_dir, templates_path)
             slippers_dirs.append(slippers_dir)
 

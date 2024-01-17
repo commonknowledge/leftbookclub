@@ -1,19 +1,18 @@
 {% extends "app/signup/join_flow_base.html" %}
 {% load wagtailcore_tags django_bootstrap5 mathfilters djmoney %}
-{% if membership_plan_price %}
+{% if membership_plan.current_book %}
     {% block join_preview %}
         {{ block.super }}
-        {% with membership_plan_price.products.first.current_book as book %}
-            <a href="{{ book.url }}"
-               class='tw-bg-background tw-no-underline tw-text-gray-700 tw-rounded-md tw-overflow-hidden my-2 tw-flex tw-flex-row tw-gap-2 tw-items-center tw-justify-start'>
-                <img src="{{ book.primary_image_url }}"
-                     class="tw-w-16"
-                     alt="{{ book.title }} book cover"/>
-                <div class='tw-text-sm md:tw-text-base tw-font-normal'>
-                    Your next read will be <span class='tw-text-black tw-font-semibold'>{{ book.title }}</span> <i>by {{ book.authors|join:", " }}</i>
-                </div>
-            </a>
-        {% endwith %}
+        <a href="{{ membership_plan.current_book.url }}"
+           class='tw-bg-background tw-no-underline tw-text-gray-700 tw-rounded-md tw-overflow-hidden my-2 tw-flex tw-flex-row tw-gap-2 tw-items-center tw-justify-start'>
+            <img src="{{ membership_plan.current_book.primary_image_url }}"
+                 class="tw-w-16"
+                 alt="{{ membership_plan.current_book.title }} book cover"/>
+            <div class='tw-text-sm md:tw-text-base tw-font-normal'>
+                Your next read will be <span class='tw-text-black tw-font-semibold'>{{ membership_plan.current_book.title }}</span>
+                {% if book.authors %}<i>by {{ book.authors|join:", " }}</i>{% endif %}
+            </div>
+        </a>
     {% endblock %}
 {% endif %}
 {% block join_step %}
@@ -37,11 +36,15 @@
                                class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-p-4 tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100">
                             <div class="tw-block">
                                 <div class="tw-w-full tw-text-md tw-text-black">
-                                    {{ option.price.title }}
-                                    {% if option.price.interval == 'year' and option.price.plan.annual_percent_off_per_month is not None %}
-                                        <span class="badge rounded-pill tw-bg-amber-300 tw-text-black">
-                                            {% widthratio option.price.plan.annual_percent_off_per_month -1 100 %}% off
-                                        </span>
+                                    {% if option.price.title|length > 1 %}
+                                        {{ option.price.title }}
+                                        {% if option.price.interval == 'year' and option.price.plan.annual_percent_off_per_month is not None %}
+                                            <span class="badge rounded-pill tw-bg-amber-300 tw-text-black">
+                                                {% widthratio option.price.plan.annual_percent_off_per_month -1 100 %}% off
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        {{ option.price_with_shipping }}
                                     {% endif %}
                                 </div>
                                 {% if option.price.interval == 'year' %}

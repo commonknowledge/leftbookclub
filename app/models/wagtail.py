@@ -17,6 +17,7 @@ from django.db.models import Q
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.functional import cached_property
 from django.utils.html import strip_tags
 from djmoney.models.fields import Money, MoneyField
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
@@ -44,6 +45,7 @@ from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 from app.models.blocks import *
 from app.models.circle import CircleEvent
 from app.utils.abstract_model_querying import abstract_page_query_filter
+from app.utils.books import get_current_book
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
@@ -1026,6 +1028,10 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
         if request.GET.get("annual", None) is not None:
             return self.annual_price
         return self.basic_price
+
+    @cached_property
+    def current_book(self):
+        return get_current_book(self.book_types)
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)

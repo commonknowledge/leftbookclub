@@ -21,6 +21,7 @@ from wagtail.admin.panels import FieldPanel
 from wagtail.snippets.models import register_snippet
 
 from app.utils import flatten_list
+from app.utils.books import get_current_book
 from app.utils.django import add_proxy_method
 from app.utils.python import diff_month
 from app.utils.stripe import (
@@ -382,15 +383,7 @@ class LBCProduct(djstripe.models.Product):
 
     @property
     def current_book(self):
-        from app.models.wagtail import BookPage
-
-        if self.book_types is not None and len(self.book_types) > 0:
-            return (
-                BookPage.objects.filter(type__in=self.book_types)
-                .order_by("-published_date")
-                .first()
-            )
-        return BookPage.objects.order_by("-published_date").first()
+        return get_current_book(self.book_types)
 
 
 add_proxy_method(djstripe.models.Product, LBCProduct, "lbc")

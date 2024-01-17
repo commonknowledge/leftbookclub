@@ -48,7 +48,7 @@ django-active-link = "^0.1.8"
 wagtailmenus = "^3.1.9"
 django-mjml = "^1.1"
 wagtail-seo = "^2.0.0"
-ShopifyAPI = "^11.0.0"
+ShopifyAPI = "12.3.0"
 python-dateutil = "^2.8.2"
 Django = {extras = ["bcrypt"], version = "^4.0.4"}
 django-import-export = "^2.8.0"

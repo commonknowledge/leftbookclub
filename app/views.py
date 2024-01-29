@@ -1049,7 +1049,7 @@ class AnonymousUserSplitTest(View):
 class CreateMembershipView(AnonymousUserSplitTest):
     feature_flag = "new-signup-flow"
     variant_path_mapping = {"v1": "signup", "v2": "signup_reading_speed"}
-    default_path = "signup"
+    default_path = "/join"
 
 
 class SelectSyllabusView(OneAtATimeFormViewStoredToSession):

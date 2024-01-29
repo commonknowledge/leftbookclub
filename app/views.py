@@ -1024,7 +1024,11 @@ class SelectReadingSpeedView(OneAtATimeFormViewStoredToSession):
         return context
 
 
-class CreateMembershipView(SelectReadingSpeedView):
+class AnonymousUserSplitTest(View):
+    feature_flag: str
+    variant_path_mapping: Dict[str, str]
+    default_path: str
+
     def get(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
         # Because sometimes the session hasn't been initialised
         # https://stackoverflow.com/a/39188274/1053937
@@ -1032,12 +1036,20 @@ class CreateMembershipView(SelectReadingSpeedView):
             request.session.save()
 
         user_id = request.session.session_key
-        enabled_variant = posthog.get_feature_flag("new-signup-flow", user_id)
+        enabled_variant = posthog.get_feature_flag(self.feature_flag, user_id)
 
-        if enabled_variant == "v2":
-            return redirect("signup_reading_speed")
-        else:
-            return redirect("/join")
+        # self.variant_path_mapping
+        for variant in self.variant_path_mapping.keys():
+            if enabled_variant == variant:
+                return redirect(self.variant_path_mapping[variant])
+
+        return redirect(self.default_path)
+
+
+class CreateMembershipView(AnonymousUserSplitTest):
+    feature_flag = "new-signup-flow"
+    variant_path_mapping = {"v1": "signup", "v2": "signup_reading_speed"}
+    default_path = "signup"
 
 
 class SelectSyllabusView(OneAtATimeFormViewStoredToSession):

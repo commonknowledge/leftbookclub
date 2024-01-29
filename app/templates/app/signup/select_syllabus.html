@@ -1,0 +1,43 @@
+{% extends "app/signup/join_flow_base.html" %}
+{% load wagtailcore_tags wagtailimages_tags django_bootstrap5 %}
+{% block join_step %}
+    {% if syllabus_options|length is 1 %}
+        {% var single_option=True %}
+    {% endif %}
+    <form data-turbo="false"
+          method="POST"
+          class="tw-mx-auto tw-max-w-lg tw-full tw-px-3">
+        {% if single_option %}
+            <h2 class='tw-text-lg tw-mb-4'>Here's your syllabus!</h2>
+        {% else %}
+            <h2 class='tw-text-lg'>{{ settings.app.V2SignupFlow.select_syllabus_title }}</h2>
+            <p class='tw-mb-4 tw-text-body'>{{ settings.app.V2SignupFlow.select_syllabus_intro|richtext }}</p>
+        {% endif %}
+        {% csrf_token %}
+        <ul class="tw-grid tw-w-full tw-gap-2 tw-list-none tw-p-0">
+            {% for option in syllabus_options %}
+                <li class='lbc-selection'>
+                    <input type="radio"
+                           id="option-{{ option.id }}"
+                           name="{{ field_name }}"
+                           {% if single_option or option.id|slugify == field_value|slugify %}checked="checked"{% endif %}
+                           value="{{ option.id }}"
+                           class="tw-peer"
+                           required/>
+                    <label for="option-{{ option.id }}"
+                           class="tw-inline-flex tw-items-center tw-justify-between tw-w-full tw-text-gray-500 tw-bg-white tw-border tw-border-gray-200 tw-rounded-lg tw-cursor-pointer peer-checked:tw-border-blue-600 peer-checked:tw-text-blue-600 hover:tw-text-gray-600 hover:tw-bg-gray-100 tw-overflow-hidden">
+                        <div class="tw-block {% if option.product_image %}lbc-selection-no-indent{% endif %}">
+                            {% image option.product_image fill-600x300 class='tw-max-w-full tw-h-auto' %}
+                            <div class='tw-px-4 tw-pt-4'>
+                                <div class="tw-w-full tw-text-md tw-text-black">{{ option.title }}</div>
+                                {% if option.description %}<div class="tw-w-full">{{ option.description|richtext }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        {% comment %} {% bootstrap_form form %} {% endcomment %}
+        <button class="btn btn-primary tw-text-md" type="submit">{{ settings.app.V2SignupFlow.continue_button_label }}</button>
+    </form>
+{% endblock %}

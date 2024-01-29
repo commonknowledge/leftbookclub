@@ -1,14 +1,12 @@
 from typing import Optional
 
 import time
-import urllib.parse
+import uuid
 from datetime import datetime
-from importlib.metadata import metadata
-from urllib.parse import urlencode
 
 import djstripe.models
+import orjson
 import shopify
-import stripe
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
@@ -16,71 +14,61 @@ from django.core.cache import cache
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
-from django.http.response import Http404
-from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.functional import cached_property
 from django.utils.html import strip_tags
-from django_countries import countries
 from djmoney.models.fields import Money, MoneyField
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from modelcluster.models import ClusterableModel
-from wagtail import blocks
 from wagtail.admin.panels import (
     FieldPanel,
     FieldRowPanel,
     HelpPanel,
     InlinePanel,
     MultiFieldPanel,
-    PageChooserPanel,
-    StreamFieldPanel,
+    TitleFieldPanel,
 )
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
-from wagtail.fields import RichTextField, StreamField
-from wagtail.images.blocks import ImageChooserBlock
-from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.fields import RichTextField
 from wagtail.images.models import AbstractImage, AbstractRendition
 from wagtail.models import Orderable, Page, Site
 from wagtail.rich_text import get_text_for_indexing
 from wagtail.search import index
-from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.snippets.models import register_snippet
 from wagtailautocomplete.edit_handlers import AutocompletePanel
 from wagtailcache.cache import WagtailCacheMixin, cache_page
 from wagtailseo import utils
 from wagtailseo.models import SeoMixin, SeoType, TwitterCard
 
-from app.models.blocks import ArticleContentStream
+from app.models.blocks import *
 from app.models.circle import CircleEvent
-from app.models.django import User
-from app.utils import include_keys
 from app.utils.abstract_model_querying import abstract_page_query_filter
+from app.utils.books import get_current_book
 from app.utils.cache import django_cached
 from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
-import orjson
 
 from .stripe import LBCProduct, ShippingZone
 
-block_features = [
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "bold",
-    "italic",
-    "link",
-    "ol",
-    "ul",
-    "hr",
-    "link",
-    "document-link",
-    "image",
-    "embed",
-    "blockquote",
-]
+
+class CustomImage(AbstractImage):
+
+    # Making blank / null explicit because you *really* need alt text
+    alt_text = models.CharField(
+        max_length=1024,
+        blank=False,
+        null=False,
+        default="",
+        help_text="Describe this image as literally as possible. If you can close your eyes, have someone read the alt text to you, and imagine a reasonably accurate version of the image, you're on the right track.",
+    )
+
+    admin_form_fields = (
+        "file",
+        "alt_text",
+        "title",
+    )
 
 
 class SeoMetadataMixin(SeoMixin, Page):
@@ -157,25 +145,26 @@ class ArticleSeoMixin(SeoMetadataMixin):
 #     product = SnippetChooserBlock(djstripe.models.LBCProduct)
 
 
+class Interval(models.TextChoices):
+    year = "year"
+    month = "month"
+    week = "week"
+    day = "day"
+
+
 @register_snippet
 class MembershipPlanPrice(Orderable, ClusterableModel):
     # name = models.CharField(max_length=150, blank=True)
     plan = ParentalKey("app.MembershipPlanPage", related_name="prices")
 
     price = MoneyField(
-        default=Money(0, "GBP"),
+        default=0,
         max_digits=14,
         decimal_places=2,
         default_currency="GBP",
         null=False,
         blank=False,
     )
-
-    class Interval(models.TextChoices):
-        year = "year"
-        month = "month"
-        week = "week"
-        day = "day"
 
     interval = models.CharField(
         max_length=10,
@@ -186,6 +175,21 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     )
 
     interval_count = models.IntegerField(default=1, null=False, blank=True)
+
+    ### v2 flow
+    title = models.CharField(max_length=150, blank=True, null=True)
+    skip_donation_ask = models.BooleanField(default=False, blank=True, null=True)
+    suggested_donation_amounts = ArrayField(
+        models.IntegerField(), blank=True, null=True
+    )
+    default_donation_amount = MoneyField(
+        max_digits=14,
+        decimal_places=2,
+        default_currency="GBP",
+        null=True,
+        blank=True,
+    )
+    ### /v2
 
     description = RichTextField(null=True, blank=True)
 
@@ -204,27 +208,27 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
     products = ParentalManyToManyField(
         LBCProduct,
         blank=True,
-        help_text="The stripe product that the user will be subscribed to. If multiple products are set here, then the user will be asked to pick which one they want, e.g. Classic or Contemporary books.",
+        help_text="The stripe product that the user will be subscribed to.",
+        verbose_name="Stripe product",
     )
 
     panels = [
-        FieldRowPanel(
-            [
-                FieldPanel("price"),
-            ]
-        ),
+        TitleFieldPanel("title", targets=[]),
+        FieldPanel("price", classname="collapsible collapsed"),
         MultiFieldPanel(
             [
-                AutocompletePanel("products", target_model=LBCProduct),
+                FieldPanel("skip_donation_ask"),
+                FieldPanel("suggested_donation_amounts"),
+                FieldPanel("default_donation_amount"),
             ],
-            heading="Product",
+            heading="[V2] Donation upsell",
         ),
         FieldRowPanel(
             [
                 FieldPanel("interval_count"),
                 FieldPanel("interval"),
             ],
-            heading="billing schedule",
+            heading="Billing schedule",
         ),
         MultiFieldPanel(
             [
@@ -237,6 +241,13 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             "description",
             classname="full",
             help_text="Displayed to visitors who are considering purchasing a plan at this price.",
+        ),
+        MultiFieldPanel(
+            [
+                AutocompletePanel("products", target_model=LBCProduct),
+            ],
+            heading="V1 signup flow",
+            classname="collapsible collapsed",
         ),
     ]
 
@@ -258,6 +269,15 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         if self.free_shipping_zones.filter(code=zone.code).exists():
             return Money(0, zone.rate_currency)
         return zone.rate * self.deliveries_per_billing_period
+
+    def equivalent_monthly_shipping_fee(self, zone) -> Money:
+        if self.free_shipping_zones.filter(code=zone.code).exists():
+            return Money(0, zone.rate_currency)
+        return (
+            zone.rate
+            * self.deliveries_per_billing_period
+            / self.months_per_billing_cycle
+        )
 
     def price_including_shipping(self, zone):
         return self.price + self.shipping_fee(zone)
@@ -314,12 +334,36 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
         return self.price / self.months_per_billing_cycle
 
     @property
+    def monthly_price_string(self) -> str:
+        money = str(self.equivalent_monthly_price)
+        s = f"{money}/month"
+        return s
+
+    def equivalent_monthly_price_string_including_shipping(self, zone) -> str:
+        money = str(
+            self.equivalent_monthly_price
+            + self.shipping_fee(zone) / self.months_per_billing_cycle
+        )
+        s = f"{money}/month"
+        return s
+
+    @property
     def equivalent_monthly_price_string(self) -> str:
         money = str(self.equivalent_monthly_price)
         s = f"{money}/month"
         if self.should_advertise_postage_price:
             return f"{s} + p&p"
         return s
+
+    @property
+    def shipping_price_string_uk(self) -> str:
+        return self.shipping_fee(ShippingZone.get_for_country(iso_a2="GB"))
+
+    @property
+    def price_string_including_uk_shipping(self) -> str:
+        return self.price_string_including_shipping(
+            ShippingZone.get_for_country(iso_a2="GB")
+        )
 
     def __str__(self) -> str:
         return f"{self.price_string} on {self.plan}"
@@ -424,6 +468,16 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             ).first()
         return current_plan_price
 
+    @property
+    def discount_percent(self):
+        if self.interval != "year":
+            return None
+        monthly_price = self.plans.first().monthly_price.price
+        discount_percent = (
+            monthly_price - self.equivalent_monthly_price
+        ) / monthly_price
+        return discount_percent
+
 
 @register_snippet
 class Upsell(Orderable, ClusterableModel):
@@ -469,148 +523,61 @@ class Upsell(Orderable, ClusterableModel):
         )
 
 
-class PlanTitleBlock(blocks.StructBlock):
-    class Meta:
-        template = "app/blocks/plan_title_block.html"
-
-    # def get_context(self, value, parent_context=None):
-    #     context = super().get_context(value, parent_context)
-    #     context['page'] = parent_context['page']
-    #     return context
+def create_default_layout_syllabus():
+    return (("syllabus_title", {}),)
 
 
-class PlanPricingBlock(blocks.StructBlock):
-    class Meta:
-        template = "app/blocks/plan_pricing_block.html"
+@register_snippet
+class ReadingOption(Orderable, ClusterableModel):
+    """
+    A simple way to group together multiple plans, e.g. "every month" and "every two months"
+    """
 
-    # def get_context(self, value, parent_context=None):
-    #     context = super().get_context(value, parent_context)
-    #     context['page'] = parent_context['page']
-    #     return context
-
-
-class BookTypeChoice(blocks.ChoiceBlock):
-    choices = [
-        ("classic", "classic"),
-        ("contemporary", "contemporary"),
-        ("all-books", "all-books"),
-    ]
-
-    class Meta:
-        default = "all-books"
-
-
-class BackgroundColourChoiceBlock(blocks.ChoiceBlock):
-    choices = [
-        ("bg-black text-white", "black"),
-        ("bg-white", "white"),
-        # ('primary', 'primary'),
-        ("tw-bg-yellow", "yellow"),
-        # ('black', 'black'),
-        ("tw-bg-teal", "teal"),
-        ("tw-bg-darkgreen", "darkgreen"),
-        ("tw-bg-lilacgrey", "lilacgrey"),
-        ("tw-bg-coral", "coral"),
-        ("tw-bg-purple", "purple"),
-        ("tw-bg-magenta", "magenta"),
-        ("tw-bg-pink", "pink"),
-        ("tw-bg-lightgreen", "lightgreen"),
-    ]
-
-    class Meta:
-        icon = "fa-paint"
-
-
-class AlignmentChoiceBlock(blocks.ChoiceBlock):
-    choices = [
-        ("left", "left"),
-        ("center", "center"),
-        ("right", "right"),
-    ]
-
-    class Meta:
-        icon = "fa-arrows-h"
-        default = "center"
-
-
-class BootstrapButtonSizeChoiceBlock(blocks.ChoiceBlock):
-    choices = [
-        ("sm", "small"),
-        ("md", "medium"),
-        ("lg", "large"),
-    ]
-
-    class Meta:
-        icon = "fa-arrows-alt"
-        default = "md"
-
-
-class BootstrapButtonStyleChoiceBlock(blocks.ChoiceBlock):
-    choices = [
-        ("btn-outline-dark", "outlined"),
-        ("btn-dark text-yellow", "filled"),
-    ]
-
-    class Meta:
-        default = "btn-outline-dark"
-
-
-class PlanBlock(blocks.StructBlock):
-    plan = blocks.PageChooserBlock(
-        page_type="app.membershipplanpage",
-        target_model="app.membershipplanpage",
-        can_choose_root=False,
+    title = models.CharField(max_length=150, help_text="Visible to potential customers")
+    banner_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
     )
-    background_color = BackgroundColourChoiceBlock(required=False)
-    promotion_label = blocks.CharBlock(
-        required=False, help_text="Label that highlights this product"
+    description = RichTextField(
+        features=["ul"],
+        help_text="Bullet points will appear as ticks.",
+        null=True,
+        blank=True,
     )
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        context["request_price"] = value["plan"].get_price_for_request(
-            parent_context.get("request")
-        )
-        return context
-
-    class Meta:
-        template = "app/blocks/membership_option_card.html"
-        icon = "fa-money"
-
-
-class MembershipOptionsBlock(blocks.StructBlock):
-    heading = blocks.CharBlock(
-        required=False,
-        form_classname="full title",
-        default="Choose your plan",
-    )
-    description = blocks.RichTextBlock(
-        required=False,
-        default="<p>Your subscription will begin with the most recently published book in your chosen collection.</p>",
-    )
-    plans = blocks.ListBlock(PlanBlock)
-
-    class Meta:
-        template = "app/blocks/membership_options_grid.html"
-        icon = "fa-users"
-
-
-class CustomImage(AbstractImage):
-
-    # Making blank / null explicit because you *really* need alt text
-    alt_text = models.CharField(
-        max_length=1024,
-        blank=False,
+    interval = models.CharField(
+        max_length=10,
+        choices=Interval.choices,
+        default=Interval.month,
         null=False,
-        default="",
-        help_text="Describe this image as literally as possible. If you can close your eyes, have someone read the alt text to you, and imagine a reasonably accurate version of the image, you're on the right track.",
+        blank=True,
+    )
+    interval_count = models.IntegerField(default=1, null=False, blank=True)
+
+    plans = ParentalManyToManyField(
+        "app.MembershipPlanPage",
+        related_name="plans",
+        help_text="The plans available under this option",
     )
 
-    admin_form_fields = (
-        "file",
-        "alt_text",
-        "title",
-    )
+    def __str__(self) -> str:
+        return self.title
+
+    panels = [
+        TitleFieldPanel("title", targets=[]),
+        FieldPanel("description"),
+        FieldRowPanel(
+            [
+                FieldPanel("interval_count"),
+                FieldPanel("interval"),
+            ],
+            heading="Delivery schedule",
+        ),
+        FieldPanel("banner_image"),
+        AutocompletePanel("plans", target_model="app.MembershipPlanPage"),
+    ]
 
 
 class ImageRendition(AbstractRendition):
@@ -663,8 +630,8 @@ class BlogPage(WagtailCacheMixin, ArticleSeoMixin, Page):
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
-        StreamFieldPanel("body", classname="full"),
-        ImageChooserPanel("feed_image"),
+        FieldPanel("body", classname="full"),
+        FieldPanel("feed_image"),
     ]
 
     seo_description_sources = ArticleSeoMixin.seo_description_sources + ["intro"]
@@ -723,9 +690,8 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             description=product.attributes.get("body_html"),
             image_url=image_urls[0] if len(images) > 0 else "",
             image_urls=image_urls,
-            cached_price=cls.get_lowest_price(product)
+            cached_price=cls.get_lowest_price(product),
         )
-
 
     @classmethod
     def get_root_page(cls):
@@ -776,7 +742,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             metafields = metafields_to_dict(metafields)
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
                 return cls.update_instance_for_product(product, metafields)
-            else:   
+            else:
                 return cls.create_instance_for_product(product, metafields)
 
     @property
@@ -857,315 +823,11 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
         )
 
 
-class ButtonBlock(blocks.StructBlock):
-    text = blocks.CharBlock(max_length=100, required=False)
-    page = blocks.PageChooserBlock(
-        required=False, help_text="Pick a page or specify a URL"
-    )
-    href = blocks.URLBlock(
-        required=False, help_text="Pick a page or specify a URL", label="URL"
-    )
-    size = BootstrapButtonSizeChoiceBlock(required=False, default="md")
-    style = BootstrapButtonStyleChoiceBlock(required=False, default="btn-outline-dark")
-
-    class Meta:
-        template = "app/blocks/cta.html"
-
-
-class HeroTextBlock(blocks.StructBlock):
-    heading = blocks.CharBlock(max_length=250, form_classname="full title")
-    background_color = BackgroundColourChoiceBlock(required=False)
-    button = ButtonBlock(required=False)
-
-    class Meta:
-        template = "app/blocks/hero_block.html"
-        icon = "fa fa-alphabet"
-
-
-class ListItemBlock(blocks.StructBlock):
-    title = blocks.CharBlock(max_length=250, form_classname="full title")
-    image = ImageChooserBlock(required=False)
-    image_css = blocks.CharBlock(max_length=500, required=False)
-    caption = blocks.RichTextBlock(max_length=500)
-    background_color = BackgroundColourChoiceBlock(required=False)
-    button = ButtonBlock(required=False)
-
-    class Meta:
-        template = "app/blocks/list_item_block.html"
-        icon = "fa fa-alphabet"
-
-
-class ColumnWidthChoiceBlock(blocks.ChoiceBlock):
-    choices = [
-        ("small", "small"),
-        ("medium", "medium"),
-        ("large", "large"),
-    ]
-
-    class Meta:
-        icon = "fa-arrows-alt"
-        default = "small"
-
-
-class ListBlock(blocks.StructBlock):
-    column_width = ColumnWidthChoiceBlock()
-    items = blocks.ListBlock(ListItemBlock)
-
-    class Meta:
-        template = "app/blocks/list_block.html"
-        icon = "fa fa-alphabet"
-
-
-class FeaturedBookBlock(blocks.StructBlock):
-    book = blocks.PageChooserBlock(
-        page_type="app.bookpage",
-        target_model="app.bookpage",
-        can_choose_root=False,
-    )
-    background_color = BackgroundColourChoiceBlock(required=False)
-    promotion_label = blocks.CharBlock(
-        required=False, help_text="Label that highlights this product"
-    )
-    description = blocks.RichTextBlock(
-        required=False,
-        help_text="This will replace the book's default description. You can use this to provide a more contextualised description of the book",
-    )
-
-    class Meta:
-        template = "app/blocks/featured_book_block.html"
-        icon = "fa fa-book"
-
-
-class FeaturedProductBlock(blocks.StructBlock):
-    product = blocks.PageChooserBlock(
-        page_type="app.merchandisepage",
-        target_model="app.merchandisepage",
-        can_choose_root=False,
-    )
-    background_color = BackgroundColourChoiceBlock(required=False)
-    promotion_label = blocks.CharBlock(
-        required=False, help_text="Label that highlights this product"
-    )
-    description = blocks.RichTextBlock(
-        required=False,
-        help_text="This will replace the product's default description. You can use this to provide a more contextualised description of the product",
-    )
-
-    class Meta:
-        template = "app/blocks/featured_product_block.html"
-        icon = "fa fa-shopping-cart"
-
-
-class BookGridBlock(blocks.StructBlock):
-    column_width = ColumnWidthChoiceBlock()
-
-    class Meta:
-        template = "app/blocks/book_grid_block.html"
-        icon = "fa fa-book"
-
-
-class ProductGridBlock(blocks.StructBlock):
-    column_width = ColumnWidthChoiceBlock()
-
-    class Meta:
-        template = "app/blocks/product_grid_block.html"
-        icon = "fa fa-shopping-cart"
-
-
-class SelectedBooksBlock(BookGridBlock):
-    books = blocks.ListBlock(
-        blocks.PageChooserBlock(
-            page_type="app.bookpage",
-            target_model="app.bookpage",
-            can_choose_root=False,
-        )
-    )
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        context["books"] = value["books"]
-        return context
-
-
-class SelectedProductsBlock(ProductGridBlock):
-    products = blocks.ListBlock(
-        blocks.PageChooserBlock(
-            page_type="app.merchandisepage",
-            target_model="app.merchandisepage",
-            can_choose_root=False,
-        )
-    )
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        context["products"] = list(value["products"])
-        return context
-
-
-class RecentlyPublishedBooks(BookGridBlock):
-    max_books = blocks.IntegerBlock(
-        default=4, help_text="How many books should show up?"
-    )
-    type = BookTypeChoice(default="all-books")
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        filters = {}
-        if value["type"] != None and value["type"] != "all-books":
-            filters["type"] = value["type"]
-        context["books"] = (
-            BookPage.objects.order_by("-published_date")
-            .live()
-            .public()
-            .filter(published_date__isnull=False, **filters)
-            .all()[: value["max_books"]]
-        )
-        return context
-
-
-class FullProductList(ProductGridBlock):
-    max_products = blocks.IntegerBlock(
-        default=10, help_text="How many products should show up?"
-    )
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        context["products"] = list(
-            MerchandisePage.objects.live().public().all()[: value["max_products"]]
-        )
-        return context
-
-
-class YourBooks(BookGridBlock):
-    class Meta:
-        template = "app/blocks/your_books_grid_block.html"
-        icon = "fa fa-book"
-
-
-class SingleBookBlock(blocks.StructBlock):
-    book = blocks.PageChooserBlock(
-        page_type="app.bookpage",
-        target_model="app.bookpage",
-        can_choose_root=False,
-    )
-
-    class Meta:
-        template = "app/blocks/single_book_block.html"
-        icon = "fa fa-book"
-
-
-class NewsletterSignupBlock(blocks.StructBlock):
-    heading = blocks.CharBlock(required=False, max_length=150)
-
-    class Meta:
-        template = "app/blocks/newsletter_signup_block.html"
-        icon = "fa fa-email"
-
-
-class ArticleText(blocks.StructBlock):
-    text = blocks.RichTextBlock(form_classname="full", features=block_features)
-    alignment = AlignmentChoiceBlock(
-        help_text="Doesn't apply when used inside a column."
-    )
-
-    class Meta:
-        template = "app/blocks/richtext.html"
-
-
-class ColumnBlock(blocks.StructBlock):
-    stream_blocks = [
-        ("hero_text", HeroTextBlock()),
-        ("title_image_caption", ListItemBlock()),
-        ("image", ImageChooserBlock()),
-        ("single_book", SingleBookBlock()),
-        ("membership_plan", PlanBlock()),
-        ("richtext", blocks.RichTextBlock(features=block_features)),
-        ("button", ButtonBlock()),
-        ("newsletter_signup", NewsletterSignupBlock()),
-    ]
-    background_color = BackgroundColourChoiceBlock(required=False)
-    content = blocks.StreamBlock(stream_blocks, required=False)
-
-
-class SingleColumnBlock(ColumnBlock):
-    column_width = ColumnWidthChoiceBlock()
-    alignment = AlignmentChoiceBlock(
-        help_text="Doesn't apply when used inside a column."
-    )
-
-    class Meta:
-        template = "app/blocks/single_column_block.html"
-        icon = "fa fa-th-large"
-
-
-class MultiColumnBlock(blocks.StructBlock):
-    background_color = BackgroundColourChoiceBlock(required=False)
-    columns = blocks.ListBlock(ColumnBlock, min_num=1, max_num=5)
-
-    class Meta:
-        template = "app/blocks/columns_block.html"
-        icon = "fa fa-th-large"
-
-
-class EventsListBlock(blocks.StructBlock):
-    number_of_events = blocks.IntegerBlock(required=True, default=3)
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        context.update(MapPage.get_map_context())
-        return context
-
-    class Meta:
-        template = "app/blocks/event_list_block.html"
-        icon = "fa fa-calendar"
-
-
-class EventsListAndMap(blocks.StructBlock):
-    title = blocks.CharBlock(required=False)
-    intro = blocks.RichTextBlock(required=False)
-    number_of_events = blocks.IntegerBlock(required=True, default=3)
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        context.update(MapPage.get_map_context())
-        return context
-
-    class Meta:
-        template = "app/blocks/event_list_and_map_block.html"
-        icon = "fa fa-map"
-
-
-def create_streamfield(additional_blocks=None, **kwargs):
-    blcks = [
-        ("membership_options", MembershipOptionsBlock()),
-        ("image", ImageChooserBlock()),
-        ("featured_book", FeaturedBookBlock()),
-        ("book_selection", SelectedBooksBlock()),
-        ("recently_published_books", RecentlyPublishedBooks()),
-        ("featured_product", FeaturedProductBlock()),
-        ("product_selection", SelectedProductsBlock()),
-        ("full_product_list", FullProductList()),
-        ("hero_text", HeroTextBlock()),
-        ("heading", blocks.CharBlock(form_classname="full title")),
-        ("richtext", ArticleText()),
-        ("list_of_heading_image_text", ListBlock()),
-        ("single_column", SingleColumnBlock()),
-        ("columns", MultiColumnBlock()),
-        ("events_list_and_map", EventsListAndMap()),
-        ("events_list_block", EventsListBlock()),
-    ]
-
-    if isinstance(additional_blocks, list):
-        blcks += additional_blocks
-
-    return StreamField(blcks, null=True, blank=True, use_json_field=True, **kwargs)
-
-
 @method_decorator(cache_page, name="serve")
 class MerchandiseIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")
@@ -1195,9 +857,7 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     type = models.CharField(max_length=300, blank=True)
     layout = create_streamfield()
 
-    content_panels = BaseShopifyProductPage.content_panels + [
-        StreamFieldPanel("layout")
-    ]
+    content_panels = BaseShopifyProductPage.content_panels + [FieldPanel("layout")]
 
     @classmethod
     def get_root_page(cls):
@@ -1221,6 +881,7 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
     class Meta:
         ordering = ["-published_date"]
 
+
 def metafields_array_to_list(arg):
     value = []
     if isinstance(arg, str):
@@ -1232,9 +893,46 @@ def metafields_array_to_list(arg):
     else:
         return []
 
+
+def create_default_layout_plan():
+    return (
+        ("plan_title", {}),
+        ("plan_pricing", {}),
+    )
+
+
 @method_decorator(cache_page, name="serve")
 class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     parent_page_types = ["app.HomePage"]
+
+    ### v2 signup flow fields
+    product_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="600 x 300 optimal resolution.",
+    )
+    background_image = models.ForeignKey(
+        CustomImage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="1400 x 1024 optimal resolution.",
+    )
+    display_in_quiz_flow = models.BooleanField(
+        default=False, verbose_name="Display in v2 signup flow"
+    )
+    book_types = models.CharField(
+        choices=book_types,
+        max_length=150,
+        blank=True,
+        null=True,
+        help_text="Which types of books are included in this plan? Used for displaying things.",
+    )
+    ### /v2
 
     deliveries_per_year = models.PositiveIntegerField(
         default=0, validators=[MinValueValidator(0)]
@@ -1255,17 +953,35 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
 
     layout = create_streamfield(
         [("plan_title", PlanTitleBlock()), ("plan_pricing", PlanPricingBlock())],
-        default=(("plan_title", {}), ("plan_pricing", {})),
+        default=create_default_layout_plan,
     )
 
     panels = content_panels = Page.content_panels + [
-        FieldPanel("deliveries_per_year"),
-        FieldPanel("description"),
-        InlinePanel("prices", min_num=1, label="Subscription Pricing Options"),
-        InlinePanel("upsells", heading="Upsell options", label="Upsell option"),
-        FieldPanel("pick_product_title", classname="full title"),
-        FieldPanel("pick_product_text"),
-        StreamFieldPanel("layout"),
+        FieldPanel("deliveries_per_year", heading="[v1+v2] Deliveries per year"),
+        InlinePanel(
+            "prices", min_num=1, label="Prices", classname="collapsible collapsed"
+        ),
+        MultiFieldPanel(
+            [
+                # FieldPanel("display_in_quiz_flow"),
+                FieldPanel("book_types"),
+                FieldPanel("product_image"),
+                FieldPanel("background_image"),
+                FieldPanel("description"),
+            ],
+            heading="V2 signup flow",
+            classname="collapsible",
+        ),
+        MultiFieldPanel(
+            [
+                InlinePanel("upsells", label="Upsell prices"),
+                FieldPanel("pick_product_title", classname="full title"),
+                FieldPanel("pick_product_text"),
+            ],
+            heading="V1 signup flow",
+            classname="collapsible collapsed",
+        ),
+        FieldPanel("layout"),
     ]
 
     @property
@@ -1301,7 +1017,9 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
         return self.prices.filter(interval="year").order_by("interval_count").first()
 
     @property
-    def annual_percent_off_per_month(self) -> str:
+    def annual_percent_off_per_month(self):
+        if self.basic_price is None or self.annual_price is None:
+            return None
         return (
             self.annual_price.equivalent_monthly_price - self.basic_price.price
         ) / self.basic_price.price
@@ -1310,6 +1028,10 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
         if request.GET.get("annual", None) is not None:
             return self.annual_price
         return self.basic_price
+
+    @cached_property
+    def current_book(self):
+        return get_current_book(self.book_types)
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
@@ -1321,21 +1043,21 @@ class MembershipPlanPage(WagtailCacheMixin, ArticleSeoMixin, Page):
 class HomePage(WagtailCacheMixin, IndexPageSeoMixin, RoutablePageMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")
 class InformationPage(WagtailCacheMixin, ArticleSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")
 class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
     show_in_menus_default = True
     layout = create_streamfield()
-    content_panels = Page.content_panels + [StreamFieldPanel("layout")]
+    content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")

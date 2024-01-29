@@ -1,4 +1,6 @@
 FROM nikolaik/python-nodejs:python3.9-nodejs18-bullseye
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 # OS deps
@@ -36,4 +38,6 @@ RUN NODE_ENV=production yarn vite build
 # Rerun collect static to include the built files
 RUN SECRET_KEY=dummy poetry run python manage.py collectstatic --noinput --clear
 
-CMD ["bash", "-c", "poetry run gunicorn --threads=2 -b 0.0.0.0:${PORT:-80} app.wsgi"]
+EXPOSE 8080
+
+CMD ["poetry", "run", "gunicorn", "--bind", ":8080", "--workers", "2", "app.wsgi"]

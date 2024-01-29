@@ -17,6 +17,7 @@ from wagtail.documents import urls as wagtaildocs_urls
 from wagtail_transfer import urls as wagtailtransfer_urls
 from wagtailautocomplete.urls.admin import urlpatterns as autocomplete_admin_urls
 
+from app import views
 from app.views import (
     BatchUpdateSubscriptionsStatusView,
     BatchUpdateSubscriptionsView,
@@ -158,6 +159,51 @@ urlpatterns = [
         BatchUpdateSubscriptionsStatusView.as_view(),
         name="batch_update_subscriptions_batch_status",
     ),
+    ### V2 signup flow
+    # CreateMembershipView
+    # SelectReadingSpeedView
+    # SelectSyllabusView
+    # SelectShippingCountryView
+    # SelectBillingPlanView
+    # SelectDonationView
+    # V2SubscriptionCheckoutView
+    path(
+        "signup/",
+        views.CreateMembershipView.as_view(),
+        name="signup",
+    ),
+    path(
+        "signup/reading-speed/",
+        views.SelectReadingSpeedView.as_view(),
+        name="signup_reading_speed",
+    ),
+    path(
+        "signup/syllabus/",
+        views.SelectSyllabusView.as_view(),
+        name="signup_syllabus",
+    ),
+    path(
+        "signup/shipping/",
+        views.SelectShippingCountryView.as_view(),
+        name="signup_shipping",
+    ),
+    path(
+        "signup/billing/",
+        views.SelectBillingPlanView.as_view(),
+        name="signup_billing",
+    ),
+    path(
+        "signup/donation/",
+        views.SelectDonationView.as_view(),
+        name="signup_donation",
+    ),
+    path(
+        "signup/checkout/",
+        views.V2SubscriptionCheckoutView.as_view(),
+        name="v2_stripe_checkout",
+    ),
+    ### END V2 signup flow
+    ###
     path("accounts/", include("allauth.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
     path("customer_portal/", StripeCustomerPortalView.as_view(), name="customerportal"),

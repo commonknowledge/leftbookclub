@@ -1,0 +1,12 @@
+{% extends "app/signup/join_flow_base.html" %}
+{% load wagtailcore_tags django_bootstrap5 %}
+{% block join_step %}
+    <form data-turbo="false"
+          method="POST"
+          class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3">
+        <h2 class='tw-text-lg tw-mb-4'>{{ settings.app.V2SignupFlow.select_shipping_title }}</h2>
+        {% csrf_token %}
+        <div class='position-relative'>{% bootstrap_field form.country show_label=False %}</div>
+        <button class="btn btn-primary tw-text-md" type="submit">{{ settings.app.V2SignupFlow.continue_button_label }}</button>
+    </form>
+{% endblock %}

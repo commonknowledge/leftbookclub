@@ -15,7 +15,7 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
 
 from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
-from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice
+from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice, ReadingOption
 from app.utils import ensure_list
 
 
@@ -24,27 +24,29 @@ def global_admin_css():
     return format_html('<link rel="stylesheet" href="{}">', static("wagtailadmin.css"))
 
 
+class ReadingOptionsAdmin(ModelAdmin):
+    model = ReadingOption
+    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
+    menu_label = "Delivery options"
+    menu_icon = "fa-envelop"
+
+
+modeladmin_register(ReadingOptionsAdmin)
+
+
 class MembershipOptionsAdmin(ModelAdmin):
     model = MembershipPlanPage
-    menu_icon = "fa-money"  # change as required
+    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
+    menu_icon = "fa-money"
     menu_label = "Plans"
 
 
 modeladmin_register(MembershipOptionsAdmin)
 
 
-class PriceOptionsAdmin(ModelAdmin):
-    model = MembershipPlanPrice
-    menu_label = "Prices"
-    menu_icon = "fa-money"  # change as required
-
-
-modeladmin_register(PriceOptionsAdmin)
-
-
 class ShippingAdmin(ModelAdmin):
     model = ShippingZone
-    menu_icon = "fa-truck"  # change as required
+    menu_icon = "fa-truck"
     menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
     add_to_settings_menu = False  # or True to add your model to the Settings sub-menu
     exclude_from_explorer = (
@@ -109,7 +111,7 @@ class CustomerAdmin(ModelAdmin):
     index_view_class = IndexView
     model = LBCSubscription
     menu_label = "Members"  # ditch this to use verbose_name_plural from model
-    menu_icon = "fa-users"  # change as required
+    menu_icon = "fa-users"
     menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
     add_to_settings_menu = False  # or True to add your model to the Settings sub-menu
     exclude_from_explorer = (
@@ -183,8 +185,8 @@ class EventAdmin(ModelAdmin):
         "circle-events"  # customise the URL from default to admin/EventAdmin
     )
     menu_label = "Events"  # ditch this to use verbose_name_plural from model
-    menu_icon = "date"  # change as required
-    menu_order = 500  # will put in 3rd place (000 being 1st, 100 2nd)
+    menu_icon = "date"
+    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
     ordering = ("-starts_at",)
     add_to_settings_menu = False  # or True to add your model to the Settings sub-menu
     exclude_from_explorer = (

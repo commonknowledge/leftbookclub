@@ -1,12 +1,13 @@
 from django import template
 
 from app.models.wagtail import BookPage, MerchandisePage
+from app.utils import ensure_list
 
 register = template.Library()
 
 
 @register.simple_tag
-def get_books(since=None, types=None):
+def get_books(since=None, types=None, limit=None):
     qs = (
         BookPage.objects.live()
         .public()
@@ -15,8 +16,12 @@ def get_books(since=None, types=None):
     )
     if since:
         qs = qs.filter(published_date__gte=since)
-    if types and len(types) > 0:
-        qs = qs.filter(type__in=types)
+    if types is not None:
+        types = ensure_list(types)
+        if len(types) > 0 and "all-books" not in types:
+            qs = qs.filter(type__in=types)
+    if limit:
+        qs = qs[:limit]
     return qs
 
 

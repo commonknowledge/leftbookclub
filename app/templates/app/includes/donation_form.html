@@ -1,0 +1,56 @@
+<form method='POST'
+      data-turbo="false"
+      id="donation-form"
+      data-controller="donation">
+    {% comment %} Non field errors: {{ form.non_field_errors }}
+    Donation amount: {{ form.donation_amount.errors }} {% endcomment %}
+    {% csrf_token %}
+    {{ form.user_id }}
+    <div class='row g-3'>
+        {% for option in donation_amount_options %}
+            <div class='col'>
+                <input data-donation-target="input"
+                       data-action="input->donation#update"
+                       value="{{ option }}"
+                       type="radio"
+                       class="btn-check"
+                       name="donation_amount"
+                       id="option-{{ option }}"
+                       autocomplete="off"
+                       {% comment %}
+                       Initial
+                       {% endcomment %}
+                       {% if form.donation_amount.value == option %}checked{% endif %}/>
+                <label class="btn btn-outline-primary w-100" for="option-{{ option }}">£{{ option }} {{ interval_text }}</label>
+            </div>
+        {% endfor %}
+    </div>
+    <div class='text-center mx-auto my-1 tw-text-gray-500'>or</div>
+    <div class="input-group mb-3">
+        <span class="input-group-text">£</span>
+        <input data-donation-target="input"
+               data-action="input->donation#update"
+               name="donation_amount"
+               type="number"
+               step="1"
+               min="0"
+               max="100"
+               class="form-control"
+               aria-label="Custom amount"
+               placeholder="Custom amount"
+               value="{{ form.donation_amount.value }}"/>
+        <span class="input-group-text">{{ interval_text }}</span>
+    </div>
+    <div class="form-actions">
+        <button class="btn btn-outline-primary tw-text-md tw-w-full tw-bg-yellow tw-text-black tw-border-none"
+                type="submit">
+            {% firstof confirm_text "Confirm donation" %}
+        </button>
+        {% if continue_without %}
+            <button class="btn btn-outline-primary tw-text-md tw-w-full mt-2"
+                    type="submit">
+                {% firstof continue_without_text "Continue without donating" %}
+            </button>
+        {% endif %}
+    </div>
+</form>

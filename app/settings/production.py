@@ -2,6 +2,9 @@ from urllib.parse import urlparse
 
 from .base import *
 
+if USE_WHITENOISE:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 DEBUG = False
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
@@ -21,7 +24,7 @@ if os.getenv("AWS_S3_REGION_NAME"):
     DEFAULT_FILE_STORAGE = "app.storage.DigitalOceanSpacesStorage"
     AWS_S3_ADDRESSING_STYLE = "virtual"
     # like `fra1`
-    AWS_DEFAULT_ACL = 'public-read'
+    AWS_DEFAULT_ACL = "public-read"
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
     # like `leftbookclub`

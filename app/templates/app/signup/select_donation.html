@@ -1,0 +1,9 @@
+{% extends "app/signup/join_flow_base.html" %}
+{% load wagtailcore_tags django_bootstrap5 %}
+{% block join_step %}
+    <div class='tw-mx-auto tw-max-w-lg tw-w-full tw-px-3'>
+        <h2 class='tw-text-lg'>Add a {{ membership_plan_price.interval }}ly donation?</h2>
+        <p class='tw-mb-4'>{{ settings.app.V2SignupFlow.select_donation_intro|richtext }}</p>
+        {% include "app/includes/donation_form.html" with confirm_text="Continue with donation" continue_without=True %}
+    </div>
+{% endblock %}

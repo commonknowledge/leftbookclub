@@ -10,9 +10,9 @@ const {
 module.exports = {
   prefix: "tw-",
   content: [
-    "./app/**/*.{py,html,js,ts,tsx}",
+    "./app/templates/**/*.html",
     "./frontend/**/*.{html,js,ts,tsx}",
-    "./static/**/*.{html,js,ts,tsx}",
+    // "./static/**/*.{html,js,ts,tsx}",
   ],
   theme: {
     /*
@@ -35,6 +35,108 @@ module.exports = {
         5: "40px",
         6: "80px",
       },
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
+      },
+      fontSize: {
+        // // xl
+        // font-family: Inter;
+        // font-size: 64px;
+        // font-style: normal;
+        // font-weight: 700;
+        // line-height: 110%;
+        // letter-spacing: -3.2px;
+        xl: [
+          "64px",
+          {
+            lineHeight: "110%",
+            letterSpacing: "-3.2px",
+            fontWeight: "700",
+          },
+        ],
+
+        // // lg
+        // font-family: Inter;
+        // font-size: 48px;
+        // font-style: normal;
+        // font-weight: 700;
+        // line-height: 120%;
+        // letter-spacing: -2.4px;
+        lg: [
+          "48px",
+          {
+            lineHeight: "120%",
+            letterSpacing: "-2.4px",
+            fontWeight: "700",
+          },
+        ],
+
+        // // md
+        // font-family: Inter;
+        // font-size: 24px;
+        // font-style: normal;
+        // font-weight: 600;
+        // line-height: 120%;
+        // letter-spacing: -1.2px;
+        md: [
+          "24px",
+          {
+            lineHeight: "120%",
+            letterSpacing: "-1.2px",
+            fontWeight: "600",
+          },
+        ],
+
+        // // body
+        // font-family: Inter;
+        // font-size: 18px;
+        // font-style: normal;
+        // font-weight: 400;
+        // line-height: 140%;
+        // letter-spacing: -0.9px;
+        body: [
+          "18px",
+          {
+            lineHeight: "140%",
+            letterSpacing: "-0.9px",
+            fontWeight: "400",
+          },
+        ],
+
+        // // sm
+        // font-family: Inter;
+        // font-size: 14px;
+        // font-style: normal;
+        // font-weight: 600;
+        // line-height: 120%;
+        // text-transform: uppercase;
+        sm: [
+          "14px",
+          {
+            lineHeight: "120%",
+            textTransform: "uppercase",
+            fontWeight: "600",
+          },
+        ],
+
+        // // caslon
+        // font-family: Adobe Caslon Pro;
+        // font-size: 14px;
+        // font-style: normal;
+        // font-weight: 400;
+        // line-height: 100%
+        // letter-spacing: 2.8px;
+        // text-transform: uppercase;
+        caslon: [
+          "14px",
+          {
+            lineHeight: "100%",
+            letterSpacing: "2.8px",
+            textTransform: "uppercase",
+            fontWeight: "400",
+          },
+        ],
+      },
       colors: {
         background: "#F2F0F0",
         black: "#231F20",
@@ -49,6 +151,7 @@ module.exports = {
         magenta: "#FF55B4",
         pink: "#FFBBD2",
         lightgreen: "#8FBB99",
+        brown: "#796E67",
       },
     },
   },

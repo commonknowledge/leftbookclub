@@ -1,5 +1,4 @@
 import orjson
-
 import pycountry
 import shopify
 from dateutil.parser import parse
@@ -24,19 +23,15 @@ def parse_metafield(f):
         "date_time",
     ]:
         return parse(f.value)
-    elif (
-        f.type
-        in [
-            "json_string",
-            "json",
-            "dimension",
-            "rating",
-            "rating",
-            "volume",
-            "weight",
-        ]
-        or (hasattr(f, "value_type") and f.value_type == "json_string")
-    ):
+    elif f.type in [
+        "json_string",
+        "json",
+        "dimension",
+        "rating",
+        "rating",
+        "volume",
+        "weight",
+    ] or (hasattr(f, "value_type") and f.value_type == "json_string"):
         return orjson.loads(f.value)
     else:
         return f.value
@@ -51,7 +46,7 @@ def convert_stripe_address_to_shopify(user):
         "address2": shipping.get("address").get("line2"),
         "city": shipping.get("address").get("city"),
         "country": pycountry.countries.search_fuzzy(
-            shipping.get("address").get("country")
+            str(shipping.get("address").get("country"))
         )[0].name,
         "zip": shipping.get("address").get("postal_code"),
         "country_code": shipping.get("address").get("country"),

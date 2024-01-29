@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-
+USE_WHITENOISE = os.getenv("USE_WHITENOISE", False) in (True, "True", "true", "t", 1)
 # Application definition
 
 INSTALLED_APPS = [
@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "django_countries",
     "django_gravatar",
     "active_link",
-    "wagtailfontawesome",
     # "wagtail_transfer",
     "django.contrib.gis",
     "django.contrib.admin",
@@ -68,6 +67,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "django.contrib.humanize",
     "django_dbq",
+    "slippers",
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -81,16 +81,25 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True
 #     print("Warning: MJML is not installed")
 
 MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+]
+
+if USE_WHITENOISE:
+    MIDDLEWARE += [
+        "whitenoise.middleware.WhiteNoiseMiddleware",
+    ]
+
+MIDDLEWARE += [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "livereload.middleware.LiveReloadScript",
     "app.middleware.update_stripe_customer_subscription",
+    "app.middleware.frontend_backend_posthog_identity_linking",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -112,8 +121,9 @@ TEMPLATES = [
                 "wagtailmenus.context_processors.wagtailmenus",
                 # "app.context_processors.user_data",
             ],
+            "builtins": ["slippers.templatetags.slippers"],
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "app.wsgi.application"
@@ -216,7 +226,7 @@ STATICFILES_FINDERS = [
 
 
 DJANGO_VITE_ASSETS_PATH = BASE_DIR + "/vite"
-DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH + "/manifest.json"
+DJANGO_VITE_MANIFEST_PATH = DJANGO_VITE_ASSETS_PATH + "/.vite/manifest.json"
 
 STATICFILES_DIRS = [
     DJANGO_VITE_ASSETS_PATH,
@@ -459,3 +469,7 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+
+SLIPPERS_COMPONENT_TEMPLATE_SUBDIR = "components"

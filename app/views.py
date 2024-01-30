@@ -1038,6 +1038,18 @@ class AnonymousUserSplitTest(View):
         user_id = request.session.session_key
         enabled_variant = posthog.get_feature_flag(self.feature_flag, user_id)
 
+        # for 'top of funnel' event tracking
+        posthog.capture(
+            user_id,
+            "experiment begun",
+            {"feature_flag": self.feature_flag, "variant": enabled_variant},
+        )
+        posthog.capture(
+            user_id,
+            f"experiment {self.feature_flag} begun",
+            {"feature_flag": self.feature_flag, "variant": enabled_variant},
+        )
+
         # self.variant_path_mapping
         for variant in self.variant_path_mapping.keys():
             if enabled_variant == variant:

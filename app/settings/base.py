@@ -142,6 +142,8 @@ if os.getenv("SKIP_DB") != "1" and isinstance(PLATFORM_DATABASE_URL, str):
             ssl_require=False,
         )
     }
+    print("DATABASE_URL:", os.getenv("DATABASE_URL"))
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

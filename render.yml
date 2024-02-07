@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: left-book-club-staging
+    env: custom
+    buildCommand: make release
+    envVars:
+      - key: PORT
+        value: "8080"
+    healthCheck:
+      httpPath: /
+      httpMethod: GET
+      timeout: 3
+      interval: 10
+      initialDelay: 30 #
+
+    routes:
+      - path: /static
+        type: static_dir
+        sourceDirectory: /app/static
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+    network:
+      ports:
+        - port: 8080
+          handlers:
+            - http
+          forceHttps: true
+        - port: 8080
+          handlers:
+            - https

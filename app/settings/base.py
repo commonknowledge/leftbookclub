@@ -133,7 +133,6 @@ WSGI_APPLICATION = "app.wsgi.application"
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 PLATFORM_DATABASE_URL = os.getenv("DATABASE_URL", None)
-print(PLATFORM_DATABASE_URL)
 
 if os.getenv("SKIP_DB") != "1" and isinstance(PLATFORM_DATABASE_URL, str):
     DATABASES = {

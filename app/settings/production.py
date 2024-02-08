@@ -2,8 +2,7 @@ from urllib.parse import urlparse
 
 from .base import *
 
-if USE_WHITENOISE:
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEBUG = False
 SECRET_KEY = os.getenv("SECRET_KEY")

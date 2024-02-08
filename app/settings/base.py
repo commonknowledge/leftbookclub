@@ -81,15 +81,8 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True
 #     print("Warning: MJML is not installed")
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-]
-
-if USE_WHITENOISE:
-    MIDDLEWARE += [
-        "whitenoise.middleware.WhiteNoiseMiddleware",
-    ]
-
-MIDDLEWARE += [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

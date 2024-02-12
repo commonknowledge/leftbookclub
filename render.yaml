@@ -2,6 +2,6 @@ services:
   - type: worker
     name: left-book-club-production-worker
     env: python
-    buildCommand: poetry install
+    buildCommand: npm install & poetry install
     startCommand: poetry run python manage.py start_worker
     plan: starter

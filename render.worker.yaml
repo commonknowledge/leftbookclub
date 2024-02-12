@@ -1,0 +1,7 @@
+services:
+  - type: worker
+    name: lbc-worker-production
+    env: python
+    buildCommand: poetry install
+    startCommand: poetry run python manage.py start_worker
+    plan: starter

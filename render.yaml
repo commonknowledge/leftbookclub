@@ -1,6 +1,6 @@
 services:
   - type: worker
-    name: lbc-worker-production
+    name: left-book-club-production-worker
     env: python
     buildCommand: poetry install
     startCommand: poetry run python manage.py start_worker

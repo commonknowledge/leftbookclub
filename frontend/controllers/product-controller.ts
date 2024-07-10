@@ -8,8 +8,11 @@ import { isAfter } from "date-fns";
 
 export default class ShopifyBuyControllerBase extends Controller {
   // Targets
-  static targets = ["template"];
+  static targets = ["template", "variantSelector", "addToCartButton"];
+
   public templateTargets?: HTMLElement[];
+  public variantSelectorTarget!: HTMLSelectElement;
+  public addToCartButtonTarget!: HTMLButtonElement;
 
   // Values
   static values = {
@@ -38,6 +41,11 @@ export default class ShopifyBuyControllerBase extends Controller {
 
   async connect() {
     this.getCart();
+  }
+
+  updateAddToCartButton() {
+    const selectedVariantId = this.variantSelectorTarget.value;
+    this.addToCartButtonTarget.setAttribute('data-product-variant-id-param', selectedVariantId);
   }
 
   private LOCALSTORAGE_CHECKOUT_ID = "checkoutId";

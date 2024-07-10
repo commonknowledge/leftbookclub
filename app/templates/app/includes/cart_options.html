@@ -1,39 +1,42 @@
 {% load djmoney books %}
-
 <div class='row'>
     {% if not product.variants %}
         <div>
-            <span class="spinner-border spinner-border-sm"
-                  role="status"
-                  aria-hidden="true"></span>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Loading purchase options...
         </div>
+    {% elif product.variants|length == 1 %}
+        <div class="tw-mb-2">
+            <!-- If there's only one variant, show it without a dropdown -->
+            {% with variant=product.variants.0 %}
+                <p>
+                    {% if variant.title != "Default Title" %}{{ variant.title }} - {% endif %}
+                    {% money_localize variant.price "GBP" %}
+                    {% if variant.compare_at_price is not None %}
+                        <s>{% money_localize variant.compare_at_price "GBP" %}</s>
+                    {% endif %}
+                </p>
+            {% endwith %}
+        </div>
+        <div>
+            <button id="addToCartButton" class="btn btn-outline-secondary btn-disable-strikethrough" data-product-variant-id-param="{{ product.variants.0.id }}" data-product-target="addToCartButton" {% if product.variants.0.inventory_quantity == 0 and product.variants.0.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add"{% endif %}>Add to cart</button>
+        </div>
     {% else %}
-        {% for variant in product.variants %}
-            <div class='tw-mb-2'>
-                {% if variant.title != "Default Title" %}<h5>{{ variant.title }}</h5>{% endif %}
-                {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %}
-                    Out of Stock
-                {% elif loading %}
-                    <span class="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"></span>
-                    <span>Loading...</span>
-                {% else %}
-                    <button class="btn btn-outline-secondary btn-disable-strikethrough"
-                            {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add" data-product-variant-id-param="{{ variant.id }}" {% endif %}>
-                        Add to cart
-                    </button>
-                {% endif %}
-                <div class='tw-mt-2 fs-5 tw-font-bold'>
-                 {% if variant.compare_at_price is not None %}
-                        <b>{% money_localize variant.price "GBP" %}</b> <s>{% money_localize variant.compare_at_price "GBP" %}</s>
-                    {% else %}
+        <div class="tw-mb-2">
+            <select id="variantSelector" class="form-select" {% if loading or disabled %}disabled="true"{% endif %} data-action="change->product#updateAddToCartButton" data-product-target="variantSelector">
+                {% for variant in product.variants %}
+                    <option value="{{ variant.id }}" data-variant-id="{{ variant.id }}" {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %}disabled{% endif %}>
+                        {% if variant.title != "Default Title" %}{{ variant.title }} -{% endif %}
                         {% money_localize variant.price "GBP" %}
-                    {% endif %}  
-                 
-                </div>
-            </div>
-        {% endfor %}
+                        {% if variant.compare_at_price is not None %}
+                            <s>{% money_localize variant.compare_at_price "GBP" %}</s>
+                        {% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary btn-disable-strikethrough" data-product-variant-id-param="{{ product.variants.0.id }}" data-product-target="addToCartButton" {% if product.variants.0.inventory_quantity == 0 and product.variants.0.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add"{% endif %}>Add to cart</button>
+        </div>
     {% endif %}
 </div>

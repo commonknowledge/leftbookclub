@@ -740,12 +740,6 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             product = shopify.Product.find(shopify_product_id)
             metafields = product.metafields()
             metafields = metafields_to_dict(metafields)
-
-            # TODO adjust this function so that we can get different metafields from merchandise as opposed to books
-
-            if not metafields:
-                print('metafields are empty, skipping product')
-                return None
             
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
                 return cls.update_instance_for_product(product, metafields)
@@ -875,7 +869,7 @@ class BookPage(WagtailCacheMixin, BaseShopifyProductPage):
         args = super().get_args_for_page(product, metafields)
         args.update(
             dict(
-                published_date=metafields.get("published_date", ""),
+                published_date=metafields.get("published_date", None),
                 authors=metafields_array_to_list(metafields.get("author", [])),
                 forward_by=metafields_array_to_list(metafields.get("forward_by", [])),
                 original_publisher=metafields.get("original_publisher", ""),

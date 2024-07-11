@@ -25,7 +25,7 @@
         <div class="tw-mb-2">
             <select id="variantSelector" class="form-select" {% if loading or disabled %}disabled="true"{% endif %} data-action="change->product#updateAddToCartButton" data-product-target="variantSelector">
                 {% for variant in product.variants %}
-                    <option value="{{ variant.id }}" data-variant-id="{{ variant.id }}" {% if variant.inventory_quantity == 0 and variant.inventory_policy == 'deny' %}disabled{% endif %}>
+                    <option value="{{ variant.id }}" data-variant-id="{{ variant.id }}" data-inventory-quantity="{{ variant.inventory_quantity }}" data-inventory-policy="{{ variant.inventory_policy }}">
                         {% if variant.title != "Default Title" %}{{ variant.title }} -{% endif %}
                         {% money_localize variant.price "GBP" %}
                         {% if variant.compare_at_price is not None %}

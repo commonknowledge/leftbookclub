@@ -44,10 +44,18 @@ export default class ShopifyBuyControllerBase extends Controller {
   }
 
   updateAddToCartButton() {
-    const selectedVariantId = this.variantSelectorTarget.value;
+    const selectedOption = this.variantSelectorTarget.options[this.variantSelectorTarget.selectedIndex];
+    const selectedVariantId = selectedOption.value;
+    const inventoryQuantity = selectedOption.getAttribute('data-inventory-quantity');
+    const inventoryPolicy = selectedOption.getAttribute('data-inventory-policy');
     this.addToCartButtonTarget.setAttribute('data-product-variant-id-param', selectedVariantId);
-  }
 
+    if (Number(inventoryQuantity) == 0 && inventoryPolicy == 'deny') {
+        this.addToCartButtonTarget.setAttribute('disabled', 'true');
+    } else {
+        this.addToCartButtonTarget.removeAttribute('disabled');
+    }
+}
   private LOCALSTORAGE_CHECKOUT_ID = "checkoutId";
 
   get checkoutId() {

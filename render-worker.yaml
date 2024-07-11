@@ -1,0 +1,15 @@
+services:
+  - name: leftbookclub-worker
+    type: worker
+    env: python
+    plan: starter
+    buildCommand: "poetry install"
+    startCommand: "poetry run python manage.py start_worker"
+    numInstances: 1
+    concurrency:
+      type: fixed
+      min: 1
+      max: 2
+    gracefulShutdown:
+      signal: SIGINT
+      timeout: 5

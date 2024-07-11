@@ -5,7 +5,7 @@
         {% map in_place=False center="[-2.5, 53.6]" zoom=5.5 style="mapbox://styles/commonknowledge/cl7cnn4d6004a14nzcmvf0k01" %}
         <article class="px-4 my-3 md:tw-hidden">
             <h1 class='tw-text-4xl'>{{ value.title }}</h1>
-            <div class='tw-text-lg'>{{ value.intro|richtext }}</div>
+            <p>{{ value.intro|richtext }}</p>
             {% if not user.is_member %}
                 {% bootstrap_button href="/join" content="Join LBC and come along" %}
             {% endif %}
@@ -20,7 +20,7 @@
                      data-map-target="config">
                 <article class="px-4 my-3 tw-hidden md:tw-block">
                     <h1 class='tw-text-4xl'>{{ value.title }}</h1>
-                    <div class='tw-text-lg'>{{ value.intro|richtext }}</div>
+                    <p>{{ value.intro|richtext }}</p>
                     {% if not user.is_member %}
                         {% bootstrap_button href="/join" content="Join LBC and come along" %}
                     {% endif %}

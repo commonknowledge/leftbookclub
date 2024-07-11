@@ -740,6 +740,13 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             product = shopify.Product.find(shopify_product_id)
             metafields = product.metafields()
             metafields = metafields_to_dict(metafields)
+
+            # TODO adjust this function so that we can get different metafields from merchandise as opposed to books
+
+            if not metafields:
+                print('metafields are empty, skipping product')
+                return None
+            
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
                 return cls.update_instance_for_product(product, metafields)
             else:

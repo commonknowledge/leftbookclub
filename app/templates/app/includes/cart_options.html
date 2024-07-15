@@ -29,7 +29,8 @@
                         {% if variant.title != "Default Title" %}{{ variant.title }} -{% endif %}
                         {% money_localize variant.price "GBP" %}
                         {% if variant.compare_at_price is not None %}
-                            <s>{% money_localize variant.compare_at_price "GBP" %}</s>
+                        {% money_localize variant.compare_at_price "GBP" as localized_compare_price %}
+                        {{ localized_compare_price|strikethrough }}
                         {% endif %}
                     </option>
                 {% endfor %}

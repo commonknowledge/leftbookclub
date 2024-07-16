@@ -72,6 +72,7 @@ orjson = "^3.9.2"
 slippers = "^0.6.2"
 django-vite = { git = "https://github.com/Niicck/django-vite", rev = "fix-isDynamicEntry" }
 whitenoise = { extras = ["brotli"], version = "*" }
+wagtail-rangefilter = "^0.2.1"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

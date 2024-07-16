@@ -11,8 +11,8 @@ def get_current_book(book_types: Union[None, str, List[str]]):
 
         if len(book_types) > 0 and "all-books" not in book_types:
             return (
-                BookPage.objects.filter(type__in=book_types)
+                BookPage.objects.filter(type__in=book_types, published_date__isnull=False)
                 .order_by("-published_date")
                 .first()
             )
-    return BookPage.objects.order_by("-published_date").first()
+    return BookPage.objects.filter(published_date__isnull=False).order_by("-published_date").first()

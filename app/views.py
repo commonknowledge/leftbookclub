@@ -611,30 +611,29 @@ class SubscriptionCheckoutView(TemplateView):
         if zone is None:
             raise ValueError("zone required to create checkout")
 
-        checkout_args = dict(
-            mode="subscription",
-            allow_promotion_codes=True,
-            line_items=price.to_checkout_line_items(product=product, zone=zone),
+        checkout_args = {
+            "mode": "subscription",
+            "allow_promotion_codes": True,
+            "line_items": price.to_checkout_line_items(product=product, zone=zone),
             # By default, customer details aren't updated, but we want them to be.
-            customer_update={
-                "shipping": "auto",
+            "customer_update": {
                 "address": "auto",
                 "name": "auto",
             },
-            shipping_address_collection={"allowed_countries": zone.country_codes},
-            metadata={"primary_product": product.id},
-        )
+            "metadata": {"primary_product": product.id},
+        }
 
-        next = "/"
-        if gift_mode:
-            checkout_args["metadata"]["gift_mode"] = True
-            next = reverse_lazy("completed_gift_purchase")
+        if not gift_mode:
+            checkout_args["customer_update"]["shipping"] = "auto"
+            checkout_args["shipping_address_collection"] = {"allowed_countries": zone.country_codes}
         else:
-            next = reverse_lazy("completed_membership_purchase")
+            checkout_args["metadata"]["gift_mode"] = True
+
+        next_url = reverse_lazy("completed_gift_purchase" if gift_mode else "completed_membership_purchase")
 
         return {
             "checkout_args": checkout_args,
-            "next": next,
+            "next": next_url,
             "cancel_url": price.plan.url,
             "breadcrumbs": {
                 "price": price,
@@ -664,7 +663,6 @@ class SubscriptionCheckoutView(TemplateView):
         )
 
         return StripeCheckoutView.as_view(context=checkout_context)(request)
-
 
 from django.shortcuts import get_object_or_404
 
@@ -1263,19 +1261,17 @@ class V2SubscriptionCheckoutView(TemplateView):
         if zone is None:
             raise ValueError("zone required to create checkout")
 
-        checkout_args = dict(
-            mode="subscription",
-            allow_promotion_codes=True,
-            line_items=price.to_checkout_line_items(product=product, zone=zone),
+        checkout_args = {
+            "mode": "subscription",
+            "allow_promotion_codes": True,
+            "line_items": price.to_checkout_line_items(product=product, zone=zone),
             # By default, customer details aren't updated, but we want them to be.
-            customer_update={
-                "shipping": "auto",
+            "customer_update": {
                 "address": "auto",
                 "name": "auto",
             },
-            shipping_address_collection={"allowed_countries": zone.country_codes},
-            metadata={"primary_product": product.id},
-        )
+            "metadata": {"primary_product": product.id},
+        }
 
         if donation_amount > 0:
             checkout_args["line_items"].append(
@@ -1287,16 +1283,17 @@ class V2SubscriptionCheckoutView(TemplateView):
                 )
             )
 
-        next = "/"
-        if gift_mode:
-            checkout_args["metadata"]["gift_mode"] = True
-            next = reverse_lazy("completed_gift_purchase")
+        if not gift_mode:
+            checkout_args["customer_update"]["shipping"] = "auto"
+            checkout_args["shipping_address_collection"] = {"allowed_countries": zone.country_codes}
         else:
-            next = reverse_lazy("completed_membership_purchase")
+            checkout_args["metadata"]["gift_mode"] = True
+
+        next_url = reverse_lazy("completed_gift_purchase" if gift_mode else "completed_membership_purchase")
 
         return {
             "checkout_args": checkout_args,
-            "next": next,
+            "next": next_url,
             "cancel_url": price.plan.url,
             "breadcrumbs": {
                 "price": price,

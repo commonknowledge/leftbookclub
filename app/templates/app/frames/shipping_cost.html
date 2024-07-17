@@ -42,7 +42,7 @@
     </div>
     {% bootstrap_alert "This subscription will automatically renew, and you can cancel at any time." dismissible=False alert_type="success" extra_classes='mb-2' %}
     {% if request.GET.gift_mode %}
-        {% bootstrap_alert "At checkout, please add your own shipping address, in case we need to send you any gift card materials. Your gift recipient will be able to enter their own address when they redeem." dismissible=False alert_type="warning" extra_classes='mb-2' %}
+        {% bootstrap_alert "At checkout, please add your own shipping address, in case we need to send you any gift card materials. Your gift recipient will be able to enter their own address when they redeem." dismissible=False alert_type="warning" extra_classes='mb-2 text-light bg-danger' %}
     {% endif %}
     {% if user.is_member and not request.GET.gift_mode %}
         <div class='justify-content-center'>

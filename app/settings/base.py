@@ -19,6 +19,8 @@ INSTALLED_APPS = [
     "mathfilters",
     "djmoney",
     "anymail",
+    'wagtail_rangefilter',
+    'rangefilter',
     "rest_framework",
     "groundwork.core",
     "groundwork.geo",

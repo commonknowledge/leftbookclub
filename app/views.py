@@ -35,6 +35,7 @@ from djstripe import settings as djstripe_settings
 from sentry_sdk import capture_exception, capture_message
 from wagtail.models import Page
 
+
 from app import analytics
 from app.forms import (
     CountrySelectorForm,
@@ -587,6 +588,7 @@ class ShippingCostView(TemplateView):
         }
 
         return context
+    
 
 
 class SubscriptionCheckoutView(TemplateView):
@@ -611,29 +613,35 @@ class SubscriptionCheckoutView(TemplateView):
         if zone is None:
             raise ValueError("zone required to create checkout")
 
-        checkout_args = {
-            "mode": "subscription",
-            "allow_promotion_codes": True,
-            "line_items": price.to_checkout_line_items(product=product, zone=zone),
+        checkout_args = dict(
+            mode="subscription",
+            allow_promotion_codes=True,
+            line_items=price.to_checkout_line_items(product=product, zone=zone),
             # By default, customer details aren't updated, but we want them to be.
-            "customer_update": {
+            customer_update={
+                "shipping": "auto",
                 "address": "auto",
                 "name": "auto",
             },
-            "metadata": {"primary_product": product.id},
-        }
+            shipping_address_collection={"allowed_countries": zone.country_codes},
+            metadata={"primary_product": product.id},
+        )
 
-        if not gift_mode:
-            checkout_args["customer_update"]["shipping"] = "auto"
-            checkout_args["shipping_address_collection"] = {"allowed_countries": zone.country_codes}
-        else:
+        next = "/"
+        if gift_mode:
             checkout_args["metadata"]["gift_mode"] = True
 
-        next_url = reverse_lazy("completed_gift_purchase" if gift_mode else "completed_membership_purchase")
+            checkout_args["shipping_address_collection"] = {
+                "allowed_countries": ShippingZone.all_country_codes
+
+            }
+            next = reverse_lazy("completed_gift_purchase")
+        else:
+            next = reverse_lazy("completed_membership_purchase")
 
         return {
             "checkout_args": checkout_args,
-            "next": next_url,
+            "next": next,
             "cancel_url": price.plan.url,
             "breadcrumbs": {
                 "price": price,
@@ -663,6 +671,7 @@ class SubscriptionCheckoutView(TemplateView):
         )
 
         return StripeCheckoutView.as_view(context=checkout_context)(request)
+
 
 from django.shortcuts import get_object_or_404
 
@@ -1261,17 +1270,19 @@ class V2SubscriptionCheckoutView(TemplateView):
         if zone is None:
             raise ValueError("zone required to create checkout")
 
-        checkout_args = {
-            "mode": "subscription",
-            "allow_promotion_codes": True,
-            "line_items": price.to_checkout_line_items(product=product, zone=zone),
+        checkout_args = dict(
+            mode="subscription",
+            allow_promotion_codes=True,
+            line_items=price.to_checkout_line_items(product=product, zone=zone),
             # By default, customer details aren't updated, but we want them to be.
-            "customer_update": {
+            customer_update={
+                "shipping": "auto",
                 "address": "auto",
                 "name": "auto",
             },
-            "metadata": {"primary_product": product.id},
-        }
+            shipping_address_collection={"allowed_countries": zone.country_codes},
+            metadata={"primary_product": product.id},
+        )
 
         if donation_amount > 0:
             checkout_args["line_items"].append(
@@ -1283,17 +1294,16 @@ class V2SubscriptionCheckoutView(TemplateView):
                 )
             )
 
-        if not gift_mode:
-            checkout_args["customer_update"]["shipping"] = "auto"
-            checkout_args["shipping_address_collection"] = {"allowed_countries": zone.country_codes}
-        else:
+        next = "/"
+        if gift_mode:
             checkout_args["metadata"]["gift_mode"] = True
-
-        next_url = reverse_lazy("completed_gift_purchase" if gift_mode else "completed_membership_purchase")
+            next = reverse_lazy("completed_gift_purchase")
+        else:
+            next = reverse_lazy("completed_membership_purchase")
 
         return {
             "checkout_args": checkout_args,
-            "next": next_url,
+            "next": next,
             "cancel_url": price.plan.url,
             "breadcrumbs": {
                 "price": price,

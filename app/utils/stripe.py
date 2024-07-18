@@ -340,8 +340,11 @@ def create_gift_recipient_subscription(
     promo_code = stripe.PromotionCode.retrieve(
         promo_code_id, expand=["coupon.applies_to"]
     )
-    if hasattr(promo_code.coupon, 'applies_to') and product_id in promo_code.coupon.applies_to.products:
-    # the gift card is fit for purpose
+    if (
+    hasattr(promo_code.coupon, 'applies_to') and 
+    hasattr(promo_code.coupon.applies_to, 'products') and 
+    product_id in promo_code.coupon.applies_to.products
+    ):    # the gift card is fit for purpose
         discount_args = {"promotion_code": promo_code_id}
         
     else:

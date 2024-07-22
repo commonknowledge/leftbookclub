@@ -42,7 +42,7 @@
     </div>
     {% bootstrap_alert "This subscription will automatically renew, and you can cancel at any time." dismissible=False alert_type="success" extra_classes='mb-2' %}
     {% if request.GET.gift_mode %}
-        {% bootstrap_alert "At checkout, please add your own shipping address, in case we need to send you any gift card materials. Your gift recipient will be able to enter their own address when they redeem." dismissible=False alert_type="warning" extra_classes='mb-2' %}
+        {% bootstrap_alert "At checkout, please add your own shipping address, in case we need to send you any gift card materials. Your gift recipient will be able to enter their own address when they redeem." dismissible=False alert_type="warning" extra_classes='mb-2 text-light bg-danger' %}
     {% endif %}
     {% if user.is_member and not request.GET.gift_mode %}
         <div class='justify-content-center'>
@@ -52,7 +52,7 @@
                        type="checkbox"
                        value=""
                        id='confirm_cancel_current_subscriptions'
-                       name='confirm_cancel_current_subscriptions'/>
+                       name='confirm_cancel_current_subscriptions' />
                 <label class="form-check-label" for="confirm_cancel_current_subscriptions">
                     <p>
                         I understand that my existing membership plan ({{ user.primary_product.name }}) will be <u>immediately cancelled</u> and replaced with this new subscription

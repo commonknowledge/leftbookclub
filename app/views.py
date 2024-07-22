@@ -35,6 +35,7 @@ from djstripe import settings as djstripe_settings
 from sentry_sdk import capture_exception, capture_message
 from wagtail.models import Page
 
+
 from app import analytics
 from app.forms import (
     CountrySelectorForm,
@@ -587,6 +588,7 @@ class ShippingCostView(TemplateView):
         }
 
         return context
+    
 
 
 class SubscriptionCheckoutView(TemplateView):
@@ -628,6 +630,11 @@ class SubscriptionCheckoutView(TemplateView):
         next = "/"
         if gift_mode:
             checkout_args["metadata"]["gift_mode"] = True
+
+            checkout_args["shipping_address_collection"] = {
+                "allowed_countries": ShippingZone.all_country_codes
+
+            }
             next = reverse_lazy("completed_gift_purchase")
         else:
             next = reverse_lazy("completed_membership_purchase")
@@ -1290,6 +1297,10 @@ class V2SubscriptionCheckoutView(TemplateView):
         next = "/"
         if gift_mode:
             checkout_args["metadata"]["gift_mode"] = True
+            checkout_args["shipping_address_collection"] = {
+                "allowed_countries": ShippingZone.all_country_codes
+
+            }
             next = reverse_lazy("completed_gift_purchase")
         else:
             next = reverse_lazy("completed_membership_purchase")

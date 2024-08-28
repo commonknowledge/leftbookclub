@@ -358,8 +358,8 @@ SENTRY_PROJECT_ID = os.getenv("SENTRY_PROJECT_ID", None)
 # Github
 GIT_SHA = os.getenv("GIT_SHA", None)
 
-# Fly
-FLY_APP_NAME = os.getenv("FLY_APP_NAME", None)
+# Render
+RENDER_APP_NAME = os.getenv("RENDER_APP_NAME", None)
 
 # Circle
 CIRCLE_API_KEY = os.getenv("CIRCLE_API_KEY", None)
@@ -404,7 +404,7 @@ if SENTRY_DSN is not None:
         # If you wish to associate users to errors (assuming you are using
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
-        environment=FLY_APP_NAME,
+        environment=RENDER_APP_NAME,
         release=GIT_SHA,
     )
 

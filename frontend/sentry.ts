@@ -21,7 +21,7 @@ export default function initialiseSentry() {
 
     Sentry.init({
       dsn: window.SENTRY_DSN,
-      environment: window.FLY_APP_NAME,
+      environment: window.RENDER_APP_NAME,
       release: window.GIT_SHA,
 
       // Alternatively, use `process.env.npm_package_version` for a dynamic release version

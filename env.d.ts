@@ -10,7 +10,7 @@ export declare global {
     SENTRY_PROJECT_ID?: string;
     SENTRY_ORG_SLUG?: string;
     SENTRY_DSN?: string;
-    FLY_APP_NAME?: string;
+    RENDER_APP_NAME?: string;
     GIT_SHA?: string;
     STRIPE_LIVE_MODE: boolean;
     userData?: {

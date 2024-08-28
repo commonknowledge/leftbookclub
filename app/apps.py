@@ -40,7 +40,7 @@ class LeftBookClub(AppConfig):
 
 
 basic_posthog_event_properties = {
-    "environment": settings.FLY_APP_NAME,
+    "environment": settings.RENDER_APP_NAME,
     "debug": settings.DEBUG,
     "base_url": settings.BASE_URL,
 }

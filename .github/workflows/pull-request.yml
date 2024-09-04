@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/commonknowledge/do-app-baseimage-django-node:364385f9d196a2bbe2d5faea025520cc0316501f
-      # Workaround for: https://github.com/actions/checkout/issues/211
       options: --user 1001
       volumes:
         - "/home/runner/docker/.cache:/home/app/.cache"
@@ -35,10 +34,10 @@ jobs:
           path: /home/runner/docker/.cache/poetry
           key: do-app-baseimage-django-node:364385f9d196a2bbe2d5faea025520cc0316501f-poetry-${{ hashFiles('poetry.lock') }}
 
-      # Install the correct version of Poetry (1.8.3) inside the container
+      # Install specific Poetry version (with sudo for permissions)
       - name: Install Poetry 1.8.3
         run: |
-          curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python3 -
+          sudo curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python3 -
 
       - run: make install
       - run: make ci

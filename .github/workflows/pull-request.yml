@@ -34,5 +34,11 @@ jobs:
         with:
           path: /home/runner/docker/.cache/poetry
           key: do-app-baseimage-django-node:364385f9d196a2bbe2d5faea025520cc0316501f-poetry-${{ hashFiles('poetry.lock') }}
+
+      # Install the correct version of Poetry (1.8.3) inside the container
+      - name: Install Poetry 1.8.3
+        run: |
+          curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python3 -
+
       - run: make install
       - run: make ci

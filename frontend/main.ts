@@ -6,7 +6,13 @@ import "bootstrap";
 import initialiseSentry from "./sentry";
 import initialisePosthog from "./posthog";
 import { startApp } from "groundwork-django";
-const controllers = import.meta.glob("./controllers/*-controller.ts");
+import { ControllerConstructor } from "@hotwired/stimulus";
+
+const controllers = import.meta.glob("./controllers/*-controller.ts") as Record<
+  string,
+  () => Promise<{ default: ControllerConstructor }>
+>;
+
 Turbo.session.drive = false;
 
 initialisePosthog();

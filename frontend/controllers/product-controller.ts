@@ -44,24 +44,33 @@ export default class ShopifyBuyControllerBase extends Controller {
   }
 
   updateAddToCartButton() {
-    const selectedOption = this.variantSelectorTarget.options[this.variantSelectorTarget.selectedIndex];
+    const selectedOption =
+      this.variantSelectorTarget.options[
+        this.variantSelectorTarget.selectedIndex
+      ];
     const selectedVariantId = selectedOption.value;
-    const inventoryQuantity = selectedOption.getAttribute('data-inventory-quantity');
-    const inventoryPolicy = selectedOption.getAttribute('data-inventory-policy');
-    this.addToCartButtonTarget.setAttribute('data-product-variant-id-param', selectedVariantId);
+    const inventoryQuantity = selectedOption.getAttribute(
+      "data-inventory-quantity"
+    );
+    const inventoryPolicy = selectedOption.getAttribute(
+      "data-inventory-policy"
+    );
+    this.addToCartButtonTarget.setAttribute(
+      "data-product-variant-id-param",
+      selectedVariantId
+    );
 
-    if (Number(inventoryQuantity) == 0 && inventoryPolicy == 'deny') {
-        this.addToCartButtonTarget.setAttribute('disabled', 'true');
+    if (Number(inventoryQuantity) == 0 && inventoryPolicy == "deny") {
+      this.addToCartButtonTarget.setAttribute("disabled", "true");
     } else {
-        this.addToCartButtonTarget.removeAttribute('disabled');
+      this.addToCartButtonTarget.removeAttribute("disabled");
     }
-}
+  }
   private LOCALSTORAGE_CHECKOUT_ID = "checkoutId";
 
-  get checkoutId() {
-    return window.localStorage
-      .getItem(this.LOCALSTORAGE_CHECKOUT_ID)
-      ?.toString();
+  get checkoutId(): string | number {
+    const id = window.localStorage.getItem(this.LOCALSTORAGE_CHECKOUT_ID);
+    return id ? id.toString() : "";
   }
 
   set checkoutId(id: string | number) {
@@ -81,7 +90,9 @@ export default class ShopifyBuyControllerBase extends Controller {
     });
 
     if (this.checkoutId) {
-      this.checkoutValue = await this.client.checkout.fetch(this.checkoutId);
+      this.checkoutValue = await this.client.checkout.fetch(
+        this.checkoutId.toString()
+      );
     }
 
     let checkoutIsExpired = false;

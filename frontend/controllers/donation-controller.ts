@@ -8,21 +8,25 @@ class DonationController extends Controller {
     // If the new value is one of the radios, select them
     // Else unselect all radios
     if (value) {
-      this.inputTargets.forEach((input: { type: string; checked: boolean; value: string | number; }) => {
-        if (input.type === "radio") {
-          input.checked = parseFloat(input.value as string) === value;
-        } else {
-          input.value = String(value);
+      this.inputTargets.forEach(
+        (input: { type: string; checked: boolean; value: string | number }) => {
+          if (input.type === "radio") {
+            input.checked = parseFloat(input.value as string) === value;
+          } else {
+            input.value = String(value);
+          }
         }
-      });
+      );
     } else {
-      this.inputTargets.forEach((input: { type: string; checked: boolean; value: string; }) => {
-        if (input.type === "radio") {
-          input.checked = false;
-        } else {
-          input.value = "0";
+      this.inputTargets.forEach(
+        (input: { type: string; checked: boolean; value: string }) => {
+          if (input.type === "radio") {
+            input.checked = false;
+          } else {
+            input.value = "0";
+          }
         }
-      });
+      );
     }
   }
   update(e: InputEvent) {

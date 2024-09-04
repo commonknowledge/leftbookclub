@@ -740,7 +740,7 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
             product = shopify.Product.find(shopify_product_id)
             metafields = product.metafields()
             metafields = metafields_to_dict(metafields)
-            
+
             if cls.objects.filter(shopify_product_id=shopify_product_id).exists():
                 return cls.update_instance_for_product(product, metafields)
             else:

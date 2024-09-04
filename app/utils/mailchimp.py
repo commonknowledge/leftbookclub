@@ -70,7 +70,9 @@ def mailchimp_contact_for_user(user: User, list_id=settings.MAILCHIMP_LIST_ID):
                 {
                     "email_address": user.primary_email,
                     "merge_fields": {"FNAME": user.first_name, "LNAME": user.last_name},
-                    "status": "subscribed" if user.gdpr_email_consent else "unsubscribed",
+                    "status": "subscribed"
+                    if user.gdpr_email_consent
+                    else "unsubscribed",
                 },
             )
             member = apply_gdpr_consent(member)

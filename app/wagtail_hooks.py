@@ -12,12 +12,12 @@ from django.utils.html import format_html
 from djstripe.enums import SubscriptionStatus
 from wagtail import hooks
 from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
+from wagtail_rangefilter.filters import DateTimeRangeFilter
 
 from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
 from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice, ReadingOption
 from app.utils import ensure_list
-from wagtail_rangefilter.filters import DateTimeRangeFilter
 
 
 @hooks.register("insert_global_admin_css")
@@ -148,7 +148,7 @@ class CustomerAdmin(ModelAdmin):
     export_filename = "lbc_members"
 
     def get_list_filter(self, request):
-        if request.GET.get('status') == 'expired':
+        if request.GET.get("status") == "expired":
             return (("ended_at", DateTimeRangeFilter),)
         return ()
 
@@ -161,6 +161,7 @@ class CustomerAdmin(ModelAdmin):
             .distinct()
             .select_related("plan__product", "customer__subscriber")
         )
+
 
 # Now you just need to register your customised ModelAdmin class with Wagtail
 modeladmin_register(CustomerAdmin)

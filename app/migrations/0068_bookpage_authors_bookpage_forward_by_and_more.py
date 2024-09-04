@@ -7,28 +7,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app', '0067_remove_bookpage_authors_remove_bookpage_forward_by_and_more'),
+        ("app", "0067_remove_bookpage_authors_remove_bookpage_forward_by_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bookpage',
-            name='authors',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=300), blank=True, null=True, size=None),
+            model_name="bookpage",
+            name="authors",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(blank=True, max_length=300),
+                blank=True,
+                null=True,
+                size=None,
+            ),
         ),
         migrations.AddField(
-            model_name='bookpage',
-            name='forward_by',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=300), blank=True, null=True, size=None),
+            model_name="bookpage",
+            name="forward_by",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(blank=True, max_length=300),
+                blank=True,
+                null=True,
+                size=None,
+            ),
         ),
         migrations.AddField(
-            model_name='bookpage',
-            name='image_urls',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.URLField(blank=True, max_length=500), blank=True, null=True, size=None),
+            model_name="bookpage",
+            name="image_urls",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.URLField(blank=True, max_length=500),
+                blank=True,
+                null=True,
+                size=None,
+            ),
         ),
         migrations.AddField(
-            model_name='merchandisepage',
-            name='image_urls',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.URLField(blank=True, max_length=500), blank=True, null=True, size=None),
+            model_name="merchandisepage",
+            name="image_urls",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.URLField(blank=True, max_length=500),
+                blank=True,
+                null=True,
+                size=None,
+            ),
         ),
     ]

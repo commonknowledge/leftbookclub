@@ -23,8 +23,8 @@
                     {% for emailaddress in user.emailaddress_set.all %}
                         <tr>
                             <td>
-                                <label class="radio"
-                                       for="email_radio_{{ forloop.counter }}"
+                                <label
+                                       for="radio email_radio_{{ forloop.counter }}"
                                        class="{% if emailaddress.primary %}primary_email{% endif %}">
                                     <input id="email_radio_{{ forloop.counter }}"
                                            type="radio"

@@ -2,20 +2,21 @@ import { Controller } from "@hotwired/stimulus";
 
 class DonationController extends Controller {
   static targets = ["input"];
+  inputTargets: any;
 
   setInputs(value: number) {
     // If the new value is one of the radios, select them
     // Else unselect all radios
     if (value) {
-      this.inputTargets.forEach((input) => {
+      this.inputTargets.forEach((input: { type: string; checked: boolean; value: string | number; }) => {
         if (input.type === "radio") {
-          input.checked = parseFloat(input.value) === value;
+          input.checked = parseFloat(input.value as string) === value;
         } else {
-          input.value = value;
+          input.value = String(value);
         }
       });
     } else {
-      this.inputTargets.forEach((input) => {
+      this.inputTargets.forEach((input: { type: string; checked: boolean; value: string; }) => {
         if (input.type === "radio") {
           input.checked = false;
         } else {
@@ -24,7 +25,6 @@ class DonationController extends Controller {
       });
     }
   }
-
   update(e: InputEvent) {
     let value = parseFloat((e.target as HTMLInputElement)?.value || "0") || 0;
     this.setInputs(value);

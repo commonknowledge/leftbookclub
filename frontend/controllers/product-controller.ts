@@ -58,10 +58,9 @@ export default class ShopifyBuyControllerBase extends Controller {
 }
   private LOCALSTORAGE_CHECKOUT_ID = "checkoutId";
 
-  get checkoutId() {
-    return window.localStorage
-      .getItem(this.LOCALSTORAGE_CHECKOUT_ID)
-      ?.toString();
+  get checkoutId(): string | number {
+    const id = window.localStorage.getItem(this.LOCALSTORAGE_CHECKOUT_ID);
+    return id ? id.toString() : ""; 
   }
 
   set checkoutId(id: string | number) {
@@ -81,7 +80,7 @@ export default class ShopifyBuyControllerBase extends Controller {
     });
 
     if (this.checkoutId) {
-      this.checkoutValue = await this.client.checkout.fetch(this.checkoutId);
+      this.checkoutValue = await this.client.checkout.fetch(this.checkoutId.toString());
     }
 
     let checkoutIsExpired = false;

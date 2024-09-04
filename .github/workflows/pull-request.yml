@@ -7,7 +7,7 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/commonknowledge/do-app-baseimage-django-node:364385f9d196a2bbe2d5faea025520cc0316501f
+      image: ghcr.io/commonknowledge/do-app-baseimage-django-node:6afc34140c9df175f6df73e9d7450dae48050eaf
       # Workaround for: https://github.com/actions/checkout/issues/211
       options: --user 1001
       volumes:

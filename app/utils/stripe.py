@@ -341,15 +341,15 @@ def create_gift_recipient_subscription(
         promo_code_id, expand=["coupon.applies_to"]
     )
     if (
-    hasattr(promo_code.coupon, 'applies_to') and 
-    hasattr(promo_code.coupon.applies_to, 'products') and 
-    product_id in promo_code.coupon.applies_to.products
-    ):    # the gift card is fit for purpose
+        hasattr(promo_code.coupon, "applies_to")
+        and hasattr(promo_code.coupon.applies_to, "products")
+        and product_id in promo_code.coupon.applies_to.products
+    ):  # the gift card is fit for purpose
         discount_args = {"promotion_code": promo_code_id}
-        
+
     else:
-    # if they're in this situation of the gift card being for an old product
-    # get the right coupon for the target product
+        # if they're in this situation of the gift card being for an old product
+        # get the right coupon for the target product
         coupon = get_gift_card_coupon(product_id)
         # invalidate the gift card's promo code so it can't be used again
         promo_code = stripe.PromotionCode.modify(promo_code_id, active=False)

@@ -29,7 +29,8 @@ def get_books(since=None, types=None, limit=None):
 def get_merch():
     return MerchandisePage.objects.live().public()
 
-@register.filter(name='strikethrough')
+
+@register.filter(name="strikethrough")
 def strikethrough(text):
     """Convert text to strikethrough using Unicode characters."""
-    return ''.join(char + '\u0336' for char in str(text))
+    return "".join(char + "\u0336" for char in str(text))

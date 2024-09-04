@@ -29,10 +29,10 @@ def update_stripe_customer_subscription(get_response):
 
     def middleware(request):
         membership_request = (
-           'checkout/success' in request.path
-           or "accounts/cancel" in request.path
-           or "gift/redeemed" in request.path
-           or "update-membership/success" in request.path
+            "checkout/success" in request.path
+            or "accounts/cancel" in request.path
+            or "gift/redeemed" in request.path
+            or "update-membership/success" in request.path
         )
 
         if membership_request:

@@ -7,13 +7,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app', '0065_alter_upsellplansettings_options_and_more'),
+        ("app", "0065_alter_upsellplansettings_options_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='upsellplansettings',
-            name='upgrade_membership_text',
-            field=wagtail.fields.RichTextField(default='\n    <p>You’re currently paying {{ old_price }}. Select this option if it’s all you can afford right now — that is totally OK.</p>\n    <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>\n    '),
+            model_name="upsellplansettings",
+            name="upgrade_membership_text",
+            field=wagtail.fields.RichTextField(
+                default="\n    <p>You’re currently paying {{ old_price }}. Select this option if it’s all you can afford right now — that is totally OK.</p>\n    <p>Other members paying solidarity rates will make it possible for us to continue offering this, so please consider if you can afford to increase your rate or if you genuinely need to stay here.</p>\n    "
+            ),
         ),
     ]

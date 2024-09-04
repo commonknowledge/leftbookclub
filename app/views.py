@@ -587,7 +587,6 @@ class ShippingCostView(TemplateView):
         }
 
         return context
-    
 
 
 class SubscriptionCheckoutView(TemplateView):
@@ -632,7 +631,6 @@ class SubscriptionCheckoutView(TemplateView):
 
             checkout_args["shipping_address_collection"] = {
                 "allowed_countries": ShippingZone.all_country_codes
-
             }
             next = reverse_lazy("completed_gift_purchase")
         else:
@@ -1298,7 +1296,6 @@ class V2SubscriptionCheckoutView(TemplateView):
             checkout_args["metadata"]["gift_mode"] = True
             checkout_args["shipping_address_collection"] = {
                 "allowed_countries": ShippingZone.all_country_codes
-
             }
             next = reverse_lazy("completed_gift_purchase")
         else:

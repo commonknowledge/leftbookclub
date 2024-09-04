@@ -148,7 +148,7 @@ class CustomerAdmin(ModelAdmin):
     export_filename = "lbc_members"
 
     def get_list_filter(self, request):
-        if request.GET.get('status') == 'expired':
+        if request.GET.get("status") == "expired":
             return (("ended_at", DateTimeRangeFilter),)
         return ()
 
@@ -161,6 +161,7 @@ class CustomerAdmin(ModelAdmin):
             .distinct()
             .select_related("plan__product", "customer__subscriber")
         )
+
 
 # Now you just need to register your customised ModelAdmin class with Wagtail
 modeladmin_register(CustomerAdmin)

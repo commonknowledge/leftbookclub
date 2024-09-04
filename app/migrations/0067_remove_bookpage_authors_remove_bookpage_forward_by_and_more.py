@@ -6,24 +6,24 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app', '0066_alter_upsellplansettings_upgrade_membership_text'),
+        ("app", "0066_alter_upsellplansettings_upgrade_membership_text"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='bookpage',
-            name='authors',
+            model_name="bookpage",
+            name="authors",
         ),
         migrations.RemoveField(
-            model_name='bookpage',
-            name='forward_by',
+            model_name="bookpage",
+            name="forward_by",
         ),
         migrations.RemoveField(
-            model_name='bookpage',
-            name='image_urls',
+            model_name="bookpage",
+            name="image_urls",
         ),
         migrations.RemoveField(
-            model_name='merchandisepage',
-            name='image_urls',
+            model_name="merchandisepage",
+            name="image_urls",
         ),
     ]

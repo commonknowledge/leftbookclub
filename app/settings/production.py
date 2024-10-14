@@ -6,7 +6,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 DEBUG = os.getenv("DEBUG", False)
-USE_DEBUG_TOOLBAR = os.getenv("DEBUG", False)
+USE_DEBUG_TOOLBAR = os.getenv("USE_DEBUG_TOOLBAR", False)
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")

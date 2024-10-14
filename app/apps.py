@@ -30,7 +30,7 @@ class LeftBookClub(AppConfig):
         print("--- 🛒 Shopify enabled ---")
 
     def configure_posthog(self):
-        if settings.POSTHOG_PUBLIC_TOKEN is not None:
+        if settings.POSTHOG_PUBLIC_TOKEN:
             posthog.api_key = settings.POSTHOG_PUBLIC_TOKEN
             posthog.host = settings.POSTHOG_URL
             print("--- 🦔 Posthog enabled ---")

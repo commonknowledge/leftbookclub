@@ -6,16 +6,18 @@ from django.conf import settings
 
 
 def frontend_backend_posthog_identity_linking(get_response):
-    def middleware(request):
-        posthog_cookie = request.COOKIES.get(f"ph_{posthog.project_api_key}_posthog")
-        if posthog_cookie:
-            cookie_dict = json.loads(unquote(posthog_cookie))
-            if cookie_dict["distinct_id"] and request.user.is_authenticated:
-                posthog.alias(cookie_dict["distinct_id"], request.user.primary_email)
 
-        if request.session.session_key is not None and request.user.is_authenticated:
-            posthog.alias(request.session.session_key, request.user.primary_email)
-            posthog.alias(request.session.session_key, request.user.id)
+    def middleware(request):
+        if settings.POSTHOG_PUBLIC_TOKEN:
+            posthog_cookie = request.COOKIES.get(f"ph_{posthog.project_api_key}_posthog")
+            if posthog_cookie:
+                cookie_dict = json.loads(unquote(posthog_cookie))
+                if cookie_dict["distinct_id"] and request.user.is_authenticated:
+                    posthog.alias(cookie_dict["distinct_id"], request.user.primary_email)
+
+            if request.session.session_key is not None and request.user.is_authenticated:
+                posthog.alias(request.session.session_key, request.user.primary_email)
+                posthog.alias(request.session.session_key, request.user.id)
 
         response = get_response(request)
 

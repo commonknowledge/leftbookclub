@@ -17,7 +17,7 @@ if os.getenv("SKIP_DB") != "1":
 
 INSTALLED_APPS += ["wagtail.contrib.styleguide", "django_extensions"]
 
-USE_DEBUG_TOOLBAR = False
+USE_DEBUG_TOOLBAR = os.getenv("DEBUG", False)
 
 if USE_DEBUG_TOOLBAR:
     INSTALLED_APPS += [

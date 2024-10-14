@@ -19,6 +19,8 @@ INSTALLED_APPS = [
     "mathfilters",
     "djmoney",
     "anymail",
+    "wagtail_rangefilter",
+    "rangefilter",
     "rest_framework",
     "groundwork.core",
     "groundwork.geo",
@@ -85,8 +87,8 @@ MIDDLEWARE = [
 ]
 
 MIDDLEWARE += [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

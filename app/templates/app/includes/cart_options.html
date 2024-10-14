@@ -2,7 +2,9 @@
 <div class='row'>
     {% if not product.variants %}
         <div>
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"></span>
             Loading purchase options...
         </div>
     {% elif product.variants|length == 1 %}
@@ -10,7 +12,7 @@
             <!-- If there's only one variant, show it without a dropdown -->
             {% with variant=product.variants.0 %}
                 <p>
-                    {% if variant.title != "Default Title" %}{{ variant.title }} - {% endif %}
+                    {% if variant.title != "Default Title" %}{{ variant.title }} -{% endif %}
                     {% money_localize variant.price "GBP" %}
                     {% if variant.compare_at_price is not None %}
                         <s>{% money_localize variant.compare_at_price "GBP" %}</s>
@@ -19,24 +21,36 @@
             {% endwith %}
         </div>
         <div>
-            <button id="addToCartButton" class="btn btn-outline-secondary btn-disable-strikethrough" data-product-variant-id-param="{{ product.variants.0.id }}" data-product-target="addToCartButton" {% if product.variants.0.inventory_quantity == 0 and product.variants.0.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add"{% endif %}>Add to cart</button>
-        </div>
-    {% else %}
-        <div class="tw-mb-2">
-            <select id="variantSelector" class="form-select" {% if loading or disabled %}disabled="true"{% endif %} data-action="change->product#updateAddToCartButton" data-product-target="variantSelector">
-                {% for variant in product.variants %}
-                    <option value="{{ variant.id }}" data-variant-id="{{ variant.id }}" data-inventory-quantity="{{ variant.inventory_quantity }}" data-inventory-policy="{{ variant.inventory_policy }}">
-                        {% if variant.title != "Default Title" %}{{ variant.title }} -{% endif %}
-                        {% money_localize variant.price "GBP" %}
-                        {% if variant.compare_at_price is not None %}
-                            <s>{% money_localize variant.compare_at_price "GBP" %}</s>
-                        {% endif %}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <button class="btn btn-outline-secondary btn-disable-strikethrough" data-product-variant-id-param="{{ product.variants.0.id }}" data-product-target="addToCartButton" {% if product.variants.0.inventory_quantity == 0 and product.variants.0.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add"{% endif %}>Add to cart</button>
-        </div>
-    {% endif %}
+            <button id="addToCartButton" class="btn btn-outline-secondary btn-disable-strikethrough" data-product-variant-id-param="{{ product.variants.0.id }}" data-product-target="addToCartButton" {% if product.variants.0.inventory_quantity == 0 and product.variants.0.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add"
+            {% endif %}
+            >Add to cart</button>
+    </div>
+{% else %}
+    <div class="tw-mb-2">
+        <select id="variantSelector"
+                class="form-select"
+                {% if loading or disabled %}disabled="true"{% endif %}
+                data-action="change->product#updateAddToCartButton"
+                data-product-target="variantSelector">
+            {% for variant in product.variants %}
+                <option value="{{ variant.id }}"
+                        data-variant-id="{{ variant.id }}"
+                        data-inventory-quantity="{{ variant.inventory_quantity }}"
+                        data-inventory-policy="{{ variant.inventory_policy }}">
+                    {% if variant.title != "Default Title" %}{{ variant.title }} -{% endif %}
+                    {% money_localize variant.price "GBP" %}
+                    {% if variant.compare_at_price is not None %}
+                        {% money_localize variant.compare_at_price "GBP" as localized_compare_price %}
+                        (discounted from {{ localized_compare_price }})
+                    {% endif %}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <button class="btn btn-outline-secondary btn-disable-strikethrough" data-product-variant-id-param="{{ product.variants.0.id }}" data-product-target="addToCartButton" {% if product.variants.0.inventory_quantity == 0 and product.variants.0.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add"
+        {% endif %}
+        >Add to cart</button>
+</div>
+{% endif %}
 </div>

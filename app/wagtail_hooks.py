@@ -12,6 +12,7 @@ from django.utils.html import format_html
 from djstripe.enums import SubscriptionStatus
 from wagtail import hooks
 from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
+from wagtail_rangefilter.filters import DateTimeRangeFilter
 
 from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
@@ -117,6 +118,7 @@ class CustomerAdmin(ModelAdmin):
     exclude_from_explorer = (
         False  # or True to exclude pages of this type from Wagtail's explorer view
     )
+
     list_display = (
         "recipient_name",
         "primary_product_name",
@@ -144,6 +146,11 @@ class CustomerAdmin(ModelAdmin):
         "shipping_postcode",
     )
     export_filename = "lbc_members"
+
+    def get_list_filter(self, request):
+        if request.GET.get("status") == "expired":
+            return (("ended_at", DateTimeRangeFilter),)
+        return ()
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

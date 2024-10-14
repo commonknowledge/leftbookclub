@@ -47,7 +47,8 @@ class LBCSubscription(djstripe.models.Subscription):
     @cached_property
     def primary_product(self):
         return get_primary_product_for_djstripe_subscription(self)
-
+    
+    @property
     def primary_product_name(self):
         if self.primary_product:
             return self.primary_product.name

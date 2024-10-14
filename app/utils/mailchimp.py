@@ -64,16 +64,22 @@ def mailchimp_contact_for_user(user: User, list_id=settings.MAILCHIMP_LIST_ID):
         member = apply_gdpr_consent(member)
         return member
     except MailchimpApiClientError:
-        member = mailchimp.lists.add_list_member(
-            list_id,
-            {
-                "email_address": user.primary_email,
-                "merge_fields": {"FNAME": user.first_name, "LNAME": user.last_name},
-                "status": "subscribed" if user.gdpr_email_consent else "unsubscribed",
-            },
-        )
-        member = apply_gdpr_consent(member)
-        return member
+        try:
+            member = mailchimp.lists.add_list_member(
+                list_id,
+                {
+                    "email_address": user.primary_email,
+                    "merge_fields": {"FNAME": user.first_name, "LNAME": user.last_name},
+                    "status": "subscribed"
+                    if user.gdpr_email_consent
+                    else "unsubscribed",
+                },
+            )
+            member = apply_gdpr_consent(member)
+            return member
+        except MailchimpApiClientError as e:
+            print(f"Failed to add list member: {e}")
+            return None
 
 
 def tag_user_in_mailchimp(user: User, tags_to_enable=list(), tags_to_disable=list()):

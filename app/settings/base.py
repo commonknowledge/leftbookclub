@@ -131,17 +131,19 @@ WSGI_APPLICATION = "app.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+
 PLATFORM_DATABASE_URL = os.getenv("DATABASE_URL", None)
+ssl_require = os.getenv("REQUIRE_SSL", "True") == "True"  # Default to True
 
 if os.getenv("SKIP_DB") != "1" and isinstance(PLATFORM_DATABASE_URL, str):
     DATABASES = {
         "default": dj_database_url.parse(
             re.sub(r"^postgres(ql)?", "postgis", PLATFORM_DATABASE_URL),
             conn_max_age=600,
-            ssl_require=False,
+            ssl_require=ssl_require,
         )
     }
-
+    
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 

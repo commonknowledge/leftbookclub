@@ -74,20 +74,22 @@ dyld: Library not loaded: /usr/local/opt/icu4c/lib/libicui18n.62.dylib
 - Github Actions
 - Docker
 
-## Fly.io, our web host
+## Render, our web host
 
-- Github actions auto trigger deploys to fly. To enable deployments, manually create the required apps:
-  - Create the web app: `fly apps create --name lbc-production`
-  - Create the web worker: `fly apps create --name lbc-worker-production`
-  - Create the database: `flyctl postgres create --name lbc-pg-production`
-  - Link the database to the web app: `flyctl postgres attach lbc-pg-production --app lbc-production --postgres-app --database-name lbc-production --database-user lbc-production`
-  - Link the database to the worker: `flyctl postgres attach lbc-pg-production --app lbc-worker-production --postgres-app --database-name lbc-production --database-user lbc-worker-production`
-  - You can optionally also do this for a staging environment with `lbc-staging` and `lbc-pg-staging`
-- Set environment secrets with `flyctl secrets set KEY="VALUE" KEY2="VALUE2" ...`
+- Render allows you to automatically deploy from a GitHub repository. To enable deployments, manually create the required apps on Render:
+  - Create a new web service and link it to the GitHub repository
+  - Create a new background worker and link it to the GitHub repository
+  - Create a new postgres database. Render will create connection variables for you including an external database url
+  - Add the new postgres database url to the environment variables in the web service: DATABASE_URL=(Render's External Database URL). These are found in the environment tab in the Render UI
+  - Add the new postgres database url to the environment variables in the background worker: DATABASE_URL=(Render's External Database URL)
+  - You can optionally repeat this process for a staging environment
+- Set other environment secrets in the environment tab
   - Contact jan@commonknowledge.coop for all required env variables for the Left Book Club's instance, or see below for a general outline
-- After the first deploy has completed, you can run `flyctl ssh console --app lbc-production` to enter the app and run set up commands, etc.
-  - Run `cd app` to enter the project root
+- After the first deploy has completed, you can acesss the shell tab in the Render UI to enter the app and run set up commands, etc.
+
   - Use `poetry run ...` to access the python environment
+
+    - Run `cd app` to enter the project root
     - E.g. `poetry run python manage.py createsuperuser`
 
 ## OAuth 2.0 provider details
@@ -98,12 +100,7 @@ How to get this going:
 
 - You must generate an RSA private key and add it to base.py where `OIDC_RSA_PRIVATE_KEY` is specified.
 
-  In production, set `OIDC_RSA_PRIVATE_KEY` like so:
-
-  ```
-  PRIVATE_KEY=$(openssl genrsa 4096)
-  fly secrets set -a lbc-production OIDC_RSA_PRIVATE_KEY=$PRIVATE_KEY
-  ```
+  In production add `OIDC_RSA_PRIVATE_KEY` to the environment variables in Render
 
 - From the Django admin panel, [create an OAuth2 application](http://localhost:8000/django/oauth2_provider/application) with credentials like this:
 
@@ -152,9 +149,9 @@ We used https://github.com/nextauthjs/next-auth-example/ to test this implementa
 
 ### Setting up database
 
-#### Fly.io
+#### Render
 
-Run `fly pg connect` and run all the CREATE EXTENSION commands:
+Connect to the database by running `psql (Render's External Database URL)` and run all the CREATE EXTENSION commands:
 
 ```
 -- Enable PostGIS (as of 3.0 contains just geometry/geography)
@@ -182,9 +179,9 @@ CREATE EXTENSION postgis_tiger_geocoder;
 #### Staging
 
 ```js
-DATABASE_URL; // set by running `fly pg attach lbc-pg-staging --app lbc-staging` or similar
+DATABASE_URL;
 SECRET_KEY; // random key
-BASE_URL; // set this to the URL of your staging site like https://lbc-staging.fly.dev
+BASE_URL; // set this to the URL of your staging site
 STRIPE_LIVE_MODE = False;
 STRIPE_WEBHOOK_SECRET; // signing secret from https://dashboard.stripe.com/test/webhooks/we_1KlUZ2KYdS0VccAEF1CWol1Q
 STRIPE_TEST_SECRET_KEY; // API key section: https://dashboard.stripe.com/test/apikeys
@@ -215,8 +212,8 @@ SHOPIFY_PRIVATE_APP_PASSWORD: "...",
 //Manually specified
 STRIPE_LIVE_MODE: "False" // or True
 SECRET_KEY: "..."
-// From https://fly.io
-BASE_URL: "https://...fly.dev"
+// From https://render.com
+BASE_URL: "https://...onrender.com"
 //From Stripe
 STRIPE_TEST_PUBLIC_KEY: "..."
 STRIPE_TEST_SECRET_KEY: "..."

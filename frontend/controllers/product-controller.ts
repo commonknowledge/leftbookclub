@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import type { StripeShippingAddressElementChangeEvent } from "@stripe/stripe-js";
-import Client, { Address, MoneyV2 } from "shopify-buy";
+import { createStorefrontApiClient } from '@shopify/storefront-api-client';
 import Mustache from "mustache";
 import Wax from "@jvitela/mustache-wax";
 Wax(Mustache, { currency, pluralize, length, shopifyId, stringify });
@@ -37,11 +37,18 @@ export default class ShopifyBuyControllerBase extends Controller {
   public mustacheViewValue!: any;
 
   // Internal
-  public client: Client.Client | undefined;
+  public client: ReturnType<typeof createStorefrontApiClient> | undefined;
 
   async connect() {
-    this.getCart();
+    this.client = createStorefrontApiClient({
+      storeDomain: "https://left-book-club-shop.myshopify.com/",
+      apiVersion: "2024-10",
+      publicAccessToken: this.shopifyStorefrontAccessTokenValue!,
+    });
+    console.log('Shopify client initialized', this.client);
   }
+
+
 
   updateAddToCartButton() {
     const selectedOption = this.variantSelectorTarget.options[this.variantSelectorTarget.selectedIndex];

@@ -876,6 +876,18 @@
     "@sentry/types" "6.19.7"
     tslib "^1.9.3"
 
+"@shopify/graphql-client@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@shopify/graphql-client/-/graphql-client-1.2.2.tgz#2877f7069a28d2db305e34cdcd896ff1e8c3b735"
+  integrity sha512-bFDxTGgyHNQn7KI+NQjo6mVbCSu6/TIReGCjQx+i8wOKtd9LUlTwLj60kE6ksJUSSAr8CNd5db6CY6aMObtmow==
+
+"@shopify/storefront-api-client@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@shopify/storefront-api-client/-/storefront-api-client-1.0.4.tgz#e74a347a1ec677148dc9c6ada5ae4288d203dab1"
+  integrity sha512-G/brdAHI+EumUosf6s0cKlsc7PJ/+echDzbviqTjmH6stfqA6BtLF1AwnULuDR1AZjS4vnZLEaEbeVrqlAb2Zg==
+  dependencies:
+    "@shopify/graphql-client" "^1.2.2"
+
 "@sinonjs/commons@^1.7.0":
   version "1.8.3"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.8.3.tgz#3802ddd21a50a949b6721ddd72da36e67e7f1b2d"

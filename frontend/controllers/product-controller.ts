@@ -647,8 +647,8 @@ async add({ params: { variantId } }: any) {
             title: lineItem.merchandise.product.title,
             variantId: lineItem.merchandise.id,
             canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url || '/placeholder.png',
-            imageAlt: productImages?.[0]?.node?.altText || 'Product Image',
+            imageUrl: productImages?.[0]?.node?.url,
+            imageAlt: productImages?.[0]?.node?.altText
           };
         }),
         checkout: cart.checkoutUrl,

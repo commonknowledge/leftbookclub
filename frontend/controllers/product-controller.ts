@@ -777,20 +777,7 @@ async increment(event: Event) {
     this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
   }
 }
-  checkoutValueChanged() {
-    this.mustacheViewValue = {
-      loading: false,
-      hasLineItems: this.checkoutValue?.lineItems?.length || 0 > 0,
-      lineItems: this.checkoutValue?.lineItems?.map((lineItem) => {
-        return {
-          ...lineItem,
-          lineItem,
-          canDecreaseQuantity: lineItem.quantity > 1,
-        };
-      }),
-      checkout: this.checkoutValue,
-    };
-  }
+
   mustacheViewValueChanged() {
     this.renderCart();
   }
@@ -798,7 +785,6 @@ async increment(event: Event) {
   cartTargetConnected() {
     this.renderCart();
   }
-
 
   renderCart() {
     for (const template of this.templateTargets || []) {
@@ -904,13 +890,6 @@ function shopifyId(id: any) {
     return id.replace(new RegExp("gid://shopify/[a-zA-Z]+/"), "");
   }
   return id;
-}
-
-function stringToVariantURI(variantId: any) {
-  if (variantId.toString().startsWith("gid://shopify/ProductVariant/")) {
-    return variantId;
-  }
-  return `gid://shopify/ProductVariant/${variantId}`;
 }
 
 function stringify(x: any) {

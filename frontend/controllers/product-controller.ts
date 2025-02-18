@@ -411,12 +411,16 @@ async add({ params: { variantId } }: any) {
         hasLineItems: cart.lines.edges.length > 0,
         lineItems: cart.lines.edges.map((edge: any) => {
           const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
+
           return {
             id: lineItem.id,
             quantity: lineItem.quantity,
             title: lineItem.merchandise.product.title,
             variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url,
+            imageAlt: productImages?.[0]?.node?.altText
           };
         }),
         checkout: cart.checkoutUrl,

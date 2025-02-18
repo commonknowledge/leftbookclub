@@ -892,12 +892,18 @@ function pluralize(count: number, word: string, plural?: string) {
   return count === 1 ? word : plural || word + "s";
 }
 
+interface Money {
+  amount: string;
+  currencyCode: string;
+}
+
 function currency(
-  money: string | number | MoneyV2 | undefined,
+  money: string | number | Money | undefined,
   currencyCode = "GBP"
-) {
+): string {
   if (!money) return "";
-  else if (typeof money === "string") {
+  
+  if (typeof money === "string") {
     money = parseFloat(money).toFixed(2);
   } else if (typeof money === "number") {
     money = money.toFixed(2);
@@ -905,6 +911,7 @@ function currency(
     currencyCode = money.currencyCode;
     money = parseFloat(money.amount).toFixed(2);
   }
+  
   return (currencyCode === "GBP" ? "£" : currencyCode + " ") + money;
 }
 

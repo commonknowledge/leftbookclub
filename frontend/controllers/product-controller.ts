@@ -120,12 +120,12 @@ export default class ShopifyBuyControllerBase extends Controller {
   }
 
   async getCart(): Promise<CartValue | null> {
-        if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
-        throw new Error("Shopify could not initialise due to lack of shopifyDomainValue / shopifyStorefrontAccessTokenValue");
+    if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
+        throw new Error("Shopify could not initialise due to missing domain or token");
     }
 
     this.client = createStorefrontApiClient({
-        storeDomain: "https://left-book-club-shop.myshopify.com/",
+        storeDomain: `https://${this.shopifyDomainValue}/`,
         apiVersion: "2024-10",
         publicAccessToken: this.shopifyStorefrontAccessTokenValue!,
     });
@@ -134,14 +134,12 @@ export default class ShopifyBuyControllerBase extends Controller {
     query {
       cart(id: "${this.cartId}") {
         id
-        createdAt
-        updatedAt
         lines(first: 10) {
           edges {
             node {
               id
               quantity
-               merchandise {
+              merchandise {
                 ... on ProductVariant {
                   id
                   title
@@ -158,75 +156,65 @@ export default class ShopifyBuyControllerBase extends Controller {
                   }
                 }
               }
-              attributes {
-                key
-                value
-              }
             }
           }
-        }
-        attributes {
-          key
-          value
         }
         cost {
           totalAmount {
             amount
             currencyCode
           }
-          subtotalAmount {
-            amount
-            currencyCode
-          }
-          totalTaxAmount {
-            amount
-            currencyCode
-          }
-          totalDutyAmount {
-            amount
-            currencyCode
-          }
         }
-        buyerIdentity {
-          email
-          phone
-          customer {
-            id
-          }
-          countryCode
-          deliveryAddressPreferences {
-            ... on MailingAddress {
-              address1
-              address2
-              city
-              provinceCode
-              countryCodeV2
-              zip
-            }
-          }
-          preferences {
-            delivery {
-              deliveryMethod
-            }
-          }
-        }
+        checkoutUrl
       }
     }`;
 
     try {
-      const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+        const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ data: { query } }),
-      });
-      const data = await response.json();
-      const cart = data?.data?.cart; 
-      return cart;
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
+            },
+            body: JSON.stringify({ query }),
+        });
+
+        const data = await response.json();
+        const cart = data?.data?.cart;
+
+        if (cart) {
+            const lineItems = cart.lines.edges.map((edge: any) => {
+                const lineItem = edge.node;
+                const productImages = lineItem.merchandise.product.images.edges;
+                return {
+                    id: lineItem.id,
+                    quantity: lineItem.quantity,
+                    title: lineItem.merchandise.product.title,
+                    variantId: lineItem.merchandise.id,
+                    canDecreaseQuantity: lineItem.quantity > 1,
+                    imageUrl: productImages?.[0]?.node?.url,
+                    imageAlt: productImages?.[0]?.node?.altText
+                };
+            });
+
+            this.mustacheViewValue = {
+                loading: false,
+                hasLineItems: lineItems.length > 0,
+                lineItems,
+                checkout: cart.checkoutUrl,
+                totalCost: cart.cost.totalAmount.amount,
+                currency: cart.cost.totalAmount.currencyCode,
+            };
+
+            this.renderCart();
+
+            return cart;
+        } else {
+            console.warn('Cart not found. Resetting cart.');
+            return this.resetCart();
+        }
 
     } catch (error) {
         console.error('Failed to fetch cart:', error);
@@ -747,8 +735,8 @@ async increment(event: Event) {
             title: lineItem.merchandise.product.title,
             variantId: lineItem.merchandise.id,
             canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url || '/placeholder.png',
-            imageAlt: productImages?.[0]?.node?.altText || 'Product Image',
+            imageUrl: productImages?.[0]?.node?.url,
+            imageAlt: productImages?.[0]?.node?.altText |
           };
         }),
         checkout: cart.checkoutUrl,

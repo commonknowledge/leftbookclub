@@ -387,7 +387,6 @@ async add({ params: { variantId } }: any) {
       }
     }
   }`;
-  console.log('Adding product with query:', query);
 
   try {
     const response = await fetch(apiUrl, {
@@ -443,69 +442,341 @@ async add({ params: { variantId } }: any) {
     this.redirectToCheckout();
   }
 
-  async remove({
-    params: { lineItem },
-  }: {
-    params: { lineItem: Client.LineItem };
-  }) {
-    if (!this.checkoutId) return;
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-    this.checkoutValue = await this.client?.checkout.removeLineItems(
-      this.checkoutId,
-      [lineItem.id.toString()]
-    );
-  }
+  async remove(event: Event) {
+    if (!this.cartId) return;
 
-  async decrement({
-    params: { lineItem },
-  }: {
-    params: { lineItem: Client.LineItem };
-  }) {
-    if (!this.checkoutId) return;
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-
-    const quantity = lineItem.quantity - 1;
-
-    if (quantity === 0) {
-      return this.remove({ params: { lineItem } });
+    const lineItemId = (event.currentTarget as HTMLElement).dataset.productLineItemId;
+  
+    if (!lineItemId) {
+      console.error('Line item ID not found.');
+      return;
     }
 
-    this.checkoutValue = await this.client?.checkout.updateLineItems(
-      this.checkoutId,
-      [
-        {
-          // variantId: stringToVariantURI(variantId),
-          id: lineItem.id,
-          quantity: Math.max(1, quantity),
+  
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };  
+  
+    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+  
+    const query = `
+    mutation {
+      cartLinesRemove(cartId: "${this.cartId}", lineIds: ["${lineItemId}"]) {
+        cart {
+          id
+          lines(first: 10) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                      images(first: 1) {
+                        edges {
+                          node {
+                            url
+                            altText
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          cost {
+            totalAmount {
+              amount
+              currencyCode
+            }
+          }
+          checkoutUrl
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
         },
-      ]
-    );
+        body: JSON.stringify({ query }),
+      });
+  
+      const data = await response.json();
+      const cart = data?.data?.cartLinesRemove?.cart;
+  
+
+  
+      if (cart) {
+        this.cartValue = cart;
+        this.mustacheViewValue = {
+          loading: false,
+          hasLineItems: cart.lines.edges.length > 0,
+          lineItems: cart.lines.edges.map((edge: any) => {
+            const lineItem = edge.node;
+            const productImages = lineItem.merchandise.product.images.edges;
+  
+            return {
+              id: lineItem.id,
+              quantity: lineItem.quantity,
+              title: lineItem.merchandise.product.title,
+              variantId: lineItem.merchandise.id,
+              canDecreaseQuantity: lineItem.quantity > 1,
+              imageUrl: productImages?.[0]?.node?.URL,
+              imageAlt: productImages?.[0]?.node?.altText,
+            };
+          }),
+          checkout: cart.checkoutUrl,
+          totalCost: cart.cost.totalAmount.amount,
+          currency: cart.cost.totalAmount.currencyCode
+        };
+      } else {
+        console.error('Failed to remove item from cart:', data?.data?.cartLinesRemove?.userErrors);
+        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+      }
+  
+    } catch (error) {
+      console.error('Error removing item from cart:', error);
+      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+      await this.resetCart();
+    }
   }
 
-  async increment({
-    params: { lineItem },
-  }: {
-    params: { lineItem: Client.LineItem };
-  }) {
-    if (!this.checkoutId) return;
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+ async decrement(event: Event) {
+  if (!this.cartId) return;
 
-    // If the item is not in the cart, add it
-    // if (!this.checkoutValue?.lineItems.find((item) => item.id === item.id)) {
-    //   this.add({ params: { lineItem } })
-    // }
+  const lineItemId = (event.currentTarget as HTMLElement).dataset.productLineItemId;
+  const quantity = Number((event.currentTarget as HTMLElement).dataset.productQuantity);
 
-    this.checkoutValue = await this.client?.checkout.updateLineItems(
-      this.checkoutId,
-      [
-        {
-          // variantId: stringToVariantURI(variantId),
-          id: lineItem.id,
-          quantity: Math.max(1, lineItem.quantity + 1),
-        },
-      ]
-    );
+  if (!lineItemId || isNaN(quantity)) {
+    console.error('Line item ID or quantity not found.');
+    return;
   }
+
+  const newQuantity = Math.max(0, quantity - 1);
+
+  this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+
+  const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+
+  const query = `
+    mutation {
+      cartLinesUpdate(cartId: "${this.cartId}", lines: [
+        {
+          id: "${lineItemId}",
+          quantity: ${newQuantity}
+        }
+      ]) {
+        cart {
+          id
+          lines(first: 10) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                      images(first: 1) {
+                        edges {
+                          node {
+                            url
+                            altText
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          cost {
+            totalAmount {
+              amount
+              currencyCode
+            }
+          }
+          checkoutUrl
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+    const cart = data?.data?.cartLinesUpdate?.cart;
+
+    if (cart) {
+      this.cartValue = cart;
+      this.mustacheViewValue = {
+        loading: false,
+        hasLineItems: cart.lines.edges.length > 0,
+        lineItems: cart.lines.edges.map((edge: any) => {
+          const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
+
+          return {
+            id: lineItem.id,
+            quantity: lineItem.quantity,
+            title: lineItem.merchandise.product.title,
+            variantId: lineItem.merchandise.id,
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url || '/placeholder.png',
+            imageAlt: productImages?.[0]?.node?.altText || 'Product Image',
+          };
+        }),
+        checkout: cart.checkoutUrl,
+        totalCost: cart.cost.totalAmount.amount,
+        currency: cart.cost.totalAmount.currencyCode,
+      };
+    } else {
+      console.error('Failed to decrement item in cart:', data?.data?.cartLinesUpdate?.userErrors);
+      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+    }
+  } catch (error) {
+    console.error('Error decrementing item in cart:', error);
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+  }
+}
+
+async increment(event: Event) {
+  if (!this.cartId) return;
+
+  const lineItemId = (event.currentTarget as HTMLElement).dataset.productLineItemId;
+  const quantity = Number((event.currentTarget as HTMLElement).dataset.productQuantity);
+
+  if (!lineItemId || isNaN(quantity)) {
+    console.error('Line item ID or quantity not found.');
+    return;
+  }
+
+  const newQuantity = quantity + 1;
+
+  this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+
+  const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+
+  const query = `
+    mutation {
+      cartLinesUpdate(cartId: "${this.cartId}", lines: [
+        {
+          id: "${lineItemId}",
+          quantity: ${newQuantity}
+        }
+      ]) {
+        cart {
+          id
+          lines(first: 10) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                      images(first: 1) {
+                        edges {
+                          node {
+                            url
+                            altText
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          cost {
+            totalAmount {
+              amount
+              currencyCode
+            }
+          }
+          checkoutUrl
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+    const cart = data?.data?.cartLinesUpdate?.cart;
+
+    if (cart) {
+      this.cartValue = cart;
+      this.mustacheViewValue = {
+        loading: false,
+        hasLineItems: cart.lines.edges.length > 0,
+        lineItems: cart.lines.edges.map((edge: any) => {
+          const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
+
+          return {
+            id: lineItem.id,
+            quantity: lineItem.quantity,
+            title: lineItem.merchandise.product.title,
+            variantId: lineItem.merchandise.id,
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url || '/placeholder.png',
+            imageAlt: productImages?.[0]?.node?.altText || 'Product Image',
+          };
+        }),
+        checkout: cart.checkoutUrl,
+        totalCost: cart.cost.totalAmount.amount,
+        currency: cart.cost.totalAmount.currencyCode,
+      };
+    } else {
+      console.error('Failed to increment item in cart:', data?.data?.cartLinesUpdate?.userErrors);
+      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+    }
+  } catch (error) {
+    console.error('Error incrementing item in cart:', error);
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+  }
+}
   checkoutValueChanged() {
     this.mustacheViewValue = {
       loading: false,
@@ -535,6 +806,7 @@ async add({ params: { variantId } }: any) {
         document.querySelectorAll(template.dataset?.target || "")
       );
       if (els.length) {
+
         for (const el of els) {
           el.innerHTML = Mustache.render(
             template.innerHTML,

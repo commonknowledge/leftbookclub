@@ -56,23 +56,23 @@
                         </div>
                         <div>(( quantity )) (( quantity | pluralize : "copy" : "copies" ))</div>
                         <div class='tw-mt-1'>
-                            ((#canDecreaseQuantity))
                             <button class='btn btn-outline-secondary'
-                                    data-action="click->product#decrement"
-                                    data-product-line-item-param='(( lineItem | stringify ))'>
-                                -1
-                            </button>
-                            ((/canDecreaseQuantity))
+                            data-action="click->product#decrement"
+                            data-product-line-item-id="(( id ))"
+                            data-product-quantity="(( quantity ))">
+                        -1
+                    </button>
                             <button class='btn btn-outline-secondary'
-                                    data-action='click->product#increment'
-                                    data-product-line-item-param='(( lineItem | stringify ))'>
-                                +1
-                            </button>
+                            data-action="click->product#increment"
+                            data-product-line-item-id="(( id ))"
+                            data-product-quantity="(( quantity ))">
+                        +1
+                    </button>
                             <button class='btn btn-outline-secondary'
-                                    data-action='click->product#remove'
-                                    data-product-line-item-param='(( lineItem | stringify ))'>
-                                Remove
-                            </button>
+                            data-action='click->product#remove'
+                            data-product-line-item-id='(( id ))'>
+                      Remove
+                    </button>
                         </div>
                     </div>
                     ((/lineItems))

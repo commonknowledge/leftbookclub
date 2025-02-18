@@ -402,8 +402,6 @@ async add({ params: { variantId } }: any) {
     const data = await response.json();
     const cart = data?.data?.cartLinesAdd?.cart;
 
-    console.log('Add product response:', cart);
-
     if (cart) {
       this.cartValue = cart;
       this.mustacheViewValue = {
@@ -427,7 +425,6 @@ async add({ params: { variantId } }: any) {
         totalCost: cart.cost.totalAmount.amount,
         currency: cart.cost.totalAmount.currencyCode
       };
-      console.log('Mustache view:', this.mustacheViewValue);
     } else {
       console.error('Failed to add item to cart:', data?.data?.cartLinesAdd?.userErrors);
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };

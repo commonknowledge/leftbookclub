@@ -130,12 +130,6 @@ export default class ShopifyBuyControllerBase extends Controller {
         publicAccessToken: this.shopifyStorefrontAccessTokenValue!,
     });
 
-
-   
-    if (!this.cartId) {
-        return this.resetCart();
-    }
-
     const query = `
     query {
       cart(id: "${this.cartId}") {
@@ -231,14 +225,8 @@ export default class ShopifyBuyControllerBase extends Controller {
         body: JSON.stringify({ data: { query } }),
       });
       const data = await response.json();
-      const cart = data?.data?.cart;
-
-        if (!cart) {
-            console.warn('Cart not found. Resetting cart.');
-            return this.resetCart();
-        }
-
-        return cart;
+      const cart = data?.data?.cart; 
+      return cart;
 
     } catch (error) {
         console.error('Failed to fetch cart:', error);
@@ -331,7 +319,7 @@ async resetCart(): Promise<CartValue | null> {
   }
 }
 
-async add({ params: { variantId } }: any) {
+async add({ params: { variantId } }: { params: { variantId: string } }) {
   if (!this.cartId) return;
 
   this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
@@ -452,7 +440,6 @@ async add({ params: { variantId } }: any) {
       return;
     }
 
-  
     this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };  
   
     const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;

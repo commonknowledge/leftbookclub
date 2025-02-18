@@ -820,20 +820,59 @@ async increment(event: Event) {
   }
 
   async redirectToCheckout() {
-    // @ts-ignore
-    const cart = await this.client?.checkout.fetch(this.checkoutId);
-    if (!cart?.webUrl) return;
-    const checkoutURL = new URL(cart?.webUrl);
-
-    checkoutURL.searchParams.append(
-      "return_to",
-      new URL("/", window.location.href).toString()
-    );
+    if (!this.cartId) {
+      console.error('Cart ID is missing.');
+      return;
+    }
+  
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+  
+    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+  
+    const query = `
+      query {
+        cart(id: "${this.cartId}") {
+          id
+          checkoutUrl
+        }
+      }`;
+    
     try {
-      // @ts-ignore
-      posthog.capture("buy book");
-    } catch (e) {}
-    window.location.href = checkoutURL.toString();
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
+        },
+        body: JSON.stringify({ query }),
+      });
+  
+      const data = await response.json();
+      const checkoutUrl = data?.data?.cart?.checkoutUrl;
+  
+      if (checkoutUrl) {
+        const checkoutURL = new URL(checkoutUrl);
+        checkoutURL.searchParams.append(
+          "return_to",
+          new URL("/", window.location.href).toString()
+        );
+          try {
+          // @ts-ignore
+          posthog.capture("buy book");
+        } catch (e) {
+          console.warn("Posthog tracking failed:", e);
+        }
+  
+        window.location.href = checkoutURL.toString();
+      } else {
+        console.error('Failed to retrieve checkout URL:', data?.errors);
+      }
+  
+    } catch (error) {
+      console.error('Error fetching checkout URL:', error);
+    } finally {
+      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+    }
   }
 
   get shippingAddress(): Address | undefined {

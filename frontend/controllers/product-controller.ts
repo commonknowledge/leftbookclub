@@ -54,15 +54,9 @@ interface CartValue {
   checkoutUrl: string;
 }
 
-interface ShippingAddress {
-  address1?: string;
-  address2?: string;
-  city?: string;
+interface buyerIdentity {
+  email?: string;
   country?: string;
-  firstName?: string;
-  lastName?: string;
-  province?: string;
-  zip?: string;
 }
 
 export default class ShopifyBuyControllerBase extends Controller {
@@ -90,6 +84,7 @@ export default class ShopifyBuyControllerBase extends Controller {
   public shopifyDomainValue: string | undefined;
   public shopifyStorefrontAccessTokenValue: string | undefined;
   public userEmailValue: string | undefined;
+  public userPhoneValue: string | undefined;
   public stripeShippingValue:
     | StripeShippingAddressElementChangeEvent["value"]
     | undefined;
@@ -230,7 +225,7 @@ export default class ShopifyBuyControllerBase extends Controller {
           };
         });
         const totalQuantity = lineItems.reduce(
-          (sum, item) => sum + item.quantity,
+          (sum: any, item: { quantity: any }) => sum + item.quantity,
           0
         );
 
@@ -243,7 +238,6 @@ export default class ShopifyBuyControllerBase extends Controller {
           totalCost: cart.cost.subtotalAmount.amount,
           currency: cart.cost.subtotalAmount.currencyCode,
         };
-        console.log(cart, "cart");
 
         this.renderCart();
 
@@ -266,120 +260,62 @@ export default class ShopifyBuyControllerBase extends Controller {
       }
 
       const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-      const hasEmail = Boolean(this.userEmailValue);
-      const hasShippingAddress = Boolean(this.shippingAddress?.address1);
 
       const buyerIdentity: any = {};
-
-      if (hasEmail) {
+      if (this.userEmailValue) {
         buyerIdentity.email = this.userEmailValue;
       }
-
-      if (hasShippingAddress && this.shippingAddress) {
-        buyerIdentity.deliveryAddressPreferences = [
-          {
-            oneTimeUse: false,
-            deliveryAddress: {
-              address1: this.shippingAddress.address1,
-              address2: this.shippingAddress.address2 || null,
-              city: this.shippingAddress.city,
-              province: this.shippingAddress.province,
-              country: this.shippingAddress.country,
-              zip: this.shippingAddress.zip,
-            },
-          },
-        ];
+      if (this.shippingAddress?.country) {
+        buyerIdentity.countryCode = this.shippingAddress.country;
       }
+
       const input: any = {
         lines: [],
-        ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }),
+        ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }), // Include only if non-empty
       };
 
-      const query = `
-      mutation cartCreate($input: CartInput!) {
-        cartCreate(input: $input) {
-          cart {
-            id
-            checkoutUrl
-            lines(first: 10) {
-              edges {
-                node {
-                  id
-                  quantity
-                  merchandise {
-                    ... on ProductVariant {
-                      id
-                      title
-                      priceV2 {
-                          amount
-                          currencyCode
-                      }
-                      compareAtPriceV2 {
-                        amount
-                        currencyCode
-                      } 
-                      product {
-                        title
-                        images(first: 1) {
-                          edges {
-                            node {
-                              url
-                              altText
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
+      const cartCreateQuery = `
+        mutation cartCreate($input: CartInput!) {
+          cartCreate(input: $input) {
+            cart {
+              id
+              checkoutUrl
+              cost {
+                subtotalAmount {
+                  amount
+                  currencyCode
                 }
               }
-            }
-            buyerIdentity {
-              email
-              deliveryAddressPreferences {
-                oneTimeUse
-                deliveryAddress {
-                  address1
-                  address2
-                  city
-                  province
-                  country
-                  zip
-                }
+              buyerIdentity {
+                email
+                countryCode
               }
             }
-            cost {
-              subtotalAmount {
-                amount
-                currencyCode
-              }
+            userErrors {
+              field
+              message
             }
-          }
-          userErrors {
-            field
-            message
           }
         }
-      }
-    `;
+      `;
 
-      const response = await fetch(apiUrl, {
+      const cartResponse = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Shopify-Storefront-Access-Token":
             this.shopifyStorefrontAccessTokenValue!,
         },
-        body: JSON.stringify({ query, variables: { input } }),
+        body: JSON.stringify({ query: cartCreateQuery, variables: { input } }),
       });
 
-      const data = await response.json();
-      const newCart = data?.data?.cartCreate?.cart;
+      const cartData = await cartResponse.json();
+      const newCart = cartData?.data?.cartCreate?.cart;
 
       if (!newCart) {
         console.error(
           "Failed to create a new cart:",
-          data?.errors || data?.data?.cartCreate?.userErrors
+          cartData?.errors || cartData?.data?.cartCreate?.userErrors
         );
         return null;
       }
@@ -1014,26 +950,12 @@ export default class ShopifyBuyControllerBase extends Controller {
     }
   }
 
-  get shippingAddress(): ShippingAddress | undefined {
-    try {
-      const [firstName, lastName] = this.stripeShippingValue?.name.split(
-        " "
-      ) || ["", ""];
-      return this.stripeShippingValue
-        ? {
-            address1: this.stripeShippingValue.address.line1,
-            address2: this.stripeShippingValue.address.line1,
-            city: this.stripeShippingValue.address.city,
-            province: this.stripeShippingValue.address.state,
-            zip: this.stripeShippingValue.address.postal_code,
-            country: this.stripeShippingValue.address.country,
-            firstName,
-            lastName,
-          }
-        : undefined;
-    } catch (e) {
-      return undefined;
-    }
+  get shippingAddress(): buyerIdentity | undefined {
+    return this.stripeShippingValue
+      ? {
+          country: this.stripeShippingValue.address.country,
+        }
+      : undefined;
   }
 }
 

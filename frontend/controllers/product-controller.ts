@@ -54,9 +54,26 @@ interface CartValue {
   checkoutUrl: string;
 }
 
-interface buyerIdentity {
-  email?: string;
-  country?: string;
+interface LineItem {
+  id: string;
+  quantity: number;
+  title: string;
+  price: string;
+  compareAtPrice?: string;
+  variantId: string;
+  canDecreaseQuantity: boolean;
+  imageUrl: string;
+  imageAlt: string | null;
+}
+
+interface MustacheViewValue {
+  loading: boolean;
+  hasLineItems: boolean;
+  lineItems: LineItem[];
+  totalQuantity: number;
+  checkout: string;
+  totalCost: string;
+  currency: string;
 }
 
 export default class ShopifyBuyControllerBase extends Controller {
@@ -84,7 +101,6 @@ export default class ShopifyBuyControllerBase extends Controller {
   public shopifyDomainValue: string | undefined;
   public shopifyStorefrontAccessTokenValue: string | undefined;
   public userEmailValue: string | undefined;
-  public userPhoneValue: string | undefined;
   public stripeShippingValue:
     | StripeShippingAddressElementChangeEvent["value"]
     | undefined;
@@ -95,7 +111,58 @@ export default class ShopifyBuyControllerBase extends Controller {
   public client: ReturnType<typeof createStorefrontApiClient> | undefined;
 
   async connect() {
-    this.getCart();
+    await this.getCart();
+  }
+  async shopifyRequest(query: string, variables: object = {}): Promise<any> {
+    if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
+      throw new Error("Shopify initialization failed: Missing domain or token");
+    }
+
+    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
+        },
+        body: JSON.stringify({ query, variables }),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error("Shopify API request failed:", error);
+      return null;
+    }
+  }
+
+  updateCartState(cart: any) {
+    const lineItems = cart.lines.edges.map((edge: any) => ({
+      id: edge.node.id,
+      quantity: edge.node.quantity,
+      title: edge.node.merchandise.product.title,
+      price: edge.node.merchandise.priceV2.amount,
+      compareAtPrice: edge.node.merchandise.compareAtPriceV2?.amount,
+      variantId: edge.node.merchandise.id,
+      canDecreaseQuantity: edge.node.quantity > 1,
+      imageUrl:
+        edge.node.merchandise.product.images.edges?.[0]?.node?.url || "",
+      imageAlt:
+        edge.node.merchandise.product.images.edges?.[0]?.node?.altText || "",
+    }));
+
+    this.mustacheViewValue = {
+      loading: false,
+      hasLineItems: lineItems.length > 0,
+      lineItems,
+      totalQuantity: lineItems.reduce(
+        (sum: number, item: LineItem) => sum + item.quantity,
+        0
+      ),
+      checkout: cart.checkoutUrl,
+      totalCost: cart.cost.subtotalAmount.amount,
+      currency: cart.cost.subtotalAmount.currencyCode,
+    } as MustacheViewValue;
   }
 
   updateAddToCartButton() {
@@ -132,19 +199,7 @@ export default class ShopifyBuyControllerBase extends Controller {
     window.localStorage.setItem(this.LOCALSTORAGE_CART_ID, id.toString());
   }
 
-  async getCart(): Promise<CartValue | null> {
-    if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
-      throw new Error(
-        "Shopify could not initialise due to missing domain or token"
-      );
-    }
-
-    this.client = createStorefrontApiClient({
-      storeDomain: `https://${this.shopifyDomainValue}/`,
-      apiVersion: "2024-10",
-      publicAccessToken: this.shopifyStorefrontAccessTokenValue!,
-    });
-
+  async getCart() {
     const query = `
     query {
       cart(id: "${this.cartId}") {
@@ -192,89 +247,26 @@ export default class ShopifyBuyControllerBase extends Controller {
       }
     }`;
 
-    try {
-      const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token":
-            this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      const data = await response.json();
-      const cart = data?.data?.cart;
-
-      if (cart) {
-        const lineItems = cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            price: lineItem.merchandise.priceV2.amount,
-            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
-            variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url,
-            imageAlt: productImages?.[0]?.node?.altText,
-          };
-        });
-        const totalQuantity = lineItems.reduce(
-          (sum: any, item: { quantity: any }) => sum + item.quantity,
-          0
-        );
-
-        this.mustacheViewValue = {
-          loading: false,
-          hasLineItems: lineItems.length > 0,
-          lineItems,
-          totalQuantity,
-          checkout: cart.checkoutUrl,
-          totalCost: cart.cost.subtotalAmount.amount,
-          currency: cart.cost.subtotalAmount.currencyCode,
-        };
-
-        this.renderCart();
-
-        return cart;
-      } else {
-        console.warn("Cart not found. Resetting cart.");
-        return this.resetCart();
-      }
-    } catch (error) {
-      console.error("Failed to fetch cart:", error);
-      return this.resetCart();
-    }
+    const data = await this.shopifyRequest(query);
+    if (data?.data?.cart) this.updateCartState(data.data.cart);
+    else return this.resetCart();
   }
-  async resetCart(): Promise<CartValue | null> {
-    try {
-      if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
-        throw new Error(
-          "Shopify initialization failed: Missing domain or access token"
-        );
-      }
 
-      const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+  async resetCart() {
+    const buyerIdentity: Record<string, string> = {};
 
-      const buyerIdentity: any = {};
-      if (this.userEmailValue) {
-        buyerIdentity.email = this.userEmailValue;
-      }
-      if (this.shippingAddress?.country) {
-        buyerIdentity.countryCode = this.shippingAddress.country;
-      }
+    if (this.userEmailValue) {
+      buyerIdentity.email = this.userEmailValue;
+    }
+    if (this.shippingAddress) {
+      buyerIdentity.countryCode = this.shippingAddress.country;
+    }
+    const input = {
+      lines: [],
+      ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }),
+    };
 
-      const input: any = {
-        lines: [],
-        ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }), // Include only if non-empty
-      };
-
-      const cartCreateQuery = `
+    const cartCreateQuery = `
         mutation cartCreate($input: CartInput!) {
           cartCreate(input: $input) {
             cart {
@@ -298,79 +290,61 @@ export default class ShopifyBuyControllerBase extends Controller {
           }
         }
       `;
+    const data = await this.shopifyRequest(cartCreateQuery, { input });
+    const newCart = data?.data?.cartCreate?.cart;
 
-      const cartResponse = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token":
-            this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ query: cartCreateQuery, variables: { input } }),
-      });
-
-      const cartData = await cartResponse.json();
-      const newCart = cartData?.data?.cartCreate?.cart;
-
-      if (!newCart) {
-        console.error(
-          "Failed to create a new cart:",
-          cartData?.errors || cartData?.data?.cartCreate?.userErrors
-        );
-        return null;
-      }
-
-      this.cartId = newCart.id;
-      this.cartValue = newCart;
-
-      return newCart;
-    } catch (error) {
-      console.error("Error creating new cart:", error);
+    if (!newCart) {
+      console.error(
+        "Failed to create a new cart:",
+        data?.errors || data?.data?.cartCreate?.userErrors
+      );
       return null;
     }
+
+    this.cartId = newCart.id;
+    this.cartValue = newCart;
+    return newCart;
   }
 
   async add({ params: { variantId } }: { params: { variantId: string } }) {
     if (!this.cartId) return;
 
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-
-    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-
     const query = `
-  mutation {
-    cartLinesAdd(cartId: "${this.cartId}", lines: [
-      {
-        merchandiseId: "gid://shopify/ProductVariant/${variantId}",
-        quantity: 1
-      }
-    ]) {
-      cart {
-        id
-        lines(first: 10) {
-          edges {
-            node {
-              id
-              quantity
-              merchandise {
-                ... on ProductVariant {
+      mutation {
+        cartLinesAdd(cartId: "${this.cartId}", lines: [
+          {
+            merchandiseId: "gid://shopify/ProductVariant/${variantId}",
+            quantity: 1
+          }
+        ]) {
+          cart {
+            id
+            lines(first: 10) {
+              edges {
+                node {
                   id
-                  title
-                    priceV2 {
-                    amount
-                    currencyCode
-                  }
-                  compareAtPriceV2 {
-                    amount
-                    currencyCode
-                  }
-                  product {
-                    title
-                    images(first: 1) {
-                      edges {
-                        node {
-                          url
-                          altText
+                  quantity
+                  merchandise {
+                    ... on ProductVariant {
+                      id
+                      title
+                        priceV2 {
+                        amount
+                        currencyCode
+                      }
+                      compareAtPriceV2 {
+                        amount
+                        currencyCode
+                      }
+                      product {
+                        title
+                        images(first: 1) {
+                          edges {
+                            node {
+                              url
+                              altText
+                            }
+                          }
                         }
                       }
                     }
@@ -378,83 +352,24 @@ export default class ShopifyBuyControllerBase extends Controller {
                 }
               }
             }
+            cost {
+              subtotalAmount {
+                amount
+                currencyCode
+              }
+            }
+            checkoutUrl
+          }
+          userErrors {
+            field
+            message
           }
         }
-        cost {
-          subtotalAmount {
-            amount
-            currencyCode
-          }
-        }
-        checkoutUrl
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }`;
+      }`;
 
-    try {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token":
-            this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      const data = await response.json();
-      const cart = data?.data?.cartLinesAdd?.cart;
-      if (cart) {
-        this.cartValue = cart;
-
-        const lineItems = cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
-
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            price: lineItem.merchandise.priceV2.amount,
-            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
-            variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url || "",
-            imageAlt: productImages?.[0]?.node?.altText || "",
-          };
-        });
-
-        const totalQuantity = lineItems.reduce(
-          (sum: any, item: { quantity: any }) => sum + item.quantity,
-          0
-        );
-
-        this.mustacheViewValue = {
-          loading: false,
-          hasLineItems: lineItems.length > 0,
-          lineItems,
-          totalQuantity,
-          checkout: cart.checkoutUrl,
-          totalCost: cart.cost.subtotalAmount.amount,
-          currency: cart.cost.subtotalAmount.currencyCode,
-        };
-      } else {
-        console.error(
-          "Failed to add item to cart:",
-          data?.data?.cartLinesAdd?.userErrors
-        );
-        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-      }
-    } catch (error) {
-      console.error("Error adding item to cart:", error);
-      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-      await this.resetCart();
-      await this.add({ params: { variantId } });
-    }
+    const data = await this.shopifyRequest(query);
+    if (data?.data?.cartLinesAdd?.cart)
+      this.updateCartState(data.data.cartLinesAdd.cart);
   }
 
   async buyNow(e: any) {
@@ -472,10 +387,6 @@ export default class ShopifyBuyControllerBase extends Controller {
       console.error("Line item ID not found.");
       return;
     }
-
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-
-    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
 
     const query = `
     mutation {
@@ -530,342 +441,73 @@ export default class ShopifyBuyControllerBase extends Controller {
       }
     }`;
 
-    try {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token":
-            this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ query }),
-      });
+    await this.shopifyRequest(query);
+    await this.getCart();
+  }
 
-      const data = await response.json();
-      const cart = data?.data?.cartLinesRemove?.cart;
+  async updateCartQuantity(lineItemId: string, newQuantity: number) {
+    const query = `
+      mutation {
+        cartLinesUpdate(cartId: "${this.cartId}", lines: [
+          {
+            id: "${lineItemId}",
+            quantity: ${newQuantity}
+          }
+        ]) {
+          cart {
+            id
+            lines(first: 10) {
+              edges {
+                node {
+                  id
+                  quantity
+                  merchandise {
+                    ... on ProductVariant {
+                      id
+                      title
+                      priceV2 { amount currencyCode }
+                      compareAtPriceV2 { amount currencyCode }
+                      product {
+                        title
+                        images(first: 1) { edges { node { url altText } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            cost { subtotalAmount { amount currencyCode } }
+            checkoutUrl
+          }
+          userErrors { field message }
+        }
+      }`;
 
-      if (cart) {
-        this.cartValue = cart;
-
-        const lineItems = cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
-
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            price: lineItem.merchandise.priceV2.amount,
-            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
-            variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url || "",
-            imageAlt: productImages?.[0]?.node?.altText || "",
-          };
-        });
-
-        const totalQuantity = lineItems.reduce(
-          (sum: any, item: { quantity: any }) => sum + item.quantity,
-          0
-        );
-        this.mustacheViewValue = {
-          loading: false,
-          hasLineItems: lineItems.length > 0,
-          lineItems,
-          totalQuantity,
-          checkout: cart.checkoutUrl,
-          totalCost: cart.cost.subtotalAmount.amount,
-          currency: cart.cost.subtotalAmount.currencyCode,
-        };
-      } else {
-        console.error(
-          "Failed to remove item from cart:",
-          data?.data?.cartLinesRemove?.userErrors
-        );
-        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-      }
-    } catch (error) {
-      console.error("Error removing item from cart:", error);
-      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-      await this.resetCart();
-    }
+    const data = await this.shopifyRequest(query);
+    if (data?.data?.cartLinesUpdate?.cart)
+      this.updateCartState(data.data.cartLinesUpdate.cart);
   }
 
   async decrement(event: Event) {
-    if (!this.cartId) return;
-
     const lineItemId = (event.currentTarget as HTMLElement).dataset
       .productLineItemId;
     const quantity = Number(
       (event.currentTarget as HTMLElement).dataset.productQuantity
     );
-
-    if (!lineItemId || isNaN(quantity)) {
-      console.error("Line item ID or quantity not found.");
-      return;
-    }
-
-    const newQuantity = Math.max(0, quantity - 1);
-
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-
-    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-
-    const query = `
-    mutation {
-      cartLinesUpdate(cartId: "${this.cartId}", lines: [
-        {
-          id: "${lineItemId}",
-          quantity: ${newQuantity}
-        }
-      ]) {
-        cart {
-          id
-          lines(first: 10) {
-            edges {
-              node {
-                id
-                quantity
-                merchandise {
-                  ... on ProductVariant {
-                    id
-                    title
-                      priceV2 {
-                    amount
-                    currencyCode
-                  }
-                  compareAtPriceV2 {
-                    amount
-                    currencyCode
-                  }
-                    product {
-                      title
-                      images(first: 1) {
-                        edges {
-                          node {
-                            url
-                            altText
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          cost {
-            subtotalAmount {
-              amount
-              currencyCode
-            }
-          }
-          checkoutUrl
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token":
-            this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      const data = await response.json();
-      const cart = data?.data?.cartLinesUpdate?.cart;
-
-      if (cart) {
-        this.cartValue = cart;
-
-        const lineItems = cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
-
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            price: lineItem.merchandise.priceV2.amount,
-            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
-            variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url || "",
-            imageAlt: productImages?.[0]?.node?.altText || "",
-          };
-        });
-
-        const totalQuantity = lineItems.reduce(
-          (sum: any, item: { quantity: any }) => sum + item.quantity,
-          0
-        );
-
-        this.mustacheViewValue = {
-          loading: false,
-          hasLineItems: lineItems.length > 0,
-          lineItems,
-          totalQuantity,
-          checkout: cart.checkoutUrl,
-          totalCost: cart.cost.subtotalAmount.amount,
-          currency: cart.cost.subtotalAmount.currencyCode,
-        };
-      } else {
-        console.error(
-          "Failed to decrement item in cart:",
-          data?.data?.cartLinesUpdate?.userErrors
-        );
-        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-      }
-    } catch (error) {
-      console.error("Error decrementing item in cart:", error);
-      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-    }
+    if (!lineItemId || isNaN(quantity))
+      return console.error("Invalid line item ID or quantity");
+    await this.updateCartQuantity(lineItemId, Math.max(0, quantity - 1));
   }
 
   async increment(event: Event) {
-    if (!this.cartId) return;
-
     const lineItemId = (event.currentTarget as HTMLElement).dataset
       .productLineItemId;
     const quantity = Number(
       (event.currentTarget as HTMLElement).dataset.productQuantity
     );
-
-    if (!lineItemId || isNaN(quantity)) {
-      console.error("Line item ID or quantity not found.");
-      return;
-    }
-
-    const newQuantity = quantity + 1;
-
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-
-    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-
-    const query = `
-    mutation {
-      cartLinesUpdate(cartId: "${this.cartId}", lines: [
-        {
-          id: "${lineItemId}",
-          quantity: ${newQuantity}
-        }
-      ]) {
-        cart {
-          id
-          lines(first: 10) {
-            edges {
-              node {
-                id
-                quantity
-                merchandise {
-                  ... on ProductVariant {
-                    id
-                    title
-                      priceV2 {
-                    amount
-                    currencyCode
-                  }
-                  compareAtPriceV2 {
-                    amount
-                    currencyCode
-                  }
-                    product {
-                      title
-                      images(first: 1) {
-                        edges {
-                          node {
-                            url
-                            altText
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          cost {
-            subtotalAmount {
-              amount
-              currencyCode
-            }
-          }
-          checkoutUrl
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token":
-            this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      const data = await response.json();
-      const cart = data?.data?.cartLinesUpdate?.cart;
-      if (cart) {
-        this.cartValue = cart;
-
-        const lineItems = cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
-
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            variantId: lineItem.merchandise.id,
-            price: lineItem.merchandise.priceV2.amount,
-            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url || "",
-            imageAlt: productImages?.[0]?.node?.altText || "",
-          };
-        });
-
-        const totalQuantity = lineItems.reduce(
-          (sum: any, item: { quantity: any }) => sum + item.quantity,
-          0
-        );
-
-        this.mustacheViewValue = {
-          loading: false,
-          hasLineItems: lineItems.length > 0,
-          lineItems,
-          totalQuantity,
-          checkout: cart.checkoutUrl,
-          totalCost: cart.cost.subtotalAmount.amount,
-          currency: cart.cost.subtotalAmount.currencyCode,
-        };
-      } else {
-        console.error(
-          "Failed to increment item in cart:",
-          data?.data?.cartLinesUpdate?.userErrors
-        );
-        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-      }
-    } catch (error) {
-      console.error("Error incrementing item in cart:", error);
-      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-    }
+    if (!lineItemId || isNaN(quantity))
+      return console.error("Invalid line item ID or quantity");
+    await this.updateCartQuantity(lineItemId, quantity + 1);
   }
 
   mustacheViewValueChanged() {
@@ -894,16 +536,7 @@ export default class ShopifyBuyControllerBase extends Controller {
     }
   }
 
-  async redirectToCheckout() {
-    if (!this.cartId) {
-      console.error("Cart ID is missing.");
-      return;
-    }
-
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-
-    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-
+  async fetchCheckoutUrl(): Promise<string | null> {
     const query = `
       query {
         cart(id: "${this.cartId}") {
@@ -912,26 +545,27 @@ export default class ShopifyBuyControllerBase extends Controller {
         }
       }`;
 
+    const data = await this.shopifyRequest(query);
+    return data?.data?.cart?.checkoutUrl || null;
+  }
+
+  async redirectToCheckout() {
+    if (!this.cartId) {
+      console.error("Cart ID is missing.");
+      return;
+    }
+
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+
     try {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token":
-            this.shopifyStorefrontAccessTokenValue!,
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      const data = await response.json();
-      const checkoutUrl = data?.data?.cart?.checkoutUrl;
-
+      const checkoutUrl = await this.fetchCheckoutUrl();
       if (checkoutUrl) {
         const checkoutURL = new URL(checkoutUrl);
         checkoutURL.searchParams.append(
           "return_to",
           new URL("/", window.location.href).toString()
         );
+
         try {
           // @ts-ignore
           posthog.capture("buy book");
@@ -941,7 +575,7 @@ export default class ShopifyBuyControllerBase extends Controller {
 
         window.location.href = checkoutURL.toString();
       } else {
-        console.error("Failed to retrieve checkout URL:", data?.errors);
+        console.error("Failed to retrieve checkout URL.");
       }
     } catch (error) {
       console.error("Error fetching checkout URL:", error);
@@ -950,12 +584,16 @@ export default class ShopifyBuyControllerBase extends Controller {
     }
   }
 
-  get shippingAddress(): buyerIdentity | undefined {
-    return this.stripeShippingValue
-      ? {
-          country: this.stripeShippingValue.address.country,
-        }
-      : undefined;
+  get shippingAddress() {
+    try {
+      return this.stripeShippingValue
+        ? {
+            country: this.stripeShippingValue.address.country,
+          }
+        : undefined;
+    } catch (e) {
+      return undefined;
+    }
   }
 }
 

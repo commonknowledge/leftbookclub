@@ -188,7 +188,7 @@ export default class ShopifyBuyControllerBase extends Controller {
           }
         }
         cost {
-          totalAmount {
+          subtotalAmount {
             amount
             currencyCode
           }
@@ -240,9 +240,10 @@ export default class ShopifyBuyControllerBase extends Controller {
           lineItems,
           totalQuantity,
           checkout: cart.checkoutUrl,
-          totalCost: cart.cost.totalAmount.amount,
-          currency: cart.cost.totalAmount.currencyCode,
+          totalCost: cart.cost.subtotalAmount.amount,
+          currency: cart.cost.subtotalAmount.currencyCode,
         };
+        console.log(cart, "cart");
 
         this.renderCart();
 
@@ -348,7 +349,7 @@ export default class ShopifyBuyControllerBase extends Controller {
               }
             }
             cost {
-              totalAmount {
+              subtotalAmount {
                 amount
                 currencyCode
               }
@@ -444,7 +445,7 @@ export default class ShopifyBuyControllerBase extends Controller {
           }
         }
         cost {
-          totalAmount {
+          subtotalAmount {
             amount
             currencyCode
           }
@@ -492,7 +493,7 @@ export default class ShopifyBuyControllerBase extends Controller {
         });
 
         const totalQuantity = lineItems.reduce(
-          (sum, item) => sum + item.quantity,
+          (sum: any, item: { quantity: any }) => sum + item.quantity,
           0
         );
 
@@ -502,8 +503,8 @@ export default class ShopifyBuyControllerBase extends Controller {
           lineItems,
           totalQuantity,
           checkout: cart.checkoutUrl,
-          totalCost: cart.cost.totalAmount.amount,
-          currency: cart.cost.totalAmount.currencyCode,
+          totalCost: cart.cost.subtotalAmount.amount,
+          currency: cart.cost.subtotalAmount.currencyCode,
         };
       } else {
         console.error(
@@ -579,7 +580,7 @@ export default class ShopifyBuyControllerBase extends Controller {
             }
           }
           cost {
-            totalAmount {
+            subtotalAmount {
               amount
               currencyCode
             }
@@ -628,7 +629,7 @@ export default class ShopifyBuyControllerBase extends Controller {
         });
 
         const totalQuantity = lineItems.reduce(
-          (sum, item) => sum + item.quantity,
+          (sum: any, item: { quantity: any }) => sum + item.quantity,
           0
         );
         this.mustacheViewValue = {
@@ -637,8 +638,8 @@ export default class ShopifyBuyControllerBase extends Controller {
           lineItems,
           totalQuantity,
           checkout: cart.checkoutUrl,
-          totalCost: cart.cost.totalAmount.amount,
-          currency: cart.cost.totalAmount.currencyCode,
+          totalCost: cart.cost.subtotalAmount.amount,
+          currency: cart.cost.subtotalAmount.currencyCode,
         };
       } else {
         console.error(
@@ -718,7 +719,7 @@ export default class ShopifyBuyControllerBase extends Controller {
             }
           }
           cost {
-            totalAmount {
+            subtotalAmount {
               amount
               currencyCode
             }
@@ -767,7 +768,7 @@ export default class ShopifyBuyControllerBase extends Controller {
         });
 
         const totalQuantity = lineItems.reduce(
-          (sum, item) => sum + item.quantity,
+          (sum: any, item: { quantity: any }) => sum + item.quantity,
           0
         );
 
@@ -777,8 +778,8 @@ export default class ShopifyBuyControllerBase extends Controller {
           lineItems,
           totalQuantity,
           checkout: cart.checkoutUrl,
-          totalCost: cart.cost.totalAmount.amount,
-          currency: cart.cost.totalAmount.currencyCode,
+          totalCost: cart.cost.subtotalAmount.amount,
+          currency: cart.cost.subtotalAmount.currencyCode,
         };
       } else {
         console.error(
@@ -857,7 +858,7 @@ export default class ShopifyBuyControllerBase extends Controller {
             }
           }
           cost {
-            totalAmount {
+            subtotalAmount {
               amount
               currencyCode
             }
@@ -905,7 +906,7 @@ export default class ShopifyBuyControllerBase extends Controller {
         });
 
         const totalQuantity = lineItems.reduce(
-          (sum, item) => sum + item.quantity,
+          (sum: any, item: { quantity: any }) => sum + item.quantity,
           0
         );
 
@@ -915,8 +916,8 @@ export default class ShopifyBuyControllerBase extends Controller {
           lineItems,
           totalQuantity,
           checkout: cart.checkoutUrl,
-          totalCost: cart.cost.totalAmount.amount,
-          currency: cart.cost.totalAmount.currencyCode,
+          totalCost: cart.cost.subtotalAmount.amount,
+          currency: cart.cost.subtotalAmount.currencyCode,
         };
       } else {
         console.error(

@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import type { StripeShippingAddressElementChangeEvent } from "@stripe/stripe-js";
-import { createStorefrontApiClient } from '@shopify/storefront-api-client';
+import { createStorefrontApiClient } from "@shopify/storefront-api-client";
 import Mustache from "mustache";
 import Wax from "@jvitela/mustache-wax";
 Wax(Mustache, { currency, pluralize, length, shopifyId, stringify });
@@ -85,7 +85,6 @@ export default class ShopifyBuyControllerBase extends Controller {
     mustacheView: Object,
   };
 
-  
   public cartTitleTemplateValue!: string;
   public cartValue: CartValue | undefined;
   public shopifyDomainValue: string | undefined;
@@ -99,25 +98,34 @@ export default class ShopifyBuyControllerBase extends Controller {
 
   // Internal
   public client: ReturnType<typeof createStorefrontApiClient> | undefined;
- 
 
   async connect() {
     this.getCart();
   }
 
   updateAddToCartButton() {
-    const selectedOption = this.variantSelectorTarget.options[this.variantSelectorTarget.selectedIndex];
+    const selectedOption =
+      this.variantSelectorTarget.options[
+        this.variantSelectorTarget.selectedIndex
+      ];
     const selectedVariantId = selectedOption.value;
-    const inventoryQuantity = selectedOption.getAttribute('data-inventory-quantity');
-    const inventoryPolicy = selectedOption.getAttribute('data-inventory-policy');
-    this.addToCartButtonTarget.setAttribute('data-product-variant-id-param', selectedVariantId);
+    const inventoryQuantity = selectedOption.getAttribute(
+      "data-inventory-quantity"
+    );
+    const inventoryPolicy = selectedOption.getAttribute(
+      "data-inventory-policy"
+    );
+    this.addToCartButtonTarget.setAttribute(
+      "data-product-variant-id-param",
+      selectedVariantId
+    );
 
-    if (Number(inventoryQuantity) == 0 && inventoryPolicy == 'deny') {
-        this.addToCartButtonTarget.setAttribute('disabled', 'true');
+    if (Number(inventoryQuantity) == 0 && inventoryPolicy == "deny") {
+      this.addToCartButtonTarget.setAttribute("disabled", "true");
     } else {
-        this.addToCartButtonTarget.removeAttribute('disabled');
+      this.addToCartButtonTarget.removeAttribute("disabled");
     }
-}
+  }
   private LOCALSTORAGE_CART_ID = "checkoutId";
 
   get cartId() {
@@ -131,13 +139,15 @@ export default class ShopifyBuyControllerBase extends Controller {
 
   async getCart(): Promise<CartValue | null> {
     if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
-        throw new Error("Shopify could not initialise due to missing domain or token");
+      throw new Error(
+        "Shopify could not initialise due to missing domain or token"
+      );
     }
 
     this.client = createStorefrontApiClient({
-        storeDomain: `https://${this.shopifyDomainValue}/`,
-        apiVersion: "2024-10",
-        publicAccessToken: this.shopifyStorefrontAccessTokenValue!,
+      storeDomain: `https://${this.shopifyDomainValue}/`,
+      apiVersion: "2024-10",
+      publicAccessToken: this.shopifyStorefrontAccessTokenValue!,
     });
 
     const query = `
@@ -153,6 +163,14 @@ export default class ShopifyBuyControllerBase extends Controller {
                 ... on ProductVariant {
                   id
                   title
+                  priceV2 {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPriceV2 {
+                    amount
+                    currencyCode
+                  }
                   product {
                     title
                     images(first: 1) {
@@ -180,96 +198,103 @@ export default class ShopifyBuyControllerBase extends Controller {
     }`;
 
     try {
-        const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+      const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
 
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
-            },
-            body: JSON.stringify({ query }),
-        });
-
-        const data = await response.json();
-        const cart = data?.data?.cart;
-
-        if (cart) {
-            const lineItems = cart.lines.edges.map((edge: any) => {
-                const lineItem = edge.node;
-                const productImages = lineItem.merchandise.product.images.edges;
-                return {
-                    id: lineItem.id,
-                    quantity: lineItem.quantity,
-                    title: lineItem.merchandise.product.title,
-                    variantId: lineItem.merchandise.id,
-                    canDecreaseQuantity: lineItem.quantity > 1,
-                    imageUrl: productImages?.[0]?.node?.url,
-                    imageAlt: productImages?.[0]?.node?.altText
-                };
-            });
-            const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
-
-            this.mustacheViewValue = {
-                loading: false,
-                hasLineItems: lineItems.length > 0,
-                lineItems,
-                totalQuantity,
-                checkout: cart.checkoutUrl,
-                totalCost: cart.cost.totalAmount.amount,
-                currency: cart.cost.totalAmount.currencyCode,
-            };
-
-            this.renderCart();
-
-            return cart;
-        } else {
-            console.warn('Cart not found. Resetting cart.');
-            return this.resetCart();
-        }
-
-    } catch (error) {
-        console.error('Failed to fetch cart:', error);
-        return this.resetCart();
-    }
-}
-async resetCart(): Promise<CartValue | null> {
-  try {
-    if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
-      throw new Error("Shopify initialization failed: Missing domain or access token");
-    }
-
-    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-    const hasEmail = Boolean(this.userEmailValue);
-    const hasShippingAddress = Boolean(this.shippingAddress?.address1);
-
-    const buyerIdentity: any = {};
-
-    if (hasEmail) {
-      buyerIdentity.email = this.userEmailValue;
-    }
-
-    if (hasShippingAddress && this.shippingAddress) {
-      buyerIdentity.deliveryAddressPreferences = [
-        {
-          oneTimeUse: false,
-          deliveryAddress: {
-            address1: this.shippingAddress.address1,
-            address2: this.shippingAddress.address2 || null, 
-            city: this.shippingAddress.city,
-            province: this.shippingAddress.province,
-            country: this.shippingAddress.country,
-            zip: this.shippingAddress.zip,
-          },
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
         },
-      ];
-    }
-    const input: any = {
-      lines: [],
-      ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }), 
-    };
+        body: JSON.stringify({ query }),
+      });
 
-    const query = `
+      const data = await response.json();
+      const cart = data?.data?.cart;
+
+      if (cart) {
+        const lineItems = cart.lines.edges.map((edge: any) => {
+          const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
+          return {
+            id: lineItem.id,
+            quantity: lineItem.quantity,
+            title: lineItem.merchandise.product.title,
+            price: lineItem.merchandise.priceV2.amount,
+            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
+            variantId: lineItem.merchandise.id,
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url,
+            imageAlt: productImages?.[0]?.node?.altText,
+          };
+        });
+        const totalQuantity = lineItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
+
+        this.mustacheViewValue = {
+          loading: false,
+          hasLineItems: lineItems.length > 0,
+          lineItems,
+          totalQuantity,
+          checkout: cart.checkoutUrl,
+          totalCost: cart.cost.totalAmount.amount,
+          currency: cart.cost.totalAmount.currencyCode,
+        };
+
+        this.renderCart();
+
+        return cart;
+      } else {
+        console.warn("Cart not found. Resetting cart.");
+        return this.resetCart();
+      }
+    } catch (error) {
+      console.error("Failed to fetch cart:", error);
+      return this.resetCart();
+    }
+  }
+  async resetCart(): Promise<CartValue | null> {
+    try {
+      if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
+        throw new Error(
+          "Shopify initialization failed: Missing domain or access token"
+        );
+      }
+
+      const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+      const hasEmail = Boolean(this.userEmailValue);
+      const hasShippingAddress = Boolean(this.shippingAddress?.address1);
+
+      const buyerIdentity: any = {};
+
+      if (hasEmail) {
+        buyerIdentity.email = this.userEmailValue;
+      }
+
+      if (hasShippingAddress && this.shippingAddress) {
+        buyerIdentity.deliveryAddressPreferences = [
+          {
+            oneTimeUse: false,
+            deliveryAddress: {
+              address1: this.shippingAddress.address1,
+              address2: this.shippingAddress.address2 || null,
+              city: this.shippingAddress.city,
+              province: this.shippingAddress.province,
+              country: this.shippingAddress.country,
+              zip: this.shippingAddress.zip,
+            },
+          },
+        ];
+      }
+      const input: any = {
+        lines: [],
+        ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }),
+      };
+
+      const query = `
       mutation cartCreate($input: CartInput!) {
         cartCreate(input: $input) {
           cart {
@@ -284,6 +309,14 @@ async resetCart(): Promise<CartValue | null> {
                     ... on ProductVariant {
                       id
                       title
+                      priceV2 {
+                          amount
+                          currencyCode
+                      }
+                      compareAtPriceV2 {
+                        amount
+                        currencyCode
+                      } 
                       product {
                         title
                         images(first: 1) {
@@ -329,41 +362,45 @@ async resetCart(): Promise<CartValue | null> {
       }
     `;
 
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": this.shopifyStorefrontAccessTokenValue!,
-      },
-      body: JSON.stringify({ query, variables: { input } }),
-    });
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
+        },
+        body: JSON.stringify({ query, variables: { input } }),
+      });
 
-    const data = await response.json();
-    const newCart = data?.data?.cartCreate?.cart;
+      const data = await response.json();
+      const newCart = data?.data?.cartCreate?.cart;
 
-    if (!newCart) {
-      console.error("Failed to create a new cart:", data?.errors || data?.data?.cartCreate?.userErrors);
+      if (!newCart) {
+        console.error(
+          "Failed to create a new cart:",
+          data?.errors || data?.data?.cartCreate?.userErrors
+        );
+        return null;
+      }
+
+      this.cartId = newCart.id;
+      this.cartValue = newCart;
+
+      return newCart;
+    } catch (error) {
+      console.error("Error creating new cart:", error);
       return null;
     }
-
-    this.cartId = newCart.id;
-    this.cartValue = newCart;
-
-    return newCart;
-  } catch (error) {
-    console.error("Error creating new cart:", error);
-    return null;
   }
-};
 
-async add({ params: { variantId } }: { params: { variantId: string } }) {
-  if (!this.cartId) return;
+  async add({ params: { variantId } }: { params: { variantId: string } }) {
+    if (!this.cartId) return;
 
-  this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
 
-  const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
 
-  const query = `
+    const query = `
   mutation {
     cartLinesAdd(cartId: "${this.cartId}", lines: [
       {
@@ -382,6 +419,14 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
                 ... on ProductVariant {
                   id
                   title
+                    priceV2 {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPriceV2 {
+                    amount
+                    currencyCode
+                  }
                   product {
                     title
                     images(first: 1) {
@@ -413,60 +458,67 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
     }
   }`;
 
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    const data = await response.json();
-    const cart = data?.data?.cartLinesAdd?.cart;
-    if (cart) {
-      this.cartValue = cart;
-    
-          const lineItems = cart.lines.edges.map((edge: any) => {
-        const lineItem = edge.node;
-        const productImages = lineItem.merchandise.product.images.edges;
-    
-        return {
-          id: lineItem.id,
-          quantity: lineItem.quantity,
-          title: lineItem.merchandise.product.title,
-          variantId: lineItem.merchandise.id,
-          canDecreaseQuantity: lineItem.quantity > 1,
-          imageUrl: productImages?.[0]?.node?.url || "",
-          imageAlt: productImages?.[0]?.node?.altText || ""
-        };
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
+        },
+        body: JSON.stringify({ query }),
       });
-    
-      const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
-    
-          this.mustacheViewValue = {
-        loading: false,
-        hasLineItems: lineItems.length > 0,
-        lineItems,
-        totalQuantity, 
-        checkout: cart.checkoutUrl,
-        totalCost: cart.cost.totalAmount.amount,
-        currency: cart.cost.totalAmount.currencyCode
-      };
-    
-    } else {
-      console.error('Failed to add item to cart:', data?.data?.cartLinesAdd?.userErrors);
-      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-    }
 
-  } catch (error) {
-    console.error('Error adding item to cart:', error);
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-    await this.resetCart();
-    await this.add({ params: { variantId } });
+      const data = await response.json();
+      const cart = data?.data?.cartLinesAdd?.cart;
+      if (cart) {
+        this.cartValue = cart;
+
+        const lineItems = cart.lines.edges.map((edge: any) => {
+          const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
+
+          return {
+            id: lineItem.id,
+            quantity: lineItem.quantity,
+            title: lineItem.merchandise.product.title,
+            price: lineItem.merchandise.priceV2.amount,
+            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
+            variantId: lineItem.merchandise.id,
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url || "",
+            imageAlt: productImages?.[0]?.node?.altText || "",
+          };
+        });
+
+        const totalQuantity = lineItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
+
+        this.mustacheViewValue = {
+          loading: false,
+          hasLineItems: lineItems.length > 0,
+          lineItems,
+          totalQuantity,
+          checkout: cart.checkoutUrl,
+          totalCost: cart.cost.totalAmount.amount,
+          currency: cart.cost.totalAmount.currencyCode,
+        };
+      } else {
+        console.error(
+          "Failed to add item to cart:",
+          data?.data?.cartLinesAdd?.userErrors
+        );
+        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+      }
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+      this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+      await this.resetCart();
+      await this.add({ params: { variantId } });
+    }
   }
-}
 
   async buyNow(e: any) {
     this.add(e);
@@ -476,17 +528,18 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
   async remove(event: Event) {
     if (!this.cartId) return;
 
-    const lineItemId = (event.currentTarget as HTMLElement).dataset.productLineItemId;
-  
+    const lineItemId = (event.currentTarget as HTMLElement).dataset
+      .productLineItemId;
+
     if (!lineItemId) {
-      console.error('Line item ID not found.');
+      console.error("Line item ID not found.");
       return;
     }
 
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };  
-  
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+
     const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-  
+
     const query = `
     mutation {
       cartLinesRemove(cartId: "${this.cartId}", lineIds: ["${lineItemId}"]) {
@@ -501,6 +554,14 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
                   ... on ProductVariant {
                     id
                     title
+                      priceV2 {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPriceV2 {
+                    amount
+                    currencyCode
+                  }
                     product {
                       title
                       images(first: 1) {
@@ -534,78 +595,86 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
 
     try {
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
         },
         body: JSON.stringify({ query }),
       });
-  
+
       const data = await response.json();
       const cart = data?.data?.cartLinesRemove?.cart;
-  
 
-  
-    if (cart) {
-  this.cartValue = cart;
+      if (cart) {
+        this.cartValue = cart;
 
-  const lineItems = cart.lines.edges.map((edge: any) => {
-    const lineItem = edge.node;
-    const productImages = lineItem.merchandise.product.images.edges;
+        const lineItems = cart.lines.edges.map((edge: any) => {
+          const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
 
-    return {
-      id: lineItem.id,
-      quantity: lineItem.quantity,
-      title: lineItem.merchandise.product.title,
-      variantId: lineItem.merchandise.id,
-      canDecreaseQuantity: lineItem.quantity > 1,
-      imageUrl: productImages?.[0]?.node?.url || "", 
-      imageAlt: productImages?.[0]?.node?.altText || "" 
-    };
-  });
+          return {
+            id: lineItem.id,
+            quantity: lineItem.quantity,
+            title: lineItem.merchandise.product.title,
+            price: lineItem.merchandise.priceV2.amount,
+            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
+            variantId: lineItem.merchandise.id,
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url || "",
+            imageAlt: productImages?.[0]?.node?.altText || "",
+          };
+        });
 
- 
-  const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
-  this.mustacheViewValue = {
-      loading: false,
-      hasLineItems: lineItems.length > 0,
-      lineItems,
-      totalQuantity, 
-      checkout: cart.checkoutUrl,
-      totalCost: cart.cost.totalAmount.amount,
-      currency: cart.cost.totalAmount.currencyCode
-    };
-    } else {
-        console.error('Failed to remove item from cart:', data?.data?.cartLinesRemove?.userErrors);
+        const totalQuantity = lineItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
+        this.mustacheViewValue = {
+          loading: false,
+          hasLineItems: lineItems.length > 0,
+          lineItems,
+          totalQuantity,
+          checkout: cart.checkoutUrl,
+          totalCost: cart.cost.totalAmount.amount,
+          currency: cart.cost.totalAmount.currencyCode,
+        };
+      } else {
+        console.error(
+          "Failed to remove item from cart:",
+          data?.data?.cartLinesRemove?.userErrors
+        );
         this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
       }
-  
     } catch (error) {
-      console.error('Error removing item from cart:', error);
+      console.error("Error removing item from cart:", error);
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
       await this.resetCart();
     }
   }
 
- async decrement(event: Event) {
-  if (!this.cartId) return;
+  async decrement(event: Event) {
+    if (!this.cartId) return;
 
-  const lineItemId = (event.currentTarget as HTMLElement).dataset.productLineItemId;
-  const quantity = Number((event.currentTarget as HTMLElement).dataset.productQuantity);
+    const lineItemId = (event.currentTarget as HTMLElement).dataset
+      .productLineItemId;
+    const quantity = Number(
+      (event.currentTarget as HTMLElement).dataset.productQuantity
+    );
 
-  if (!lineItemId || isNaN(quantity)) {
-    console.error('Line item ID or quantity not found.');
-    return;
-  }
+    if (!lineItemId || isNaN(quantity)) {
+      console.error("Line item ID or quantity not found.");
+      return;
+    }
 
-  const newQuantity = Math.max(0, quantity - 1);
+    const newQuantity = Math.max(0, quantity - 1);
 
-  this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
 
-  const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
 
-  const query = `
+    const query = `
     mutation {
       cartLinesUpdate(cartId: "${this.cartId}", lines: [
         {
@@ -624,6 +693,14 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
                   ... on ProductVariant {
                     id
                     title
+                      priceV2 {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPriceV2 {
+                    amount
+                    currencyCode
+                  }
                     product {
                       title
                       images(first: 1) {
@@ -655,78 +732,88 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
       }
     }`;
 
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    const data = await response.json();
-    const cart = data?.data?.cartLinesUpdate?.cart;
-
-    if (cart) {
-      this.cartValue = cart;
-    
-        const lineItems = cart.lines.edges.map((edge: any) => {
-        const lineItem = edge.node;
-        const productImages = lineItem.merchandise.product.images.edges;
-    
-        return {
-          id: lineItem.id,
-          quantity: lineItem.quantity,
-          title: lineItem.merchandise.product.title,
-          variantId: lineItem.merchandise.id,
-          canDecreaseQuantity: lineItem.quantity > 1,
-          imageUrl: productImages?.[0]?.node?.url || "", 
-          imageAlt: productImages?.[0]?.node?.altText || "" 
-        };
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
+        },
+        body: JSON.stringify({ query }),
       });
-    
-     
-      const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
-    
-          this.mustacheViewValue = {
-        loading: false,
-        hasLineItems: lineItems.length > 0,
-        lineItems,
-        totalQuantity, 
-        checkout: cart.checkoutUrl,
-        totalCost: cart.cost.totalAmount.amount,
-        currency: cart.cost.totalAmount.currencyCode
-      };
 
-    } else {
-      console.error('Failed to decrement item in cart:', data?.data?.cartLinesUpdate?.userErrors);
+      const data = await response.json();
+      const cart = data?.data?.cartLinesUpdate?.cart;
+
+      if (cart) {
+        this.cartValue = cart;
+
+        const lineItems = cart.lines.edges.map((edge: any) => {
+          const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
+
+          return {
+            id: lineItem.id,
+            quantity: lineItem.quantity,
+            title: lineItem.merchandise.product.title,
+            price: lineItem.merchandise.priceV2.amount,
+            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
+            variantId: lineItem.merchandise.id,
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url || "",
+            imageAlt: productImages?.[0]?.node?.altText || "",
+          };
+        });
+
+        const totalQuantity = lineItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
+
+        this.mustacheViewValue = {
+          loading: false,
+          hasLineItems: lineItems.length > 0,
+          lineItems,
+          totalQuantity,
+          checkout: cart.checkoutUrl,
+          totalCost: cart.cost.totalAmount.amount,
+          currency: cart.cost.totalAmount.currencyCode,
+        };
+      } else {
+        console.error(
+          "Failed to decrement item in cart:",
+          data?.data?.cartLinesUpdate?.userErrors
+        );
+        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+      }
+    } catch (error) {
+      console.error("Error decrementing item in cart:", error);
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
     }
-  } catch (error) {
-    console.error('Error decrementing item in cart:', error);
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
-  }
-}
-
-async increment(event: Event) {
-  if (!this.cartId) return;
-
-  const lineItemId = (event.currentTarget as HTMLElement).dataset.productLineItemId;
-  const quantity = Number((event.currentTarget as HTMLElement).dataset.productQuantity);
-
-  if (!lineItemId || isNaN(quantity)) {
-    console.error('Line item ID or quantity not found.');
-    return;
   }
 
-  const newQuantity = quantity + 1;
+  async increment(event: Event) {
+    if (!this.cartId) return;
 
-  this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+    const lineItemId = (event.currentTarget as HTMLElement).dataset
+      .productLineItemId;
+    const quantity = Number(
+      (event.currentTarget as HTMLElement).dataset.productQuantity
+    );
 
-  const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+    if (!lineItemId || isNaN(quantity)) {
+      console.error("Line item ID or quantity not found.");
+      return;
+    }
 
-  const query = `
+    const newQuantity = quantity + 1;
+
+    this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
+
+    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+
+    const query = `
     mutation {
       cartLinesUpdate(cartId: "${this.cartId}", lines: [
         {
@@ -745,6 +832,14 @@ async increment(event: Event) {
                   ... on ProductVariant {
                     id
                     title
+                      priceV2 {
+                    amount
+                    currencyCode
+                  }
+                  compareAtPriceV2 {
+                    amount
+                    currencyCode
+                  }
                     product {
                       title
                       images(first: 1) {
@@ -776,58 +871,65 @@ async increment(event: Event) {
       }
     }`;
 
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
-      },
-      body: JSON.stringify({ query }),
-    });
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
+        },
+        body: JSON.stringify({ query }),
+      });
 
-    const data = await response.json();
-    const cart = data?.data?.cartLinesUpdate?.cart;
-if (cart) {
-  this.cartValue = cart;
+      const data = await response.json();
+      const cart = data?.data?.cartLinesUpdate?.cart;
+      if (cart) {
+        this.cartValue = cart;
 
-  const lineItems = cart.lines.edges.map((edge: any) => {
-    const lineItem = edge.node;
-    const productImages = lineItem.merchandise.product.images.edges;
+        const lineItems = cart.lines.edges.map((edge: any) => {
+          const lineItem = edge.node;
+          const productImages = lineItem.merchandise.product.images.edges;
 
-    return {
-      id: lineItem.id,
-      quantity: lineItem.quantity,
-      title: lineItem.merchandise.product.title,
-      variantId: lineItem.merchandise.id,
-      canDecreaseQuantity: lineItem.quantity > 1,
-      imageUrl: productImages?.[0]?.node?.url || "", 
-      imageAlt: productImages?.[0]?.node?.altText || "" 
-    };
-  });
+          return {
+            id: lineItem.id,
+            quantity: lineItem.quantity,
+            title: lineItem.merchandise.product.title,
+            variantId: lineItem.merchandise.id,
+            price: lineItem.merchandise.priceV2.amount,
+            compareAtPrice: lineItem.merchandise.compareAtPriceV2?.amount,
+            canDecreaseQuantity: lineItem.quantity > 1,
+            imageUrl: productImages?.[0]?.node?.url || "",
+            imageAlt: productImages?.[0]?.node?.altText || "",
+          };
+        });
 
- 
-  const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+        const totalQuantity = lineItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        );
 
-  this.mustacheViewValue = {
-    loading: false,
-    hasLineItems: lineItems.length > 0,
-    lineItems,
-    totalQuantity, 
-    checkout: cart.checkoutUrl,
-    totalCost: cart.cost.totalAmount.amount,
-    currency: cart.cost.totalAmount.currencyCode
-  };
-
-    } else {
-      console.error('Failed to increment item in cart:', data?.data?.cartLinesUpdate?.userErrors);
+        this.mustacheViewValue = {
+          loading: false,
+          hasLineItems: lineItems.length > 0,
+          lineItems,
+          totalQuantity,
+          checkout: cart.checkoutUrl,
+          totalCost: cart.cost.totalAmount.amount,
+          currency: cart.cost.totalAmount.currencyCode,
+        };
+      } else {
+        console.error(
+          "Failed to increment item in cart:",
+          data?.data?.cartLinesUpdate?.userErrors
+        );
+        this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
+      }
+    } catch (error) {
+      console.error("Error incrementing item in cart:", error);
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
     }
-  } catch (error) {
-    console.error('Error incrementing item in cart:', error);
-    this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
   }
-}
 
   mustacheViewValueChanged() {
     this.renderCart();
@@ -857,14 +959,14 @@ if (cart) {
 
   async redirectToCheckout() {
     if (!this.cartId) {
-      console.error('Cart ID is missing.');
+      console.error("Cart ID is missing.");
       return;
     }
-  
+
     this.mustacheViewValue = { ...this.mustacheViewValue, loading: true };
-  
+
     const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-  
+
     const query = `
       query {
         cart(id: "${this.cartId}") {
@@ -872,40 +974,40 @@ if (cart) {
           checkoutUrl
         }
       }`;
-    
+
     try {
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token":
+            this.shopifyStorefrontAccessTokenValue!,
         },
         body: JSON.stringify({ query }),
       });
-  
+
       const data = await response.json();
       const checkoutUrl = data?.data?.cart?.checkoutUrl;
-  
+
       if (checkoutUrl) {
         const checkoutURL = new URL(checkoutUrl);
         checkoutURL.searchParams.append(
           "return_to",
           new URL("/", window.location.href).toString()
         );
-          try {
+        try {
           // @ts-ignore
           posthog.capture("buy book");
         } catch (e) {
           console.warn("Posthog tracking failed:", e);
         }
-  
+
         window.location.href = checkoutURL.toString();
       } else {
-        console.error('Failed to retrieve checkout URL:', data?.errors);
+        console.error("Failed to retrieve checkout URL:", data?.errors);
       }
-  
     } catch (error) {
-      console.error('Error fetching checkout URL:', error);
+      console.error("Error fetching checkout URL:", error);
     } finally {
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
     }
@@ -913,8 +1015,9 @@ if (cart) {
 
   get shippingAddress(): ShippingAddress | undefined {
     try {
-      const [firstName, lastName] =
-        this.stripeShippingValue?.name.split(" ") || ["", ""];
+      const [firstName, lastName] = this.stripeShippingValue?.name.split(
+        " "
+      ) || ["", ""];
       return this.stripeShippingValue
         ? {
             address1: this.stripeShippingValue.address.line1,
@@ -924,17 +1027,17 @@ if (cart) {
             zip: this.stripeShippingValue.address.postal_code,
             country: this.stripeShippingValue.address.country,
             firstName,
-            lastName
+            lastName,
           }
         : undefined;
     } catch (e) {
       return undefined;
     }
   }
-};
+}
 
 function shopifyId(id: any) {
-  if (typeof id === 'string') {
+  if (typeof id === "string") {
     return id.replace(new RegExp("gid://shopify/[a-zA-Z]+/"), "");
   }
   return id;
@@ -963,7 +1066,7 @@ function currency(
   currencyCode = "GBP"
 ): string {
   if (!money) return "";
-  
+
   if (typeof money === "string") {
     money = parseFloat(money).toFixed(2);
   } else if (typeof money === "number") {
@@ -972,7 +1075,7 @@ function currency(
     currencyCode = money.currencyCode;
     money = parseFloat(money.amount).toFixed(2);
   }
-  
+
   return (currencyCode === "GBP" ? "£" : currencyCode + " ") + money;
 }
 

@@ -54,7 +54,7 @@ interface CartValue {
   checkoutUrl: string;
 }
 
-interface MailingAddressInput {
+interface ShippingAddress {
   address1?: string;
   address2?: string;
   city?: string;
@@ -238,16 +238,34 @@ async resetCart(): Promise<CartValue | null> {
     }
 
     const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+    const hasEmail = Boolean(this.userEmailValue);
+    const hasShippingAddress = Boolean(this.shippingAddress?.address1);
 
-    // Construct the buyerIdentity object 
-    const buyerIdentity: { email?: string; shippingAddress?: MailingAddressInput } = {};
-    buyerIdentity.email = this.userEmailValue;
-    buyerIdentity.shippingAddress = this.shippingAddress;
-    
-    const input: Record<string, any> = { lines: [] };
-    if (Object.keys(buyerIdentity).length > 0) {
-      input.buyerIdentity = buyerIdentity;
+    const buyerIdentity: any = {};
+
+    if (hasEmail) {
+      buyerIdentity.email = this.userEmailValue;
     }
+
+    if (hasShippingAddress && this.shippingAddress) {
+      buyerIdentity.deliveryAddressPreferences = [
+        {
+          oneTimeUse: false,
+          deliveryAddress: {
+            address1: this.shippingAddress.address1,
+            address2: this.shippingAddress.address2 || null, 
+            city: this.shippingAddress.city,
+            province: this.shippingAddress.province,
+            country: this.shippingAddress.country,
+            zip: this.shippingAddress.zip,
+          },
+        },
+      ];
+    }
+    const input: any = {
+      lines: [],
+      ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }), 
+    };
 
     const query = `
       mutation cartCreate($input: CartInput!) {
@@ -277,6 +295,20 @@ async resetCart(): Promise<CartValue | null> {
                       }
                     }
                   }
+                }
+              }
+            }
+            buyerIdentity {
+              email
+              deliveryAddressPreferences {
+                oneTimeUse
+                deliveryAddress {
+                  address1
+                  address2
+                  city
+                  province
+                  country
+                  zip
                 }
               }
             }
@@ -320,7 +352,7 @@ async resetCart(): Promise<CartValue | null> {
     console.error("Error creating new cart:", error);
     return null;
   }
-}
+};
 
 async add({ params: { variantId } }: { params: { variantId: string } }) {
   if (!this.cartId) return;
@@ -851,31 +883,27 @@ async increment(event: Event) {
     }
   }
 
-  get shippingAddress(): MailingAddressInput | undefined {
-    if (!this.stripeShippingValue) return undefined;
-
-    const fullName = this.stripeShippingValue?.name?.trim();
-    const nameParts = fullName.split(" "); 
-    const firstName = nameParts.shift();
-    const lastName = nameParts.join(" "); 
-
-    return {
-      address1: this.stripeShippingValue.address.line1,
-      address2: this.stripeShippingValue.address.line2,
-      city: this.stripeShippingValue.address.city,
-      province: this.stripeShippingValue.address.state,
-      zip: this.stripeShippingValue.address.postal_code,
-      country: this.stripeShippingValue.address.country,
-      firstName,
-      lastName,
-    };
-
-    
-  } catch (error: any) {
-    console.error("Error parsing shipping address:", error);
-    return undefined;
+  get shippingAddress(): ShippingAddress | undefined {
+    try {
+      const [firstName, lastName] =
+        this.stripeShippingValue?.name.split(" ") || ["", ""];
+      return this.stripeShippingValue
+        ? {
+            address1: this.stripeShippingValue.address.line1,
+            address2: this.stripeShippingValue.address.line1,
+            city: this.stripeShippingValue.address.city,
+            province: this.stripeShippingValue.address.state,
+            zip: this.stripeShippingValue.address.postal_code,
+            country: this.stripeShippingValue.address.country,
+            firstName,
+            lastName
+          }
+        : undefined;
+    } catch (e) {
+      return undefined;
+    }
   }
-}
+};
 
 function shopifyId(id: any) {
   if (typeof id === 'string') {

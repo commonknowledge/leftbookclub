@@ -55,6 +55,17 @@ interface CartValue {
   checkoutUrl: string;
 }
 
+interface MailingAddressInput {
+  address1?: string;
+  address2?: string;
+  city?: string;
+  country?: string;
+  firstName?: string;
+  lastName?: string;
+  province?: string;
+  zip?: string;
+}
+
 export default class ShopifyBuyControllerBase extends Controller {
   // Targets
   static targets = ["template", "variantSelector", "addToCartButton"];
@@ -108,15 +119,15 @@ export default class ShopifyBuyControllerBase extends Controller {
         this.addToCartButtonTarget.removeAttribute('disabled');
     }
 }
-  private LOCALSTORAGE_CHECKOUT_ID = "checkoutId";
+  private LOCALSTORAGE_CART_ID = "checkoutId";
 
   get cartId() {
-    const cartId = window.localStorage.getItem(this.LOCALSTORAGE_CHECKOUT_ID);
+    const cartId = window.localStorage.getItem(this.LOCALSTORAGE_CART_ID);
     return cartId ? cartId.toString() : "";
   }
 
   set cartId(id: string | number) {
-    window.localStorage.setItem(this.LOCALSTORAGE_CHECKOUT_ID, id.toString());
+    window.localStorage.setItem(this.LOCALSTORAGE_CART_ID, id.toString());
   }
 
   async getCart(): Promise<CartValue | null> {
@@ -221,7 +232,6 @@ export default class ShopifyBuyControllerBase extends Controller {
         return this.resetCart();
     }
 }
-
 async resetCart(): Promise<CartValue | null> {
   try {
     if (!this.shopifyDomainValue || !this.shopifyStorefrontAccessTokenValue) {
@@ -229,13 +239,26 @@ async resetCart(): Promise<CartValue | null> {
     }
 
     const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
-    // Check if user email exists
-    const hasEmail = Boolean(this.userEmailValue); 
-    // Only include if email exists
-    const input = {
-      ...(hasEmail && { buyerIdentity: { email: this.userEmailValue } }), 
-      lines: [],
-    };
+
+    // Check if user email and shipping address exist
+    const hasEmail = Boolean(this.userEmailValue);
+    const hasShippingAddress = Boolean(this.shippingAddress);
+
+    // Construct the buyerIdentity object 
+    const buyerIdentity: { email?: string; shippingAddress?: MailingAddressInput } = {};
+
+    if (hasEmail) {
+      buyerIdentity.email = this.userEmailValue!;
+    }
+
+    if (hasShippingAddress) {
+      buyerIdentity.shippingAddress = this.shippingAddress!;
+    }
+
+    const input: Record<string, any> = { lines: [] };
+    if (Object.keys(buyerIdentity).length > 0) {
+      input.buyerIdentity = buyerIdentity;
+    }
 
     const query = `
       mutation cartCreate($input: CartInput!) {
@@ -839,27 +862,29 @@ async increment(event: Event) {
     }
   }
 
-  get shippingAddress(): Address | undefined {
-    try {
-      const [firstName, lastName, ...names] =
-        this.stripeShippingValue?.name.split(" ") || ["", ""];
-      return this.stripeShippingValue
-        ? {
-            address1: this.stripeShippingValue.address.line1,
-            address2: this.stripeShippingValue.address.line1,
-            city: this.stripeShippingValue.address.city,
-            province: this.stripeShippingValue.address.state,
-            zip: this.stripeShippingValue.address.postal_code,
-            country: this.stripeShippingValue.address.country,
-            company: "",
-            firstName,
-            lastName,
-            phone: "",
-          }
-        : undefined;
-    } catch (e) {
-      return undefined;
-    }
+  get shippingAddress(): MailingAddressInput | undefined {
+    if (!this.stripeShippingValue) return undefined;
+
+    const fullName = this.stripeShippingValue?.name?.trim();
+    const nameParts = fullName.split(" "); 
+    const firstName = nameParts.shift();
+    const lastName = nameParts.join(" "); 
+
+    return {
+      address1: this.stripeShippingValue.address.line1,
+      address2: this.stripeShippingValue.address.line2,
+      city: this.stripeShippingValue.address.city,
+      province: this.stripeShippingValue.address.state,
+      zip: this.stripeShippingValue.address.postal_code,
+      country: this.stripeShippingValue.address.country,
+      firstName,
+      lastName,
+    };
+
+    
+  } catch (error: any) {
+    console.error("Error parsing shipping address:", error);
+    return undefined;
   }
 }
 

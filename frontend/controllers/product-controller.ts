@@ -229,13 +229,17 @@ async resetCart(): Promise<CartValue | null> {
     }
 
     const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+    // Check if user email exists
+    const hasEmail = Boolean(this.userEmailValue); 
+    // Only include if email exists
+    const input = {
+      ...(hasEmail && { buyerIdentity: { email: this.userEmailValue } }), 
+      lines: [],
+    };
 
     const query = `
-      mutation {
-        cartCreate(input: {
-          buyerIdentity: { email: "${this.userEmailValue}" },
-          lines: []
-        }) {
+      mutation cartCreate($input: CartInput!) {
+        cartCreate(input: $input) {
           cart {
             id
             checkoutUrl
@@ -280,19 +284,19 @@ async resetCart(): Promise<CartValue | null> {
     `;
 
     const response = await fetch(apiUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': this.shopifyStorefrontAccessTokenValue!,
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": this.shopifyStorefrontAccessTokenValue!,
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, variables: { input } }),
     });
 
     const data = await response.json();
     const newCart = data?.data?.cartCreate?.cart;
 
     if (!newCart) {
-      console.error('Failed to create a new cart:', data?.errors || data?.data?.cartCreate?.userErrors);
+      console.error("Failed to create a new cart:", data?.errors || data?.data?.cartCreate?.userErrors);
       return null;
     }
 
@@ -300,9 +304,8 @@ async resetCart(): Promise<CartValue | null> {
     this.cartValue = newCart;
 
     return newCart;
-
   } catch (error) {
-    console.error('Error creating new cart:', error);
+    console.error("Error creating new cart:", error);
     return null;
   }
 }
@@ -736,8 +739,8 @@ async increment(event: Event) {
             variantId: lineItem.merchandise.id,
             canDecreaseQuantity: lineItem.quantity > 1,
             imageUrl: productImages?.[0]?.node?.url,
-            imageAlt: productImages?.[0]?.node?.altText |
-          };
+            imageAlt: productImages?.[0]?.node?.altText
+          }
         }),
         checkout: cart.checkoutUrl,
         totalCost: cart.cost.totalAmount.amount,

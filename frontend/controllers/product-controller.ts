@@ -4,7 +4,6 @@ import { createStorefrontApiClient } from '@shopify/storefront-api-client';
 import Mustache from "mustache";
 import Wax from "@jvitela/mustache-wax";
 Wax(Mustache, { currency, pluralize, length, shopifyId, stringify });
-import { isAfter } from "date-fns";
 
 interface CartValue {
   id: string;
@@ -240,21 +239,11 @@ async resetCart(): Promise<CartValue | null> {
 
     const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
 
-    // Check if user email and shipping address exist
-    const hasEmail = Boolean(this.userEmailValue);
-    const hasShippingAddress = Boolean(this.shippingAddress);
-
     // Construct the buyerIdentity object 
     const buyerIdentity: { email?: string; shippingAddress?: MailingAddressInput } = {};
-
-    if (hasEmail) {
-      buyerIdentity.email = this.userEmailValue!;
-    }
-
-    if (hasShippingAddress) {
-      buyerIdentity.shippingAddress = this.shippingAddress!;
-    }
-
+    buyerIdentity.email = this.userEmailValue;
+    buyerIdentity.shippingAddress = this.shippingAddress;
+    
     const input: Record<string, any> = { lines: [] };
     if (Object.keys(buyerIdentity).length > 0) {
       input.buyerIdentity = buyerIdentity;

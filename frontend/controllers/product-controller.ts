@@ -266,7 +266,7 @@ export default class ShopifyBuyControllerBase extends Controller {
       ...(Object.keys(buyerIdentity).length > 0 && { buyerIdentity }),
     };
 
-    const cartCreateQuery = `
+    const mutation = `
         mutation cartCreate($input: CartInput!) {
           cartCreate(input: $input) {
             cart {
@@ -290,7 +290,7 @@ export default class ShopifyBuyControllerBase extends Controller {
           }
         }
       `;
-    const data = await this.shopifyRequest(cartCreateQuery, { input });
+    const data = await this.shopifyRequest(mutation, { input });
     const newCart = data?.data?.cartCreate?.cart;
 
     if (!newCart) {
@@ -309,7 +309,7 @@ export default class ShopifyBuyControllerBase extends Controller {
   async add({ params: { variantId } }: { params: { variantId: string } }) {
     if (!this.cartId) return;
 
-    const query = `
+    const mutation = `
       mutation {
         cartLinesAdd(cartId: "${this.cartId}", lines: [
           {
@@ -367,7 +367,7 @@ export default class ShopifyBuyControllerBase extends Controller {
         }
       }`;
 
-    const data = await this.shopifyRequest(query);
+    const data = await this.shopifyRequest(mutation);
     if (data?.data?.cartLinesAdd?.cart)
       this.updateCartState(data.data.cartLinesAdd.cart);
   }
@@ -388,7 +388,7 @@ export default class ShopifyBuyControllerBase extends Controller {
       return;
     }
 
-    const query = `
+    const mutation = `
     mutation {
       cartLinesRemove(cartId: "${this.cartId}", lineIds: ["${lineItemId}"]) {
         cart {
@@ -441,12 +441,12 @@ export default class ShopifyBuyControllerBase extends Controller {
       }
     }`;
 
-    await this.shopifyRequest(query);
+    await this.shopifyRequest(mutation);
     await this.getCart();
   }
 
   async updateCartQuantity(lineItemId: string, newQuantity: number) {
-    const query = `
+    const mutation = `
       mutation {
         cartLinesUpdate(cartId: "${this.cartId}", lines: [
           {
@@ -483,7 +483,7 @@ export default class ShopifyBuyControllerBase extends Controller {
         }
       }`;
 
-    const data = await this.shopifyRequest(query);
+    const data = await this.shopifyRequest(mutation);
     if (data?.data?.cartLinesUpdate?.cart)
       this.updateCartState(data.data.cartLinesUpdate.cart);
   }

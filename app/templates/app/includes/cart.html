@@ -55,6 +55,8 @@
                             (( price | currency )) ((#compareAtPrice))<s>(( compareAtPrice | currency ))</s>((/compareAtPrice))
                         </div>
                         <div>(( quantity )) (( quantity | pluralize : "copy" : "copies" ))</div>
+                        ((#canDecreaseQuantity))
+
                         <div class='tw-mt-1'>
                             <button class='btn btn-outline-secondary'
                             data-action="click->product#decrement"
@@ -62,6 +64,8 @@
                             data-product-quantity="(( quantity ))">
                         -1
                     </button>
+                    ((/canDecreaseQuantity))
+
                             <button class='btn btn-outline-secondary'
                             data-action="click->product#increment"
                             data-product-line-item-id="(( id ))"

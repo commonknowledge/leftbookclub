@@ -5,7 +5,7 @@
     <div class="offcanvas-header">
         <h3 id="cartLabel">Your cart</h3>
         <template data-product-target="template" data-target="#cartLabel">
-            Your cart has (( lineItems.length )) (( lineItems.length | pluralize : "item" )) totalling (( totalCost | currency ))
+            Your cart has (( totalQuantity )) (( totalQuantity | pluralize : "item" )) totalling (( totalCost | currency ))
         </template>
         <button type="button"
                 class="btn-close text-reset"

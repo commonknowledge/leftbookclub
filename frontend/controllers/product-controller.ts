@@ -208,11 +208,13 @@ export default class ShopifyBuyControllerBase extends Controller {
                     imageAlt: productImages?.[0]?.node?.altText
                 };
             });
+            const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
 
             this.mustacheViewValue = {
                 loading: false,
                 hasLineItems: lineItems.length > 0,
                 lineItems,
+                totalQuantity,
                 checkout: cart.checkoutUrl,
                 totalCost: cart.cost.totalAmount.amount,
                 currency: cart.cost.totalAmount.currencyCode,
@@ -423,30 +425,36 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
 
     const data = await response.json();
     const cart = data?.data?.cartLinesAdd?.cart;
-
     if (cart) {
       this.cartValue = cart;
-      this.mustacheViewValue = {
+    
+          const lineItems = cart.lines.edges.map((edge: any) => {
+        const lineItem = edge.node;
+        const productImages = lineItem.merchandise.product.images.edges;
+    
+        return {
+          id: lineItem.id,
+          quantity: lineItem.quantity,
+          title: lineItem.merchandise.product.title,
+          variantId: lineItem.merchandise.id,
+          canDecreaseQuantity: lineItem.quantity > 1,
+          imageUrl: productImages?.[0]?.node?.url || "",
+          imageAlt: productImages?.[0]?.node?.altText || ""
+        };
+      });
+    
+      const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+    
+          this.mustacheViewValue = {
         loading: false,
-        hasLineItems: cart.lines.edges.length > 0,
-        lineItems: cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
-
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url,
-            imageAlt: productImages?.[0]?.node?.altText
-          };
-        }),
+        hasLineItems: lineItems.length > 0,
+        lineItems,
+        totalQuantity, 
         checkout: cart.checkoutUrl,
         totalCost: cart.cost.totalAmount.amount,
         currency: cart.cost.totalAmount.currencyCode
       };
+    
     } else {
       console.error('Failed to add item to cart:', data?.data?.cartLinesAdd?.userErrors);
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
@@ -539,30 +547,36 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
   
 
   
-      if (cart) {
-        this.cartValue = cart;
-        this.mustacheViewValue = {
-          loading: false,
-          hasLineItems: cart.lines.edges.length > 0,
-          lineItems: cart.lines.edges.map((edge: any) => {
-            const lineItem = edge.node;
-            const productImages = lineItem.merchandise.product.images.edges;
-  
-            return {
-              id: lineItem.id,
-              quantity: lineItem.quantity,
-              title: lineItem.merchandise.product.title,
-              variantId: lineItem.merchandise.id,
-              canDecreaseQuantity: lineItem.quantity > 1,
-              imageUrl: productImages?.[0]?.node?.URL,
-              imageAlt: productImages?.[0]?.node?.altText,
-            };
-          }),
-          checkout: cart.checkoutUrl,
-          totalCost: cart.cost.totalAmount.amount,
-          currency: cart.cost.totalAmount.currencyCode
-        };
-      } else {
+    if (cart) {
+  this.cartValue = cart;
+
+  const lineItems = cart.lines.edges.map((edge: any) => {
+    const lineItem = edge.node;
+    const productImages = lineItem.merchandise.product.images.edges;
+
+    return {
+      id: lineItem.id,
+      quantity: lineItem.quantity,
+      title: lineItem.merchandise.product.title,
+      variantId: lineItem.merchandise.id,
+      canDecreaseQuantity: lineItem.quantity > 1,
+      imageUrl: productImages?.[0]?.node?.url || "", 
+      imageAlt: productImages?.[0]?.node?.altText || "" 
+    };
+  });
+
+ 
+  const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+  this.mustacheViewValue = {
+      loading: false,
+      hasLineItems: lineItems.length > 0,
+      lineItems,
+      totalQuantity, 
+      checkout: cart.checkoutUrl,
+      totalCost: cart.cost.totalAmount.amount,
+      currency: cart.cost.totalAmount.currencyCode
+    };
+    } else {
         console.error('Failed to remove item from cart:', data?.data?.cartLinesRemove?.userErrors);
         this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
       }
@@ -656,27 +670,35 @@ async add({ params: { variantId } }: { params: { variantId: string } }) {
 
     if (cart) {
       this.cartValue = cart;
-      this.mustacheViewValue = {
+    
+        const lineItems = cart.lines.edges.map((edge: any) => {
+        const lineItem = edge.node;
+        const productImages = lineItem.merchandise.product.images.edges;
+    
+        return {
+          id: lineItem.id,
+          quantity: lineItem.quantity,
+          title: lineItem.merchandise.product.title,
+          variantId: lineItem.merchandise.id,
+          canDecreaseQuantity: lineItem.quantity > 1,
+          imageUrl: productImages?.[0]?.node?.url || "", 
+          imageAlt: productImages?.[0]?.node?.altText || "" 
+        };
+      });
+    
+     
+      const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+    
+          this.mustacheViewValue = {
         loading: false,
-        hasLineItems: cart.lines.edges.length > 0,
-        lineItems: cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
-
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url,
-            imageAlt: productImages?.[0]?.node?.altText
-          };
-        }),
+        hasLineItems: lineItems.length > 0,
+        lineItems,
+        totalQuantity, 
         checkout: cart.checkoutUrl,
         totalCost: cart.cost.totalAmount.amount,
-        currency: cart.cost.totalAmount.currencyCode,
+        currency: cart.cost.totalAmount.currencyCode
       };
+
     } else {
       console.error('Failed to decrement item in cart:', data?.data?.cartLinesUpdate?.userErrors);
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
@@ -766,30 +788,37 @@ async increment(event: Event) {
 
     const data = await response.json();
     const cart = data?.data?.cartLinesUpdate?.cart;
+if (cart) {
+  this.cartValue = cart;
 
-    if (cart) {
-      this.cartValue = cart;
-      this.mustacheViewValue = {
-        loading: false,
-        hasLineItems: cart.lines.edges.length > 0,
-        lineItems: cart.lines.edges.map((edge: any) => {
-          const lineItem = edge.node;
-          const productImages = lineItem.merchandise.product.images.edges;
+  const lineItems = cart.lines.edges.map((edge: any) => {
+    const lineItem = edge.node;
+    const productImages = lineItem.merchandise.product.images.edges;
 
-          return {
-            id: lineItem.id,
-            quantity: lineItem.quantity,
-            title: lineItem.merchandise.product.title,
-            variantId: lineItem.merchandise.id,
-            canDecreaseQuantity: lineItem.quantity > 1,
-            imageUrl: productImages?.[0]?.node?.url,
-            imageAlt: productImages?.[0]?.node?.altText
-          }
-        }),
-        checkout: cart.checkoutUrl,
-        totalCost: cart.cost.totalAmount.amount,
-        currency: cart.cost.totalAmount.currencyCode,
-      };
+    return {
+      id: lineItem.id,
+      quantity: lineItem.quantity,
+      title: lineItem.merchandise.product.title,
+      variantId: lineItem.merchandise.id,
+      canDecreaseQuantity: lineItem.quantity > 1,
+      imageUrl: productImages?.[0]?.node?.url || "", 
+      imageAlt: productImages?.[0]?.node?.altText || "" 
+    };
+  });
+
+ 
+  const totalQuantity = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  this.mustacheViewValue = {
+    loading: false,
+    hasLineItems: lineItems.length > 0,
+    lineItems,
+    totalQuantity, 
+    checkout: cart.checkoutUrl,
+    totalCost: cart.cost.totalAmount.amount,
+    currency: cart.cost.totalAmount.currencyCode
+  };
+
     } else {
       console.error('Failed to increment item in cart:', data?.data?.cartLinesUpdate?.userErrors);
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
@@ -814,7 +843,6 @@ async increment(event: Event) {
         document.querySelectorAll(template.dataset?.target || "")
       );
       if (els.length) {
-
         for (const el of els) {
           el.innerHTML = Mustache.render(
             template.innerHTML,

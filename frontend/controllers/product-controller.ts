@@ -118,7 +118,7 @@ export default class ShopifyBuyControllerBase extends Controller {
       throw new Error("Shopify initialization failed: Missing domain or token");
     }
 
-    const apiUrl = `https://${this.shopifyDomainValue}/api/2024-10/graphql.json`;
+    const apiUrl = `https://${this.shopifyDomainValue}/api/2025-01/graphql.json`;
     try {
       const response = await fetch(apiUrl, {
         method: "POST",

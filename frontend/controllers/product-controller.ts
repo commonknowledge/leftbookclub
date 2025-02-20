@@ -199,6 +199,61 @@ export default class ShopifyBuyControllerBase extends Controller {
     window.localStorage.setItem(this.LOCALSTORAGE_CART_ID, id.toString());
   }
 
+  async addDeliveryAddress(cartId: string) {
+    const mutation = `
+      mutation cartDeliveryAddressesAdd($addresses: [CartSelectableAddressInput!]!, $cartId: ID!) {
+        cartDeliveryAddressesAdd(addresses: $addresses, cartId: $cartId) {
+          cart {
+            id
+          }
+          userErrors {
+            field
+            message
+          }
+          warnings {
+            message
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      addresses: [
+        {
+          address: {
+            deliveryAddress: {
+              address1: "26a Brookwood Road",
+              address2: "",
+              city: "London",
+              company: "",
+              countryCode: "GB",
+              firstName: "Anna",
+              lastName: "Cunnane",
+              phone: "07712345678",
+              provinceCode: "",
+              zip: "",
+            },
+          },
+          oneTimeUse: true,
+          selected: true,
+          validationStrategy: "COUNTRY_CODE_ONLY",
+        },
+      ],
+      cartId,
+    };
+
+    const data = await this.shopifyRequest(mutation, variables);
+
+    if (data?.data?.cartDeliveryAddressesAdd?.userErrors.length) {
+      console.error(
+        "Error adding delivery address:",
+        data.data.cartDeliveryAddressesAdd.userErrors
+      );
+    } else {
+      console.log("Delivery address successfully added.");
+    }
+  }
+
   async getCart() {
     const query = `
     query {
@@ -303,6 +358,8 @@ export default class ShopifyBuyControllerBase extends Controller {
 
     this.cartId = newCart.id;
     this.cartValue = newCart;
+    await this.addDeliveryAddress(newCart.id);
+
     return newCart;
   }
 

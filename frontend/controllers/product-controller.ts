@@ -200,6 +200,14 @@ export default class ShopifyBuyControllerBase extends Controller {
   }
 
   async addDeliveryAddress(cartId: string) {
+    const shippingAddress = this.shippingAddress;
+
+    if (!shippingAddress) {
+      console.error(
+        "No shipping address found, skipping delivery address update."
+      );
+      return;
+    }
     const mutation = `
       mutation cartDeliveryAddressesAdd($addresses: [CartSelectableAddressInput!]!, $cartId: ID!) {
         cartDeliveryAddressesAdd(addresses: $addresses, cartId: $cartId) {
@@ -222,16 +230,16 @@ export default class ShopifyBuyControllerBase extends Controller {
         {
           address: {
             deliveryAddress: {
-              address1: "26a Brookwood Road",
-              address2: "",
-              city: "London",
-              company: "",
-              countryCode: "GB",
-              firstName: "Anna",
-              lastName: "Cunnane",
-              phone: "07712345678",
-              provinceCode: "",
-              zip: "",
+              address1: shippingAddress.address1,
+              address2: shippingAddress.address2,
+              city: shippingAddress.city,
+              company: shippingAddress.company,
+              countryCode: shippingAddress.country,
+              firstName: shippingAddress.firstName,
+              lastName: shippingAddress.lastName,
+              phone: "",
+              provinceCode: shippingAddress.province,
+              zip: shippingAddress.zip,
             },
           },
           oneTimeUse: true,
@@ -249,8 +257,6 @@ export default class ShopifyBuyControllerBase extends Controller {
         "Error adding delivery address:",
         data.data.cartDeliveryAddressesAdd.userErrors
       );
-    } else {
-      console.log("Delivery address successfully added.");
     }
   }
 
@@ -640,12 +646,23 @@ export default class ShopifyBuyControllerBase extends Controller {
       this.mustacheViewValue = { ...this.mustacheViewValue, loading: false };
     }
   }
-
   get shippingAddress() {
     try {
+      const [firstName, lastName] = this.stripeShippingValue?.name.split(
+        " "
+      ) || ["", ""];
       return this.stripeShippingValue
         ? {
+            address1: this.stripeShippingValue.address.line1,
+            address2: this.stripeShippingValue.address.line1,
+            city: this.stripeShippingValue.address.city,
+            province: this.stripeShippingValue.address.state,
+            zip: this.stripeShippingValue.address.postal_code,
             country: this.stripeShippingValue.address.country,
+            company: "",
+            firstName,
+            lastName,
+            phone: "",
           }
         : undefined;
     } catch (e) {

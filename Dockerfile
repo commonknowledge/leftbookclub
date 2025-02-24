@@ -17,7 +17,7 @@ RUN poetry config virtualenvs.in-project true
 
 # Python deps
 COPY --chown=app:app pyproject.toml poetry.lock ./
-RUN poetry install -n
+RUN poetry install -n --no-root
 
 # Frontend deps
 COPY package.json yarn.lock ./

@@ -48,9 +48,15 @@
         </select>
     </div>
     <div>
-        <button class="btn btn-outline-secondary btn-disable-strikethrough" data-product-variant-id-param="{{ product.variants.0.id }}" data-product-target="addToCartButton" {% if product.variants.0.inventory_quantity == 0 and product.variants.0.inventory_policy == 'deny' %} disabled="true" {% elif loading or disabled %} disabled="true" {% else %} data-bs-toggle="offcanvas" data-bs-target="#cart" data-action="click->product#add"
-        {% endif %}
-        >Add to cart</button>
+        <button class="btn btn-outline-secondary btn-disable-strikethrough" 
+        data-product-variant-id-param="{{ product.variants.0.id }}"
+        data-product-target="addToCartButton"
+        data-bs-toggle="offcanvas" 
+        data-bs-target="#cart"
+        data-action="click->product#add"
+        {% if product.variants.0.inventory_quantity == 0 %} disabled="true"{% endif %}>
+    Add to cart
+</button>
 </div>
 {% endif %}
 </div>

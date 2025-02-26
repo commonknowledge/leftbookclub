@@ -5,7 +5,7 @@
     <div class="offcanvas-header">
         <h3 id="cartLabel">Your cart</h3>
         <template data-product-target="template" data-target="#cartLabel">
-            Your cart has (( checkout.lineItems|length )) (( checkout.lineItems|length|pluralize:'item' )) totalling (( checkout.totalPriceV2|currency ))
+            Your cart has (( totalQuantity )) (( totalQuantity | pluralize : "item" )) totalling (( totalCost | currency ))
         </template>
         <button type="button"
                 class="btn-close text-reset"
@@ -34,25 +34,25 @@
                 <div class='tw-my-3'>
                     <button class='btn btn-primary'
                             data-action="click->product#redirectToCheckout">
-                        Checkout: ((checkout.totalPriceV2|currency)) + shipping
-                    </button>
+                            Checkout: (( totalCost | currency )) + shipping
+                        </button>
                 </div>
                 <div class="row gx-3 gy-3">
                     <div class='col-12 gy-3'>
                         <div class='tw-border tw-border-gray-600'></div>
                     </div>
                     ((#lineItems))
+                
                     <a class="col-5 tw-block"
-                       href="/anonymous/product/(( variant.product.id|shopifyId ))">
-                        <img src="(( variant.image.src ))" alt="(( title ))" class="tw-w-full" />
-                    </a>
-                    <div class="col-7">
-                        <a class='tw-no-underline'
-                           href="/anonymous/product/(( variant.product.id|shopifyId ))">
-                            <h5 class='tw-font-bold tw-text-black'>(( title ))</h5>
-                        </a>
+                    href="/anonymous/product/(( variantId | shopifyId ))">                     
+                    <img src="(( imageUrl ))" alt="(( imageAlt ))" class="tw-w-full" />                 </a>
+                 <div class="col-7">
+                     <a class='tw-no-underline'
+                        href="/anonymous/product/(( variant.product.id|shopifyId ))">
+                         <h5 class='tw-font-bold tw-text-black'>(( title ))</h5>
+                     </a>
                         <div>
-                            (( variant.priceV2|currency )) ((#compareAtPrice))<s>((compareAtPrice|currency))</s>((/compareAtPrice))
+                            (( price | currency )) ((#compareAtPrice))<s>(( compareAtPrice | currency ))</s>((/compareAtPrice))
                             ((#discountAllocations))
                             <div>Discount applied!</div>
                             <div>
@@ -61,24 +61,25 @@
                             <div>Final price: ((allocatedAmount|currency))</div>
                             ((/discountAllocations))
                         </div>
-                        <div>((quantity)) (( quantity | pluralize : "copy" : "copies" ))</div>
+                        <div>(( quantity )) (( quantity | pluralize : "copy" : "copies" ))</div>
                         <div class='tw-mt-1'>
                             ((#canDecreaseQuantity))
                             <button class='btn btn-outline-secondary'
                                     data-action="click->product#decrement"
-                                    data-product-line-item-param='(( lineItem|stringify ))'>
-                                -1
+                                    data-product-line-item-id="(( id ))"
+                                    data-product-quantity="(( quantity ))">                                -1
                             </button>
                             ((/canDecreaseQuantity))
                             <button class='btn btn-outline-secondary'
                                     data-action='click->product#increment'
-                                    data-product-line-item-param='(( lineItem|stringify ))'>
+                                    data-product-line-item-id="(( id ))"
+                                    data-product-quantity="(( quantity ))">
                                 +1
                             </button>
                             <button class='btn btn-outline-secondary'
                                     data-action='click->product#remove'
-                                    data-product-line-item-param='(( lineItem|stringify ))'>
-                                Remove
+                                    data-product-line-item-id='(( id ))'>
+                                    Remove
                             </button>
                         </div>
                     </div>
@@ -90,8 +91,8 @@
                 <div class='tw-my-3'>
                     <button class='btn btn-primary'
                             data-action="click->product#redirectToCheckout">
-                        Checkout: ((checkout.totalPriceV2|currency)) + shipping
-                    </button>
+                            Checkout: (( totalCost | currency )) + shipping
+                        </button>
                 </div>
                 ((/hasLineItems))
                 ((^lineItems))

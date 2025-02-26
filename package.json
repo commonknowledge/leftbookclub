@@ -13,6 +13,7 @@
     "@popperjs/core": "^2.10.2",
     "@sentry/browser": "^6.19.7",
     "@sentry/tracing": "^6.19.7",
+    "@shopify/storefront-api-client": "^1.0.4",
     "@stripe/stripe-js": "^1.27.0",
     "@turf/bbox": "^6.5.0",
     "@types/bootstrap": "^5.2.5",
@@ -48,5 +49,4 @@
     "vite": "^5.0.2"
   },
   "packageManager": "yarn@1.22.22"
-
 }

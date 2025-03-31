@@ -4,9 +4,6 @@ import shopify
 import stripe
 from django.apps import AppConfig
 from django.conf import settings
-from django.core import management
-from groundwork.core.cron import register_cron
-from datetime import timedelta
 
 
 class LeftBookClub(AppConfig):
@@ -23,11 +20,6 @@ class LeftBookClub(AppConfig):
         from .slippers_autoload_components import register
 
         register()
-
-        def run_ensure_stripe_subscriptions_processed():
-            management.call_command("run_cron_tasks")
-
-        register_cron(run_ensure_stripe_subscriptions_processed, timedelta(seconds=60))
 
     def configure_shopify(self):
         stripe.api_key = djstripe.settings.djstripe_settings.STRIPE_SECRET_KEY

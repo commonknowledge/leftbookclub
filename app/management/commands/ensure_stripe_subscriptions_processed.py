@@ -5,7 +5,16 @@ import stripe
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--dry-run',
+            action='store_true',
+            help='Simulate the command without making changes',
+        )
+        
     def handle(self, *args, **options):
+        dry_run = options['dry_run']
+
         customers = stripe.Customer.list(limit=100)
     
         for customer in customers.auto_paging_iter():
@@ -20,25 +29,25 @@ class Command(BaseCommand):
                         user = User.objects.filter(email=customer.email).first()
                         if user:
                             if user.primary_product:
+                                if not dry_run:
+                                    create_shopify_order(
+                                        user,
+                                        line_items=[
+                                            {
+                                                "title": f"Membership Subscription Purchase — {user.primary_product.name}",
+                                                "quantity": 1,
+                                                "price": 0,
+                                            }
+                                        ],
+                                        tags=["Membership Subscription Purchase", "Manual Sync"],
+                                    )
+                                print(f"Customer {customer.email} created shopify order {user.primary_product.name}")
                                 
-                                create_shopify_order(
-                                    customer,
-                                    line_items=[
-                                        {
-                                            "title": f"Membership Subscription Purchase — {user.primary_product.name}",
-                                            "quantity": 1,
-                                            "price": 0,
-                                        }
-                                    ],
-                                    tags=["Membership Subscription Purchase", "Manual Sync"],
-                                )
-                                print(print(f"Customer {customer.email} created shopify order {user.primary_product.name}"))
-                               
                                 
                             else:
                                 print(f"Customer {customer.email} has no primary product")
-                            
-                            stripe.Subscription.modify(subscription.id, metadata={"processed": "True"})
+                            if not dry_run:
+                                stripe.Subscription.modify(subscription.id, metadata={"processed": "True"})
                             print(f"Customer {customer.email} subscription processed")
                         else:
                             print(f"Customer {customer.email} user not found\n")

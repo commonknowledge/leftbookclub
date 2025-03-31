@@ -13,7 +13,9 @@ class Command(BaseCommand):
 
         # Register cron commands
         def run_ensure_stripe_subscriptions_processed():
-            management.call_command("ensure_stripe_subscriptions_processed")
+            management.call_command(
+                "ensure_stripe_subscriptions_processed", dry_run=True
+            )
 
         register_cron(run_ensure_stripe_subscriptions_processed, timedelta(seconds=60))
 

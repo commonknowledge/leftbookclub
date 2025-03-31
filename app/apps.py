@@ -27,7 +27,7 @@ class LeftBookClub(AppConfig):
         def run_ensure_stripe_subscriptions_processed():
             management.call_command("run_cron_tasks")
 
-        register_cron(run_ensure_stripe_subscriptions_processed, timedelta(days=1))
+        register_cron(run_ensure_stripe_subscriptions_processed, timedelta(seconds=60))
 
     def configure_shopify(self):
         stripe.api_key = djstripe.settings.djstripe_settings.STRIPE_SECRET_KEY

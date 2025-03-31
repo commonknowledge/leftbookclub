@@ -51,6 +51,6 @@ class Command(BaseCommand):
                 # Log to Sentry
                 capture_exception(e)
                 capture_message(
-                    f"[StripeCheckoutSuccess] Failed to complete processing for user {self.request.user.email}, subscription {subscription.id}"
+                    f"[StripeCheckoutSuccess] Failed to complete processing for user {user.email}"
                 )
 

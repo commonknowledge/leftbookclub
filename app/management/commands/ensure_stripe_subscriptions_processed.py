@@ -21,6 +21,10 @@ class Command(BaseCommand):
                 continue
 
             print(f"User {user.email}: processing subscription...")
+            
+            if not user.primary_product:
+                print(f"User {user.email}: has no primary product, skipping\n")
+                continue
 
             create_shopify_order(
                 user,

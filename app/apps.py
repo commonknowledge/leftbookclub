@@ -5,7 +5,7 @@ import stripe
 from django.apps import AppConfig
 from django.conf import settings
 from django.core import management
-import register_cron from groundwork.core.cron
+from groundwork.core.cron import register_cron
 from datetime import timedelta
 
 

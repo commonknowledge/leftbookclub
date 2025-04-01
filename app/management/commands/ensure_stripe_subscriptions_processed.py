@@ -1,5 +1,3 @@
-
-
 from django.core.management.base import BaseCommand
 from app.models import User
 from app.utils.shopify import create_shopify_order
@@ -68,12 +66,12 @@ class Command(BaseCommand):
                         print(f"Customer {customer.email}: already processed.\n")
                     
                 except Exception as e:
-                    # from sentry_sdk import capture_exception, capture_message
+                    from sentry_sdk import capture_exception, capture_message
                     
                     print(f"User {customer.email} error: {e}")
 
                     # Log to Sentry
-                    # capture_exception(e)
-                    # capture_message(
-                    #     f"[StripeCheckoutSuccess] Failed to complete processing for user {customer.email}"
-                    # )
+                    capture_exception(e)
+                    capture_message(
+                        f"[StripeCheckoutSuccess] Failed to complete processing for user {customer.email}"
+                    )

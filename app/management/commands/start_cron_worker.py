@@ -11,10 +11,10 @@ class Command(BaseCommand):
         # Register cron commands
         def run_ensure_stripe_subscriptions_processed():
             management.call_command(
-                "ensure_stripe_subscriptions_processed", dry_run=True
+                "ensure_stripe_subscriptions_processed", ignore_all=True
             )
 
-        register_cron(run_ensure_stripe_subscriptions_processed, timedelta(days=1))
+        register_cron(run_ensure_stripe_subscriptions_processed, timedelta(seconds=60))
 
         print("Starting cron worker")
 

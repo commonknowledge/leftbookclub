@@ -1,3 +1,5 @@
+
+
 from django.core.management.base import BaseCommand
 from app.models import User
 from app.utils.shopify import create_shopify_order
@@ -11,9 +13,15 @@ class Command(BaseCommand):
             action='store_true',
             help='Simulate the command without making changes',
         )
-        
+        parser.add_argument(
+            '--ignore-all',
+            action='store_true',
+            help='Mark all unprocessed subscriptions as processed without creating Shopify orders',
+        )
+
     def handle(self, *args, **options):
         dry_run = options['dry_run']
+        ignore_all = options['ignore_all']
 
         customers = stripe.Customer.list(limit=100)
     
@@ -26,6 +34,12 @@ class Command(BaseCommand):
                 try:
                     print(f"Customer {customer.email} metadata: {subscription.metadata}")
                     if not subscription.metadata:
+                        if ignore_all:
+                            if not dry_run:
+                                stripe.Subscription.modify(subscription.id, metadata={"processed": "True"})
+                            print(f"Customer {customer.email} subscription marked as processed (ignore-all)\n")
+                            continue
+
                         user = User.objects.filter(email=customer.email).first()
                         if user:
                             if user.primary_product:
@@ -43,7 +57,6 @@ class Command(BaseCommand):
                                     )
                                 print(f"Customer {customer.email} created shopify order {user.primary_product.name}")
                                 
-                                
                             else:
                                 print(f"Customer {customer.email} has no primary product")
                             if not dry_run:
@@ -55,14 +68,12 @@ class Command(BaseCommand):
                         print(f"Customer {customer.email}: already processed.\n")
                     
                 except Exception as e:
-                    from sentry_sdk import capture_exception, capture_message
+                    # from sentry_sdk import capture_exception, capture_message
                     
                     print(f"User {customer.email} error: {e}")
 
-
                     # Log to Sentry
-                    capture_exception(e)
-                    capture_message(
-                        f"[StripeCheckoutSuccess] Failed to complete processing for user {customer.email}"
-                    )
-
+                    # capture_exception(e)
+                    # capture_message(
+                    #     f"[StripeCheckoutSuccess] Failed to complete processing for user {customer.email}"
+                    # )

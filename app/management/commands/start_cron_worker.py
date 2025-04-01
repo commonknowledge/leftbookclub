@@ -14,7 +14,7 @@ class Command(BaseCommand):
                 "ensure_stripe_subscriptions_processed", ignore_all=True
             )
 
-        register_cron(run_ensure_stripe_subscriptions_processed, timedelta(seconds=60))
+        register_cron(run_ensure_stripe_subscriptions_processed, timedelta(days=1))
 
         print("Starting cron worker")
 

@@ -11,7 +11,7 @@ class Command(BaseCommand):
         # Register cron commands
         def run_ensure_stripe_subscriptions_processed():
             management.call_command(
-                "ensure_stripe_subscriptions_processed", ignore_all=True
+                "ensure_stripe_subscriptions_processed"
             )
 
         register_cron(run_ensure_stripe_subscriptions_processed, timedelta(days=1))

@@ -97,8 +97,47 @@ class Event(models.Model):
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
         FieldPanel("frequency_interval"),
-
     ]
+    
+    @property
+    def as_geojson_feature(self):
+        try:
+            if self.coordinates:
+                geometry = {
+                    "type": "Point",
+                    "coordinates": [self.coordinates.x, self.coordinates.y],
+                }
+            else:
+                geometry = None
+
+            feature = {
+                "type": "Feature",
+                "geometry": geometry,
+                "properties": {
+                    "name": self.name,
+                    "slug": self.name.lower().replace(" ", "-"),
+                    "starts_at": self.start_date.isoformat(),
+                    "human_readable_date": timezone.localtime(self.start_date).strftime("%d %b %Y"),
+                    "url": self.online_url or "",
+                    "location_type": "virtual" if self.is_online else "in_person",
+                    "in_person_location": self.in_person_location,
+                    "virtual_location_url": self.online_url,
+                    "body": strip_tags(self.body) if self.body else "",
+                    "postcode": self.postcode,
+                },
+            }
+            print('feature', feature)
+
+            return feature
+
+        except Exception as e:
+            return {
+                "type": "Feature",
+                "properties": {
+                    "name": self.name,
+                    "error": str(e),
+                },
+            }
 
     class Meta:
         ordering = ["start_date"]
@@ -129,7 +168,7 @@ class Event(models.Model):
             if point:
                 self.coordinates = point
         super().save(*args, **kwargs)
-    
+        
 class CustomImage(AbstractImage):
 
     # Making blank / null explicit because you *really* need alt text
@@ -1157,17 +1196,17 @@ class MapPage(WagtailCacheMixin, Page):
             .all()
         )
 
-        # context["sources"]["events"] = {
-        #     "type": "geojson",
-        #     "data": {
-        #         "type": "FeatureCollection",
-        #         "features": [
-        #             event.as_geojson_feature
-        #             for event in context["events"]
-        #             if event.as_geojson_feature.get("geometry", None) is not None
-        #         ],
-        #     },
-        # }
+        context["sources"]["events"] = {
+            "type": "geojson",
+            "data": {
+                "type": "FeatureCollection",
+                "features": [
+                    event.as_geojson_feature
+                    for event in context["events"]
+                    if event.as_geojson_feature.get("geometry", None) is not None
+                ],
+            },
+        }
 
         context["layers"].update(
             {

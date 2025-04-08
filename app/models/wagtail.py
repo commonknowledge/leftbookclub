@@ -1152,22 +1152,22 @@ class MapPage(WagtailCacheMixin, Page):
 
         # Events
         context["events"] = list(
-            CircleEvent.objects.filter(starts_at__gte=datetime.now())
-            .order_by("starts_at")
+            Event.objects.filter(start_date__gte=datetime.now(), is_approved=True)
+            .order_by("start_date")   
             .all()
         )
 
-        context["sources"]["events"] = {
-            "type": "geojson",
-            "data": {
-                "type": "FeatureCollection",
-                "features": [
-                    event.as_geojson_feature
-                    for event in context["events"]
-                    if event.as_geojson_feature.get("geometry", None) is not None
-                ],
-            },
-        }
+        # context["sources"]["events"] = {
+        #     "type": "geojson",
+        #     "data": {
+        #         "type": "FeatureCollection",
+        #         "features": [
+        #             event.as_geojson_feature
+        #             for event in context["events"]
+        #             if event.as_geojson_feature.get("geometry", None) is not None
+        #         ],
+        #     },
+        # }
 
         context["layers"].update(
             {

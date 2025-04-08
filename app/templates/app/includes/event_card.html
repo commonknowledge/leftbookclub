@@ -10,8 +10,8 @@
     <div class='tw-flex tw-flex-row tw-bg-white'>
         <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
             <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
-                <div class='tw-text-lg'>{{ event.starts_at|date:"j" }}</div>
-                <div class='tw-uppercase '>{{ event.starts_at|date:"M" }}</div>
+                <div class='tw-text-lg'>{{ event.start_date|date:"j" }}</div>
+                <div class='tw-uppercase '>{{ event.start_date|date:"M" }}</div>
             </div>
         </div>
         <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
@@ -20,9 +20,9 @@
                 <div>
                     <span class="tw-capitalize">{{ event.location_type|replace:"_| " }}</span>
                     <span>&middot;</span>
-                    <span>Starts at {{ event.starts_at|date:"P T" }}</span>
+                    <span>Starts at {{ event.start_date|date:"P T" }}</span>
                     <span>&middot;</span>
-                    <span>{{ event.starts_at|naturaltime }}</span>
+                    <span>{{ event.start_date|naturaltime }}</span>
                 </div>
                 {% if event.physical_address.formatted_address %}
                     <div class='tw-mt-2'>{{ event.physical_address.formatted_address }}</div>

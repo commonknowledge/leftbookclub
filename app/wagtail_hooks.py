@@ -249,6 +249,7 @@ class NewEventAdmin(ModelAdmin):
     list_filter = (
         "start_date",
         "is_online",
+           "is_approved",
     )
     search_fields = (
         "name",

@@ -3,6 +3,7 @@ from typing import Optional
 import time
 import uuid
 from datetime import datetime
+from django.utils import timezone
 
 import djstripe.models
 import orjson
@@ -51,8 +52,82 @@ from app.utils.shopify import metafields_to_dict
 from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
 
 from .stripe import LBCProduct, ShippingZone
+from django.utils.translation import gettext_lazy as _
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
+from django.contrib.gis.db import models as gis_models
+from app.utils.geo import postcode_geo, point_from_postcode_result 
 
+class EventsIntervals(models.TextChoices):
+    WEEKLY = "weekly", _("Weekly")
+    BIWEEKLY = "biweekly", _("Every 2 Weeks")
+    MONTHLY = "monthly", _("Monthly")
+     
+class Event(models.Model):
+    name = models.CharField(max_length=500)
+    start_date = models.DateTimeField()
+    is_online = models.BooleanField(default=False)
+    in_person_location = models.CharField(max_length=500)
+    postcode = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Enter a UK postcode to auto-calculate coordinates",
+    )
+    online_url = models.URLField(max_length=1024, blank=True, null=True)
+    body = RichTextField(blank=True, null=True)
+    coordinates = gis_models.PointField(null=True, blank=True)
 
+    is_recurring = models.BooleanField(default=False)
+    frequency_interval = models.CharField(
+        max_length=10,
+        choices=EventsIntervals.choices,
+        blank=True,
+        null=True,
+        help_text=_("Select the frequency for recurring events"),
+    )
+    panels = [
+        FieldPanel("name"),
+        FieldPanel("start_date"),
+        FieldPanel("is_online"),
+        FieldPanel("postcode"),
+        FieldPanel("online_url"),
+        FieldPanel("body"),
+        FieldPanel("is_recurring"),
+        FieldPanel("frequency_interval"),
+
+    ]
+
+    class Meta:
+        ordering = ["start_date"]
+
+    def __str__(self):
+        return f"{self.name} ({self.start_date.strftime('%Y-%m-%d')})"
+
+    def next_occurrence(self):
+        """
+        Returns the next occurrence datetime of this event if recurring.
+        """
+        if not self.is_recurring or not self.frequency_interval:
+            return None
+
+        if self.frequency_interval == EventsIntervals.WEEKLY:
+            return self.start_date + timedelta(weeks=1)
+        elif self.frequency_interval == EventsIntervals.BIWEEKLY:
+            return self.start_date + timedelta(weeks=2)
+        elif self.frequency_interval == EventsIntervals.MONTHLY:
+            return self.start_date + relativedelta(months=1)
+
+        return None
+    
+    def save(self, *args, **kwargs):
+        if self.postcode and not self.coordinates:
+            postcode_result = postcode_geo(self.postcode)
+            point = point_from_postcode_result(postcode_result)
+            if point:
+                self.coordinates = point
+        super().save(*args, **kwargs)
+    
 class CustomImage(AbstractImage):
 
     # Making blank / null explicit because you *really* need alt text

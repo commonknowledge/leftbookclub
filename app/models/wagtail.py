@@ -77,6 +77,7 @@ class Event(models.Model):
     online_url = models.URLField(max_length=1024, blank=True, null=True)
     body = RichTextField(blank=True, null=True)
     coordinates = gis_models.PointField(null=True, blank=True)
+    is_approved = models.BooleanField(default=False)
 
     is_recurring = models.BooleanField(default=False)
     frequency_interval = models.CharField(
@@ -93,6 +94,7 @@ class Event(models.Model):
         FieldPanel("postcode"),
         FieldPanel("online_url"),
         FieldPanel("body"),
+        FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
         FieldPanel("frequency_interval"),
 

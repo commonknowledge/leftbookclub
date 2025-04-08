@@ -242,7 +242,10 @@ class NewEventAdmin(ModelAdmin):
         "start_date",
         "is_online",
         "online_url",
+        "is_approved",
     )
+    list_editable = ("is_approved",)
+    
     list_filter = (
         "start_date",
         "is_online",

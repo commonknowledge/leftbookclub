@@ -729,3 +729,36 @@ class SelectSyllabusForm(forms.Form):
 
 class SelectPaymentPlanForm(forms.Form):
     membership_plan_price = forms.CharField(widget=forms.HiddenInput)
+
+
+from app.models import Event
+from django.forms import DateTimeInput
+from datetime import datetime
+
+class PublicEventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = [
+            "name",
+            "start_date",
+            "is_online",
+            "in_person_location",
+            "postcode",
+            "online_url",
+            "body",
+            "is_recurring",
+            "frequency_interval",
+        ]
+        widgets = {
+            "start_date": DateTimeInput(
+                attrs={
+                    "type": "datetime-local",
+                    "min": datetime.now().strftime("%Y-%m-%dT%H:%M"),  # restrict past dates
+                },
+                format="%Y-%m-%dT%H:%M",
+            )
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["start_date"].input_formats = ["%Y-%m-%dT%H:%M"]

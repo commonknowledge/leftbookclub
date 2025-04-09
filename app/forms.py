@@ -747,6 +747,7 @@ class PublicEventForm(forms.ModelForm):
             "online_url",
             "body",
             "is_recurring",
+            "recurrence"
         ]
         widgets = {
             "start_date": DateTimeInput(
@@ -756,6 +757,7 @@ class PublicEventForm(forms.ModelForm):
                 },
                 format="%Y-%m-%dT%H:%M",
             )
+            
         }
 
     def __init__(self, *args, **kwargs):

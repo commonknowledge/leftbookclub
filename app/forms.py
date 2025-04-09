@@ -747,7 +747,6 @@ class PublicEventForm(forms.ModelForm):
             "online_url",
             "body",
             "is_recurring",
-            "frequency_interval",
         ]
         widgets = {
             "start_date": DateTimeInput(

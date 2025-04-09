@@ -57,12 +57,108 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.contrib.gis.db import models as gis_models
 from app.utils.geo import postcode_geo, point_from_postcode_result 
+from django.core.exceptions import ValidationError
 
-class EventsIntervals(models.TextChoices):
-    WEEKLY = "weekly", _("Weekly")
-    BIWEEKLY = "biweekly", _("Every 2 Weeks")
-    MONTHLY = "monthly", _("Monthly")
-     
+DAY_OF_WEEK_CHOICES = [
+    ('MO', _('Monday')),
+    ('TU', _('Tuesday')),
+    ('WE', _('Wednesday')),
+    ('TH', _('Thursday')),
+    ('FR', _('Friday')),
+    ('SA', _('Saturday')),
+    ('SU', _('Sunday')),
+]
+
+@register_snippet
+class EventInterval(models.Model):
+    FREQUENCY_CHOICES = [
+        ('daily', _('Daily')),
+        ('weekly', _('Weekly')),
+        ('monthly', _('Monthly')),
+    ]
+
+    frequency = models.CharField(
+        max_length=20,
+        choices=FREQUENCY_CHOICES,
+        help_text=_("How often the event repeats: daily, weekly, or monthly.")
+    )
+
+    interval = models.PositiveIntegerField(
+        default=1,
+        help_text=_("Repeats every X units of the selected frequency. For example, every 2 weeks.")
+    )
+
+    day_of_week = models.CharField(
+        max_length=2,
+        choices=DAY_OF_WEEK_CHOICES,
+        blank=True,
+        null=True,
+        help_text=_(
+            "Used for weekly or monthly patterns. Select the day of the week "
+            "on which the event should occur, e.g., Thursday."
+        )
+    )
+
+    week_of_month = models.IntegerField(
+        blank=True,
+        null=True,
+        help_text=_(
+            "Used for monthly patterns. Enter 1 for the first week, 2 for the second, "
+            "up to 4. Use -1 for the last week of the month. "
+            "For example, '3' and 'Thursday' = third Thursday of the month."
+        )
+    )
+
+    def clean(self):
+        # Daily: no day_of_week or week_of_month
+        if self.frequency == 'daily':
+            if self.day_of_week or self.week_of_month:
+                raise ValidationError(_("Daily recurrence should not have a day of week or week of month."))
+
+        # Weekly: requires day_of_week, no week_of_month
+        elif self.frequency == 'weekly':
+            if not self.day_of_week:
+                raise ValidationError(_("Weekly recurrence must specify a day of the week."))
+            if self.week_of_month:
+                raise ValidationError(_("Weekly recurrence should not include a week of the month."))
+
+        # Monthly: requires both day_of_week and week_of_month
+        elif self.frequency == 'monthly':
+            if not self.day_of_week or self.week_of_month is None:
+                raise ValidationError(_("Monthly recurrence must include both a day of the week and a week of the month."))
+
+    def __str__(self):
+        day = dict(DAY_OF_WEEK_CHOICES).get(self.day_of_week or '', '')
+        week_of_month = self.week_of_month
+
+        # Base frequency label
+        if self.frequency == 'daily':
+            base = "Every day" if self.interval == 1 else f"Every {self.interval} days"
+        elif self.frequency == 'weekly':
+            base = "Every week" if self.interval == 1 else f"Every {self.interval} weeks"
+            if day:
+                base += f" on {day}"
+        elif self.frequency == 'monthly':
+            base = "Every month" if self.interval == 1 else f"Every {self.interval} months"
+            if day and week_of_month is not None:
+                base += f" on the {self._ordinal(week_of_month)} {day}"
+        else:
+            base = "Recurring"
+
+        return base
+
+    @staticmethod
+    def _ordinal(n):
+        """Convert integer to ordinal string: 1 → 1st, 2 → 2nd, etc."""
+        if n == -1:
+            return "last"
+        suffixes = {1: "st", 2: "nd", 3: "rd"}
+        if 10 <= n % 100 <= 20:
+            suffix = "th"
+        else:
+            suffix = suffixes.get(n % 10, "th")
+        return f"{n}{suffix}"
+        
 class Event(models.Model):
     name = models.CharField(max_length=500)
     start_date = models.DateTimeField()
@@ -80,13 +176,7 @@ class Event(models.Model):
     is_approved = models.BooleanField(default=False)
 
     is_recurring = models.BooleanField(default=False)
-    frequency_interval = models.CharField(
-        max_length=10,
-        choices=EventsIntervals.choices,
-        blank=True,
-        null=True,
-        help_text=_("Select the frequency for recurring events"),
-    )
+    recurrence = models.ForeignKey(EventInterval, null=True, blank=True, on_delete=models.SET_NULL)
     panels = [
         FieldPanel("name"),
         FieldPanel("start_date"),
@@ -96,7 +186,7 @@ class Event(models.Model):
         FieldPanel("body"),
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
-        FieldPanel("frequency_interval"),
+        FieldPanel("recurrence"),
     ]
     
     @property
@@ -126,8 +216,6 @@ class Event(models.Model):
                     "postcode": self.postcode,
                 },
             }
-            print('feature', feature)
-
             return feature
 
         except Exception as e:
@@ -144,22 +232,6 @@ class Event(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.start_date.strftime('%Y-%m-%d')})"
-
-    def next_occurrence(self):
-        """
-        Returns the next occurrence datetime of this event if recurring.
-        """
-        if not self.is_recurring or not self.frequency_interval:
-            return None
-
-        if self.frequency_interval == EventsIntervals.WEEKLY:
-            return self.start_date + timedelta(weeks=1)
-        elif self.frequency_interval == EventsIntervals.BIWEEKLY:
-            return self.start_date + timedelta(weeks=2)
-        elif self.frequency_interval == EventsIntervals.MONTHLY:
-            return self.start_date + relativedelta(months=1)
-
-        return None
     
     def save(self, *args, **kwargs):
         if self.postcode and not self.coordinates:

@@ -144,23 +144,28 @@ class Event(ClusterableModel, models.Model):
                 "type": "Point",
                 "coordinates": [self.coordinates.x, self.coordinates.y],
             } if self.coordinates else None
+            
+            upcoming = self.upcoming_dates
+            next_date = upcoming[0] if upcoming else self.start_date
 
             feature = {
-                "type": "Feature",
-                "geometry": geometry,
-                "properties": {
-                    "name": self.name,
-                    "slug": self.name.lower().replace(" ", "-"),
-                    "starts_at": self.start_date.isoformat(),
-                    "human_readable_date": timezone.localtime(self.start_date).strftime("%d %b %Y"),
-                    "url": self.online_url or "",
-                    "location_type": "virtual" if self.is_online else "in_person",
-                    "in_person_location": self.in_person_location,
-                    "virtual_location_url": self.online_url,
-                    "body": strip_tags(self.body) if self.body else "",
-                    "postcode": self.postcode,
-                },
+            "type": "Feature",
+            "geometry": geometry,
+            "properties": {
+                "name": self.name,
+                "slug": self.name.lower().replace(" ", "-"),
+                "starts_at": next_date.isoformat(),
+                "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y"),
+                "url": self.online_url or "",
+                "location_type": "virtual" if self.is_online else "in_person",
+                "in_person_location": self.in_person_location,
+                "virtual_location_url": self.online_url,
+                "body": strip_tags(self.body) if self.body else "",
+                "postcode": self.postcode,
+                "all_dates": [d.isoformat() for d in self.upcoming_dates],
+            },
             }
+        
             return feature
         except Exception as e:
             return {

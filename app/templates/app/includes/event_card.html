@@ -5,33 +5,55 @@
     data-action="mouseenter->fly-to-map#flyTo"
     id="event-{{ event.id }}"
     data-list-filter-target="item"
-    data-location-type="{{ event.location_type }}"
+    data-location-type="{% if event.is_online %}virtual{% else %}in_person{% endif %}"
     class="{% firstof class 'tw-w-full tw-px-2' %}">
+
     <div class='tw-flex tw-flex-row tw-bg-white'>
         <div class="tw-w-[60px] tw-text-center tw-relative tw-flex-shrink-0">
-            <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
-                <div class='tw-text-lg'>{{ event.start_date|date:"j" }}</div>
-                <div class='tw-uppercase '>{{ event.start_date|date:"M" }}</div>
-            </div>
+            {% with first_date=event.upcoming_dates.0 %}
+                <div class='tw-sticky tw-top-0 tw-py-3 tw-whitespace-nowrap tw-overflow-hidden tw-leading-5'>
+                    <div class='tw-text-lg tw-font-bold'>{{ first_date|date:"j" }}</div>
+                    <div class='tw-uppercase tw-font-bold'>{{ first_date|date:"M" }}</div>
+                </div>
+            {% endwith %}
         </div>
+
         <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
             <h3 class="tw-text-2xl tw-font-semibold tw-text-gray-900">{{ event.name }}</h3>
             <div class='tw-text-sm tw-font-normal tw-leading-none tw-mt-3 tw-text-gray-700'>
-                <div>
-                    <span class="tw-capitalize">{{ event.location_type|replace:"_| " }}</span>
-                    <span>&middot;</span>
-                    <span>Starts at {{ event.start_date|date:"P T" }}</span>
-                    <span>&middot;</span>
-                    <span>{{ event.start_date|naturaltime }}</span>
-                </div>
-                {% if event.physical_address.formatted_address %}
-                    <div class='tw-mt-2'>{{ event.physical_address.formatted_address }}</div>
+                {% with first_date=event.upcoming_dates.0 %}
+                    <div>
+                        <span class="tw-capitalize">{% if event.is_online %}virtual{% else %}in person{% endif %}</span>
+                        <span>&middot;</span>
+                        <span>Starts at {{ first_date|date:"P T" }}</span>
+                        <span>&middot;</span>
+                        <span>{{ first_date|naturaltime }}</span>
+                    </div>
+                {% endwith %}
+                {% if event.upcoming_dates|length > 1 %}
+                    {% with first_date=event.upcoming_dates.0 %}
+                        {% for date in event.upcoming_dates %}
+                            {% if date != first_date %}
+                                <div class="tw-text-xs tw-text-gray-500 tw-ml-1 tw-italic">
+                                    Also on {{ date|date:"j M Y, P" }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                {% endif %}
+
+                {% if event.in_person_location %}
+                    <div class='tw-mt-2'>{{ event.in_person_location }}</div>
                 {% endif %}
             </div>
-            {% if show_event is not False and event.body_html %}{{ event.body_html|richtext }}{% endif %}
+
+            {% if show_event is not False and event.body %}
+                <div class="tw-mt-2">{{ event.body|richtext }}</div>
+            {% endif %}
+
             {% if show_button is not False %}
                 <br />
-                {% bootstrap_button href=event.url content="Learn more" %}
+                {% bootstrap_button href=event.online_url content="Learn more" %}
             {% endif %}
         </div>
     </div>

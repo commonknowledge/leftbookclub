@@ -53,113 +53,29 @@ from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
 
 from .stripe import LBCProduct, ShippingZone
 from django.utils.translation import gettext_lazy as _
-from datetime import timedelta
-from dateutil.relativedelta import relativedelta
 from django.contrib.gis.db import models as gis_models
 from app.utils.geo import postcode_geo, point_from_postcode_result 
 from django.core.exceptions import ValidationError
 
-DAY_OF_WEEK_CHOICES = [
-    ('MO', _('Monday')),
-    ('TU', _('Tuesday')),
-    ('WE', _('Wednesday')),
-    ('TH', _('Thursday')),
-    ('FR', _('Friday')),
-    ('SA', _('Saturday')),
-    ('SU', _('Sunday')),
-]
+class EventDate(models.Model):
+    event = ParentalKey("Event", on_delete=models.CASCADE, related_name="additional_dates")
+    date = models.DateTimeField()
 
-@register_snippet
-class EventInterval(models.Model):
-    FREQUENCY_CHOICES = [
-        ('daily', _('Daily')),
-        ('weekly', _('Weekly')),
-        ('monthly', _('Monthly')),
-    ]
-
-    frequency = models.CharField(
-        max_length=20,
-        choices=FREQUENCY_CHOICES,
-        help_text=_("How often the event repeats: daily, weekly, or monthly.")
-    )
-
-    interval = models.PositiveIntegerField(
-        default=1,
-        help_text=_("Repeats every X units of the selected frequency. For example, every 2 weeks.")
-    )
-
-    day_of_week = models.CharField(
-        max_length=2,
-        choices=DAY_OF_WEEK_CHOICES,
-        blank=True,
-        null=True,
-        help_text=_(
-            "Used for weekly or monthly patterns. Select the day of the week "
-            "on which the event should occur, e.g., Thursday."
-        )
-    )
-
-    week_of_month = models.IntegerField(
-        blank=True,
-        null=True,
-        help_text=_(
-            "Used for monthly patterns. Enter 1 for the first week, 2 for the second, "
-            "up to 4. Use -1 for the last week of the month. "
-            "For example, '3' and 'Thursday' = third Thursday of the month."
-        )
-    )
-
-    def clean(self):
-        # Daily: no day_of_week or week_of_month
-        if self.frequency == 'daily':
-            if self.day_of_week or self.week_of_month:
-                raise ValidationError(_("Daily recurrence should not have a day of week or week of month."))
-
-        # Weekly: requires day_of_week, no week_of_month
-        elif self.frequency == 'weekly':
-            if not self.day_of_week:
-                raise ValidationError(_("Weekly recurrence must specify a day of the week."))
-            if self.week_of_month:
-                raise ValidationError(_("Weekly recurrence should not include a week of the month."))
-
-        # Monthly: requires both day_of_week and week_of_month
-        elif self.frequency == 'monthly':
-            if not self.day_of_week or self.week_of_month is None:
-                raise ValidationError(_("Monthly recurrence must include both a day of the week and a week of the month."))
+    class Meta:
+        ordering = ["date"]
 
     def __str__(self):
-        day = dict(DAY_OF_WEEK_CHOICES).get(self.day_of_week or '', '')
-        week_of_month = self.week_of_month
+        return f"{self.event.name} - {self.date.strftime('%Y-%m-%d %H:%M')}"
 
-        # Base frequency label
-        if self.frequency == 'daily':
-            base = "Every day" if self.interval == 1 else f"Every {self.interval} days"
-        elif self.frequency == 'weekly':
-            base = "Every week" if self.interval == 1 else f"Every {self.interval} weeks"
-            if day:
-                base += f" on {day}"
-        elif self.frequency == 'monthly':
-            base = "Every month" if self.interval == 1 else f"Every {self.interval} months"
-            if day and week_of_month is not None:
-                base += f" on the {self._ordinal(week_of_month)} {day}"
-        else:
-            base = "Recurring"
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
 
-        return base
-
-    @staticmethod
-    def _ordinal(n):
-        """Convert integer to ordinal string: 1 → 1st, 2 → 2nd, etc."""
-        if n == -1:
-            return "last"
-        suffixes = {1: "st", 2: "nd", 3: "rd"}
-        if 10 <= n % 100 <= 20:
-            suffix = "th"
-        else:
-            suffix = suffixes.get(n % 10, "th")
-        return f"{n}{suffix}"
+        if self.date < timezone.now():
+            raise ValidationError({"date": "Additional dates must be in the future."})
         
-class Event(models.Model):
+        
+class Event(ClusterableModel, models.Model):
     name = models.CharField(max_length=500)
     start_date = models.DateTimeField()
     is_online = models.BooleanField(default=False)
@@ -168,37 +84,66 @@ class Event(models.Model):
         max_length=20,
         blank=True,
         null=True,
-        help_text="Enter a UK postcode to auto-calculate coordinates",
+        help_text="Enter a UK postcode to show your event on our map.",
     )
     online_url = models.URLField(max_length=1024, blank=True, null=True)
     body = RichTextField(blank=True, null=True)
     coordinates = gis_models.PointField(null=True, blank=True)
     is_approved = models.BooleanField(default=False)
-
     is_recurring = models.BooleanField(default=False)
-    recurrence = models.ForeignKey(EventInterval, null=True, blank=True, on_delete=models.SET_NULL)
+    
+
     panels = [
         FieldPanel("name"),
         FieldPanel("start_date"),
+        InlinePanel("additional_dates", label="Additional Dates", max_num=5),
         FieldPanel("is_online"),
+        FieldPanel("in_person_location"),
         FieldPanel("postcode"),
         FieldPanel("online_url"),
         FieldPanel("body"),
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
-        FieldPanel("recurrence"),
     ]
-    
+
+    class Meta:
+        ordering = ["start_date"]
+
+    def __str__(self):
+        return f"{self.name} ({self.start_date.strftime('%Y-%m-%d')})"
+
+    def clean(self):
+        super().clean()
+        if self.start_date < timezone.now():
+            raise ValidationError({"start_date": "Start date must be in the future."})
+
+        future_dates = [self.start_date] + [
+            d.date for d in self.additional_dates.all() if d.date >= timezone.now()
+        ]
+        if len(future_dates) > 6:
+            raise ValidationError("You cannot have more than 6 future dates for this event.")
+
+    def save(self, *args, **kwargs):
+        if self.postcode and not self.coordinates:
+            postcode_result = postcode_geo(self.postcode)
+            point = point_from_postcode_result(postcode_result)
+            if point:
+                self.coordinates = point
+        self.full_clean()  # Run validation before saving
+        super().save(*args, **kwargs)
+
+    @property
+    def upcoming_dates(self):
+        all_dates = [self.start_date] + [d.date for d in self.additional_dates.all()]
+        return sorted(d for d in all_dates if d >= timezone.now())[:6]
+
     @property
     def as_geojson_feature(self):
         try:
-            if self.coordinates:
-                geometry = {
-                    "type": "Point",
-                    "coordinates": [self.coordinates.x, self.coordinates.y],
-                }
-            else:
-                geometry = None
+            geometry = {
+                "type": "Point",
+                "coordinates": [self.coordinates.x, self.coordinates.y],
+            } if self.coordinates else None
 
             feature = {
                 "type": "Feature",
@@ -217,7 +162,6 @@ class Event(models.Model):
                 },
             }
             return feature
-
         except Exception as e:
             return {
                 "type": "Feature",
@@ -226,20 +170,6 @@ class Event(models.Model):
                     "error": str(e),
                 },
             }
-
-    class Meta:
-        ordering = ["start_date"]
-
-    def __str__(self):
-        return f"{self.name} ({self.start_date.strftime('%Y-%m-%d')})"
-    
-    def save(self, *args, **kwargs):
-        if self.postcode and not self.coordinates:
-            postcode_result = postcode_geo(self.postcode)
-            point = point_from_postcode_result(postcode_result)
-            if point:
-                self.coordinates = point
-        super().save(*args, **kwargs)
         
 class CustomImage(AbstractImage):
 

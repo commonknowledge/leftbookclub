@@ -58,7 +58,7 @@ from app.utils.geo import postcode_geo, point_from_postcode_result
 from django.core.exceptions import ValidationError
 
 class EventDate(models.Model):
-    event = ParentalKey("Event", on_delete=models.CASCADE, related_name="additional_dates")
+    event = ParentalKey("ReadingGroup", on_delete=models.CASCADE, related_name="additional_dates")
     date = models.DateTimeField()
 
     class Meta:
@@ -75,57 +75,57 @@ class EventDate(models.Model):
             raise ValidationError({"date": "Additional dates must be in the future."})
         
         
-class Event(ClusterableModel, models.Model):
-    name = models.CharField(max_length=500)
-    start_date = models.DateTimeField()
+class ReadingGroup(ClusterableModel, models.Model):
+    group_name = models.CharField(max_length=500)
+    next_event = models.DateTimeField()
     is_online = models.BooleanField(default=False)
     in_person_location = models.CharField(max_length=500)
-    postcode = models.CharField(
+    in_person_postcode = models.CharField(
         max_length=20,
         blank=True,
         null=True,
         help_text="Enter a UK postcode to show your event on our map.",
     )
     online_url = models.URLField(max_length=1024, blank=True, null=True)
-    body = RichTextField(blank=True, null=True)
+    description = RichTextField(blank=True, null=True)
     coordinates = gis_models.PointField(null=True, blank=True)
     is_approved = models.BooleanField(default=False)
     is_recurring = models.BooleanField(default=False)
     
 
     panels = [
-        FieldPanel("name"),
-        FieldPanel("start_date"),
+        FieldPanel("group_name"),
+        FieldPanel("next_event"),
         InlinePanel("additional_dates", label="Additional Dates", max_num=5),
         FieldPanel("is_online"),
         FieldPanel("in_person_location"),
-        FieldPanel("postcode"),
+        FieldPanel("in_person_postcode"),
         FieldPanel("online_url"),
-        FieldPanel("body"),
+        FieldPanel("description"),
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
     ]
 
     class Meta:
-        ordering = ["start_date"]
+        ordering = ["next_event"]
 
     def __str__(self):
-        return f"{self.name} ({self.start_date.strftime('%Y-%m-%d')})"
+        return f"{self.group_name} ({self.next_event.strftime('%Y-%m-%d')})"
 
     def clean(self):
         super().clean()
-        if self.start_date < timezone.now():
+        if self.next_event < timezone.now():
             raise ValidationError({"start_date": "Start date must be in the future."})
 
-        future_dates = [self.start_date] + [
+        future_dates = [self.next_event] + [
             d.date for d in self.additional_dates.all() if d.date >= timezone.now()
         ]
         if len(future_dates) > 6:
             raise ValidationError("You cannot have more than 6 future dates for this event.")
 
     def save(self, *args, **kwargs):
-        if self.postcode and not self.coordinates:
-            postcode_result = postcode_geo(self.postcode)
+        if self.in_person_postcode and not self.coordinates:
+            postcode_result = postcode_geo(self.in_person_postcode)
             point = point_from_postcode_result(postcode_result)
             if point:
                 self.coordinates = point
@@ -134,7 +134,7 @@ class Event(ClusterableModel, models.Model):
 
     @property
     def upcoming_dates(self):
-        all_dates = [self.start_date] + [d.date for d in self.additional_dates.all()]
+        all_dates = [self.next_event] + [d.date for d in self.additional_dates.all()]
         return sorted(d for d in all_dates if d >= timezone.now())[:6]
 
     @property
@@ -146,22 +146,22 @@ class Event(ClusterableModel, models.Model):
             } if self.coordinates else None
             
             upcoming = self.upcoming_dates
-            next_date = upcoming[0] if upcoming else self.start_date
+            next_date = upcoming[0] if upcoming else self.next_event
 
             feature = {
             "type": "Feature",
             "geometry": geometry,
             "properties": {
-                "name": self.name,
-                "slug": self.name.lower().replace(" ", "-"),
+                "name": self.group_name,
+                "slug": self.group_name.lower().replace(" ", "-"),
                 "starts_at": next_date.isoformat(),
                 "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y"),
                 "url": self.online_url or "",
                 "location_type": "virtual" if self.is_online else "in_person",
                 "in_person_location": self.in_person_location,
                 "virtual_location_url": self.online_url,
-                "body": strip_tags(self.body) if self.body else "",
-                "postcode": self.postcode,
+                "body": strip_tags(self.description) if self.description else "",
+                "postcode": self.in_person_postcode,
                 "all_dates": [d.isoformat() for d in self.upcoming_dates],
             },
             }
@@ -171,7 +171,7 @@ class Event(ClusterableModel, models.Model):
             return {
                 "type": "Feature",
                 "properties": {
-                    "name": self.name,
+                    "name": self.group_name,
                     "error": str(e),
                 },
             }
@@ -1198,8 +1198,8 @@ class MapPage(WagtailCacheMixin, Page):
 
         # Events
         context["events"] = list(
-            Event.objects.filter(start_date__gte=datetime.now(), is_approved=True)
-            .order_by("start_date")   
+            ReadingGroup.objects.filter(next_event__gte=datetime.now(), is_approved=True)
+            .order_by("next_event")   
             .all()
         )
 

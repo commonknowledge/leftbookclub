@@ -17,7 +17,7 @@ from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
 from django.forms import DateTimeInput
 from django.utils.timezone import now
-from app.models import Event
+from app.models import ReadingGroup
 
 from app import analytics
 from app.models import MembershipPlanPage, User
@@ -733,7 +733,7 @@ class SelectSyllabusForm(forms.Form):
 class SelectPaymentPlanForm(forms.Form):
     membership_plan_price = forms.CharField(widget=forms.HiddenInput)
 
-class PublicEventForm(forms.ModelForm):
+class PublicReadingGroupForm(forms.ModelForm):
     additional_date_1 = forms.DateTimeField(
         required=False,
         widget=DateTimeInput(attrs={"type": "datetime-local", "min": now().strftime("%Y-%m-%dT%H:%M")}),
@@ -766,15 +766,15 @@ class PublicEventForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Event
+        model = ReadingGroup
         fields = [
-            "name",
-            "start_date",
+            "group_name",
+            "next_event",
             "is_online",
             "in_person_location",
-            "postcode",
+            "in_person_postcode",
             "online_url",
-            "body",
+            "description",
             "is_recurring",
         ]
         widgets = {

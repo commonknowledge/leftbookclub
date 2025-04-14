@@ -3,7 +3,7 @@ from wagtail.fields import RichTextField
 from django.shortcuts import render
 from wagtail.models import Page
 
-class EventSubmissionPage(Page):
+class ReadingGroupSubmission(Page):
     thank_you_text = RichTextField(blank=True)
 
     content_panels = Page.content_panels + [
@@ -19,8 +19,8 @@ class EventSubmissionPage(Page):
                 event = form.save(commit=False)
                 event.is_approved = False
                 event.save()
-                return render(request, "events/thank_you.html", {"page": self})
+                return render(request, "readinggroups/thank_you.html", {"page": self})
         else:
             form = PublicReadingGroupForm()
 
-        return render(request, "events/event_form.html", {"form": form, "page": self})
+        return render(request, "readinggroups/reading_group_form.html", {"form": form, "page": self})

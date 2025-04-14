@@ -3,4 +3,4 @@ from .legacy import *
 from .settings import *
 from .stripe import *
 from .wagtail import *
-from .events import *
+from .readinggroups import *

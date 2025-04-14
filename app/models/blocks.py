@@ -445,10 +445,10 @@ class EventsListBlock(StructBlock):
         icon = "fa fa-calendar"
 
 
-class EventsListAndMap(StructBlock):
+class ReadingGroupsListAndMap(StructBlock):
     title = CharBlock(required=False)
     intro = RichTextBlock(required=False)
-    number_of_events = IntegerBlock(required=True, default=3)
+    number_of_reading_groups = IntegerBlock(required=True, default=3)
 
     def get_context(self, value, parent_context=None):
         from app.models.wagtail import MapPage
@@ -458,7 +458,7 @@ class EventsListAndMap(StructBlock):
         return context
 
     class Meta:
-        template = "app/blocks/event_list_and_map_block.html"
+        template = "app/blocks/reading_groups_list_and_map_block.html"
         icon = "fa fa-map"
 
 
@@ -478,7 +478,7 @@ def create_streamfield(additional_blocks=None, **kwargs):
         ("list_of_heading_image_text", ListBlock()),
         ("single_column", SingleColumnBlock()),
         ("columns", MultiColumnBlock()),
-        ("events_list_and_map", EventsListAndMap()),
+        ("reading_groups_list_and_map", ReadingGroupsListAndMap()),
         ("events_list_block", EventsListBlock()),
     ]
 

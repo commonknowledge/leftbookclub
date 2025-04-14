@@ -10,14 +10,14 @@
 <main class='tw-flex tw-flex-col md:tw-grid md:tw-grid-cols-4 xl:tw-grid-cols-5'
       data-map-target="config"
       data-controller="zoom-to-source-features map-geolocator"
-      data-zoom-to-source-features-source-ids-value='["events"]'
+      data-zoom-to-source-features-source-ids-value='["reading_groups"]'
       data-zoom-to-source-features-max-zoom-value="12">
     <section class='tw-col-span-2 tw-order-last md:tw-order-first'
              data-controller="list-filter fly-to-map map-scroll-to-html"
              data-map-scroll-to-html-scroll-element-query-value="html"
-             data-map-scroll-to-html-related-id-prefix-value="event-"
-             data-map-scroll-to-html-map-event-value="mouseenter"
-             data-map-scroll-to-html-map-layer-value="event-icons"
+             data-map-scroll-to-html-related-id-prefix-value="reading_group-"
+             data-map-scroll-to-html-map-reading-group-value="mouseenter"
+             data-map-scroll-to-html-map-layer-value="reading_group-icons"
              data-map-scroll-to-html-map-layer-id-property-value="id"
              data-map-target="config"
              data-list-filter-selected-value='{ "locationType": "__ALL__" }'
@@ -53,7 +53,7 @@
      
         <ol class="tw-relative tw-list-none tw-p-0 tw-m-0 tw-space-y-2 tw-mb-2">
             {% for reading_group in reading_groups %}
-                {% include "app/includes/event_card.html" with reading_group=reading_group %}
+                {% include "app/includes/reading_group_card.html" with reading_group=reading_group %}
             {% endfor %}
         </ol>
     </section>
@@ -64,7 +64,7 @@
         {% for id, layer in layers.items %}
             {% map_layer id=id layer=layer %}
         {% endfor %}
-        <div data-controller="scroll-into-view-on-event"
+        <div data-controller="scroll-into-view-on-reading_group"
              data-map-target="canvas"
              class='tw-h-full tw-w-full tw-absolute tw-top-0 tw-left-0'>
         </div>

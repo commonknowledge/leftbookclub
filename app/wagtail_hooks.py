@@ -242,6 +242,7 @@ class ReadingGroupAdmin(ModelAdmin):
         "is_online",
         "join_contact_link",
         "is_approved",
+        "is_recurring",
     )
     list_editable = ("is_approved",)
     
@@ -249,11 +250,11 @@ class ReadingGroupAdmin(ModelAdmin):
         "next_event",
         "is_online",
         "is_approved",
+        "is_recurring",
     )
     search_fields = (
         "group_name",
         "in_person_location",
-        "description",
     )
 
 

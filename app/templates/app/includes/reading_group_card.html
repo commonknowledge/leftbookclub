@@ -43,8 +43,8 @@
                 {% endif %}
             </div>
 
-            {% if show_event is not False and reading_group.description %}
-                <div class="tw-mt-2">{{ reading_group.description|richtext }}</div>
+            {% if show_event is not False and reading_group.recurring_pattern %}
+                <div class="tw-mt-2">{{ reading_group.recurring_pattern }}</div>
             {% endif %}
 
             {% if show_button is not False and reading_group.join_contact_link %}

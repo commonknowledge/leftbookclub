@@ -774,11 +774,11 @@ class PublicReadingGroupForm(forms.ModelForm):
             "in_person_location",
             "in_person_postcode",
             "join_contact_link",
-            "description",
             "is_recurring",
+            "recurring_pattern"
         ]
         widgets = {
-            "start_date": DateTimeInput(
+            "next_event": DateTimeInput(
                 attrs={"type": "datetime-local", "min": datetime.now().strftime("%Y-%m-%dT%H:%M")},
                 format="%Y-%m-%dT%H:%M",
             )
@@ -786,13 +786,13 @@ class PublicReadingGroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["start_date"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["next_event"].input_formats = ["%Y-%m-%dT%H:%M"]
 
     def clean(self):
         cleaned_data = super().clean()
 
         # Gather all dates
-        start_date = cleaned_data.get("start_date")
+        start_date = cleaned_data.get("next_event")
         additional_dates = [
             cleaned_data.get(f"additional_date_{i}") for i in range(1, 6)
         ]

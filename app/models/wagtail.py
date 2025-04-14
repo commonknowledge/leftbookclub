@@ -83,7 +83,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         max_length=500,
         blank=True,
         null=True,
-        help_text="Enter a location if your event is in person.",
+        help_text="Enter an address if your event is in person.",
     )
     in_person_postcode = models.CharField(
         max_length=20,
@@ -92,11 +92,15 @@ class ReadingGroup(ClusterableModel, models.Model):
         help_text="Enter a UK postcode to show your event on our map.",
     )
     join_contact_link = models.URLField(max_length=1024, blank=True, null=True, help_text="Add the link to contact the group or join the event here.")
-    description = RichTextField(blank=True, null=True, help_text="Add a description of the event.")
     coordinates = gis_models.PointField(null=True, blank=True)
     is_approved = models.BooleanField(default=False)
     is_recurring = models.BooleanField(default=False)
-    
+    recurring_pattern = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Enter a description of the recurring pattern, e.g. 'Every first Monday of the month'.",
+    )
 
     panels = [
         FieldPanel("group_name"),
@@ -106,9 +110,9 @@ class ReadingGroup(ClusterableModel, models.Model):
         FieldPanel("in_person_location"),
         FieldPanel("in_person_postcode"),
         FieldPanel("join_contact_link"),
-        FieldPanel("description"),
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
+        FieldPanel("recurring_pattern"),
     ]
 
     class Meta:
@@ -161,11 +165,9 @@ class ReadingGroup(ClusterableModel, models.Model):
                 "slug": self.group_name.lower().replace(" ", "-"),
                 "starts_at": next_date.isoformat(),
                 "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y"),
-                "url": self.join_contact_link or "",
                 "location_type": "virtual" if self.is_online else "in_person",
                 "in_person_location": self.in_person_location,
-                "virtual_location_url": self.join_contact_link,
-                "body": strip_tags(self.description) if self.description else "",
+                "join_contact_link": self.join_contact_link,
                 "postcode": self.in_person_postcode,
                 "all_dates": [d.isoformat() for d in self.upcoming_dates],
             },

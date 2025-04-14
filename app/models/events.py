@@ -11,16 +11,16 @@ class EventSubmissionPage(Page):
     ]
 
     def serve(self, request):
-        from app.forms import PublicEventForm
+        from app.forms import PublicReadingGroupForm
 
         if request.method == "POST":
-            form = PublicEventForm(request.POST)
+            form = PublicReadingGroupForm(request.POST)
             if form.is_valid():
                 event = form.save(commit=False)
                 event.is_approved = False
                 event.save()
                 return render(request, "events/thank_you.html", {"page": self})
         else:
-            form = PublicEventForm()
+            form = PublicReadingGroupForm()
 
         return render(request, "events/event_form.html", {"form": form, "page": self})

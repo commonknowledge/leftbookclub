@@ -91,7 +91,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         null=True,
         help_text="Enter a UK postcode to show your event on our map.",
     )
-    online_url = models.URLField(max_length=1024, blank=True, null=True, help_text="If your event is online add the url here.")
+    join_contact_link = models.URLField(max_length=1024, blank=True, null=True, help_text="Add the link to contact the group or join the event here.")
     description = RichTextField(blank=True, null=True, help_text="Add a description of the event.")
     coordinates = gis_models.PointField(null=True, blank=True)
     is_approved = models.BooleanField(default=False)
@@ -105,7 +105,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         FieldPanel("is_online"),
         FieldPanel("in_person_location"),
         FieldPanel("in_person_postcode"),
-        FieldPanel("online_url"),
+        FieldPanel("join_contact_link"),
         FieldPanel("description"),
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
@@ -161,10 +161,10 @@ class ReadingGroup(ClusterableModel, models.Model):
                 "slug": self.group_name.lower().replace(" ", "-"),
                 "starts_at": next_date.isoformat(),
                 "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y"),
-                "url": self.online_url or "",
+                "url": self.join_contact_link or "",
                 "location_type": "virtual" if self.is_online else "in_person",
                 "in_person_location": self.in_person_location,
-                "virtual_location_url": self.online_url,
+                "virtual_location_url": self.join_contact_link,
                 "body": strip_tags(self.description) if self.description else "",
                 "postcode": self.in_person_postcode,
                 "all_dates": [d.isoformat() for d in self.upcoming_dates],

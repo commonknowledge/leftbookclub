@@ -240,7 +240,7 @@ class ReadingGroupAdmin(ModelAdmin):
         "group_name",
         "next_event",
         "is_online",
-        "online_url",
+        "join_contact_link",
         "is_approved",
     )
     list_editable = ("is_approved",)

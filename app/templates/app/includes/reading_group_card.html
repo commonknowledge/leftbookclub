@@ -28,6 +28,8 @@
                         <span>Next meeting on {{ first_date|date:"P T" }}</span>
                         <span>&middot;</span>
                         <span>{{ first_date }}</span>
+                        <span>{{ first_date|naturaltime }}</span>
+
                     </div>
                 {% endwith %}
                 {% if reading_group.upcoming_dates|length > 1 %}
@@ -45,9 +47,9 @@
                 <div class="tw-mt-2">{{ reading_group.description|richtext }}</div>
             {% endif %}
 
-            {% if show_button is not False and reading_group.online_url %}
+            {% if show_button is not False and reading_group.join_contact_link %}
                 <br />
-                {% bootstrap_button href=reading_group.online_url content="Learn more" %}
+                {% bootstrap_button href=reading_group.join_contact_link content="Join/Contact Group" %}
             {% endif %}
         </div>
     </div>

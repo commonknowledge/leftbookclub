@@ -773,7 +773,7 @@ class PublicReadingGroupForm(forms.ModelForm):
             "is_online",
             "in_person_location",
             "in_person_postcode",
-            "online_url",
+            "join_contact_link",
             "description",
             "is_recurring",
         ]

@@ -1201,42 +1201,42 @@ class MapPage(WagtailCacheMixin, Page):
         context["sources"] = {}
         context["layers"] = {}
 
-        # Events
-        context["events"] = list(
+        # Reading Groups
+        context["reading_groups"] = list(
             ReadingGroup.objects.filter(next_event__gte=datetime.now(), is_approved=True)
-            .order_by("next_event")   
+            .order_by("next_event")
             .all()
         )
 
-        context["sources"]["events"] = {
+        context["sources"]["reading_groups"] = {
             "type": "geojson",
             "data": {
                 "type": "FeatureCollection",
                 "features": [
-                    event.as_geojson_feature
-                    for event in context["events"]
-                    if event.as_geojson_feature.get("geometry", None) is not None
+                    group.as_geojson_feature
+                    for group in context["reading_groups"]
+                    if group.as_geojson_feature.get("geometry", None) is not None
                 ],
             },
         }
 
         context["layers"].update(
             {
-                "event-icon-border": {
-                    "source": "events",
-                    "id": "event-icon-border",
+                "reading-group-icon-border": {
+                    "source": "reading_groups",
+                    "id": "reading-group-icon-border",
                     "type": "circle",
                     "paint": {"circle-color": "#000000", "circle-radius": 10},
                 },
-                "event-icons": {
-                    "source": "events",
-                    "id": "event-icons",
+                "reading-group-icons": {
+                    "source": "reading_groups",
+                    "id": "reading-group-icons",
                     "type": "circle",
                     "paint": {"circle-color": "#F8F251", "circle-radius": 8},
                 },
-                "event-dates": {
-                    "source": "events",
-                    "id": "event-dates",
+                "reading-group-dates": {
+                    "source": "reading_groups",
+                    "id": "reading-group-dates",
                     "type": "symbol",
                     "paint": {"text-color": "black", "text-opacity": 1},
                     "layout": {
@@ -1249,9 +1249,9 @@ class MapPage(WagtailCacheMixin, Page):
                         "text-font": ["Inter Regular"],
                     },
                 },
-                "event-names": {
-                    "source": "events",
-                    "id": "event-names",
+                "reading-group-names": {
+                    "source": "reading_groups",
+                    "id": "reading-group-names",
                     "type": "symbol",
                     "layout": {
                         "text-field": ["get", "name"],
@@ -1264,15 +1264,10 @@ class MapPage(WagtailCacheMixin, Page):
                     "paint": {
                         "text-opacity": [
                             "interpolate",
-                            # Set the exponential rate of change to 0.5
                             ["exponential", 0.5],
                             ["zoom"],
-                            # When zoom is 8, buildings will be 100% transparent.
-                            8,
-                            0,
-                            # When zoom is 11 or higher, buildings will be 100% opaque.
-                            11,
-                            1,
+                            8, 0,
+                            11, 1,
                         ]
                     },
                 },

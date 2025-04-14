@@ -50,9 +50,10 @@
                 <span data-list-filter-target="count">0</span> events
             </span>
         </div>
+     
         <ol class="tw-relative tw-list-none tw-p-0 tw-m-0 tw-space-y-2 tw-mb-2">
-            {% for event in events %}
-                {% include "app/includes/event_card.html" with event=event %}
+            {% for reading_group in reading_groups %}
+                {% include "app/includes/event_card.html" with reading_group=reading_group %}
             {% endfor %}
         </ol>
     </section>

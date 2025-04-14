@@ -25,20 +25,14 @@
                     <div>
                         <span class="tw-capitalize">{% if reading_group.is_online %}virtual{% else %}in person{% endif %}</span>
                         <span>&middot;</span>
-                        <span>Starts at {{ first_date|date:"P T" }}</span>
+                        <span>Next meeting on {{ first_date|date:"P T" }}</span>
                         <span>&middot;</span>
-                        <span>{{ first_date|naturaltime }}</span>
+                        <span>{{ first_date }}</span>
                     </div>
                 {% endwith %}
                 {% if reading_group.upcoming_dates|length > 1 %}
                     {% with first_date=reading_group.upcoming_dates.0 %}
-                        {% for date in reading_group.upcoming_dates %}
-                            {% if date != first_date %}
-                                <div class="tw-text-xs tw-text-gray-500 tw-ml-1 tw-italic">
-                                    Also on {{ date|date:"j M Y, P" }}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
+            
                     {% endwith %}
                 {% endif %}
 

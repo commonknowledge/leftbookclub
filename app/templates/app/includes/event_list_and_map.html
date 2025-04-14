@@ -46,8 +46,8 @@
                data-list-filter-attr-param="locationType"
                data-action="click->list-filter#selectForAttr"
                class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-py-1 tw-px-2 tw-rounded-lg tw-bg-slate-300 hover:tw-bg-slate-400 hover:tw-text-black">Online</a>
-            <span class='tw-rounded-lg tw-bg-slate-100'>
-                <span data-list-filter-target="count">0</span> events
+               <span class='tw-rounded-lg tw-bg-slate-100'>
+                <span data-list-filter-target="count">{{ reading_groups|length }}</span> reading group{{ reading_groups|length|pluralize }}
             </span>
         </div>
      

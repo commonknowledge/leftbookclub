@@ -224,17 +224,17 @@ modeladmin_register(EventAdmin)
 class ReadingGroupAdmin(ModelAdmin):
     model = ReadingGroup
     base_url_path = (
-        "reading-groups"  # customise the URL from default to admin/EventAdmin
+        "reading-groups" 
     )
-    menu_label = "Reading Groups"  # ditch this to use verbose_name_plural from model
-    menu_icon = "date"
-    menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
+    menu_label = "Reading Groups"
+    menu_icon = "group"
+    menu_order = 200 
     ordering = ("-next_event",)
-    add_to_settings_menu = False  # or True to add your model to the Settings sub-menu
+    add_to_settings_menu = False  
     exclude_from_explorer = (
-        False  # or True to exclude pages of this type from Wagtail's explorer view
+        False  
     )
-    add_to_admin_menu = True  # or False to exclude your model from the menu
+    add_to_admin_menu = True 
 
     list_display = (
         "group_name",

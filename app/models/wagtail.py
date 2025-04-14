@@ -78,16 +78,21 @@ class EventDate(models.Model):
 class ReadingGroup(ClusterableModel, models.Model):
     group_name = models.CharField(max_length=500)
     next_event = models.DateTimeField()
-    is_online = models.BooleanField(default=False)
-    in_person_location = models.CharField(max_length=500)
+    is_online = models.BooleanField(default=False, help_text="Is this event online?")
+    in_person_location = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Enter a location if your event is in person.",
+    )
     in_person_postcode = models.CharField(
         max_length=20,
         blank=True,
         null=True,
         help_text="Enter a UK postcode to show your event on our map.",
     )
-    online_url = models.URLField(max_length=1024, blank=True, null=True)
-    description = RichTextField(blank=True, null=True)
+    online_url = models.URLField(max_length=1024, blank=True, null=True, help_text="If your event is online add the url here.")
+    description = RichTextField(blank=True, null=True, help_text="Add a description of the event.")
     coordinates = gis_models.PointField(null=True, blank=True)
     is_approved = models.BooleanField(default=False)
     is_recurring = models.BooleanField(default=False)

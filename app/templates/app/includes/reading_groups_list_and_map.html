@@ -48,15 +48,17 @@
          <a data-list-filter-target="option"
             data-list-filter-value-param="virtual"
             data-list-filter-attr-param="locationType"
-            data-action="click->list-filter#selectForAttr"
-            class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-slate-300 hover:tw-bg-slate-400 hover:tw-text-black tw-uppercase tw-w-full text-center">Show Online Groups Only</a>
+            data-action="click->list-filter#toggleForAttr"
+            class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-slate-300 hover:tw-bg-slate-400 hover:tw-text-black tw-uppercase tw-w-full text-center">
+         Show Online Groups Only
+         </a>
          {% if not user.is_member %}
          {% bootstrap_button href="/join" content="Join LBC and come along" %}
          {% endif %}
       </article>
       <div class="tw-space-x-1 px-4 tw-text-sm my-3">
          <span class='tw-uppercase tw-text-black  tw-opacity-50'>
-         <span data-list-filter-target="count">Showing all {{ reading_groups|length }}</span> reading group{{ reading_groups|length|pluralize }}
+         <span data-list-filter-target="count">Showing all {{ reading_groups|length }}</span>
          </span>
       </div>
       <ol class="tw-relative tw-list-none tw-p-0 tw-m-0 tw-space-y-2 tw-mb-2">

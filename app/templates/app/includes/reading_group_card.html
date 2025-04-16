@@ -1,8 +1,5 @@
 {% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
-<li data-fly-to-map-zoom-param="12"
-   data-fly-to-map-lng-param="{{ reading_group.coordinates.x }}"
-   data-fly-to-map-lat-param="{{ reading_group.coordinates.y }}"
-   data-action="mouseenter->fly-to-map#flyTo"
+<li
    id="event-{{ reading_group.id }}"
    data-list-filter-target="item"
    data-location-type="{% if reading_group.is_online %}virtual{% else %}in_person{% endif %}"
@@ -72,7 +69,15 @@
             <a href="{{reading_group.join_contact_link}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
             {% endif %}
             {% if reading_group.in_person_location %}
-            <button class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4  tw-bg-slate-300 hover:tw-bg-slate-400 tw-uppercase tw-w-full text-center">View on Map →</button>
+            <button
+              class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-slate-300 hover:tw-bg-slate-400 tw-uppercase tw-w-full text-center"
+              data-action="click->fly-to-map#flyTo"
+              data-lng="{{ reading_group.coordinates.x }}"
+              data-lat="{{ reading_group.coordinates.y }}"
+              data-zoom="12"
+            >
+              View on Map →
+            </button>
             {% else %}
             <button disabled class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-opacity-[0.3] tw-bg-slate-300 tw-uppercase tw-w-full text-center">Not on Map</button>
             {%endif%}

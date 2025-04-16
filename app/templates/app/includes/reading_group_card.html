@@ -69,7 +69,7 @@
          </div>
          <div class="tw-flex tw-gap-4 mt-4">
             {% if reading_group.join_contact_link %}
-            <a class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
+            <a href="{{reading_group.join_contact_link}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
             {% endif %}
             {% if reading_group.in_person_location %}
             <button class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4  tw-bg-slate-300 hover:tw-bg-slate-400 tw-uppercase tw-w-full text-center">View on Map →</button>

@@ -231,6 +231,8 @@ urlpatterns = [
         ),
         name="membership_options_grid",
     ),
+    path("geo/postcode/<str:postcode>/", views.postcode_lookup_view, name="postcode_lookup"),
+
     # re_path(r'^wagtail-transfer/', include(wagtailtransfer_urls)),
     # For anything not caught by a more specific rule above, hand over to Wagtail's serving mechanism
 ]

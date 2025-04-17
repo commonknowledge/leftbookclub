@@ -24,21 +24,64 @@
             <p class="tw-uppercase tw-text-center tw-whitespace-nowrap mb-0">Search by postcode</p>
             <div class="tw-flex-1 tw-border-t tw-border-dotted"></div>
          </div>
-         <div class="tw-relative tw-mb-3">
-            <input
-               type="text"
-               name="postcode"
-               placeholder="type here"
-               class="tw-border tw-py-2 tw-pl-2 tw-pr-2 tw-w-full tw-rounded"
-               />
-            <svg 
-               class="tw-absolute tw-right-3 tw-top-1/2 tw--translate-y-1/2 tw-h-[20px] tw-w-[20px]  tw-text-gray-400 tw-pointer-events-none"
-               xmlns="http://www.w3.org/2000/svg" width="19" height="20" viewBox="0 0 19 20" fill="none">
-               <g id="Group" opacity="0.5">
-                  <path id="Vector" d="M1.4209 10H3.83276M15.0881 10H17.5M9.46045 1.96045V4.37231M9.46045 15.6277V18.0396" stroke="#212529" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path id="Vector_2" d="M9.46069 15.6277C12.5688 15.6277 15.0884 13.1081 15.0884 10C15.0884 6.89192 12.5688 4.37231 9.46069 4.37231C6.35261 4.37231 3.83301 6.89192 3.83301 10C3.83301 13.1081 6.35261 15.6277 9.46069 15.6277Z" stroke="#212529" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-               </g>
-            </svg>
+         <div class="tw-mb-3" data-controller="zoom-to-postcode">
+            <div class="tw-relative">
+               <input
+                  type="text"
+                  name="postcode"
+                  placeholder="type your postcode"
+                  class="tw-border tw-py-2 tw-pl-2 tw-pr-10 tw-w-full tw-rounded"
+                  data-zoom-to-postcode-target="input"
+                  />
+               <button
+                  type="button"
+                  data-zoom-to-postcode-target="clear"
+                  data-action="click->zoom-to-postcode#clearSearch"
+                  class="tw-absolute tw-right-0 tw-top-1/2 tw--translate-y-1/2 tw-text-gray-400 hover:tw-text-black tw-h-5 tw-w-5 tw-flex tw-items-center tw-justify-center tw-rounded-full tw-bg-transparent tw-z-10 tw-hidden"
+                  aria-label="Clear search"
+                  >
+               &times;
+               </button>
+               <button
+                  type="submit"
+                  data-zoom-to-postcode-target="submit"
+                  data-action="click->zoom-to-postcode#searchPostcode"
+                  class="tw-absolute tw-right-2 tw-top-1/2 tw--translate-y-1/2 tw-h-[24px] tw-w-[24px] tw-text-gray-500 hover:tw-text-black tw-bg-transparent"
+                  aria-label="Search postcode"
+                  >
+                  <svg
+                     xmlns="http://www.w3.org/2000/svg"
+                     width="19"
+                     height="20"
+                     viewBox="0 0 19 20"
+                     fill="none"
+                     class="tw-h-full tw-w-full"
+                     >
+                     <g id="Group" opacity="0.5">
+                        <path
+                           id="Vector"
+                           d="M1.4209 10H3.83276M15.0881 10H17.5M9.46045 1.96045V4.37231M9.46045 15.6277V18.0396"
+                           stroke="#212529"
+                           stroke-width="2"
+                           stroke-linecap="round"
+                           stroke-linejoin="round"
+                           />
+                        <path
+                           id="Vector_2"
+                           d="M9.46069 15.6277C12.5688 15.6277 15.0884 13.1081 15.0884 10C15.0884 6.89192 12.5688 4.37231 9.46069 4.37231C6.35261 4.37231 3.83301 6.89192 3.83301 10C3.83301 13.1081 6.35261 15.6277 9.46069 15.6277Z"
+                           stroke="#212529"
+                           stroke-width="2"
+                           stroke-linecap="round"
+                           stroke-linejoin="round"
+                           />
+                     </g>
+                  </svg>
+               </button>
+            </div>
+            <div
+               class="tw-text-sm tw-text-red-600 tw-mt-2"
+               data-zoom-to-postcode-target="error"
+               ></div>
          </div>
          <div class="tw-flex tw-items-center tw-gap-4 mb-3">
             <div class="tw-flex-1 tw-border-t tw-border-dotted"></div>

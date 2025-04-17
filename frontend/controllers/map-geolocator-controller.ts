@@ -39,7 +39,7 @@ export default class GeolocateController extends MapConfigController {
       this.marker.remove();
     }
 
-    this.marker = new mapboxgl.Marker({ color: "#d00" })
+    this.marker = new mapboxgl.Marker({ color: "#F8F400" })
       .setLngLat([lon, lat])
       .addTo(this.map);
 

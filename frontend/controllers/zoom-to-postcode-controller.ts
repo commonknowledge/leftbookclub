@@ -84,7 +84,6 @@ export default class extends Controller {
     this.clearTarget.classList.toggle("tw-hidden", !showClear);
     this.submitTarget.classList.toggle("tw-hidden", showClear);
   }
-
   sortReadingGroupsByDistance(lat: number, lon: number) {
     const items = Array.from(
       document.querySelectorAll('[data-list-filter-target="item"]')
@@ -110,6 +109,12 @@ export default class extends Controller {
     };
 
     const sorted = items.sort((a, b) => {
+      const aIsOnline = !a.dataset.lat || !a.dataset.lng;
+      const bIsOnline = !b.dataset.lat || !b.dataset.lng;
+
+      if (aIsOnline && !bIsOnline) return 1;
+      if (!aIsOnline && bIsOnline) return -1;
+
       return distanceFromPostcode(a) - distanceFromPostcode(b);
     });
 
@@ -122,8 +127,12 @@ export default class extends Controller {
         const mi = toMiles(km);
         const label = el.querySelector("[data-reading-group-distance]");
 
-        if (label && isFinite(mi)) {
-          label.textContent = `${mi.toFixed(1)} mi away`;
+        if (label) {
+          if (isFinite(mi)) {
+            label.textContent = `${mi.toFixed(1)} mi away`;
+          } else {
+            label.textContent = "";
+          }
         }
       });
     }

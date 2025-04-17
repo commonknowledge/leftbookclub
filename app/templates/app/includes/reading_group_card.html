@@ -1,9 +1,15 @@
 {% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
 <li
-   id="event-{{ reading_group.id }}"
-   data-list-filter-target="item"
-   data-location-type="{% if reading_group.is_online %}virtual{% else %}in_person{% endif %}"
-   class="{% firstof class 'tw-w-full tw-px-2' %}">
+  id="event-{{ reading_group.id }}"
+  data-list-filter-target="item"
+  data-location-type="{% if reading_group.is_online %}virtual{% else %}in_person{% endif %}"
+  {% if reading_group.coordinates %}
+    data-lat="{{ reading_group.coordinates.y }}"
+    data-lng="{{ reading_group.coordinates.x }}"
+  {% endif %}
+  data-original-index="{{ forloop.counter0 }}"
+  class="{% firstof class 'tw-w-full tw-px-2' %}"
+>
    <div class='m-3 p-4 tw-bg-white'>
       <div class="tw-flex tw-justify-between">
          <div>
@@ -35,10 +41,13 @@
             {% endwith %}
          </div>
          {% if reading_group.in_person_location %}
-         <div class="">
-            <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2">Location</p>
-            {{ reading_group.in_person_location }}
+         {% if reading_group.in_person_location %}
+         <div>
+           <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2">Location</p>
+           {{ reading_group.in_person_location }}
+           <p class="tw-text-sm tw-text-gray-500" data-reading-group-distance></p>
          </div>
+       {% endif %}
          {% elif reading_group.is_online %}
          <div class="">
             <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2">Location</p>

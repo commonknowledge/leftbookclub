@@ -32,6 +32,8 @@ export default class extends Controller {
             bubbles: true,
           })
         );
+
+        this.sortReadingGroupsByDistance(data.latitude, data.longitude);
       } else {
         this.errorTarget.textContent =
           "Postcode not found. Please enter a valid UK postcode.";
@@ -48,6 +50,25 @@ export default class extends Controller {
     this.errorTarget.textContent = "";
     this.toggleButtons(false);
 
+    document.querySelectorAll("[data-reading-group-distance]").forEach((el) => {
+      el.textContent = "";
+    });
+
+    const list = document.querySelector("ol");
+    if (list) {
+      const items = Array.from(
+        list.querySelectorAll("[data-original-index]")
+      ) as HTMLElement[];
+      const sorted = items.sort((a, b) => {
+        return (
+          parseInt(a.dataset.originalIndex || "0") -
+          parseInt(b.dataset.originalIndex || "0")
+        );
+      });
+
+      sorted.forEach((el) => list.appendChild(el));
+    }
+
     this.element.dispatchEvent(
       new CustomEvent("reset-zoom", {
         bubbles: true,
@@ -62,5 +83,49 @@ export default class extends Controller {
   toggleButtons(showClear: boolean) {
     this.clearTarget.classList.toggle("tw-hidden", !showClear);
     this.submitTarget.classList.toggle("tw-hidden", showClear);
+  }
+
+  sortReadingGroupsByDistance(lat: number, lon: number) {
+    const items = Array.from(
+      document.querySelectorAll('[data-list-filter-target="item"]')
+    ) as HTMLElement[];
+
+    const toMiles = (km: number) => km * 0.621371;
+    const toRad = (deg: number) => deg * (Math.PI / 180);
+
+    const distanceFromPostcode = (el: HTMLElement): number => {
+      const lat2 = parseFloat(el.dataset.lat || "");
+      const lon2 = parseFloat(el.dataset.lng || "");
+
+      if (isNaN(lat2) || isNaN(lon2)) return Infinity;
+
+      const R = 6371;
+      const dLat = toRad(lat2 - lat);
+      const dLon = toRad(lon2 - lon);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    };
+
+    const sorted = items.sort((a, b) => {
+      return distanceFromPostcode(a) - distanceFromPostcode(b);
+    });
+
+    const list = document.querySelector("ol");
+    if (list) {
+      sorted.forEach((el) => {
+        list.appendChild(el);
+
+        const km = distanceFromPostcode(el);
+        const mi = toMiles(km);
+        const label = el.querySelector("[data-reading-group-distance]");
+
+        if (label && isFinite(mi)) {
+          label.textContent = `${mi.toFixed(1)} mi away`;
+        }
+      });
+    }
   }
 }

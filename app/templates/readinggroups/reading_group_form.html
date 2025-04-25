@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3 tw-py-5">
+  <h2 class="tw-text-lg tw-mb-4">Submit a Reading Group</h2>
+  
+  <form method="post" class="tw-space-y-4">
+    {% csrf_token %}
+    
+    {% bootstrap_form form layout='vertical' %}
+    
+    <button type="submit" class="btn btn-primary tw-text-md w-full">
+      Submit Reading Group
+    </button>
+  </form>
+</div>
+{% endblock %}

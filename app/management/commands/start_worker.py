@@ -8,6 +8,3 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Start the one-off job queue (`django_dbq`)
         management.call_command("worker", rate_limit=30)
-        # Start the periodic job queue (`groundwork` via `schedule`)
-        management.call_command("run_cron_tasks")
-        print("Workers have been started.")

@@ -18,6 +18,7 @@ from app.models.django import User
 from app.models.stripe import LBCCustomer, LBCProduct, LBCSubscription, ShippingZone
 from app.models.wagtail import MembershipPlanPage, MembershipPlanPrice, ReadingOption
 from app.utils import ensure_list
+from app.models.wagtail import ReadingGroup 
 
 
 @hooks.register("insert_global_admin_css")
@@ -217,5 +218,44 @@ class EventAdmin(ModelAdmin):
     )
 
 
-# Now you just need to register your customised ModelAdmin class with Wagtail
 modeladmin_register(EventAdmin)
+
+
+class ReadingGroupAdmin(ModelAdmin):
+    model = ReadingGroup
+    base_url_path = (
+        "reading-groups" 
+    )
+    menu_label = "Reading Groups"
+    menu_icon = "group"
+    menu_order = 200 
+    ordering = ("-next_event",)
+    add_to_settings_menu = False  
+    exclude_from_explorer = (
+        False  
+    )
+    add_to_admin_menu = True 
+
+    list_display = (
+        "group_name",
+        "next_event",
+        "is_online",
+        "join_contact_link",
+        "is_approved",
+        "is_recurring",
+    )
+    list_editable = ("is_approved",)
+    
+    list_filter = (
+        "next_event",
+        "is_online",
+        "is_approved",
+        "is_recurring",
+    )
+    search_fields = (
+        "group_name",
+        "in_person_location",
+    )
+
+
+modeladmin_register(ReadingGroupAdmin)

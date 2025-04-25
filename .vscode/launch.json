@@ -68,7 +68,7 @@
       "cwd": "${workspaceFolder}",
       // "port": 5858,
       "runtimeExecutable": "yarn",
-      "runtimeArgs": ["start:debug"]
+      "runtimeArgs": ["start:debug", "--host"]
     },
     {
       "type": "node",

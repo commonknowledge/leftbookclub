@@ -15,6 +15,9 @@ from django.utils.safestring import mark_safe
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
+from django.forms import DateTimeInput
+from django.utils.timezone import now
+from app.models import ReadingGroup
 
 from app import analytics
 from app.models import MembershipPlanPage, User
@@ -729,3 +732,87 @@ class SelectSyllabusForm(forms.Form):
 
 class SelectPaymentPlanForm(forms.Form):
     membership_plan_price = forms.CharField(widget=forms.HiddenInput)
+
+class PublicReadingGroupForm(forms.ModelForm):
+    additional_date_1 = forms.DateTimeField(
+        required=False,
+        widget=DateTimeInput(attrs={"type": "datetime-local", "min": now().strftime("%Y-%m-%dT%H:%M")}),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        label="Additional Date 1",
+    )
+    additional_date_2 = forms.DateTimeField(
+        required=False,
+        widget=DateTimeInput(attrs={"type": "datetime-local", "min": now().strftime("%Y-%m-%dT%H:%M")}),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        label="Additional Date 2",
+    )
+    additional_date_3 = forms.DateTimeField(
+        required=False,
+        widget=DateTimeInput(attrs={"type": "datetime-local", "min": now().strftime("%Y-%m-%dT%H:%M")}),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        label="Additional Date 3",
+    )
+    additional_date_4 = forms.DateTimeField(
+        required=False,
+        widget=DateTimeInput(attrs={"type": "datetime-local", "min": now().strftime("%Y-%m-%dT%H:%M")}),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        label="Additional Date 4",
+    )
+    additional_date_5 = forms.DateTimeField(
+        required=False,
+        widget=DateTimeInput(attrs={"type": "datetime-local", "min": now().strftime("%Y-%m-%dT%H:%M")}),
+        input_formats=["%Y-%m-%dT%H:%M"],
+        label="Additional Date 5",
+    )
+
+    class Meta:
+        model = ReadingGroup
+        fields = [
+            "group_name",
+            "next_event",
+            "is_online",
+            "in_person_location",
+            "in_person_postcode",
+            "join_contact_link",
+            "is_recurring",
+            "recurring_pattern"
+        ]
+        widgets = {
+            "next_event": DateTimeInput(
+                attrs={"type": "datetime-local", "min": datetime.now().strftime("%Y-%m-%dT%H:%M")},
+                format="%Y-%m-%dT%H:%M",
+            )
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["next_event"].input_formats = ["%Y-%m-%dT%H:%M"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Gather all dates
+        start_date = cleaned_data.get("next_event")
+        additional_dates = [
+            cleaned_data.get(f"additional_date_{i}") for i in range(1, 6)
+        ]
+        all_dates = [d for d in [start_date] + additional_dates if d is not None]
+
+        # Check for total future date limit
+        future_dates = [d for d in all_dates if d >= now()]
+        if len(future_dates) > 6:
+            raise forms.ValidationError("You can only have up to 6 future dates total.")
+
+        # Check for duplicate dates
+        if len(set(all_dates)) != len(all_dates):
+            raise forms.ValidationError("Duplicate dates are not allowed.")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        for i in range(1, 6):
+            date = self.cleaned_data.get(f"additional_date_{i}")
+            if date:
+                instance.additional_dates.create(date=date)
+        return instance

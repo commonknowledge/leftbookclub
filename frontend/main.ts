@@ -9,12 +9,12 @@ import { startApp } from "groundwork-django";
 const controllers = import.meta.glob("./controllers/*-controller.ts");
 Turbo.session.drive = false;
 
+console.log("running");
+
 initialisePosthog();
 initialiseSentry();
-startApp(controllers);
+const application = startApp(controllers);
 
-import { Application } from "@hotwired/stimulus";
 import ReadMore from "stimulus-read-more";
-const application = Application.start();
 application.register("read-more", ReadMore);
 application.debug = true;

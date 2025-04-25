@@ -1,0 +1,96 @@
+{% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+<li
+  id="event-{{ reading_group.id }}"
+  data-list-filter-target="item"
+  data-location-type="{% if reading_group.is_online %}virtual{% else %}in_person{% endif %}"
+  {% if reading_group.coordinates %}
+    data-lat="{{ reading_group.coordinates.y }}"
+    data-lng="{{ reading_group.coordinates.x }}"
+  {% endif %}
+  data-original-index="{{ forloop.counter0 }}"
+  class="{% firstof class 'tw-w-full tw-px-2' %}"
+>
+   <div class='m-3 p-4 tw-bg-white'>
+      <div class="tw-flex tw-justify-between">
+         <div>
+            <h3 class="tw-text-3xl">{{ reading_group.group_name }}</h3>
+            <p class="tw-uppercase tw-text-black  tw-opacity-50 tw-text-sm">Reading group</p>
+         </div>
+         <div class="tw-flex tw-flex-col tw-items-end">
+            <p class="tw-uppercase tw-text-black  tw-opacity-50 tw-text-sm mb-2">Meeting frequency</p>
+            {% if show_event is not False and reading_group.recurring_pattern %}
+            <div class="tw-text-sm">{{ reading_group.recurring_pattern }}</div>
+            {% endif %}
+         </div>
+      </div>
+      <hr>
+      <div class="tw-flex tw-uppercase tw-text-black  tw-opacity-50 tw-text-sm tw-items-center tw-justify-between tw-w-fit tw-gap-2">
+         <span>Upcoming meeting</span>
+         <svg xmlns="http://www.w3.org/2000/svg" width="6" height="7" viewBox="0 0 6 7" fill="none">
+            <circle id="Ellipse 12" cx="3" cy="3.5" r="3" fill="#B1B1B1"/>
+         </svg>
+         <span>{% if reading_group.is_online %}Online{% else %}in person{% endif %}</span>
+      </div>
+      <div class="tw-flex tw-justify-between mt-3">
+         <div class="tw-w-fit tw-text-center tw-relative tw-flex-shrink-0">
+            {% with first_date=reading_group.upcoming_dates.0 %}
+            <div class='tw-p-3 tw-whitespace-nowrap tw-leading-5 tw-bg-yellow'>
+               <div class='tw-text-lg tw-font-bold'>{{ first_date|date:"j" }}</div>
+               <div class='tw-uppercase tw-font-bold'>{{ first_date|date:"M" }}</div>
+            </div>
+            {% endwith %}
+         </div>
+         {% if reading_group.in_person_location %}
+         {% if reading_group.in_person_location %}
+         <div>
+           <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2">Location</p>
+           {{ reading_group.in_person_location }}
+           <p class="tw-text-sm tw-text-gray-500" data-reading-group-distance></p>
+         </div>
+       {% endif %}
+         {% elif reading_group.is_online %}
+         <div class="">
+            <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2">Location</p>
+            Zoom meeting
+         </div>
+         {% endif %}
+      </div>
+      <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
+         <div class='tw-text-sm tw-font-normal tw-leading-none tw-mt-3 tw-text-gray-700'>
+            {% with first_date=reading_group.upcoming_dates.0 %}
+            <div>
+               <p class="tw-text-base">
+                  {{ first_date|date:"l jS F Y" }},<br>
+                  {{ first_date|date:"g:i" }} - {{ first_date|date:"g:iA" }}
+               </p>
+               <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm">
+                  {{ first_date|naturaltime }}
+               </p>
+            </div>
+            {% endwith %}
+            {% if reading_group.upcoming_dates|length > 1 %}
+            {% with first_date=reading_group.upcoming_dates.0 %}
+            {% endwith %}
+            {% endif %}
+         </div>
+         <div class="tw-flex tw-gap-4 mt-4">
+            {% if reading_group.join_contact_link %}
+            <a href="{{reading_group.join_contact_link}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
+            {% endif %}
+            {% if reading_group.in_person_location or reading_group.in_person_postcode %}
+            <button
+              class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-slate-300 hover:tw-bg-slate-400 tw-uppercase tw-w-full text-center"
+              data-action="click->fly-to-map#flyTo"
+              data-lng="{{ reading_group.coordinates.x }}"
+              data-lat="{{ reading_group.coordinates.y }}"
+              data-zoom="12"
+            >
+              View on Map →
+            </button>
+            {% else %}
+            <button disabled class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-opacity-[0.3] tw-bg-slate-300 tw-uppercase tw-w-full text-center">Not on Map</button>
+            {%endif%}
+         </div>
+      </div>
+   </div>
+</li>

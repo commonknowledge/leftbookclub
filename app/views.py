@@ -34,6 +34,8 @@ from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 from sentry_sdk import capture_exception, capture_message
 from wagtail.models import Page
+from app.utils.geo import postcode_geo
+from django.http import JsonResponse
 
 from app import analytics
 from app.forms import (
@@ -185,67 +187,73 @@ class StripeCheckoutSuccessView(LoginRequiredMixin, TemplateView):
                     subscription is not None
                     and subscription.metadata.get("processed", None) is None
                 ):
-                    # Context for fbq tracking
-                    context["subscription"] = subscription
-                    context["value"] = subscription.latest_invoice.amount_due / 100
-                    context["currency"] = subscription.latest_invoice.currency
+                    try:
+                        # Context for fbq tracking
+                        context["subscription"] = subscription
+                        context["value"] = subscription.latest_invoice.amount_due / 100
+                        context["currency"] = subscription.latest_invoice.currency
 
-                    if gift_mode:
-                        """
-                        Resolve gift purchase by creating a promo code and relating it to the gift buyer's subscription,
-                        for future reference.
-                        """
-                        self.finish_gift_purchase(session, subscription, customer)
-                        analytics.buy_gift(self.request.user)
-                        tag_user_in_mailchimp(
-                            self.request.user, tags_to_enable=["GIFT_GIVER"]
+                        if gift_mode:
+                            # Gift flow
+                            self.finish_gift_purchase(session, subscription, customer)
+                            analytics.buy_gift(self.request.user)
+                            tag_user_in_mailchimp(
+                                self.request.user, tags_to_enable=["GIFT_GIVER"]
+                            )
+                            prod_id = session.metadata.get("primary_product")
+                            prod = djstripe.models.Product.objects.get(id=prod_id)
+
+                            create_shopify_order(
+                                self.request.user,
+                                line_items=[
+                                    {
+                                        "title": f"Gift Card Purchase - {prod.name}",
+                                        "quantity": 1,
+                                        "price": 0,
+                                    }
+                                ],
+                                tags=["Gift Card Purchase"],
+                            )
+
+                        else:
+                            # Membership flow
+                            self.finish_self_purchase(session, subscription, customer)
+                            analytics.buy_membership(self.request.user)
+                            tag_user_in_mailchimp(
+                                self.request.user,
+                                tags_to_enable=["MEMBER"],
+                                tags_to_disable=["CANCELLED"],
+                            )
+                            prod_id = session.metadata.get("primary_product", None)
+                            prod = djstripe.models.Product.objects.get(id=prod_id)
+
+                            create_shopify_order(
+                                self.request.user,
+                                line_items=[
+                                    {
+                                        "title": f"Membership Subscription Purchase — {prod.name}",
+                                        "quantity": 1,
+                                        "price": 0,
+                                    }
+                                ],
+                                tags=["Membership Subscription Purchase"],
+                            )
+
+                        analytics.signup(self.request.user)
+
+                        stripe.Subscription.modify(
+                            subscription.id, metadata={"processed": True}
                         )
-                        prod_id = session.metadata.get("primary_product")
-                        prod = djstripe.models.Product.objects.get(id=prod_id)
-                        create_shopify_order(
-                            self.request.user,
-                            line_items=[
-                                {
-                                    "title": f"Gift Card Purchase - {prod.name}",
-                                    "quantity": 1,
-                                    "price": 0,
-                                }
-                            ],
-                            tags=["Gift Card Purchase"],
+
+                    except Exception as e:
+                        from sentry_sdk import capture_exception, capture_message
+
+                        # Log to Sentry
+                        capture_exception(e)
+                        capture_message(
+                            f"[StripeCheckoutSuccess] Failed to complete processing for user {self.request.user.email}, subscription {subscription.id}"
                         )
-                    else:
-                        """
-                        Resolve a normal membership purchase
-                        """
-                        self.finish_self_purchase(session, subscription, customer)
-                        analytics.buy_membership(self.request.user)
-                        tag_user_in_mailchimp(
-                            self.request.user,
-                            tags_to_enable=["MEMBER"],
-                            tags_to_disable=["CANCELLED"],
-                        )
-                        prod_id = session.metadata.get("primary_product", None)
-                        prod = djstripe.models.Product.objects.get(id=prod_id)
-                        create_shopify_order(
-                            self.request.user,
-                            line_items=[
-                                {
-                                    "title": f"Membership Subscription Purchase — {prod.name}",
-                                    "quantity": 1,
-                                    "price": 0,
-                                }
-                            ],
-                            tags=["Membership Subscription Purchase"],
-                        )
-
-                    analytics.signup(self.request.user)
-
-                    stripe.Subscription.modify(
-                        subscription.id, metadata={"processed": True}
-                    )
-
-        return context
-
+        
     def finish_self_purchase(self, session, subscription, customer) -> dict:
         # Relate the django user to this customer
         customer.subscriber = self.request.user
@@ -1344,3 +1352,13 @@ class V2SubscriptionCheckoutView(TemplateView):
         )
 
         return StripeCheckoutView.as_view(context=checkout_context)(request)
+
+
+def postcode_lookup_view(request, postcode):
+    data = postcode_geo(postcode)
+    if data:
+        return JsonResponse({
+            "latitude": data["latitude"],
+            "longitude": data["longitude"]
+        })
+    return JsonResponse({}, status=404)

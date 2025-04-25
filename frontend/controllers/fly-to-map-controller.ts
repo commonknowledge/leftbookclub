@@ -7,8 +7,15 @@ export default class MapHtmlBridgeController extends MapConfigController {
 
   private zoomValue!: number;
 
-  flyTo({ params: { lng, lat, zoom = this.zoomValue } }: any) {
-    if (!!lng && !!lat) {
+  flyTo(event: any) {
+    const button = event.currentTarget;
+    const lng = parseFloat(button.dataset.lng);
+    const lat = parseFloat(button.dataset.lat);
+    const zoom = button.dataset.zoom
+      ? parseFloat(button.dataset.zoom)
+      : this.zoomValue;
+
+    if (!isNaN(lng) && !isNaN(lat)) {
       this.map?.flyTo({
         center: [lng, lat],
         zoom: zoom,

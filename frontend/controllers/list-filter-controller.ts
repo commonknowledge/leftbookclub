@@ -31,16 +31,28 @@ class BacklinkController extends Controller {
     this.applyFilters();
   }
 
-  selectForAttr({ params: { value, attr } }: any) {
-    if (value && attr) {
-      if (typeof this.selectedValue === "undefined") {
-        this.selectedValue = {};
-      }
-      this.selectedValue = {
-        ...this.selectedValue,
-        [attr]: value,
-      };
+  toggleForAttr({ params: { value, attr } }: any) {
+    if (typeof this.selectedValue === "undefined") {
+      this.selectedValue = {};
     }
+
+    const currentValue = this.selectedValue[attr];
+    const newValue = currentValue === value ? "__ALL__" : value;
+
+    this.selectedValue = {
+      ...this.selectedValue,
+      [attr]: newValue,
+    };
+
+    const optionButton = this.optionTargets.find(
+      (el) => el.dataset.listFilterAttrParam === attr
+    );
+    if (optionButton) {
+      optionButton.textContent =
+        newValue === value ? "Show All Groups" : "Show Online Groups Only";
+    }
+
+    this.applyFilters();
   }
 
   selectedValueChanged() {
@@ -59,7 +71,6 @@ class BacklinkController extends Controller {
       for (const camelCaseAttr in this.selectedValue) {
         const filterValue = this.selectedValue[camelCaseAttr];
 
-        // Show/hide items
         for (const item of this.itemTargets) {
           if (
             item.dataset[camelCaseAttr] === filterValue ||
@@ -67,39 +78,36 @@ class BacklinkController extends Controller {
           ) {
             count++;
             if (this.itemVisibleClassesValue?.length)
-              item.classList.add(...this.itemVisibleClassesValue?.split(" "));
+              item.classList.add(...this.itemVisibleClassesValue.split(" "));
             if (this.itemHiddenClassesValue?.length)
-              item.classList.remove(...this.itemHiddenClassesValue?.split(" "));
+              item.classList.remove(...this.itemHiddenClassesValue.split(" "));
           } else {
             if (this.itemHiddenClassesValue?.length)
-              item.classList.add(...this.itemHiddenClassesValue?.split(" "));
+              item.classList.add(...this.itemHiddenClassesValue.split(" "));
             if (this.itemVisibleClassesValue?.length)
-              item.classList.remove(
-                ...this.itemVisibleClassesValue?.split(" ")
-              );
+              item.classList.remove(...this.itemVisibleClassesValue.split(" "));
           }
         }
 
-        // Active/passive UI
         for (const option of this.optionTargets) {
           if (option.dataset.listFilterAttrParam === camelCaseAttr) {
             if (option.dataset.listFilterValueParam === filterValue) {
               if (this.optionActiveClassesValue?.length)
                 option.classList.add(
-                  ...this.optionActiveClassesValue?.split(" ")
+                  ...this.optionActiveClassesValue.split(" ")
                 );
               if (this.optionPassiveClassesValue?.length)
                 option.classList.remove(
-                  ...this.optionPassiveClassesValue?.split(" ")
+                  ...this.optionPassiveClassesValue.split(" ")
                 );
             } else {
               if (this.optionPassiveClassesValue?.length)
                 option.classList.add(
-                  ...this.optionPassiveClassesValue?.split(" ")
+                  ...this.optionPassiveClassesValue.split(" ")
                 );
               if (this.optionActiveClassesValue?.length)
                 option.classList.remove(
-                  ...this.optionActiveClassesValue?.split(" ")
+                  ...this.optionActiveClassesValue.split(" ")
                 );
             }
           }
@@ -108,8 +116,15 @@ class BacklinkController extends Controller {
     }
 
     if (this.countTargets?.length) {
+      const isAll =
+        !this.selectedValue ||
+        Object.values(this.selectedValue).includes("__ALL__");
+      const groupLabel = count === 1 ? "reading group" : "reading groups";
+
       this.countTargets.forEach((target) => {
-        target.textContent = count.toString();
+        target.textContent = isAll
+          ? `Showing all ${count} ${groupLabel}`
+          : `Showing ${count} ${groupLabel}`;
       });
     }
   }

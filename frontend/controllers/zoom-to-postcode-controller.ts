@@ -12,7 +12,6 @@ export default class extends Controller {
 
     const postcode = this.inputTarget.value.trim().toUpperCase();
     this.errorTarget.textContent = "";
-    this.toggleButtons(postcode.length > 0);
 
     if (!postcode) {
       this.errorTarget.textContent = "Please enter a postcode.";
@@ -41,6 +40,8 @@ export default class extends Controller {
     } catch (err) {
       console.error(err);
       this.errorTarget.textContent = "Something went wrong. Try again.";
+    } finally {
+      this.showClear();
     }
   }
 
@@ -48,7 +49,7 @@ export default class extends Controller {
     event.preventDefault();
     this.inputTarget.value = "";
     this.errorTarget.textContent = "";
-    this.toggleButtons(false);
+    this.showSearch();
 
     document.querySelectorAll("[data-reading-group-distance]").forEach((el) => {
       el.textContent = "";
@@ -77,13 +78,19 @@ export default class extends Controller {
   }
 
   inputChanged() {
-    this.toggleButtons(this.inputTarget.value.trim().length > 0);
+    this.showSearch();
   }
 
-  toggleButtons(showClear: boolean) {
-    this.clearTarget.classList.toggle("tw-hidden", !showClear);
-    this.submitTarget.classList.toggle("tw-hidden", showClear);
+  showClear() {
+    this.clearTarget.classList.toggle("tw-hidden", false);
+    this.submitTarget.classList.toggle("tw-hidden", true);
   }
+
+  showSearch() {
+    this.clearTarget.classList.toggle("tw-hidden", true);
+    this.submitTarget.classList.toggle("tw-hidden", false);
+  }
+
   sortReadingGroupsByDistance(lat: number, lon: number) {
     const items = Array.from(
       document.querySelectorAll('[data-list-filter-target="item"]')

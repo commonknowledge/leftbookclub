@@ -25,13 +25,14 @@
             <div class="tw-flex-1 tw-border-t tw-border-dotted"></div>
          </div>
          <div class="tw-mb-3" data-controller="zoom-to-postcode">
-            <div class="tw-relative">
+            <form class="tw-relative" data-action="submit->zoom-to-postcode#searchPostcode">
                <input
                   type="text"
                   name="postcode"
                   placeholder="type your postcode"
                   class="tw-border tw-py-2 tw-pl-2 tw-pr-10 tw-w-full tw-rounded"
                   data-zoom-to-postcode-target="input"
+                  data-action="keyup->zoom-to-postcode#inputChanged"
                   />
                <button
                   type="button"
@@ -77,7 +78,7 @@
                      </g>
                   </svg>
                </button>
-            </div>
+            </form>
             <div
                class="tw-text-sm tw-text-red-600 tw-mt-2"
                data-zoom-to-postcode-target="error"

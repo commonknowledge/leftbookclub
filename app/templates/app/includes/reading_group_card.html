@@ -77,7 +77,7 @@
             {% if reading_group.join_contact_link %}
             <a href="{{reading_group.join_contact_link}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
             {% endif %}
-            {% if reading_group.in_person_location %}
+            {% if reading_group.in_person_location or reading_group.in_person_postcode %}
             <button
               class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-slate-300 hover:tw-bg-slate-400 tw-uppercase tw-w-full text-center"
               data-action="click->fly-to-map#flyTo"

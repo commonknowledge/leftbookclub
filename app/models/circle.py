@@ -51,7 +51,7 @@ class CircleAPIResource(RestDatasource[ResourceT]):
 
         # Set defaults
         if not "per_page" in query:
-            query["per_page"] = 20
+            query["per_page"] = int(settings.CIRCLE_PER_PAGE)
 
         # Pull all of them
         while True:

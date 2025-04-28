@@ -215,12 +215,18 @@ class DataclassJSONEncoder(DjangoJSONEncoder):
 
 
 circle_events = CircleAPIResource(
-    path="/events", resource_type=CircleEvent, api_key=settings.CIRCLE_API_KEY
+    path="/events",
+    resource_type=CircleEvent,
+    api_key=settings.CIRCLE_API_KEY,
+    community_id=int(settings.CIRCLE_COMMUNITY_ID)
 )
 
 
 circle_communities = CircleAPIResource(
-    path="/communities", resource_type=CircleCommunity, api_key=settings.CIRCLE_API_KEY
+    path="/communities",
+    resource_type=CircleCommunity,
+    api_key=settings.CIRCLE_API_KEY,
+    community_id=int(settings.CIRCLE_COMMUNITY_ID)
 )
 
 

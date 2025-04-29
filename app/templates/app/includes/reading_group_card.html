@@ -16,8 +16,8 @@
             <h3 class="tw-text-3xl">{{ reading_group.group_name }}</h3>
             <p class="tw-uppercase tw-text-black  tw-opacity-50 tw-text-sm">Reading group</p>
          </div>
-         <div class="tw-flex tw-flex-col tw-items-end">
-            <p class="tw-uppercase tw-text-black  tw-opacity-50 tw-text-sm mb-2">Meeting frequency</p>
+         <div class="tw-flex tw-flex-col tw-items-end tw-text-right">
+            <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm mb-2">Meeting frequency</p>
             {% if show_event is not False and reading_group.recurring_pattern %}
             <div class="tw-text-sm">{{ reading_group.recurring_pattern }}</div>
             {% endif %}

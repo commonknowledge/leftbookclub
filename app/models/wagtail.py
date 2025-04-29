@@ -1192,7 +1192,7 @@ class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
 
 
 @method_decorator(cache_page, name="serve")
-class MapPage(WagtailCacheMixin, Page):
+class ReadingGroupsPage(WagtailCacheMixin, Page):
     intro = RichTextField()
 
     content_panels = Page.content_panels + [FieldPanel("intro")]
@@ -1204,11 +1204,12 @@ class MapPage(WagtailCacheMixin, Page):
         context["layers"] = {}
 
         # Reading Groups
-        context["reading_groups"] = list(
+        reading_groups = list(
             ReadingGroup.objects.filter(next_event__gte=datetime.now(), is_approved=True)
             .order_by("next_event")
             .all()
         )
+        context["reading_groups"] = reading_groups
 
         context["sources"]["reading_groups"] = {
             "type": "geojson",
@@ -1270,6 +1271,104 @@ class MapPage(WagtailCacheMixin, Page):
                             ["zoom"],
                             8, 0,
                             11, 1,
+                        ]
+                    },
+                },
+            }
+        )
+
+        return context
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context.update(ReadingGroupsPage.get_map_context())
+        return context
+
+
+@method_decorator(cache_page, name="serve")
+class MapPage(WagtailCacheMixin, Page):
+    intro = RichTextField()
+
+    content_panels = Page.content_panels + [FieldPanel("intro")]
+
+    @classmethod
+    def get_map_context(cls):
+        context = {}
+        context["sources"] = {}
+        context["layers"] = {}
+
+        # Events
+        context["events"] = list(
+            CircleEvent.objects.filter(starts_at__gte=datetime.now())
+            .order_by("starts_at")
+            .all()
+        )
+
+        context["sources"]["events"] = {
+            "type": "geojson",
+            "data": {
+                "type": "FeatureCollection",
+                "features": [
+                    event.as_geojson_feature
+                    for event in context["events"]
+                    if event.as_geojson_feature.get("geometry", None) is not None
+                ],
+            },
+        }
+
+        context["layers"].update(
+            {
+                "event-icon-border": {
+                    "source": "events",
+                    "id": "event-icon-border",
+                    "type": "circle",
+                    "paint": {"circle-color": "#000000", "circle-radius": 10},
+                },
+                "event-icons": {
+                    "source": "events",
+                    "id": "event-icons",
+                    "type": "circle",
+                    "paint": {"circle-color": "#F8F251", "circle-radius": 8},
+                },
+                "event-dates": {
+                    "source": "events",
+                    "id": "event-dates",
+                    "type": "symbol",
+                    "paint": {"text-color": "black", "text-opacity": 1},
+                    "layout": {
+                        "text-field": ["get", "human_readable_date"],
+                        "text-offset": [0, 0.85],
+                        "text-anchor": "top",
+                        "text-allow-overlap": True,
+                        "text-transform": "uppercase",
+                        "text-size": 15,
+                        "text-font": ["Inter Regular"],
+                    },
+                },
+                "event-names": {
+                    "source": "events",
+                    "id": "event-names",
+                    "type": "symbol",
+                    "layout": {
+                        "text-field": ["get", "name"],
+                        "text-offset": [0, 2.5],
+                        "text-anchor": "top",
+                        "text-allow-overlap": False,
+                        "text-size": 12,
+                        "text-font": ["Inter Regular"],
+                    },
+                    "paint": {
+                        "text-opacity": [
+                            "interpolate",
+                            # Set the exponential rate of change to 0.5
+                            ["exponential", 0.5],
+                            ["zoom"],
+                            # When zoom is 8, buildings will be 100% transparent.
+                            8,
+                            0,
+                            # When zoom is 11 or higher, buildings will be 100% opaque.
+                            11,
+                            1,
                         ]
                     },
                 },

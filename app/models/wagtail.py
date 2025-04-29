@@ -91,7 +91,8 @@ class ReadingGroup(ClusterableModel, models.Model):
         null=True,
         help_text="Enter a UK postcode to show your event on our map.",
     )
-    join_contact_link = models.URLField(max_length=1024, blank=True, null=True, help_text="Add the link to contact the group or join the event here.")
+    join_contact_link = models.URLField(max_length=1024, blank=True, null=True, help_text="(Optional) A link to view the group or join the event.")
+    contact_email_address = models.EmailField(max_length=1024, blank=False, null=False, help_text="An email address to contact the group.")
     coordinates = gis_models.PointField(null=True, blank=True)
     is_approved = models.BooleanField(default=False)
     is_recurring = models.BooleanField(default=False)
@@ -110,6 +111,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         FieldPanel("in_person_location"),
         FieldPanel("in_person_postcode"),
         FieldPanel("join_contact_link"),
+        FieldPanel("contact_email_address"),
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
         FieldPanel("recurring_pattern"),

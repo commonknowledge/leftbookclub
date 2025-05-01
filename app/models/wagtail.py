@@ -1,7 +1,7 @@
 from typing import Optional
 
 import time
-import uuid
+import pytz
 from datetime import datetime
 from django.utils import timezone
 
@@ -15,6 +15,7 @@ from django.core.cache import cache
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.forms import Select
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -77,7 +78,12 @@ class EventDate(models.Model):
         
 class ReadingGroup(ClusterableModel, models.Model):
     group_name = models.CharField(max_length=500)
-    next_event = models.DateTimeField()
+    next_event = models.DateTimeField(blank=True, null=True)
+    timezone = models.CharField(
+        max_length=32,
+        choices=[(tz, tz) for tz in pytz.common_timezones],
+        default='Europe/London'
+    )
     is_online = models.BooleanField(default=False, help_text="Is this event online?")
     in_person_location = models.CharField(
         max_length=500,
@@ -91,8 +97,9 @@ class ReadingGroup(ClusterableModel, models.Model):
         null=True,
         help_text="Enter a UK postcode to show your event on our map.",
     )
-    join_contact_link = models.URLField(max_length=1024, blank=True, null=True, help_text="(Optional) A link to view the group or join the event.")
-    contact_email_address = models.EmailField(max_length=1024, blank=False, null=False, help_text="An email address to contact the group.")
+    join_link_or_email = models.CharField(max_length=128, blank=True, null=True, help_text="(Optional) A link or email address to join the group.")
+    contact_email_address = models.EmailField(max_length=128, blank=False, null=False, help_text="(Private) We will use this to contact you.")
+    more_information = models.TextField(max_length=280, blank=True, null=True, help_text="(Optional) Any extra important information about the group.")
     coordinates = gis_models.PointField(null=True, blank=True)
     is_approved = models.BooleanField(default=False)
     is_recurring = models.BooleanField(default=False)
@@ -106,11 +113,13 @@ class ReadingGroup(ClusterableModel, models.Model):
     panels = [
         FieldPanel("group_name"),
         FieldPanel("next_event"),
+        FieldPanel("timezone", widget=Select(choices=[(tz, tz) for tz in pytz.common_timezones])),
         InlinePanel("additional_dates", label="Additional Dates", max_num=5),
         FieldPanel("is_online"),
         FieldPanel("in_person_location"),
         FieldPanel("in_person_postcode"),
-        FieldPanel("join_contact_link"),
+        FieldPanel("join_link_or_email"),
+        FieldPanel("more_information"),
         FieldPanel("contact_email_address"),
         FieldPanel("is_approved"),
         FieldPanel("is_recurring"),
@@ -121,11 +130,13 @@ class ReadingGroup(ClusterableModel, models.Model):
         ordering = ["next_event"]
 
     def __str__(self):
+        if not self.next_event:
+            return self.group_name
         return f"{self.group_name} ({self.next_event.strftime('%Y-%m-%d')})"
 
     def clean(self):
         super().clean()
-        if self.next_event < timezone.now():
+        if self.next_event and self.next_event < timezone.now():
             raise ValidationError({"start_date": "Start date must be in the future."})
 
         future_dates = [self.next_event] + [
@@ -146,7 +157,7 @@ class ReadingGroup(ClusterableModel, models.Model):
     @property
     def upcoming_dates(self):
         all_dates = [self.next_event] + [d.date for d in self.additional_dates.all()]
-        return sorted(d for d in all_dates if d >= timezone.now())[:6]
+        return sorted(d for d in all_dates if d and d >= timezone.now())[:6]
 
     @property
     def as_geojson_feature(self):
@@ -169,7 +180,8 @@ class ReadingGroup(ClusterableModel, models.Model):
                 "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y"),
                 "location_type": "virtual" if self.is_online else "in_person",
                 "in_person_location": self.in_person_location,
-                "join_contact_link": self.join_contact_link,
+                "join_link_or_email": self.join_link_or_email,
+                "more_information": self.more_information,
                 "postcode": self.in_person_postcode,
                 "all_dates": [d.isoformat() for d in self.upcoming_dates],
             },
@@ -1207,7 +1219,7 @@ class ReadingGroupsPage(WagtailCacheMixin, Page):
 
         # Reading Groups
         reading_groups = list(
-            ReadingGroup.objects.filter(next_event__gte=datetime.now(), is_approved=True)
+            ReadingGroup.objects.filter(is_approved=True)
             .order_by("next_event")
             .all()
         )

@@ -32,6 +32,7 @@
          <span>{% if reading_group.is_online %}Online{% else %}in person{% endif %}</span>
       </div>
       <div class="tw-flex tw-justify-between mt-3">
+         {% if reading_group.upcoming_dates.0 %}
          <div class="tw-w-fit tw-text-center tw-relative tw-flex-shrink-0">
             {% with first_date=reading_group.upcoming_dates.0 %}
             <div class='tw-p-3 tw-whitespace-nowrap tw-leading-5 tw-bg-yellow'>
@@ -40,42 +41,39 @@
             </div>
             {% endwith %}
          </div>
+         {% endif %}
          {% if reading_group.in_person_location %}
-         {% if reading_group.in_person_location %}
-         <div>
-           <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2">Location</p>
+         <div class="tw-text-right">
+           <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2 mb-2">Location</p>
            {{ reading_group.in_person_location }}
            <p class="tw-text-sm tw-text-gray-500" data-reading-group-distance></p>
          </div>
-       {% endif %}
-         {% elif reading_group.is_online %}
-         <div class="">
-            <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2">Location</p>
-            Zoom meeting
-         </div>
          {% endif %}
       </div>
-      <div class="tw-p-3 tw-pl-1 tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
+      <div class="tw-mb-1 tw-overflow-hidden tw-break-words tw-border-r-2 tw-border-r-transparent hover:tw-border-r-yellow tw-transition-all tw-flex-grow tw-flex-shrink">
          <div class='tw-text-sm tw-font-normal tw-leading-none tw-mt-3 tw-text-gray-700'>
             {% with first_date=reading_group.upcoming_dates.0 %}
+            {% if first_date %}
             <div>
                <p class="tw-text-base">
-                  {{ first_date|date:"l jS F Y" }},<br>
-                  {{ first_date|date:"g:i" }} - {{ first_date|date:"g:iA" }}
+                  {{ first_date|date:"l jS F Y" }}, {{ first_date|date:"g:i A" }}
+                  <span class="tw-opacity-70">({{ reading_group.timezone }} time)</span>
                </p>
                <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm">
                   {{ first_date|naturaltime }}
                </p>
             </div>
-            {% endwith %}
-            {% if reading_group.upcoming_dates|length > 1 %}
-            {% with first_date=reading_group.upcoming_dates.0 %}
-            {% endwith %}
             {% endif %}
+            {% endwith %}
          </div>
+         {% if reading_group.more_information %}
+         <div class="tw-mt-3">
+            <p class="tw-m-0">{{ reading_group.more_information }}</p>
+         </div>
+         {% endif %}
          <div class="tw-flex tw-gap-4 mt-4">
-            {% if reading_group.join_contact_link %}
-            <a href="{{reading_group.join_contact_link}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
+            {% if reading_group.join_link_or_email %}
+            <a href="{{reading_group.join_link_or_email}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
             {% endif %}
             {% if reading_group.in_person_location or reading_group.in_person_postcode %}
             <button

@@ -5,14 +5,28 @@
 <div class="tw-mx-auto tw-max-w-lg tw-w-full tw-px-3 tw-py-5">
   <h2 class="tw-text-lg tw-mb-4">Submit a Reading Group</h2>
   
-  <form method="post" class="tw-space-y-4">
+  <form method="post" class="tw-space-y-4 reading-group-form">
     {% csrf_token %}
     
-    {% bootstrap_form form layout='vertical' %}
+    {% bootstrap_form form layout='vertical' wrapper_class='lbc-field' required_css_class='lbc-field-error' error_css_class='lbc-field-error' %}
     
     <button type="submit" class="btn btn-primary tw-text-md w-full">
       Submit Reading Group
     </button>
   </form>
+  <script>
+    const $form = document.querySelector(".reading-group-form")
+    const $requiredFields = $form.querySelectorAll("[required]")
+    $requiredFields.forEach($field => {
+      const $parent = $field.closest(".lbc-field")
+      $field.addEventListener("change", (e) => {
+        if (e.target.checkValidity()) {
+          $parent.classList.remove("lbc-field-error")
+        } else {
+          $parent.classList.add("lbc-field-error")
+        }
+      })
+    })
+  </script>
 </div>
 {% endblock %}

@@ -15,7 +15,7 @@ from django.utils.safestring import mark_safe
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 from djstripe.enums import SubscriptionStatus
-from django.forms import DateTimeInput
+from django.forms import DateTimeInput, Textarea
 from django.utils.timezone import now
 from app.models import ReadingGroup
 
@@ -770,10 +770,12 @@ class PublicReadingGroupForm(forms.ModelForm):
         fields = [
             "group_name",
             "next_event",
+            "timezone",
             "is_online",
             "in_person_location",
             "in_person_postcode",
-            "join_contact_link",
+            "join_link_or_email",
+            "more_information",
             "contact_email_address",
             "is_recurring",
             "recurring_pattern"
@@ -782,6 +784,9 @@ class PublicReadingGroupForm(forms.ModelForm):
             "next_event": DateTimeInput(
                 attrs={"type": "datetime-local", "min": datetime.now().strftime("%Y-%m-%dT%H:%M")},
                 format="%Y-%m-%dT%H:%M",
+            ),
+            "more_information": Textarea(
+                attrs={"rows": 3}
             )
         }
 

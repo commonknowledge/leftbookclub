@@ -35,7 +35,7 @@
          {% if reading_group.upcoming_dates.0 %}
          <div class="tw-grow tw-basis-0 tw-flex-shrink-0 tw-relative">
             {% with first_date=reading_group.upcoming_dates.0 %}
-            <div class='tw-p-3 tw-inline-block tw-whitespace-nowrap tw-leading-5 tw-bg-yellow tw-text-center'>
+            <div class='tw-p-3 tw-w-[100px] tw-whitespace-nowrap tw-leading-5 tw-bg-yellow tw-text-center'>
                <div class='tw-text-lg tw-font-bold'>{{ first_date|date:"j" }}</div>
                <div class='tw-uppercase tw-font-bold'>{{ first_date|date:"M" }}</div>
             </div>

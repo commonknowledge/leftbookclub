@@ -31,9 +31,9 @@
          </svg>
          <span>{% if reading_group.is_online %}Online{% else %}in person{% endif %}</span>
       </div>
-      <div class="tw-flex tw-gap-3 mt-3">
+      <div class="tw-flex tw-gap-[1rem] mt-3">
          {% if reading_group.upcoming_dates.0 %}
-         <div class="tw-flex-grow-0 tw-basis-[50%] tw-flex-shrink-0 tw-relative">
+         <div class="tw-flex-grow-0 tw-flex-shrink-0 tw-relative" style="flex-basis: calc(50% - 0.5rem)">
             {% with first_date=reading_group.upcoming_dates.0 %}
             <div class='tw-p-3 tw-inline-block tw-whitespace-nowrap tw-leading-5 tw-bg-yellow tw-text-center'>
                <div class='tw-text-lg tw-font-bold'>{{ first_date|date:"j" }}</div>
@@ -43,7 +43,7 @@
          </div>
          {% endif %}
          {% if reading_group.in_person_location %}
-         <div class="tw-flex-grow-0 tw-basis-[50%] tw-flex-shrink-0 tw-text-right">
+         <div class="tw-flex-grow-0 tw-flex-shrink-0 tw-text-right" style="flex-basis: calc(50% - 0.5rem)">
            <p class="tw-uppercase tw-text-black tw-opacity-50 tw-text-sm tw-basis-1/2 mb-2">Location</p>
            {{ reading_group.in_person_location }}
            <p class="tw-text-sm tw-text-gray-500" data-reading-group-distance></p>

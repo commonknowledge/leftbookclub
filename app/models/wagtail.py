@@ -137,7 +137,7 @@ class ReadingGroup(ClusterableModel, models.Model):
     def clean(self):
         super().clean()
         if self.next_event and self.next_event < timezone.now():
-            raise ValidationError({"start_date": "Start date must be in the future."})
+            raise ValidationError({"next_event": "Next event must be in the future."})
 
         future_dates = [self.next_event] + [
             d.date for d in self.additional_dates.all() if d.date >= timezone.now()

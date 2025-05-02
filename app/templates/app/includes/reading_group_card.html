@@ -27,11 +27,7 @@
       </div>
       <hr>
       <div class="tw-flex tw-uppercase tw-text-black  tw-opacity-50 tw-text-sm tw-items-center tw-justify-between tw-w-fit tw-gap-2">
-         <span>Upcoming meeting</span>
-         <svg xmlns="http://www.w3.org/2000/svg" width="6" height="7" viewBox="0 0 6 7" fill="none">
-            <circle id="Ellipse 12" cx="3" cy="3.5" r="3" fill="#B1B1B1"/>
-         </svg>
-         <span>{% if reading_group.is_online %}Online{% else %}in person{% endif %}</span>
+         <span>{% if reading_group.is_online %}Online{% else %}in person{% endif %} meeting</span>
       </div>
       <div class="tw-flex tw-gap-[1rem] mt-3">
          {% if reading_group.upcoming_dates.0 %}
@@ -74,8 +70,8 @@
          </div>
          {% endif %}
          <div class="tw-flex tw-gap-4 mt-4">
-            {% if reading_group.join_link_or_email %}
-            <a href="{{reading_group.join_link_or_email}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
+            {% if reading_group.contact_link_or_email %}
+            <a href="{{reading_group.contact_link_or_email}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
             {% endif %}
             {% if reading_group.in_person_location or reading_group.in_person_postcode %}
             <button

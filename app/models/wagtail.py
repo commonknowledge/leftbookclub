@@ -97,7 +97,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         null=True,
         help_text="Enter a UK postcode to show your event on our map.",
     )
-    join_link_or_email = models.CharField(max_length=128, blank=True, null=True, help_text="(Optional) A link or email address to join the group.")
+    contact_link_or_email = models.CharField(max_length=128, blank=True, null=True, help_text="(Optional) A link or email address to contact the group.")
     contact_email_address = models.EmailField(max_length=128, blank=False, null=False, help_text="(Private) We will use this to contact you.")
     more_information = models.TextField(max_length=280, blank=True, null=True, help_text="(Optional) Any extra important information about the group.")
     coordinates = gis_models.PointField(null=True, blank=True)
@@ -118,7 +118,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         FieldPanel("is_online"),
         FieldPanel("in_person_location"),
         FieldPanel("in_person_postcode"),
-        FieldPanel("join_link_or_email"),
+        FieldPanel("contact_link_or_email"),
         FieldPanel("more_information"),
         FieldPanel("contact_email_address"),
         FieldPanel("is_approved"),
@@ -180,7 +180,7 @@ class ReadingGroup(ClusterableModel, models.Model):
                 "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y"),
                 "location_type": "virtual" if self.is_online else "in_person",
                 "in_person_location": self.in_person_location,
-                "join_link_or_email": self.join_link_or_email,
+                "contact_link_or_email": self.contact_link_or_email,
                 "more_information": self.more_information,
                 "postcode": self.in_person_postcode,
                 "all_dates": [d.isoformat() for d in self.upcoming_dates],

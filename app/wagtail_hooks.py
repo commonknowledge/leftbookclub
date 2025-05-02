@@ -240,7 +240,7 @@ class ReadingGroupAdmin(ModelAdmin):
         "group_name",
         "next_event",
         "is_online",
-        "join_link_or_email",
+        "contact_link_or_email",
         "contact_email_address",
         "is_approved",
         "is_recurring",

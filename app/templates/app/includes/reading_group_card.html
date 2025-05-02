@@ -1,4 +1,6 @@
 {% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{# Use UTC here because the user-submitted event times are not timezone aware #}
+{% timezone "UTC" %}
 <li
   id="event-{{ reading_group.id }}"
   data-list-filter-target="item"
@@ -92,3 +94,4 @@
       </div>
    </div>
 </li>
+{% endtimezone %}

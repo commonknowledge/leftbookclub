@@ -183,16 +183,16 @@ class StripeCheckoutSuccessView(LoginRequiredMixin, TemplateView):
                     session.subscription, expand=["latest_invoice"]
                 )
 
+                # Context for fbq tracking
+                context["subscription"] = subscription
+                context["value"] = subscription.latest_invoice.amount_due / 100
+                context["currency"] = subscription.latest_invoice.currency
+
                 if (
                     subscription is not None
                     and subscription.metadata.get("processed", None) is None
                 ):
                     try:
-                        # Context for fbq tracking
-                        context["subscription"] = subscription
-                        context["value"] = subscription.latest_invoice.amount_due / 100
-                        context["currency"] = subscription.latest_invoice.currency
-
                         if gift_mode:
                             # Gift flow
                             self.finish_gift_purchase(session, subscription, customer)
@@ -253,6 +253,7 @@ class StripeCheckoutSuccessView(LoginRequiredMixin, TemplateView):
                         capture_message(
                             f"[StripeCheckoutSuccess] Failed to complete processing for user {self.request.user.email}, subscription {subscription.id}"
                         )
+        return context
         
     def finish_self_purchase(self, session, subscription, customer) -> dict:
         # Relate the django user to this customer

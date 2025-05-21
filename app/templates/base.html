@@ -38,7 +38,9 @@
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '{{ FACEBOOK_PIXEL }}');
             fbq('track', 'PageView');
+            /* Meta Pixel Event */
             {% block facebook_pixel_event %}{% endblock %}
+            /* End Meta Pixel Event */
             </script>
             <noscript>
                 <img alt="FB pixel"

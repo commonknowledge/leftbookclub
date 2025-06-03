@@ -1027,11 +1027,6 @@
   resolved "https://registry.npmjs.org/@types/prettier/-/prettier-2.4.4.tgz"
   integrity sha512-ReVR2rLTV1kvtlWFyuot+d1pkpG2Fw/XKE3PDAdj57rbM97ttSp9JZ2UsP+2EHTylra9cUf6JA7tGwW1INzUrA==
 
-"@types/shopify-buy@npm:@brandboostinggmbh/shopify-buy-types":
-  version "2.14.6"
-  resolved "https://registry.npmjs.org/@brandboostinggmbh/shopify-buy-types/-/shopify-buy-types-2.14.6.tgz"
-  integrity sha512-0u8o+ROzD/inz3ijpChgGvZJmDYJ3wiv6lgyX1xmZQk5MSyQ8djqc3JqMzbPBqaaqSV2b6nICSV98j3w0K/Pgg==
-
 "@types/stack-utils@^2.0.0":
   version "2.0.1"
   resolved "https://registry.npmjs.org/@types/stack-utils/-/stack-utils-2.0.1.tgz"
@@ -4010,11 +4005,6 @@ shebang-regex@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
-
-shopify-buy@2.20.0:
-  version "2.20.0"
-  resolved "https://registry.npmjs.org/shopify-buy/-/shopify-buy-2.20.0.tgz"
-  integrity sha512-xe6VlqJtI/c8BYeH2hhOw7gZSsbHUeGFUwVyAzQOR422Ml4UXTFld0GcbW88tkR/Vgy2tj592EL2paCws2fZzQ==
 
 sigmund@^1.0.1:
   version "1.0.1"

@@ -1,4 +1,4 @@
-{% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting %}
+{% load tz menu_tags humanize brand groundwork_geo wagtailsettings_tags account setting django_bootstrap5 wagtailcore_tags static wagtailroutablepage_tags django_bootstrap5 setting url %}
 {# Use UTC here because the user-submitted event times are not timezone aware #}
 {% timezone "UTC" %}
 <li
@@ -71,7 +71,7 @@
          {% endif %}
          <div class="tw-flex tw-gap-4 mt-4">
             {% if reading_group.contact_link_or_email %}
-            <a href="{{reading_group.contact_link_or_email}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
+            <a href="{{reading_group.contact_link_or_email | maybe_email_href}}" class="tw-cursor-pointer tw-no-underline tw-text-black tw-inline-block tw-p-4 tw-bg-yellow  hover:tw-text-black tw-uppercase tw-w-full text-center">Join/Contact Group</a>
             {% endif %}
             {% if reading_group.in_person_location or reading_group.in_person_postcode %}
             <button

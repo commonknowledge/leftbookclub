@@ -35,3 +35,10 @@ def url_test(context, includes, **kwargs):
         return
     url = request.get_full_path()
     return includes in url
+
+
+@register.filter()
+def maybe_email_href(url_or_email):
+    if "@" in url_or_email:
+        return f"mailto:{url_or_email}"
+    return url_or_email

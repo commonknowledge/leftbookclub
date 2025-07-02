@@ -1220,7 +1220,7 @@ class ReadingGroupsPage(WagtailCacheMixin, Page):
         # Reading Groups
         reading_groups = list(
             ReadingGroup.objects.filter(is_approved=True)
-            .order_by("next_event")
+            .order_by("group_name")
             .all()
         )
         context["reading_groups"] = reading_groups

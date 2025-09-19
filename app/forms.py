@@ -96,6 +96,13 @@ class GiftCodeForm(forms.Form):
 
 class StripeShippingForm(forms.Form):
     name = forms.CharField(label="Recipient name", max_length=250)
+    phone = forms.CharField(
+        label="Phone number",
+        help_text="Phone number for delivery contact",
+        max_length=50,
+        required=False,
+        empty_value=None,
+    )
     line1 = forms.CharField(
         label="Address line 1",
         help_text="Address line 1 (e.g., street, PO Box, or company name)",
@@ -143,6 +150,7 @@ class StripeShippingForm(forms.Form):
     def stripe_data_to_initial(cls, stripe_data) -> dict:
         return {
             "name": stripe_data.get("name", None),
+            "phone": stripe_data.get("phone", None),
             "line1": stripe_data.get("address", {}).get("line1", None),
             "line2": stripe_data.get("address", {}).get("line2", None),
             "postal_code": stripe_data.get("address", {}).get("postal_code", None),
@@ -155,6 +163,7 @@ class StripeShippingForm(forms.Form):
     def form_data_to_stripe(cls, cleaned_data) -> dict:
         return {
             "name": cleaned_data["name"],
+            "phone": cleaned_data.get("phone", None),
             "address": {
                 "line1": cleaned_data.get("line1", None),
                 "line2": cleaned_data.get("line2", None),

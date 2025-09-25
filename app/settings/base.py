@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "django_dbq",
     "slippers",
+    "captcha",
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -476,3 +477,5 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 SLIPPERS_COMPONENT_TEMPLATE_SUBDIR = "components"
+
+CAPTCHA_NOISE_FUNCTIONS=("captcha.helpers.noise_dots",)

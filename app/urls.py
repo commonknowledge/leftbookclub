@@ -45,6 +45,7 @@ from app.views import (
 
 urlpatterns = [
     path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    path('captcha/', include('captcha.urls')),
     path("django/", admin.site.urls),
     re_path(r"^admin/autocomplete/", include(autocomplete_admin_urls)),
     path("admin/", include(wagtailadmin_urls)),

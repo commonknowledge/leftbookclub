@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import djstripe.models
+from captcha.fields import CaptchaField
 import stripe
 from allauth.account.views import SignupForm
 from django import forms
@@ -773,6 +774,7 @@ class PublicReadingGroupForm(forms.ModelForm):
         input_formats=["%Y-%m-%dT%H:%M"],
         label="Additional Date 5",
     )
+    captcha = CaptchaField()
 
     class Meta:
         model = ReadingGroup

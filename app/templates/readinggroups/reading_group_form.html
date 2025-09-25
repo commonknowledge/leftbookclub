@@ -8,8 +8,10 @@
   <form method="post" class="tw-space-y-4 reading-group-form">
     {% csrf_token %}
     
-    {% bootstrap_form form layout='vertical' wrapper_class='lbc-field' required_css_class='lbc-field-error' error_css_class='lbc-field-error' %}
+    {% bootstrap_form form layout='vertical' wrapper_class='lbc-field' required_css_class='lbc-field-error' error_css_class='lbc-field-error' exclude='captcha' %}
     
+    {% bootstrap_field form.captcha layout='horizontal' wrapper_class='lbc-field lbc-field--captcha' required_css_class='lbc-field-error' error_css_class='lbc-field-error' %}
+
     <button type="submit" class="btn btn-primary tw-text-md w-full">
       Submit Reading Group
     </button>

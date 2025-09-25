@@ -37,6 +37,12 @@
   border-radius: 0;
 }
 
+.lbc-field--captcha > div {
+  display: flex;
+  padding: 0;
+  gap: 0.5rem;
+}
+
 .lbc-field-error {
   input {
     border-color: red;

@@ -99,6 +99,7 @@ class StripeCheckoutView(MemberSignupUserRegistrationMixin, RedirectView):
         session_args["metadata"]["gdpr_email_consent"] = user.gdpr_email_consent
 
         session_args["phone_number_collection"] = {"enabled": True}
+        session_args["automatic_tax"] = {"enabled": True}
 
         # redirect the checkout success to StripeCheckoutSuccessView,
         # which will then forward to any explicitly defined `success_url` that was passed to this view

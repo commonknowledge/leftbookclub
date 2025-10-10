@@ -577,6 +577,7 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             {
                 "price_data": self.to_shipping_price_data(zone),
                 "quantity": 1,
+                "tax_rates": [],
             },
         ]
         return line_items

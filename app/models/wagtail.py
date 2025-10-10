@@ -543,7 +543,6 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             )
             * 100,
             "currency": shipping_fee.currency,
-            "tax_behavior": "unspecified",
             "product": shipping_product.id,
             "recurring": {
                 "interval": self.interval,
@@ -577,7 +576,6 @@ class MembershipPlanPrice(Orderable, ClusterableModel):
             {
                 "price_data": self.to_shipping_price_data(zone),
                 "quantity": 1,
-                "tax_rates": [],
             },
         ]
         return line_items

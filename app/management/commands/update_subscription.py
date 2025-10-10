@@ -138,7 +138,6 @@ def process(
                     amount=optional_custom_shipping_fee,
                 ),
                 "quantity": 1,
-                "tax_rates": [],
             }
         ]
         # Replace old shipping item

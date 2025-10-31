@@ -361,8 +361,8 @@ def create_gift_recipient_subscription(
         customer=user.stripe_customer.id,
         items=items,
         **discount_args,
-        payment_behavior="default_incomplete",
-        off_session=True,
+        collection_method="send_invoice",
+        days_until_due=30,
         metadata={
             "gift_giver_subscription": gift_giver_subscription.id,
             "promo_code": promo_code_id,

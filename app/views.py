@@ -58,6 +58,7 @@ from app.utils.stripe import (
     create_donation_line_item,
     create_gift_recipient_subscription,
     gift_giver_subscription_from_code,
+    get_primary_product_for_djstripe_subscription
 )
 
 
@@ -435,7 +436,8 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
 
         # Create subscription
         # try:
-        self.finish_gift_redemption(self.request.session["gift_giver_subscription"])
+        subscription = self.finish_gift_redemption(self.request.session["gift_giver_subscription"])
+        product = get_primary_product_for_djstripe_subscription(subscription)
 
         # Stop showing a "finish redemption" notice
         self.request.session["gift_giver_subscription"] = None
@@ -459,7 +461,7 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
             self.request.user,
             line_items=[
                 {
-                    "title": f"Gift Card Redeemed — {self.request.user.primary_product.name}",
+                    "title": f"Gift Card Redeemed — {product.name}",
                     "quantity": 1,
                     "price": 0,
                 }
@@ -469,7 +471,7 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
 
         return super().form_valid(form)
 
-    def finish_gift_redemption(self, gift_giver_subscription_id) -> dict:
+    def finish_gift_redemption(self, gift_giver_subscription_id) -> djstripe.models.Subscription:
         try:
             stripe_sub = stripe.Subscription.retrieve(gift_giver_subscription_id)
             gift_giver_subscription = (
@@ -482,13 +484,12 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
                 self.request.user.cleanup_membership_subscriptions(
                     keep=[gift_recipient_subscription.id]
                 )
+            return gift_recipient_subscription
         except djstripe.models.Subscription.DoesNotExist as e:
             capture_exception(e)
             raise ValueError(
                 "Couldn't set up your gifted subscription. Please email info@leftbookclub.com and we'll get you started!"
             )
-
-        return {}
 
 
 class CancellationView(LoginRequiredTemplateView):

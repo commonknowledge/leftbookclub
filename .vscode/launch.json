@@ -35,7 +35,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
       "args": ["runserver"],
-      "justMyCode": true,
+      "justMyCode": false,
       "django": true
     },
     {
@@ -51,6 +51,15 @@
         "group": "",
         "order": 2
       }
+    },
+    {
+      "name": "sync_shopify_products",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["sync_shopify_products"],
+      "justMyCode": false,
+      "django": true
     },
     {
       "name": "django-livereload",

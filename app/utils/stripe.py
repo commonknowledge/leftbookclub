@@ -361,7 +361,7 @@ def create_gift_recipient_subscription(
         customer=user.stripe_customer.id,
         items=items,
         **discount_args,
-        payment_behavior="allow_incomplete",
+        payment_behavior="default_incomplete",
         off_session=True,
         metadata={
             "gift_giver_subscription": gift_giver_subscription.id,

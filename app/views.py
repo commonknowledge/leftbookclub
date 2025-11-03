@@ -485,7 +485,7 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
                     keep=[gift_recipient_subscription.id]
                 )
             return gift_recipient_subscription
-        except djstripe.models.Subscription.DoesNotExist as e:
+        except Exception as e:
             capture_exception(e)
             raise ValueError(
                 "Couldn't set up your gifted subscription. Please email info@leftbookclub.com and we'll get you started!"

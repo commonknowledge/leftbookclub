@@ -106,6 +106,22 @@ def get_shipping_product() -> djstripe.models.Product:
     return dj_shipping_product
 
 
+def get_shipping_products_for_coupon() -> list[djstripe.models.Product]:
+    """
+    Looser query for shipping products to be charged at £0 in gift subscriptions.
+    """
+    metadata_key = "shipping"
+    metadata_value = "True"
+    shipping_products = stripe.Product.search(
+        query=f'name:"{SHIPPING_PRODUCT_NAME}" OR metadata["{metadata_key}"]:"{metadata_value}"',
+    ).data
+
+    dj_shipping_products = [djstripe.models.Product.sync_from_stripe_data(
+        shipping_product
+    ) for shipping_product in shipping_products]
+    return dj_shipping_products
+
+
 def get_donation_product() -> djstripe.models.Product:
     donation_product = None
     metadata_key = "donation"
@@ -163,18 +179,20 @@ def get_gift_card_coupon(
 
     coupon = djstripe.models.Coupon.objects.filter(
         metadata__gift_product_id=product.id
+    ).exclude(
+        metadata__legacy="True"
     ).first()
 
     if coupon is None:
-        shipping_product = get_shipping_product()
-        if shipping_product is None:
+        shipping_products = get_shipping_products_for_coupon()
+        if len(shipping_products) == 0:
             raise ValueError("Couldn't get shipping product")
 
         coupon = stripe.Coupon.create(
             name=coupon_name,
             percent_off=100,
             duration="forever",
-            applies_to={"products": [product.id, shipping_product.id]},
+            applies_to={"products": [product.id] + [p.id for p in shipping_products]},
             metadata={
                 # Required because dj-stripe does not yet save the applied_to field
                 # and stripe does not supporting querying coupons by applied_to
@@ -332,30 +350,30 @@ def create_gift_recipient_subscription(
     promo_code_id = gift_giver_subscription.metadata.get("promo_code")
 
     ####
-    #### Handle the unlikely case that the gift giver has had their product migrated
-    #### since the coupon changed
+    #### Handle the case where the Coupon has become legacy
     ####
 
     product_id = product_price["price_data"]["product"]
     promo_code = stripe.PromotionCode.retrieve(
-        promo_code_id, expand=["coupon.applies_to"]
+        promo_code_id
     )
-    if (
-        hasattr(promo_code.coupon, "applies_to")
-        and hasattr(promo_code.coupon.applies_to, "products")
-        and product_id in promo_code.coupon.applies_to.products
-    ):  # the gift card is fit for purpose
-        discount_args = {"promotion_code": promo_code_id}
 
+    applies_to_product = promo_code.coupon.metadata.get("gift_product_id") == product_id
+
+    if applies_to_product:
+        if promo_code.coupon.metadata.get("legacy") != "True":
+            # the gift card is fit for purpose
+            discount_args = {"promotion_code": promo_code_id}
+        else:
+            # if they're in this situation of the gift card being for an old product
+            # get the right coupon for the target product
+            coupon = get_gift_card_coupon(product_id)
+            # invalidate the gift card's promo code so it can't be used again
+            promo_code = stripe.PromotionCode.modify(promo_code_id, active=False)
+
+            discount_args = {"coupon": coupon.id}
     else:
-        # if they're in this situation of the gift card being for an old product
-        # get the right coupon for the target product
-        coupon = get_gift_card_coupon(product_id)
-        # invalidate the gift card's promo code so it can't be used again
-        promo_code = stripe.PromotionCode.modify(promo_code_id, active=False)
-
-        discount_args = {"coupon": coupon.id}
-        pass
+        raise Exception(f"Promo Code {promo_code.stripe_id} does not apply to product {product_id}")
 
     args = dict(
         customer=user.stripe_customer.id,

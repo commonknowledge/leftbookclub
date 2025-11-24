@@ -26,6 +26,15 @@ class Command(BaseCommand):
         for customer in customers.auto_paging_iter():
             subscriptions = stripe.Subscription.list(customer=customer.id)
             for subscription in subscriptions.auto_paging_iter():
+                # Skip non-active subscriptions
+                if subscription.status != 'active':
+                    print(f"Customer: {customer.email}")
+                    print(f"  Subscription ID: {subscription.id}")
+                    print(f"  Status: {subscription.status} (skipped - not active)\n")
+                    if not dry_run:
+                        stripe.Subscription.modify(subscription.id, metadata={"processed": "True"})
+                        print(f"Customer {customer.email} subscription marked as processed\n")
+                    continue
                 print(f"Customer: {customer.email}")
                 print(f"  Subscription ID: {subscription.id}")
                 print(f"  Status: {subscription.status}")

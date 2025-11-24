@@ -57,7 +57,16 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": ["sync_shopify_products"],
+      "args": ["mark_coupons_as_legacy"],
+      "justMyCode": false,
+      "django": true
+    },
+    {
+      "name": "ensure_stripe_subscriptions_processed",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["ensure_stripe_subscriptions_processed", "--dry-run"],
       "justMyCode": false,
       "django": true
     },

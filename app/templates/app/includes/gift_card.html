@@ -6,7 +6,8 @@
             <div class='fs-7 text-muted'>
                 {% if subscription.promo_code and not subscription.promo_code.active and subscription.promo_code.times_redeemed > 0 %}
                     <span class='text-success fw-bold'>Redeemed ✅</span>
-                {% elif subscription.promo_code and subscription.status != 'active' %}
+                {# Subscription status must match User.valid_subscription_statuses #}
+                {% elif subscription.promo_code and subscription.status != 'active' and subscription.status != 'trialing' and subscription.status != 'past_due' and subscription.status != 'unpaid' %}
                     <span class='text-danger fw-bold'>Cancelled</span>
                 {% elif subscription.promo_code and not subscription.promo_code.active %}
                     <span class='text-danger fw-bold'>Cancelled</span>

@@ -10,7 +10,6 @@ export default class MapClickReadingGroupController extends MapConfigController 
 
   connectMap(map: Map) {
     setTimeout(() => {
-      console.log("setup click handler");
       this.setupClickHandler();
     }, this.delayValue);
   }

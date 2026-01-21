@@ -1,10 +1,49 @@
 import os
-
 import requests
+from typing import Union
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
 
 from app.utils.python import batch_and_aggregate, get, get_path
+from urllib.parse import quote
+
+
+def address_geo(address: str, postcode: Union[str, None] = "", country: Union[str, None] = "GB"):
+    api_token = os.getenv('MAPBOX_PRIVATE_API_KEY')
+    if not api_token:
+        raise ValueError("MAPBOX_PRIVATE_API_KEY environment variable not set")
+
+    search_query = address
+    if postcode:
+        search_query = f"{address}, {postcode}"
+
+    base_url = "https://api.mapbox.com/geocoding/v5/mapbox.places"
+    url = f"{base_url}/{quote(search_query)}.json"
+
+    # Parameters for the API request
+    params = {
+        'access_token': api_token,
+        'country': country,
+        'limit': 1
+    }
+
+    try:
+        # Make the API request
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+
+        # Parse the JSON response
+        data = response.json()
+
+        # Check if we got any results
+        if data.get('features') and len(data['features']) > 0:
+            coordinates = data['features'][0]['geometry']['coordinates']
+            return Point(coordinates[0], coordinates[1])  # (longitude, latitude)
+        else:
+            return None
+
+    except requests.exceptions.RequestException as e:
+        return None
 
 
 def normalise_postcode(postcode):

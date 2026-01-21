@@ -9,8 +9,6 @@ import { startApp } from "groundwork-django";
 const controllers = import.meta.glob("./controllers/*-controller.ts");
 Turbo.session.drive = false;
 
-console.log("running");
-
 initialisePosthog();
 initialiseSentry();
 const application = startApp(controllers);

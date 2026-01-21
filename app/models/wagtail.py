@@ -55,8 +55,9 @@ from app.utils.stripe import create_shipping_zone_metadata, get_shipping_product
 from .stripe import LBCProduct, ShippingZone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.gis.db import models as gis_models
-from app.utils.geo import postcode_geo, point_from_postcode_result 
+from app.utils.geo import postcode_geo, point_from_postcode_result, address_geo
 from django.core.exceptions import ValidationError
+from django_countries.fields import CountryField
 
 class EventDate(models.Model):
     event = ParentalKey("ReadingGroup", on_delete=models.CASCADE, related_name="additional_dates")
@@ -97,6 +98,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         null=True,
         help_text="Enter a UK postcode to show your event on our map.",
     )
+    in_person_country = CountryField(default="GB")
     contact_link_or_email = models.CharField(max_length=128, blank=True, null=True, help_text="(Optional) A link or email address to contact the group.")
     contact_email_address = models.EmailField(max_length=128, blank=False, null=False, help_text="(Private) We will use this to contact you.")
     more_information = models.TextField(max_length=280, blank=True, null=True, help_text="(Optional) Any extra important information about the group.")
@@ -118,6 +120,7 @@ class ReadingGroup(ClusterableModel, models.Model):
         FieldPanel("is_online"),
         FieldPanel("in_person_location"),
         FieldPanel("in_person_postcode"),
+        FieldPanel("in_person_country"),
         FieldPanel("contact_link_or_email"),
         FieldPanel("more_information"),
         FieldPanel("contact_email_address"),
@@ -146,9 +149,14 @@ class ReadingGroup(ClusterableModel, models.Model):
             raise ValidationError("You cannot have more than 6 future dates for this event.")
 
     def save(self, *args, **kwargs):
-        if self.in_person_postcode and not self.coordinates:
+        country_code = self.in_person_country.code if self.in_person_country else None
+        if country_code == "GB" and self.in_person_postcode and not self.coordinates:
             postcode_result = postcode_geo(self.in_person_postcode)
             point = point_from_postcode_result(postcode_result)
+            if point:
+                self.coordinates = point
+        if self.in_person_location and not self.coordinates:
+            point = address_geo(address=self.in_person_location, postcode=self.in_person_postcode, country=country_code)
             if point:
                 self.coordinates = point
         self.full_clean()  # Run validation before saving
@@ -174,10 +182,11 @@ class ReadingGroup(ClusterableModel, models.Model):
             "type": "Feature",
             "geometry": geometry,
             "properties": {
+                "id": self.id,
                 "name": self.group_name,
                 "slug": self.group_name.lower().replace(" ", "-"),
-                "starts_at": next_date.isoformat(),
-                "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y"),
+                "starts_at": next_date.isoformat() if next_date else None,
+                "human_readable_date": timezone.localtime(next_date).strftime("%d %b %Y") if next_date else None,
                 "location_type": "virtual" if self.is_online else "in_person",
                 "in_person_location": self.in_person_location,
                 "contact_link_or_email": self.contact_link_or_email,

@@ -1,8 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["input", "error", "clear", "submit"];
+  static targets = ["input", "country", "error", "clear", "submit"];
   declare readonly inputTarget: HTMLInputElement;
+  declare readonly countryTarget: HTMLSelectElement;
   declare readonly errorTarget: HTMLElement;
   declare readonly clearTarget: HTMLElement;
   declare readonly submitTarget: HTMLElement;
@@ -11,6 +12,7 @@ export default class extends Controller {
     event.preventDefault();
 
     const postcode = this.inputTarget.value.trim().toUpperCase();
+    const country = this.countryTarget.value || "GB";
     this.errorTarget.textContent = "";
 
     if (!postcode) {
@@ -20,7 +22,7 @@ export default class extends Controller {
 
     try {
       const response = await fetch(
-        `/geo/postcode/${encodeURIComponent(postcode)}/`
+        `/geo/postcode/${encodeURIComponent(postcode)}/${country}/`
       );
       const data = await response.json();
 
@@ -35,13 +37,11 @@ export default class extends Controller {
         this.sortReadingGroupsByDistance(data.latitude, data.longitude);
       } else {
         this.errorTarget.textContent =
-          "Postcode not found. Please enter a valid UK postcode.";
+          "Postcode not found. Try entering a full address and checking the selected country.";
       }
     } catch (err) {
       console.error(err);
       this.errorTarget.textContent = "Something went wrong. Try again.";
-    } finally {
-      this.showClear();
     }
   }
 
@@ -49,7 +49,9 @@ export default class extends Controller {
     event.preventDefault();
     this.inputTarget.value = "";
     this.errorTarget.textContent = "";
-    this.showSearch();
+
+    this.showSearch(false);
+    this.showClear(false);
 
     document.querySelectorAll("[data-reading-group-distance]").forEach((el) => {
       el.textContent = "";
@@ -78,17 +80,22 @@ export default class extends Controller {
   }
 
   inputChanged() {
-    this.showSearch();
+    const value = this.inputTarget.value.trim().toUpperCase();
+    if (value) {
+      this.showSearch(true);
+      this.showClear(true);
+    } else {
+      this.showSearch(false);
+      this.showClear(false);
+    }
   }
 
-  showClear() {
-    this.clearTarget.classList.toggle("tw-hidden", false);
-    this.submitTarget.classList.toggle("tw-hidden", true);
+  showClear(show: boolean) {
+    this.clearTarget.classList.toggle("tw-hidden", !show);
   }
 
-  showSearch() {
-    this.clearTarget.classList.toggle("tw-hidden", true);
-    this.submitTarget.classList.toggle("tw-hidden", false);
+  showSearch(show: boolean) {
+    this.submitTarget.classList.toggle("tw-hidden", !show);
   }
 
   sortReadingGroupsByDistance(lat: number, lon: number) {

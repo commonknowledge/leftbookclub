@@ -47,7 +47,10 @@
                   name="country"
                   class="tw-border tw-py-2 tw-pl-2 tw-pr-10 tw-w-full tw-rounded"
                   data-zoom-to-postcode-target="country"
-                  data-action="keyup->zoom-to-postcode#inputChanged"
+<<<<<<< Updated upstream
+                  data-action="change->zoom-to-postcode#inputChanged"
+=======
+>>>>>>> Stashed changes
                >
                {% for country in countries %}
                   <option value="{{ country.code }}" {% if country.code == 'GB' %}selected{% endif %}>{{ country.name }}</option>

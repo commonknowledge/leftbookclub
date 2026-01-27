@@ -22,7 +22,7 @@ export default class extends Controller {
 
     try {
       const response = await fetch(
-        `/geo/postcode/${encodeURIComponent(postcode)}/${country}`
+        `/geo/postcode/${encodeURIComponent(postcode)}/${country}/`
       );
       const data = await response.json();
 

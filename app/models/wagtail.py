@@ -57,6 +57,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.gis.db import models as gis_models
 from app.utils.geo import postcode_geo, point_from_postcode_result, address_geo
 from django.core.exceptions import ValidationError
+from django_countries import countries
 from django_countries.fields import CountryField
 
 class EventDate(models.Model):
@@ -150,15 +151,14 @@ class ReadingGroup(ClusterableModel, models.Model):
 
     def save(self, *args, **kwargs):
         country_code = self.in_person_country.code if self.in_person_country else None
-        if country_code == "GB" and self.in_person_postcode and not self.coordinates:
+        point = None
+        if country_code == "GB" and self.in_person_postcode:
             postcode_result = postcode_geo(self.in_person_postcode)
             point = point_from_postcode_result(postcode_result)
-            if point:
-                self.coordinates = point
-        if self.in_person_location and not self.coordinates:
+        if point is None and self.in_person_location:
             point = address_geo(address=self.in_person_location, postcode=self.in_person_postcode, country=country_code)
-            if point:
-                self.coordinates = point
+        if point:
+            self.coordinates = point
         self.full_clean()  # Run validation before saving
         super().save(*args, **kwargs)
 
@@ -1291,6 +1291,7 @@ class ReadingGroupsPage(WagtailCacheMixin, Page):
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context.update(ReadingGroupsPage.get_map_context())
+        context["countries"] = [{"name": country.name, "code": country.code} for country in countries]
         return context
 
 

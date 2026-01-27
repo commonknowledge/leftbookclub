@@ -34,7 +34,7 @@ from djmoney.money import Money
 from djstripe import settings as djstripe_settings
 from sentry_sdk import capture_exception, capture_message
 from wagtail.models import Page
-from app.utils.geo import postcode_geo
+from app.utils.geo import address_geo, postcode_geo
 from django.http import JsonResponse
 
 from app import analytics
@@ -1359,11 +1359,19 @@ class V2SubscriptionCheckoutView(TemplateView):
         return StripeCheckoutView.as_view(context=checkout_context)(request)
 
 
-def postcode_lookup_view(request, postcode):
-    data = postcode_geo(postcode)
+def postcode_lookup_view(request, postcode, country_code):
+    data = None
+    if country_code == "GB":
+        data = postcode_geo(postcode)
     if data:
         return JsonResponse({
             "latitude": data["latitude"],
             "longitude": data["longitude"]
+        })
+    data = address_geo(postcode, country=country_code)
+    if data:
+        return JsonResponse({
+            "latitude": data.y,
+            "longitude": data.x
         })
     return JsonResponse({}, status=404)

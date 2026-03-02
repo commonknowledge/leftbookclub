@@ -1,4 +1,4 @@
-import { MapConfigController } from "groundwork-django";
+import { MapConfigController } from "@commonknowledgecoop/groundwork-django";
 
 export default class MapHtmlBridgeController extends MapConfigController {
   static values = {

@@ -1,5 +1,5 @@
 import type { Map } from "mapbox-gl";
-import { MapConfigController } from "groundwork-django";
+import { MapConfigController } from "@commonknowledgecoop/groundwork-django";
 
 export default class MapClickReadingGroupController extends MapConfigController {
   static values = {

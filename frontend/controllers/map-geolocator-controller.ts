@@ -1,5 +1,5 @@
 import type { Map, Marker } from "mapbox-gl";
-import { MapConfigController } from "groundwork-django";
+import { MapConfigController } from "@commonknowledgecoop/groundwork-django";
 import mapboxgl from "mapbox-gl";
 
 export default class GeolocateController extends MapConfigController {

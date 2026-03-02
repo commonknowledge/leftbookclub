@@ -1,5 +1,5 @@
 import type { Map, MapLayerEventType } from "mapbox-gl";
-import { MapConfigController } from "groundwork-django";
+import { MapConfigController } from "@commonknowledgecoop/groundwork-django";
 
 export default class MapScrollToHtmlController extends MapConfigController {
   static targets = ["scroll"];

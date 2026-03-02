@@ -7,7 +7,7 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
-    "@commonknowledgecoop/groundwork-django": "^0.1.6",
+    "@commonknowledgecoop/groundwork-django": "^0.1.8",
     "@hotwired/stimulus": "^3.0.1",
     "@hotwired/turbo": "^7.3.0",
     "@jvitela/mustache-wax": "^1.0.4",

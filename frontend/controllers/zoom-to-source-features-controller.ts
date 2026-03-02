@@ -1,5 +1,5 @@
 import type { Map } from "mapbox-gl";
-import { MapConfigController } from "groundwork-django";
+import { MapConfigController } from "@commonknowledgecoop/groundwork-django";
 import bbox from "@turf/bbox";
 
 export default class ZoomController extends MapConfigController {

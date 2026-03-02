@@ -7,6 +7,7 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "@commonknowledgecoop/groundwork-django": "^0.1.6",
     "@hotwired/stimulus": "^3.0.1",
     "@hotwired/turbo": "^7.3.0",
     "@jvitela/mustache-wax": "^1.0.4",
@@ -25,7 +26,6 @@
     "change-case": "^4.1.2",
     "date-fns": "^2.29.3",
     "debug": "^4.3.2",
-    "groundwork-django": "^0.1.4",
     "lodash-es": "^4.17.21",
     "mapbox-gl": "^2.10.0",
     "mjml": "^4.12.0",

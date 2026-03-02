@@ -305,6 +305,11 @@
   resolved "https://registry.npmjs.org/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@commonknowledgecoop/groundwork-django@^0.1.6":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@commonknowledgecoop/groundwork-django/-/groundwork-django-0.1.7.tgz#127e65e25be590c6a9419ce873238cbc84ebfb12"
+  integrity sha512-AJ/i2Bp2HOAOLX3KmZoCAF7MZei6c5ekwLa27VKRzPkw5ac2w8jjAZKYOwn1bPHLVNeGNPwlZuYZFj1ITbb0iw==
+
 "@esbuild/android-arm64@0.19.7":
   version "0.19.7"
   resolved "https://registry.yarnpkg.com/@esbuild/android-arm64/-/android-arm64-0.19.7.tgz#646156aea43e8e6723de6e94a4ac07c5aed41be1"
@@ -2081,11 +2086,6 @@ grid-index@^1.1.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/grid-index/-/grid-index-1.1.0.tgz"
   integrity sha512-HZRwumpOGUrHyxO5bqKZL0B0GlUpwtCAzZ42sgxUPniu33R1LSFH5yrIcBCHjkctCAh3mtWKcKd9J4vDDdeVHA==
-
-groundwork-django@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.npmjs.org/groundwork-django/-/groundwork-django-0.1.4.tgz"
-  integrity sha512-csvPX8Ov6iQWUn0GvWuh7iO9eT30riPhXBR4l+EescSlKQh7G4gkYLtrYTqUDaXG41ykWjGHCceJ74TXz/1zHA==
 
 has-flag@^3.0.0:
   version "3.0.0"

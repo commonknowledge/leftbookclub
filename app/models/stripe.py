@@ -106,6 +106,12 @@ class LBCSubscription(djstripe.models.Subscription):
         except:
             return None
 
+    def phone_number(self):
+        try:
+            return self.customer.phone or None
+        except:
+            return None
+
     def is_active_member(self):
         try:
             user = self.customer.subscriber

@@ -129,6 +129,7 @@ class CustomerAdmin(ModelAdmin):
     list_export = (
         "recipient_name",
         "recipient_email",
+        "phone_number",
         "primary_product_name",
         "should_upgrade",
         "has_legacy_membership_price",

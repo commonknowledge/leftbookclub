@@ -96,7 +96,7 @@ class Command(BaseCommand):
         promo_code, gift_giver_subscription = create_gift_subscription_and_promo_code(
             plan, gift_giver_user, payment_card
         )
-        print(settings.BASE_URL + reverse("redeem", code=promo_code.code))
+        print(settings.BASE_URL + reverse("redeem", kwargs={"code": promo_code.code}))
 
     def create_test_plan(
         self, product, plan_title, deliveries_per_year, price, interval, interval_count
@@ -108,7 +108,10 @@ class Command(BaseCommand):
             # sync all products
             products = stripe.Product.list(limit=100)
             for product in products:
-                djstripe.models.Product.sync_from_stripe_data(product)
+                try:
+                    djstripe.models.Product.sync_from_stripe_data(product)
+                except Exception as e:
+                    print(f"Error syncing product {product} from stripe: {e}")
 
             # pick a Stripe product to use as the basis of this plan
             product = djstripe.models.Product.objects.filter(

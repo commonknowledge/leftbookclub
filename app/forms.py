@@ -101,8 +101,7 @@ class StripeShippingForm(forms.Form):
         label="Phone number",
         help_text="Phone number for delivery contact",
         max_length=50,
-        required=False,
-        empty_value=None,
+        required=True,
     )
     line1 = forms.CharField(
         label="Address line 1",

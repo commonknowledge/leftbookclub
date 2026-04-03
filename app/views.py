@@ -419,15 +419,12 @@ class GiftMembershipSetupView(MemberSignupUserRegistrationMixin, FormView):
         if self.request.user.stripe_customer is not None:
             shipping_data = self.request.user.stripe_customer.shipping
             if shipping_data is not None:
-                initial.update(
-                    {
-                        key: value
-                        for key, value in StripeShippingForm.stripe_data_to_initial(
-                            shipping_data
-                        ).items()
-                        if value is not None
-                    }
-                )
+                # Only pre-fill name and phone — not address fields, to avoid stale
+                # values from a previous address bleeding into a new one.
+                for key in ("name", "phone"):
+                    value = StripeShippingForm.stripe_data_to_initial(shipping_data).get(key)
+                    if value is not None:
+                        initial[key] = value
         return initial
 
     def form_valid(self, form):

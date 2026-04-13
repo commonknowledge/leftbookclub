@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 
 from .base import *
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 
 DEBUG = os.getenv("DEBUG", False)

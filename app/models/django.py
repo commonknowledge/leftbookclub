@@ -143,6 +143,10 @@ class User(AbstractUser):
         return self.active_subscription is not None
 
     @property
+    def can_buy_books(self):
+        return self.is_member or self.is_staff
+
+    @property
     def has_overdue_payment(self):
         return (
             self.is_member

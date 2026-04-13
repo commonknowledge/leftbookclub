@@ -50,9 +50,9 @@
                         </div>
                     {% else %}
                         <hr />
-                        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{ user.is_member|negate }}">
+                        <turbo-frame id='cartoptions' src="{% url 'cartoptions' product_id=page.shopify_product_id %}?disabled={{ user.can_buy_books|negate }}">
                         {% comment %} Start with cached information, then load in newer info {% endcomment %}
-                        {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.is_member|negate %}
+                        {% include "app/includes/cart_options.html" with product=product loading=True disabled=user.can_buy_books|negate %}
                         </turbo-frame>
                         <hr />
                     {% endif %}

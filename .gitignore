@@ -153,3 +153,6 @@ groundwork/*
 
 # Database dump
 lbc.psql
+
+# Claude
+.claude

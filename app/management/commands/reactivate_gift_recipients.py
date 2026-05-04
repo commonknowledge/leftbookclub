@@ -10,9 +10,10 @@ from app.utils.stripe import (
     recreate_one_off_stripe_price,
 )
 
-# Giver subscription IDs whose recipient subs were incorrectly cancelled
-# after Stripe tried to charge postage that the gift coupon did not cover.
-GIVER_SUB_IDS = [
+# Cancelled gift-recipient subscription IDs to rebuild.
+# The 100%-off gift coupon stopped covering postage after a price rise,
+# Stripe charged £3.50, the recipient's card failed, and the sub was cancelled.
+RECIPIENT_SUB_IDS = [
     "sub_1RxyozKYdS0VccAE9OeDezF2",  # Temple Daniel
     "sub_1RpnhoKYdS0VccAElU8y8Z3v",  # Rosa Tully
 ]
@@ -29,22 +30,23 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        for giver_sub_id in GIVER_SUB_IDS:
+        for recipient_sub_id in RECIPIENT_SUB_IDS:
             try:
-                self.reactivate(giver_sub_id, dry_run=options["dry_run"])
+                self.reactivate(recipient_sub_id, dry_run=options["dry_run"])
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"❌ {giver_sub_id}: {e}"))
+                self.stdout.write(self.style.ERROR(f"❌ {recipient_sub_id}: {e}"))
 
-    def reactivate(self, giver_sub_id, dry_run=False):
-        giver_sub = stripe.Subscription.retrieve(giver_sub_id)
-        old_recipient_sub_id = giver_sub.metadata.get("gift_recipient_subscription")
-        if not old_recipient_sub_id:
-            raise ValueError("no gift_recipient_subscription on giver metadata")
-
+    def reactivate(self, recipient_sub_id, dry_run=False):
         old_recipient_sub = stripe.Subscription.retrieve(
-            old_recipient_sub_id,
+            recipient_sub_id,
             expand=["items.data.price.product"],
         )
+
+        giver_sub_id = old_recipient_sub.metadata.get("gift_giver_subscription")
+        if not giver_sub_id:
+            raise ValueError("no gift_giver_subscription on recipient metadata")
+
+        giver_sub = stripe.Subscription.retrieve(giver_sub_id)
         customer_id = old_recipient_sub.customer
 
         items = []
@@ -52,7 +54,9 @@ class Command(BaseCommand):
         for si in old_recipient_sub["items"]["data"]:
             price = si.price
             product = price.product
-            product_name = product["name"] if isinstance(product, dict) else getattr(product, "name", None)
+            product_name = (
+                product["name"] if isinstance(product, dict) else getattr(product, "name", None)
+            )
 
             if price.metadata.get("shipping_zone"):
                 zone = ShippingZone.get_for_code(
@@ -88,8 +92,8 @@ class Command(BaseCommand):
         promo_code_id = giver_sub.metadata.get("promo_code")
 
         self.stdout.write(
-            f"→ {giver_sub_id}: customer={customer_id}, membership_product={membership_product_id}, "
-            f"coupon={coupon.id}, items={len(items)}"
+            f"→ {recipient_sub_id}: giver={giver_sub_id}, customer={customer_id}, "
+            f"membership_product={membership_product_id}, coupon={coupon.id}, items={len(items)}"
         )
 
         if dry_run:
@@ -124,6 +128,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"✅ {giver_sub_id}: created replacement recipient sub {new_sub.id}"
+                f"✅ {recipient_sub_id}: created replacement recipient sub {new_sub.id}"
             )
         )

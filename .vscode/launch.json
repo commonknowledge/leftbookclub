@@ -39,6 +39,21 @@
       "django": true
     },
     {
+      "name": "django-prod",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "app.settings.production",
+        "DEBUG": "False",
+        "SECRET_KEY": "local-test",
+        "ALLOWED_HOSTS": "localhost"
+      },
+      "args": ["runserver"],
+      "justMyCode": true,
+      "django": true
+    },
+    {
       "name": "django-run-cron-tasks",
       "type": "python",
       "request": "launch",

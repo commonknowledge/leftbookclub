@@ -300,7 +300,7 @@ class User(AbstractUser):
         for sub in self.stripe_customer.subscriptions.all():
             if sub.metadata.get("gift_mode", None) is None and not sub.id in keep:
                 try:
-                    stripe.Subscription.delete(sub.id, proration_behavior='create_prorations')
+                    stripe.Subscription.delete(sub.id, prorate=True)
                 except:
                     pass
         self.refresh_stripe_data()

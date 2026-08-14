@@ -92,7 +92,7 @@ class Command(BaseCommand):
                         f"🔵 No coupon upgrade required {sub.primary_product.name} [{sub.id}] -- {old_coupon_name} [{old_coupon_id}]"
                     )
                 else:
-                    new_sub = stripe.Subscription.modify(sub.id, coupon=coupon.id)
+                    new_sub = stripe.Subscription.modify(sub.id, discounts=[{'coupon': coupon.id}])
                     sub = LBCSubscription.sync_from_stripe_data(new_sub)
                     print(
                         f"🟢 Updated subscription to use new coupon: {sub.primary_product.name} [{sub.id}] -- {old_coupon_name} [{old_coupon_id}] -> {coupon.name} [{coupon.id}]"

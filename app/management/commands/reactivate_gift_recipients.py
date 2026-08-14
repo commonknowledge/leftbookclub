@@ -103,7 +103,7 @@ class Command(BaseCommand):
         new_sub = stripe.Subscription.create(
             customer=customer_id,
             items=items,
-            coupon=coupon.id,
+            discounts=[{'coupon': coupon.id}],
             payment_behavior="allow_incomplete",
             off_session=True,
             metadata={

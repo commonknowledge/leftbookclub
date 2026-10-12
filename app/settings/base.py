@@ -367,7 +367,10 @@ RENDER_APP_NAME = os.getenv("RENDER_APP_NAME", None)
 # Circle
 CIRCLE_API_KEY = os.getenv("CIRCLE_API_KEY", None)
 CIRCLE_COMMUNITY_ID = os.getenv("CIRCLE_COMMUNITY_ID", 42711)
-CIRCLE_PER_PAGE = os.getenv("CIRCLE_PER_PAGE", 100)
+CIRCLE_PER_PAGE = os.getenv("CIRCLE_PER_PAGE", 25)
+# Only sync events created within this many days; older ones are already in
+# the database (sync never deletes) and are not shown on the site.
+CIRCLE_EVENTS_MAX_AGE_DAYS = int(os.getenv("CIRCLE_EVENTS_MAX_AGE_DAYS", 365))
 SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS = int(
     os.getenv("SYNC_INTERVAL_MINUTES_CIRCLE_EVENTS", SYNC_INTERVAL_DEFAULT_MINUTES)
 )

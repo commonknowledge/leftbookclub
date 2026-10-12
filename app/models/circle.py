@@ -5,12 +5,14 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 
 import humanize
+from dateutil.parser import isoparse
 from django import forms  # the default Django widgets live here
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.geos import Point
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
+from django.utils import timezone
 from groundwork.core.datasources import RestDatasource, SyncConfig, SyncedModel
 from wagtail.admin import widgets  # to use Wagtail's special datetime widget
 from wagtail.admin.panels import FieldPanel
@@ -37,14 +39,32 @@ class CircleAPIResource(RestDatasource[ResourceT]):
     api_key: str
     community_id: Optional[str] = None
 
-    def __init__(self, resource_type: ResourceT, community_id=None, **kwargs):
+    # Stop paginating once a page's oldest item was created more than this
+    # many days ago. Circle returns items newest-first by `created_at` and
+    # does not support filtering, so without this every sync downloads the
+    # community's entire history. Set to None to fetch everything.
+    max_age_days: Optional[int] = None
+
+    def __init__(self, resource_type: ResourceT, community_id=None, max_age_days=None, **kwargs):
         super().__init__(resource_type=resource_type, **kwargs)
 
         if not hasattr(self, "api_key"):
             self.api_key = getattr(settings, "CIRCLE_API_TOKEN", None)
 
+        if max_age_days is not None:
+            self.max_age_days = max_age_days
+
     def get_headers(self) -> Dict[str, str]:
         return {"Authorization": f"Token {self.api_key}"}
+
+    def is_too_old(self, item: Dict[str, Any]) -> bool:
+        if self.max_age_days is None:
+            return False
+        created_at = item.get("created_at")
+        if not created_at:
+            return False
+        created_at = isoparse(created_at)
+        return created_at < timezone.now() - timedelta(days=self.max_age_days)
 
     def paginate(self, **query: Dict[str, Any]) -> Iterable[ResourceT]:
         page = query.get("page", 1)
@@ -62,6 +82,9 @@ class CircleAPIResource(RestDatasource[ResourceT]):
 
             if len(data) < query["per_page"]:
                 # Ran out of results
+                return
+            elif data and self.is_too_old(data[-1]):
+                # Results are newest-first; everything after this is older still
                 return
             else:
                 page += 1
@@ -218,7 +241,8 @@ circle_events = CircleAPIResource(
     path="/events",
     resource_type=CircleEvent,
     api_key=settings.CIRCLE_API_KEY,
-    community_id=int(settings.CIRCLE_COMMUNITY_ID)
+    community_id=int(settings.CIRCLE_COMMUNITY_ID),
+    max_age_days=settings.CIRCLE_EVENTS_MAX_AGE_DAYS,
 )
 
 

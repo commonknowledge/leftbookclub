@@ -4,10 +4,21 @@
     <nav class='tw-hidden md:tw-flex text-uppercase tw-text-sm navbar container-xl'>
         <ul class="nav col-12 col-md tw-justify-center md:tw-justify-start tw-order-3 md:tw-order-1 small-text tw-text-black">
             {% for item in menu_items %}
-                <li>
-                    <a href="{{ item.href }}"
-                       class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a>
-                </li>
+                {% if item.has_children_in_menu %}
+                    <li class="dropdown">
+                        <a href="{{ item.href }}"
+                           class="nav-link px-2 link-dark dropdown-toggle {{ item.active_class }}"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">{{ item.text }}</a>
+                        {% sub_menu item template="menus/header_dropdown.html" %}
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ item.href }}"
+                           class="nav-link px-2 link-dark {{ item.active_class }}">{{ item.text }}</a>
+                    </li>
+                {% endif %}
             {% endfor %}
         </ul>
         <a href="/"
@@ -88,6 +99,9 @@
                     <div class='px-2'>
                         <a href="{{ item.href }}"
                            class="nav-link !tw-text-black {{ item.active_class }}">{{ item.text }}</a>
+                        {% if item.has_children_in_menu %}
+                            {% sub_menu item template="menus/header_mobile_submenu.html" %}
+                        {% endif %}
                     </div>
                 {% endfor %}
                 {% if not user.is_member %}

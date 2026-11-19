@@ -1,0 +1,6 @@
+{% for item in menu_items %}
+    <div class='tw-pl-4'>
+        <a href="{{ item.href }}"
+           class="nav-link !tw-text-black !tw-py-1 {{ item.active_class }}">{{ item.text }}</a>
+    </div>
+{% endfor %}

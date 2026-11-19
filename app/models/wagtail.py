@@ -18,6 +18,8 @@ from django.db.models import Q
 from django.forms import Select
 from django.templatetags.static import static
 from django.urls import reverse
+from wagtailmenus.models import MenuPageMixin
+from wagtailmenus.panels import menupage_panel
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 from django.utils.html import strip_tags
@@ -743,12 +745,13 @@ class ImageRendition(AbstractRendition):
 
 
 @method_decorator(cache_page, name="serve")
-class BlogIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
+class BlogIndexPage(WagtailCacheMixin, IndexPageSeoMixin, MenuPageMixin, Page):
     """
     Define blog index page.
     """
 
     show_in_menus_default = True
+    settings_panels = Page.settings_panels + [menupage_panel]
 
     intro = RichTextField(blank=True)
 
@@ -978,8 +981,9 @@ class BaseShopifyProductPage(ArticleSeoMixin, Page):
 
 
 @method_decorator(cache_page, name="serve")
-class MerchandiseIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
+class MerchandiseIndexPage(WagtailCacheMixin, IndexPageSeoMixin, MenuPageMixin, Page):
     show_in_menus_default = True
+    settings_panels = Page.settings_panels + [menupage_panel]
     layout = create_streamfield()
     content_panels = Page.content_panels + [FieldPanel("layout")]
 
@@ -1201,15 +1205,17 @@ class HomePage(WagtailCacheMixin, IndexPageSeoMixin, RoutablePageMixin, Page):
 
 
 @method_decorator(cache_page, name="serve")
-class InformationPage(WagtailCacheMixin, ArticleSeoMixin, Page):
+class InformationPage(WagtailCacheMixin, ArticleSeoMixin, MenuPageMixin, Page):
     show_in_menus_default = True
+    settings_panels = Page.settings_panels + [menupage_panel]
     layout = create_streamfield()
     content_panels = Page.content_panels + [FieldPanel("layout")]
 
 
 @method_decorator(cache_page, name="serve")
-class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, Page):
+class BookIndexPage(WagtailCacheMixin, IndexPageSeoMixin, MenuPageMixin, Page):
     show_in_menus_default = True
+    settings_panels = Page.settings_panels + [menupage_panel]
     layout = create_streamfield()
     content_panels = Page.content_panels + [FieldPanel("layout")]
 

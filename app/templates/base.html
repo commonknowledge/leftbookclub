@@ -79,7 +79,7 @@
         <!-- End Google Tag Manager (noscript) -->
         <div id='wagtailuserbar-data-turbo-permanent-wrapper' data-turbo-permanent>{% wagtailuserbar %}</div>
         {% block header %}
-            {% main_menu max_levels=1 template="menus/header.html" %}
+            {% main_menu max_levels=2 template="menus/header.html" %}
         {% endblock %}
         <main class="{% block content_extra_classes %}{% endblock %} {% block content_width %}container-fluid container-xl{% endblock %} {% block content_padding %}py-3{% endblock %} tw-flex-grow">
             {% block content %}{% endblock %}

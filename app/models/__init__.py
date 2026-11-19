@@ -4,3 +4,4 @@ from .settings import *
 from .stripe import *
 from .wagtail import *
 from .readinggroups import *
+from .menus import *

@@ -11,7 +11,7 @@
     "@hotwired/stimulus": "^3.0.1",
     "@hotwired/turbo": "^7.3.0",
     "@jvitela/mustache-wax": "^1.0.4",
-    "@popperjs/core": "^2.10.2",
+    "@popperjs/core": "^2.11.8",
     "@sentry/browser": "^6.19.7",
     "@sentry/tracing": "^6.19.7",
     "@shopify/storefront-api-client": "^1.0.4",
